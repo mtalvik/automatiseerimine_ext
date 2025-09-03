@@ -1,4 +1,4 @@
-# 📚 Week 9: Git Reading Materials (Homework Task 2)
+# 📚  Git Reading Materials (Homework Task 2)
 
 **Estimated Reading Time:** 2-3 hours  
 **Due:** Before next class session
