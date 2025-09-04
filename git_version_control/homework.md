@@ -1,4 +1,4 @@
-# Nädal 9 Kodutöö: Git Projekti Portfolio
+Kodutöö: Git Projekti Portfolio
 
 **Tähtaeg:** Järgmise nädala alguseks  
 **Eesmärk:** Demonstreerida Git'i ja GitHub'i oskusi  
