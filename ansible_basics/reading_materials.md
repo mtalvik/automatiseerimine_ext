@@ -1,4 +1,4 @@
-# 📚 Week 11: Ansible Reading Materials (Homework Task 2)
+# 📚 Ansible Reading Material
 
 **Estimated Reading Time:** 2-3 hours  
 **Due:** Before next class session
