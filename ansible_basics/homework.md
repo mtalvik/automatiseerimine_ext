@@ -1,4 +1,4 @@
-# 📝 Nädal 11 Kodutöö: LAMP Stack Playbook
+# 📝 Kodutöö: LAMP Stack Playbook
 
 **Tähtaeg:** Järgmise nädala alguseks  
 **Eesmärk:** Õppida Ansible playbook'i loomist praktiliselt ja iseseisvalt  
