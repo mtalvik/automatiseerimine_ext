@@ -1,4 +1,4 @@
-# Git Apply - Lihtne Juhend
+# Git Apply
 
 **Kestus:** 15 minutit  
 **Eesmärk:** Õppida rakendama lihtsaid muudatusi patch failidest
