@@ -266,7 +266,7 @@ index x1y2z3a..b4c5d6e 100644
 
 ---
 
-## 📖 Diff'i Lugemise Sammud
+## 📖 Diff'i Lugemine
 
 ### 1. Vaata Konteksti
 ```
