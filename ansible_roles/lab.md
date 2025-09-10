@@ -1,4 +1,4 @@
-# Ansible Roles Lab - Kompaktne + Selgitustega
+# Ansible Roles Lab
 
 **Aeg:** 2h | **Eesmärk:** Professionaalse Nginx role loomine
 
