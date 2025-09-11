@@ -1,4 +1,4 @@
-# Ansible Reading Material - Kompaktne Versioon
+# Ansible Reading
 
 **Aeg:** 90min lugemist | **Tähtaeg:** Enne järgmist tundi
 
