@@ -250,13 +250,13 @@ ansible -i inventory.ini webservers -m shell -a "cat /tmp/test.txt"
 ansible -i inventory.ini webservers -m apt -a "name=htop state=present" --become --ask-become-pass
 
 # Tekitame kasutaja ja genereerime talle parooli
-ansible -i inventory.ini webservers -m user -a "name=testuser shell=/bin/bash home=/home/testuser password={{ 'parool123' | password_hash('sha512') }}" --become
+ansible -i inventory.ini webservers -m user -a "name=testuser shell=/bin/bash home=/home/testuser password={{ 'parool123' | password_hash('sha512') }}" --become --ask-become-pass
 
 # Kõigi masina poolt saadaolevate muutujate vaatamiseks
 ansible -i inventory.ini webservers -m setup -a "filter=ansible_distribution*"
 
 # Kindlas grupis nt grupis webservers käskude käivitamiseks
-ansible -i inventory.ini -l webservers -m ping
+ansible -i inventory.ini webservers -m ping
 ```
 
 **📝 PARAMEETRITE SELGITUS:**
