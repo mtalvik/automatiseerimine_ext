@@ -1,232 +1,209 @@
-# Vagrant Setup Guide
+# 🚀 Vagrant Setup for Ansible Lab
 
-## Ülevaade
-Vagrant on virtuaalmasinate haldamise tööriist. Võimaldab kiiresti seadistada ja jagada arenduskeskkondi.
+## Windows Setup Guide
 
-## Prereq'id
-- Windows 10/11 Pro (Hyper-V support)
-- 8GB+ RAM (soovituslik)
-- BIOS'is virtualization enabled
+### 1. Install Required Software
 
-## Install
-
-### VirtualBox
-```bash
+```powershell
+# Install VirtualBox
 winget install Oracle.VirtualBox
-```
-Või laadi `virtualbox.org`
 
-### Vagrant  
-```bash
+# Install Vagrant
 winget install Hashicorp.Vagrant
+
+# RESTART WINDOWS after installation!
 ```
-Või laadi `vagrantup.com`
 
-**Restart after install!**
+Or download manually:
+- VirtualBox: https://virtualbox.org
+- Vagrant: https://vagrantup.com
 
-## Quick Start
+### 2. Create Lab Environment
 
 ```bash
-# Create project
-mkdir dev-env && cd dev-env
+# Create project folder
+mkdir ansible-lab
+cd ansible-lab
 
-# Initialize Vagrantfile
-vagrant init ubuntu/jammy64
+# Download the Vagrantfile (or create it)
+# Copy the Vagrantfile content from above
 
-# Start VM
+# Start both VMs
 vagrant up
 
-# SSH into VM
-vagrant ssh
+# Check status
+vagrant status
+```
 
-# Exit VM
+### 3. Access Your VMs
+
+**Option 1: Use vagrant ssh**
+```bash
+# Connect to controller
+vagrant ssh controller
+
+# Connect to webserver (in new terminal)
+vagrant ssh webserver
+```
+
+**Option 2: Use SSH client (PuTTY, Terminal)**
+```bash
+# Controller: 192.168.56.10
+# Webserver: 192.168.56.11
+# Username: ansible
+# Password: ansible123
+```
+
+### 4. Start Ansible Lab
+
+On controller VM:
+```bash
+# Switch to ansible user
+sudo su - ansible
+
+# Generate SSH key
+ssh-keygen -t ed25519
+# Press Enter 3 times
+
+# Copy key to webserver
+ssh-copy-id ansible@192.168.56.11
+# Enter password: ansible123
+
+# Test connection
+ssh ansible@192.168.56.11
 exit
 
-# Stop VM
-vagrant halt
+# Create your first inventory
+cd ~
+mkdir ansible_tutorial
+cd ansible_tutorial
+
+cat > inventory.ini << 'EOF'
+[local]
+localhost ansible_connection=local
+
+[webservers]
+webserver ansible_host=192.168.56.11 ansible_user=ansible
+
+[all:children]
+local
+webservers
+EOF
+
+# Test Ansible
+ansible -i inventory.ini all -m ping
 ```
 
-## Vagrantfile Template
+## VM Details
 
-```ruby
-Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/jammy64"
-  
-  # Network
-  config.vm.network "private_network", ip: "192.168.56.10"
-  config.vm.network "forwarded_port", guest: 80, host: 8080
-  
-  # Resources
-  config.vm.provider "virtualbox" do |vb|
-    vb.memory = "2048"
-    vb.cpus = 2
-  end
-  
-  # Auto-setup
-  config.vm.provision "shell", inline: <<-SHELL
-    apt update && apt upgrade -y
-    apt install -y git curl vim nginx
-    systemctl start nginx
-  SHELL
-  
-  # Shared folder
-  config.vm.synced_folder ".", "/vagrant"
-end
-```
+| VM | Hostname | IP | User | Password |
+|----|----------|-----|------|----------|
+| Controller | ansible-controller | 192.168.56.10 | ansible | ansible123 |
+| Web Server | web-server | 192.168.56.11 | ansible | ansible123 |
 
-## Essential Commands
+Both VMs also have:
+- User: `vagrant` (password: `vagrant`)
+- Sudo access without password
 
-| Command | Action |
-|---------|--------|
-| `vagrant up` | Start VM |
-| `vagrant halt` | Stop VM |
-| `vagrant reload` | Restart VM |
-| `vagrant ssh` | Connect via SSH |
-| `vagrant destroy` | Delete VM |
-| `vagrant status` | Check status |
-| `vagrant suspend` | Pause VM |
-| `vagrant resume` | Resume paused VM |
-
-## Common Boxes
+## Useful Vagrant Commands
 
 ```bash
-# Ubuntu 22.04
-vagrant init ubuntu/jammy64
+# Start VMs
+vagrant up
 
-# CentOS 7
-vagrant init centos/7
+# Stop VMs
+vagrant halt
 
-# Alpine Linux (minimal)
-vagrant init generic/alpine316
+# Restart VMs
+vagrant reload
 
-# Windows Server (if needed)
-vagrant init gusztavvargadr/windows-server
+# Delete VMs (careful!)
+vagrant destroy
+
+# Check status
+vagrant status
+
+# SSH to specific VM
+vagrant ssh controller
+vagrant ssh webserver
+
+# See SSH config
+vagrant ssh-config
+
+# Suspend/Resume
+vagrant suspend
+vagrant resume
 ```
 
-## Networking Options
+## File Sharing
 
-```ruby
-# Port forwarding
-config.vm.network "forwarded_port", guest: 3000, host: 3000
+Your Windows `ansible-lab` folder is automatically shared to `/vagrant` in both VMs.
 
-# Private network (host-only)
-config.vm.network "private_network", ip: "192.168.56.10"
+```bash
+# In VM
+cd /vagrant
+ls  # See your Windows files
 
-# Public network (bridged)
-config.vm.network "public_network"
-```
-
-## Provisioning
-
-### Shell Script
-```ruby
-config.vm.provision "shell", path: "setup.sh"
-```
-
-### Inline Commands
-```ruby
-config.vm.provision "shell", inline: <<-SHELL
-  apt update
-  apt install -y docker.io
-  usermod -aG docker vagrant
-SHELL
-```
-
-## Multi-Machine Setup
-
-```ruby
-Vagrant.configure("2") do |config|
-  # Web server
-  config.vm.define "web" do |web|
-    web.vm.box = "ubuntu/jammy64"
-    web.vm.network "private_network", ip: "192.168.56.10"
-  end
-  
-  # Database server  
-  config.vm.define "db" do |db|
-    db.vm.box = "ubuntu/jammy64"
-    db.vm.network "private_network", ip: "192.168.56.11"
-  end
-end
+# Copy files between Windows and VM
+cp /vagrant/myfile.yml ~/
 ```
 
 ## Troubleshooting
 
-### Hyper-V Conflict
+### VirtualBox Error
 ```powershell
-# Run as admin
+# If Hyper-V conflict (run as admin)
 bcdedit /set hypervisorlaunchtype off
-# Restart required
+# Restart Windows
 ```
 
-### Performance Issues
-```ruby
-config.vm.provider "virtualbox" do |vb|
-  vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-  vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
-end
-```
-
-### SSH Issues
+### SSH Connection Issues
 ```bash
-# Re-add SSH key
-vagrant ssh-config
+# Regenerate SSH keys
+vagrant ssh-config > config
+ssh -F config controller
 ```
 
-## Useful Plugins
-
+### VM Won't Start
 ```bash
-# Better provisioning
-vagrant plugin install vagrant-reload
+# Check VirtualBox
+VBoxManage list vms
 
-# Disk size management  
-vagrant plugin install vagrant-disksize
-
-# Host manager
-vagrant plugin install vagrant-hostmanager
+# Force cleanup
+vagrant destroy -f
+vagrant up
 ```
 
-## Best Practices
+### Network Issues
+- Make sure Windows Firewall isn't blocking
+- Check VirtualBox network adapter settings
+- Try different IP range (192.168.33.x)
 
-- Keep Vagrantfiles in version control
-- Use `.vagrant/` in `.gitignore`
-- Document custom provisioning
-- Use shared folders for development
-- Snapshot important states: `vagrant snapshot save name`
+## Next Steps
 
-## Example Development Setup
+1. Complete the Ansible lab exercises
+2. Your code in `/vagrant` is shared between Windows and VMs
+3. Use VS Code on Windows with Remote SSH extension
+4. Install VS Code Remote SSH to edit files directly in VM
 
-```ruby
-Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/jammy64"
-  config.vm.network "private_network", ip: "192.168.56.10"
-  
-  config.vm.provider "virtualbox" do |vb|
-    vb.memory = "4096"
-    vb.cpus = 2
-  end
-  
-  # Development tools
-  config.vm.provision "shell", inline: <<-SHELL
-    # Node.js LTS
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-    apt-get install -y nodejs
-    
-    # Docker
-    curl -fsSL https://get.docker.com | sh
-    usermod -aG docker vagrant
-    
-    # VS Code Server (optional)
-    wget -O- https://aka.ms/install-vscode-server/setup.sh | sh
-  SHELL
-  
-  config.vm.synced_folder "./projects", "/home/vagrant/projects"
-end
+## Clean Up
+
+When done with the lab:
+```bash
+# Save your work first!
+cp -r ~/ansible_tutorial /vagrant/
+
+# Stop VMs (can start again later)
+vagrant halt
+
+# OR completely remove VMs
+vagrant destroy
 ```
 
-## Resources
-- [Official Docs](https://www.vagrantup.com/docs)
-- [Vagrant Cloud](https://app.vagrantup.com/boxes/search)
-- [Community Boxes](https://app.vagrantup.com/)
+## Tips
 
-🦍 Better for teenagers who actually know what they're doing!
+- Use Git Bash on Windows for better terminal experience
+- Install Windows Terminal for multiple tabs
+- VS Code with Remote SSH extension works great
+- Take snapshots: `vagrant snapshot save before-lab`
+- Restore snapshot: `vagrant snapshot restore before-lab`
