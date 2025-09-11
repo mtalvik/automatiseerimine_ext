@@ -517,7 +517,7 @@ nano playbooks/03_template.yml
   tasks:
     - name: "Deploy HTML from template"
       template:                   # template moodul (mitte copy!)
-        src: templates/website.html.j2    # Lähtefail
+        src: templates/website.html.j2    # Lähtefail !!!!TRY FULL PATH, IF NOT WORKING
         dest: /var/www/html/index.html    # Sihtfail
       notify: reload nginx
   
