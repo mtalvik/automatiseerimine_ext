@@ -680,9 +680,9 @@ host_key_checking = False
 stdout_callback = yaml
 
 [privilege_escalation]
-become = True
-become_method = sudo
-become_user = root
+#become = True
+#become_method = sudo
+#become_user = root
 become_ask_pass = False
 ```
 
