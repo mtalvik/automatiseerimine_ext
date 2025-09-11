@@ -1,104 +1,48 @@
-# Ansible Reading
+# Ansible Learning Resources
 
-**Aeg:** 90min lugemist | **Tähtaeg:** Enne järgmist tundi
+### 1. Ansible Arhitektuur
+**Alusta siit:**
+- [Getting Started with Ansible](https://docs.ansible.com/ansible/latest/getting_started/index.html) - Ametlik dokumentatsioon
+- [How Ansible Works](https://www.ansible.com/overview/how-ansible-works) - Visuaalne ülevaade
 
----
+**Video:**
+- [Ansible in 100 Seconds](https://www.youtube.com/watch?v=xRMPKQweySE) - Kiire ülevaade
 
-## Kohustuslik lugemine (60min)
+### 2. YAML Süntaks
+**Õpi YAML:**
+- [Ansible YAML Syntax](https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html) - Ametlik guide
+- [YAML Tutorial with Examples](https://spacelift.io/blog/yaml) - Praktilised näited
 
-### 1. Ansible Arhitektuur (20min)
-**Põhiteemad:**
-- Agentless vs agent-based süsteemid
-- Control node ja managed nodes
-- SSH kommunikatsioon
-- Playbook'i käivitamise tsükkel
-
-**Küsimused endile:**
-- Miks agentless on parem/halvem?
-- Kuidas toimub autentimine?
-- Mis juhtub playbook käivitamisel?
-
-### 2. YAML Süntaks (20min)
-**Põhiteemad:**
-- Taandrimine ja struktuur
-- Andmetüübid (string, list, dict)
-- Ansible YAML konventsioonid
-- Levinud vead
-
-**Praktilised oskused:**
-- YAML valideerimise tööriistad
-- Debug tehnikad
-
-### 3. Ansible Moodulid (20min)
-**Põhiteemad:**
-- Core vs community moodulid
-- Idempotency kontseptsioon
-- Mooduli dokumentatsiooni lugemine
-- Parameetrid ja tagastusväärtused
+### 3. Ansible Moodulid
+**Moodulite dokumentatsioon:**
+- [Module Index](https://docs.ansible.com/ansible/latest/collections/index.html) - Kõik moodulid
+- [Most Used Modules](https://opensource.com/article/19/9/must-know-ansible-modules) - Top 10 algajatele
 
 ---
 
-## Valikuline lugemine (30min)
+## Algajasõbralik materjal
 
-### 4. Best Practices (15min)
-- Playbook'i struktuur
-- Muutujate nimetamine
-- Error handling
-- Turvalisus
+### Video kursus (vali üks):
+- [Jeff Geerling's Ansible 101](https://www.youtube.com/playlist?list=PL2_OBreMn7FqZkvMYt6ATmgC0KAGGJNAN) - Parim YouTube'i sari
+- [Learn Linux TV Ansible Series](https://www.youtube.com/playlist?list=PLT98CRl2KxKEUHie1m24-wkyHpEsa4Y70) - Alternatiiv
 
-### 5. Alternatiivid (15min)
-- Ansible vs Puppet/Chef/Salt
-- Millal millist tööriista kasutada
+### Praktilised artiklid:
+- [Mastering Ansible Variables](https://www.env0.com/blog/mastering-ansible-variables-practical-guide-with-examples) - Muutujate guide
+- [Your First Ansible Playbook](https://www.redhat.com/sysadmin/first-ansible-playbook) - Esimene playbook
 
----
+### Interaktiivne õpe:
+- [Ansible Interactive Tutorial](https://killercoda.com/ansible) - Hands-on praktiline õpe brauseris
 
-## Kiirviide
-
-**Põhikäsud:**
-```bash
-ansible --version
-ansible all -m ping
-ansible-inventory --list
-ansible-playbook playbook.yml --check
-```
-
-**YAML näide:**
-```yaml
----
-- name: Näide
-  hosts: all
-  vars:
-    app: myapp
-  tasks:
-    - name: Install
-      package:
-        name: nginx
-        state: present
-```
+### Kiirviide:
+- [Ansible Cheat Sheet](https://devhints.io/ansible) - Hoia lahti kõrval
 
 ---
 
-## Reflektsioon (200-300 sõna)
-
-Kirjuta `ansible_basics_reading_reflection.md` faili:
-
-1. **Peamine insight** - mis oli kõige huvitavam?
-2. **Küsimused** - mis jäi ebaselgeks?
-3. **Praktika** - kuidas agentless arhitektuur aitab?
-4. **Edasi** - mida tahaksid rohkem õppida?
+## Best Practices
+- [Ansible Best Practices](https://docs.ansible.com/ansible/latest/tips_tricks/ansible_tips_tricks.html) - Ametlikud soovitused
 
 ---
 
-## Järgmiseks tunniks
-
-Valmista ette:
-- Küsimused lugemisest
-- Praktikas proovimise ideed
-- YAML süntaksi mõistmine
-- Automation projektide mõtted
-
-**Kasulikud lingid:**
-- [Ansible Docs](https://docs.ansible.com/)
-- [Module Index](https://docs.ansible.com/ansible/latest/modules/)
-- [Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
-- [Ansible Galaxy](https://galaxy.ansible.com/)
+## Kogukond
+- [r/ansible](https://www.reddit.com/r/ansible/) - Reddit
+- [Ansible Forum](https://forum.ansible.com/) - Ametlik foorum
