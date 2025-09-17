@@ -1,1366 +1,1172 @@
-# 📚 Nädal 19: Docker Fundamentals
-## Teemad: Container technology overview, Docker installation ja basic commands, Dockerfile creation, Docker networking ja volumes, Podman introduction ja comparison
-
-Eelmisel nädalal õppisime Ansible role'e. Täna astume järgmisesse dimensiooni - **konteinerite maailm**.
-
-Mõtle konteineritele kui **LEGO klotside** süsteemile - iga konteiner on üks klots, mis saab kiiresti kokku panna suuremateks rakendusteks.
+# 🐳 Docker Meisterlikkus: Nullist Tootmiseni
+*Kaasaegne konteinerite tehnoloogia arendajatele*
 
 ---
 
-# Osa 0: Docker Installatsioon ja Põhilised Mõisted
-## Loeng 19.0: Getting Started with Docker (15 min)
+## 📋 Course Overview
 
-### Mis on Docker?
+```mermaid
+graph TD
+    A[Why Containers?] --> B[Docker Installation & CLI]
+    B --> C[Dockerfile Mastery]
+    C --> D[Networking & Volumes]
+    D --> E[Production Best Practices]
+    E --> F[Podman Alternative]
+    F --> G[Real-World Projects]
+```
 
-**Docker** = tööriist konteinerite loomiseks ja haldamiseks.
+**Kestus:** 75 minutit | **Tase:** Keskmine | **Eeltingimused:** Linuxi põhialused
 
-**Lihtne definitsioon:** Docker võimaldab sul pakkida rakenduse koos kõigi sõltuvustega ühte "kasti" (konteiner), mis töötab igal arvutil.
+---
 
-### Põhilised mõisted
+# Osa 1: Konteinerite Revolutsioon (10 min)
+## Miks Docker vallutas maailma
 
-**Image** = Mall konteineri jaoks (nagu CD-ROM)
-- Näiteks: `nginx:alpine`, `python:3.9`, `mysql:8.0`
-- Sisaldab OS'i, rakendust ja sõltuvusi
+### 1 Miljardi Dollari Probleem
 
-**Container** = Käivitatud image (nagu programm arvutis)
-- Elab ja töötab
-- Võib peatada, kustutada, taaskäivitada
+**2010 scenario:** Netflix wants to deploy to 1000 servers
+- Each server: Different OS versions, libraries, configurations  
+- Result: "Works on my machine" syndrome
+- Cost: Months of debugging, failed deployments
 
-**Dockerfile** = Retsept image'i loomiseks
-- Tekstifail, mis kirjeldab, kuidas image ehitada
+**2015 with Docker:** Same deployment
+- Package once → Deploy everywhere
+- Result: 99.9% consistency across environments
+- Netflix saves millions in deployment time
 
-**Registry** = Pood image'ite jaoks (Docker Hub)
-- Nagu App Store, aga konteinerite jaoks
+### Evolution Timeline
 
-### Docker installatsioon
+```mermaid
+timeline
+    title Container Technology Evolution
+    1979 : Unix chroot
+         : Process isolation
+    2000 : FreeBSD Jails
+         : First "containers"
+    2006 : Linux Containers (LXC)
+         : Full OS virtualization
+    2013 : Docker Release
+         : Developer-friendly containers
+    2014 : Kubernetes
+         : Container orchestration
+    2020 : 83% enterprises use containers
+         : Industry standard
+```
 
-#### Ubuntu/Debian:
+### Performance Comparison: VMs vs Containers
+
+| Metric | Virtual Machines | Containers | Winner |
+|--------|------------------|------------|--------|
+| **Startup Time** | 30-120 seconds | 1-5 seconds | 🐳 24x faster |
+| **Memory Overhead** | 1-8GB per VM | 10-100MB per container | 🐳 80x less |
+| **Density** | 10-50 per server | 100-1000 per server | 🐳 20x more |
+| **File Size** | 10-50GB | 100MB-1GB | 🐳 50x smaller |
+
+### Real-World Impact
+
+**Spotify case study:**
+- Before Docker: 6-hour deployment cycles
+- After Docker: 30-minute deployments
+- Result: 12x faster iteration, $2M saved annually
+
+**Airbnb case study:**
+- Before: 1000+ AWS instances
+- After: 500 instances with containers
+- Result: 50% infrastructure cost reduction
+
+---
+
+# Part 2: Docker Fundamentaalid (15 min)
+## Installation & Põhikäsud
+
+### Installation Matrix
+
 ```bash
-# 1. Update package list
-sudo apt update
-
-# 2. Install prerequisites
-sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
-
-# 3. Add Docker's official GPG key
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-# 4. Add Docker repository
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# 5. Install Docker
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io
-
-# 6. Start Docker service
-sudo systemctl start docker
-sudo systemctl enable docker
-
-# 7. Add user to docker group (vältida sudo kasutamist)
+# Ubuntu/Debian (Production Ready)
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
 sudo usermod -aG docker $USER
-
-# 8. Logout ja login uuesti, või käivita:
 newgrp docker
+
+# Verify installation
+docker --version && docker run hello-world
 ```
 
-#### macOS:
-```bash
-# Download ja install Docker Desktop
-# https://www.docker.com/products/docker-desktop
-```
+**📚 Official Installation Guide:** https://docs.docker.com/engine/install/
 
-#### Windows:
-```bash
-# Download ja install Docker Desktop
-# https://www.docker.com/products/docker-desktop
-```
-
-### Esimene Docker käsk
-
-```bash
-# Testi installatsiooni
-docker --version
-
-# Käivita esimene konteiner
-docker run hello-world
-
-# Mida see tegi?
-# 1. Laadis hello-world image Docker Hub'ist
-# 2. Käivitas konteineri
-# 3. Konteiner tervitas sind ja väljus
-```
-
-### Docker arhitektuur
-
-```
-┌─────────────────────────────────────────┐
-│           Docker Client                 │
-│     (docker käskude kasutaja)          │
-└─────────────────┬───────────────────────┘
-                  │
-┌─────────────────▼───────────────────────┐
-│           Docker Daemon                 │
-│     (background service)                │
-│  - Image management                     │
-│  - Container lifecycle                  │
-│  - Networking                          │
-│  - Storage                             │
-└─────────────────┬───────────────────────┘
-                  │
-┌─────────────────▼───────────────────────┐
-│           Containers                    │
-│  [Container 1] [Container 2] [Container 3]
-└─────────────────────────────────────────┘
-```
-
-### Docker Hub - Image'ite pood
-
-**Docker Hub** = Suurim konteinerite registry
-- https://hub.docker.com
-- Tuhanded valmis image'id
-- Nagu GitHub, aga konteinerite jaoks
-
-**Populaarsed image'id:**
-- `nginx` - Web server
-- `mysql` - Andmebaas
-- `python` - Python runtime
-- `node` - Node.js runtime
-- `ubuntu` - Ubuntu OS
-- `alpine` - Väike Linux OS
-
-### Esimene praktiline näide
-
-```bash
-# 1. Käivita web server
-docker run -d -p 8080:80 nginx
-
-# Mida see teeb?
-# -d = detached (taustal)
-# -p 8080:80 = port mapping (host:container)
-# nginx = image nimi
-
-# 2. Testi brauseris
-# Avage: http://localhost:8080
-
-# 3. Vaata töötavaid konteinereid
-docker ps
-
-# 4. Peata konteiner
-docker stop $(docker ps -q)
-
-# 5. Kustuta konteiner
-docker rm $(docker ps -aq)
-```
-
-### Kasulikud käsud algajale
-
-```bash
-# Image'ite haldamine
-docker images                    # Näita kõiki image'eid
-docker pull nginx               # Lae image alla
-docker rmi nginx                # Kustuta image
-
-# Container'ite haldamine
-docker ps                       # Näita töötavaid konteinereid
-docker ps -a                    # Näita kõiki konteinereid
-docker logs container_name      # Vaata konteineri loge
-docker exec -it container_name bash  # Sisene konteinerisse
-
-# Süsteemi haldamine
-docker system df                # Vaata ruumi kasutust
-docker system prune             # Puhasta kasutamata objektid
-docker info                     # Docker info
-```
-
-### Levinumad vead ja lahendused
-
-**Viga 1: "Permission denied"**
-```bash
-# Probleem: User pole docker grupis
-# Lahendus:
-sudo usermod -aG docker $USER
-# Logout ja login uuesti
-```
-
-**Viga 2: "Cannot connect to the Docker daemon"**
-```bash
-# Probleem: Docker daemon ei tööta
-# Lahendus:
-sudo systemctl start docker
-sudo systemctl enable docker
-```
-
-**Viga 3: "Port already in use"**
-```bash
-# Probleem: Port juba kasutusel
-# Lahendus:
-docker ps                      # Leia konfliktne konteiner
-docker stop container_name     # Peata see
-# Või kasuta teist porti: -p 8081:80
-```
-
-### Docker vs traditsiooniline arendus
-
-**Traditsiooniline lähenemine:**
-```
-"See töötab minu arvutil"
-- Installeri Python 3.9
-- Installeri nginx
-- Seadista MySQL
-- Konfigureeri firewall
-- "Miks see ei tööta sinu arvutil?"
-```
-
-**Docker lähenemine:**
-```
-"See töötab igal arvutil"
-docker run my-app
-- Kõik sõltuvused on image's
-- Sama keskkond igal pool
-- Kiire deployment
-```
-
-### Järgmised sammud
-
-Pärast installatsiooni ja põhiliste käskude õppimist:
-1. **Container vs VM** - miks konteinerid on paremad?
-2. **Dockerfile** - kuidas luua oma image'eid?
-3. **Networking** - kuidas konteinerid suhtlevad?
-4. **Volumes** - kuidas säilitada andmeid?
-
----
-
-# Osa 1: Containers vs VMs
-## Loeng 19.1: Container Technology Overview (12 min)
-
-### Lühike evolutsioon
+### Architecture Deep Dive
 
 ```mermaid
 graph TB
-    subgraph "🏗️ Füüsilised serverid (kuni 2000)"
-        Physical1[Apache + Linux<br/>Server 1]
-        Physical2[MySQL + Linux<br/>Server 2]
-        Physical3[Exchange + Windows<br/>Server 3]
+    subgraph "Docker Host"
+        Client[Docker CLI]
+        Daemon[Docker Daemon<br/>dockerd]
+        Images[Images Storage]
+        Containers[Running Containers]
+        Registry[Local Registry Cache]
     end
     
-    subgraph "🖥️ Virtuaalne masina (2000-2010)"
-        HostOS[Host OS]
-        Hypervisor[Hypervisor]
-        VM1[VM1<br/>OS + App]
-        VM2[VM2<br/>OS + App]
-        VM3[VM3<br/>OS + App]
+    subgraph "External"
+        Hub[Docker Hub<br/>registry.hub.docker.com]
+        Private[Private Registry<br/>harbor/nexus]
+    end
+    
+    Client -->|API calls| Daemon
+    Daemon --> Images
+    Daemon --> Containers
+    Daemon <-->|Pull/Push| Hub
+    Daemon <-->|Pull/Push| Private
+```
+
+### Kus Hoitakse Docker Image'sid? (Registry Deep Dive)
+
+#### Registry vs Repository - Mis vahe?
+
+```mermaid
+graph TB
+    subgraph "Registry (Pood)"
+        subgraph "Docker Hub"
+            A[nginx repository]
+            B[mysql repository] 
+            C[python repository]
+        end
         
-        HostOS --> Hypervisor
-        Hypervisor --> VM1
-        Hypervisor --> VM2
-        Hypervisor --> VM3
+        subgraph "Private Registry"
+            D[company/api repository]
+            E[company/frontend repository]
+        end
     end
     
-    subgraph "📦 Konteinerid (2013-täna)"
-        HostOS2[Host OS]
-        Runtime[Container Runtime]
-        Container1[App1<br/>10-100MB]
-        Container2[App2<br/>10-100MB]
-        Container3[App3<br/>10-100MB]
-        
-        HostOS2 --> Runtime
-        Runtime --> Container1
-        Runtime --> Container2
-        Runtime --> Container3
+    subgraph "Repository (Riiulid)"
+        subgraph "nginx repository"
+            F[nginx:latest]
+            G[nginx:1.21]
+            H[nginx:alpine]
+        end
     end
+```
+
+**Registry** = Terve pood (Docker Hub, Nexus, Harbor)  
+**Repository** = Üks toote riiuli (nginx, mysql, sinu-app)  
+**Tag** = Konkreetne versioon (latest, v1.0, alpine)
+
+#### 1. Docker Hub - Avalik Registry
+```bash
+# Avalikud image'id - TASUTA
+docker pull nginx                    # docker.io/library/nginx:latest
+docker pull ubuntu:20.04            # docker.io/library/ubuntu:20.04
+
+# Kasutajate image'id  
+docker pull username/myapp:latest    # docker.io/username/myapp:latest
+
+# Organisatsioonide image'id
+docker pull bitnami/postgresql       # docker.io/bitnami/postgresql:latest
+```
+
+**Miks Docker Hub populaarne?**
+- ✅ 13+ miljardit allalaadimist kuus
+- ✅ Automaatne build GitHub'ist
+- ✅ Turvalisuse skannimine
+- ✅ Tasuta avalikud repositooriumid
+
+#### 2. Nexus Repository - Ettevõtte Registry
+```bash
+# Nexus server
+docker pull nexus.company.com/myteam/api:v1.2.3
+
+# Login vajalik
+docker login nexus.company.com
+Username: john.doe
+Password: ****
+
+# Edasi saad kasutada
+docker pull nexus.company.com/private/secret-app:latest
+```
+
+**Miks Nexus?**
+- 🔒 Privaatsed image'id (ei näe kõik)
+- 🏢 Ettevõtte kontroll
+- 📊 Kasutusstatistika  
+- 🔧 LDAP/Active Directory integratsioon
+
+#### 3. Harbor - Cloud Native Registry
+```bash
+# Harbor registry
+docker pull harbor.k8s.company.com/production/frontend:v2.1.0
+
+# Projektide kaupa organiseeritud
+docker pull harbor.k8s.company.com/development/api:latest
+docker pull harbor.k8s.company.com/staging/api:v1.5.0-rc1
+```
+
+**Miks Harbor?**
+- 🚢 Kubernetes native
+- 🔐 Role-based access control
+- 🛡️ Turvalisuse skannimine
+- 📝 Audit logging
+
+### Versioonihaldus ja Git Integratsioon
+
+**Probleem:** Kuidas hoida image'id sünkroonis koodiga?
+
+```mermaid
+graph LR
+    A[Git Commit] --> B[CI/CD Pipeline]
+    B --> C[Docker Build]
+    C --> D[Image Tag = Git SHA]
+    D --> E[Push Registry'sse]
     
-    style Physical1 fill:#ff9999
-    style Physical2 fill:#ff9999
-    style Physical3 fill:#ff9999
-    style VM1 fill:#ffcc99
-    style VM2 fill:#ffcc99
-    style VM3 fill:#ffcc99
-    style Container1 fill:#99ff99
-    style Container2 fill:#99ff99
-    style Container3 fill:#99ff99
+    F[git commit abc123] --> G[docker build myapp:abc123]
+    G --> H[docker push myapp:abc123]
 ```
 
-**Füüsilised serverid (kuni 2000):**
-- Üks rakendus = Üks server
-- Probleemid: Kallis, ineffektiivne (5-15% kasutus)
+**GitHub Actions näide:**
+```yaml
+name: Build and Push
 
-**Virtuaalne masina (2000-2010):**
-- Üks server = Mitu VM'i
-- Iga VM vajab täispikka OS'i: 1-2GB RAM, 20GB disk
-- Parem, aga suur overhead
+on:
+  push:
+    branches: [main]
 
-**Konteinerid (2013-täna):**
-- Üks OS = Palju konteinereid
-- Jagavad sama OS kernel'it: 10-100MB per container
-- Maksimaalne efektiivsus!
-
-### Peamine erinevus
-
-**Virtual Machine = Terve arvuti sinus arvutis**
-- Oma OS, oma kernel, oma mälu
-- Nagu eraldi korter majas
-
-**Container = Aplikatsioon + sõltuvused**
-- Jagab host OS kernel'it
-- Nagu tuba korteris - jagad köök ja vannituba
-
-### Praktilised numbrid
-
-| Kriteerium | Virtual Machines | Containers |
-|------------|------------------|------------|
-| **Käivitusaeg** | 1-5 minutit | 1-5 sekundit |
-| **Mälu** | 1-8GB per VM | 10-100MB per container |
-| **Mahtuvus** | 10-50 per server | 100-1000 per server |
-| **Disk size** | 10-50GB | 100MB-1GB |
-
-### Analoogia: Korterimaja vs Konteinerid
-
-**VM = Korterimaja:**
-- Iga korter (VM) on eraldi
-- Igal on oma elekter, vesi, küte
-- Turvaline, aga kallis
-
-**Containers = Ühiselamu:**
-- Jagavad infrastruktuuri (kernel)
-- Kiirem, odavam
-- Vähem isolatsiooni
-
-### Millal kasutada mida?
-
-**Kasuta VM'e kui:**
-- Erinevad OS'id (Windows + Linux)
-- Maksimum turvalisus (pank, haigla)
-- Legacy süsteemid
-- Pikaajalised teenused
-
-**Kasuta konteinereid kui:**
-- Kaasaegsed web rakendused
-- Development/testing
-- Microservices
-- CI/CD pipelines
-- Kiire deployment
-
-### Kiire näide
-
-**WordPress sait:**
-
-VM lahendus:
-- 3 VM'i: Web (2GB), Database (4GB), Load Balancer (1GB)
-- Kokku: 7GB RAM, 90GB disk, 6 min deployment
-
-Container lahendus:
-- 3 konteinerit: Web, DB, LB
-- Kokku: 650MB RAM, 650MB disk, 17 sek deployment
-
-**Tulemus: 10x vähem ressursse, 20x kiirem!**
-
-### Kokkuvõte
-
-Konteinerid ei asenda VM'e - nad lahendavad erinevaid probleeme:
-- **VM'id** = maksimaalne isolatsioon ja turvalisus
-- **Konteinerid** = maksimaalne efektiivsus ja kiirus
-
----
-
-# Osa 2: Docker Commands
-## Loeng 19.2: Docker CLI Basics (15 min)
-
-### Docker CLI põhialused
-
-Docker CLI on teie peamine tööriist. Õpime **AINULT Docker käske** - Podman tuleb järgmises loengus!
-
-```bash
-docker [OPTIONS] COMMAND [ARG...]
-
-# Näited:
-docker run nginx              # Käivita nginx
-docker ps                     # Näita containers
-docker images                 # Näita image'e
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build image
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          docker build -t company/myapp:$SHA .
+          docker build -t company/myapp:latest .
+          
+      - name: Push registry'sse
+        run: |
+          docker push company/myapp:$SHA
+          docker push company/myapp:latest
 ```
 
-### Image'ide haldamine
-
+**Tulemus:**
 ```bash
-# 1. Image'ide allalaadimine
-docker pull nginx             # Viimane versioon
-docker pull nginx:1.21        # Konkreetne versioon
-docker pull ubuntu:20.04      # Erinevad base image'id
-
-# 2. Image'ide vaatamine
-docker images                 # Kõik lokaalsed image'id
-docker image inspect nginx    # Detailne info
-docker search mysql           # Otsi Docker Hub'ist
-
-# 3. Cleanup
-docker rmi nginx              # Kustuta image
-docker image prune            # Kustuta kasutamata image'id
+git log --oneline
+abc123f Fix login bug        → myapp:abc123f
+def456a Add user profile     → myapp:def456a  
+789xyz1 Update dependencies  → myapp:789xyz1
 ```
 
-### Container'ite käivitamine
+### Registry Cleanup ja Lifecycle
+
+**Probleem:** Registry täitub vanarde image'idega!
 
 ```bash
-# Põhilised käsud
-docker run nginx                    # Foreground (blokeerib terminal)
-docker run -d nginx                 # Detached (background)
-docker run --name my-web nginx     # Anna nimi
-docker run -p 8080:80 nginx        # Port mapping: host:container
-
-# Interaktiivne kasutamine
-docker run -it ubuntu bash         # Interactive terminal
-docker exec -it container_name bash # Käivita käsk olemasolevs
+# Registry'is võib olla:
+myapp:v1.0.0    # 500MB
+myapp:v1.0.1    # 500MB  
+myapp:v1.0.2    # 500MB
+# ... 100 versiooni = 50GB!
 ```
 
-### Container'ite jälgimine
-
-```bash
-# Ülevaade
-docker ps                     # Töötavad containers
-docker ps -a                  # Kõik (ka peatatud)
-docker stats                  # Live resource kasutus
-docker logs container_name    # Container logid
-docker logs -f container_name # Follow logs (real-time)
+**Harbor cleanup policy:**
+```yaml
+# Säilita ainult:
+- Viimased 10 tagi per repository
+- Tag'id uuemad kui 30 päeva  
+- Production tag'id: v\d+\.\d+\.\d+
 ```
 
-### Container lifecycle
+### Registry Võrdlus
 
+| Registry | Kasutamine | Hind | Security |
+|----------|------------|------|----------|
+| **Docker Hub** | Avalikud projektid | Tasuta/tasulised | Avalik + privaatsed |
+| **Nexus** | Ettevõtte sisene | Tasuta (self-hosted) | LDAP, RBAC |
+| **Harbor** | Cloud-native | Tasuta (self-hosted) | Kubernetes RBAC |
+| **AWS ECR** | AWS keskkond | $0.10/GB/kuu | IAM integration |
+
+**Golden Rules:**
+1. **Avalikud image'id** → Docker Hub
+2. **Ettevõtte rakendused** → Nexus/Harbor  
+3. **Git SHA = Image tag** (jälgitavus)
+4. **Cleanup policy** (ruumi kokkuhoid)
+5. **Security scanning** (turvalisus)
+
+### Essential Commands Mastery
+
+#### Image Operations
 ```bash
-docker start container_name   # Käivita peatatud
-docker stop container_name    # Peata gracefully
-docker restart container_name # Restart
-docker rm container_name      # Kustuta container
-docker rm -f container_name   # Force kustutamine
+# Search and discover
+docker search nginx --limit 5 --filter stars=100
+docker search python --filter is-official=true
+
+# Pull strategies  
+docker pull nginx:alpine          # Small & secure
+docker pull nginx:1.21.6          # Production pinning
+docker pull nginx:1.21.6@sha256:... # Immutable digest
+
+# Image inspection
+docker image inspect nginx:alpine | jq '.Config.Env'
+docker image history nginx:alpine  # Layer analysis
 ```
 
-### Praktilised näited
-
-#### Näide 1: Lihtne web server
+#### Container Lifecycle Management
 ```bash
-# Käivita Nginx
-docker run -d --name my-web -p 80:80 nginx
-
-# Testi
-curl http://localhost
-
-# Vaata loge
-docker logs my-web
-
-# Cleanup
-docker stop my-web && docker rm my-web
-```
-
-#### Näide 2: Database
-```bash
-# MySQL andmebaas
+# Advanced run options
 docker run -d \
-  --name mysql-db \
-  -e MYSQL_ROOT_PASSWORD=secret123 \
-  -e MYSQL_DATABASE=testdb \
-  -p 3306:3306 \
-  mysql:8.0
+  --name production-web \
+  --restart unless-stopped \
+  --memory="512m" \
+  --cpus="1.5" \
+  --health-cmd="curl -f http://localhost || exit 1" \
+  --health-interval=30s \
+  --health-timeout=10s \
+  --health-retries=3 \
+  -p 80:80 \
+  nginx:alpine
 
-# Ühenda
-docker exec -it mysql-db mysql -u root -p
+# Container introspection
+docker stats production-web        # Live resource monitoring
+docker top production-web          # Process tree
+docker exec -it production-web sh  # Interactive debugging
 ```
 
-#### Näide 3: Development
+#### Production Debugging
 ```bash
-# Python development
-docker run -it \
-  --name python-dev \
-  -v $(pwd):/workspace \
-  -w /workspace \
-  python:3.9 bash
+# Log analysis
+docker logs --since=2h --tail=100 production-web
+docker logs --follow --timestamps production-web
 
-# Nüüd saad editeerida faile host'is!
+# Resource monitoring
+docker system df                   # Disk usage breakdown
+docker system events               # Real-time system events
 ```
 
-### Environment variables
+### Docker Hub Mastery
 
-```bash
-# Üks muutuja
-docker run -e NODE_ENV=production node-app
+**🌐 Docker Hub:** https://hub.docker.com
 
-# Mitu muutujat
-docker run \
-  -e DB_HOST=localhost \
-  -e DB_PORT=5432 \
-  -e DEBUG=true \
-  my-app
+**Top Official Images to Know:**
+- `alpine` (5MB) - Minimal Linux base
+- `nginx` - Web server
+- `postgres` - SQL database  
+- `redis` - In-memory cache
+- `node:alpine` - JavaScript runtime
+- `python:slim` - Python runtime
 
-# Env file'ist
-docker run --env-file .env my-app
-```
+**Security tip:** Always verify official images have the "Docker Official Image" badge
 
-### Volume mounting (quick intro)
+### 🚀 LIVE DEMO: Suur vs Väike Image (8 min)
 
-```bash
-# Host kaust → container kaust
-docker run -v /host/path:/container/path nginx
-
-# Current directory
-docker run -v $(pwd):/app -w /app node:16 npm install
-
-# Named volume (advanced - õpime hiljem)
-docker volume create my-data
-docker run -v my-data:/data nginx
-```
-
-### Kasulikud aliased
-
-Lisa oma `~/.bashrc` faili:
-```bash
-alias dps='docker ps'
-alias dpsa='docker ps -a'
-alias dimg='docker images'
-alias dstop='docker stop $(docker ps -q)'
-alias drm='docker rm $(docker ps -aq)'
-```
-
-### System cleanup
+**Challenge:** Kes teeb väiksema Docker image'i?
 
 ```bash
-docker info                  # Docker info
-docker system df             # Disk kasutus
-docker system prune          # Kustuta unused objects
-docker system prune -a       # Kustuta KÕIK unused
+# Vaata milline on suurim image sinu arvutis
+docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | sort -k3 -h
+
+# Pull mõned näited
+docker pull python:3.9          # Ennusta: kui suur?
+docker pull python:3.9-alpine   # Ennusta: kui suur?
+
+# Tulemused:
+# python:3.9        900MB  😱 (Ubuntu base)
+# python:3.9-alpine  45MB  🎉 (Alpine base)
+# Erinevus: 20x väiksem!
 ```
 
-### Algaja vead ja lahendused
-
-**Viga 1:** "Permission denied"
+**Speed test:**
 ```bash
-# Probleem: User pole docker grupis
-sudo usermod -aG docker $USER
-# Logout ja login uuesti
+# Kumb laeb kiiremini?
+time docker pull redis           # ~32MB
+time docker pull ubuntu:20.04   # ~700MB
+
+# Network impact:
+# 10 serverit × 700MB = 7GB traffic
+# 10 serverit × 32MB = 320MB traffic
 ```
 
-**Viga 2:** "Port already in use"
-```bash
-# Probleem: Port juba kasutusel
-docker ps                    # Leia conflicting container
-docker stop container_name   # Peata see
-# Või kasuta teist porti: -p 8081:80
+### 🏗️ BUILD VÕISTLUS (7 min)
+
+**Ülesanne:** Sama Flask app, kaks lähenemist
+
+**app.py** (kopeeri kiiresti):
+```python
+from flask import Flask
+app = Flask(__name__)
+@app.route('/')
+def hello():
+    return '<h1>Docker Size Contest!</h1>'
+app.run(host='0.0.0.0', port=5000)
 ```
 
-**Viga 3:** Container kohe väljub
-```bash
-# Kontrolli loge
-docker logs container_name
-
-# Tihti puudub foreground protsess
-# Lisa CMD või ENTRYPOINT Dockerfile'is
-```
-
-### Näpunäited
-
-1. **Alati kasuta `-d`** production containers jaoks
-2. **Anna containers nimed** `--name` flagiga  
-3. **Port mapping** on oluline: `-p host:container`
-4. **Cleanup regulaarselt** `docker system prune`
-5. **Kasuta `docker logs`** debug'imiseks
-
----
-
-# Osa 3: Podman Introduction
-## Loeng 19.3: Podman vs Docker (8 min)
-
-### Mis on Podman?
-
-**Podman** (Pod Manager) on Docker'i alternatiiv Red Hat'i poolt. 
-
-**Peamine erinevus:** Podman töötab **ILMA daemon'ita**!
-
-### Docker vs Podman arhitektuur
-
-**Docker:**
-```
-You → Docker Client → Docker Daemon → Container
-              ↑              ↑
-           Terminal      Always running
-                         as ROOT user
-```
-
-**Podman:**
-```
-You → Podman → Container
-         ↑
-    Direct execution
-    NO daemon needed!
-```
-
-### Peamised erinevused
-
-| Aspekt | Docker | Podman |
-|---------|---------|---------|
-| **Daemon** | Vajab dockerd | EI vaja daemon'it |
-| **Root** | Vajab root õigusi | Töötab rootless |
-| **Startup** | Daemon peab töötama | Kohe kasutamisvalmis |
-| **Security** | docker group = root | Tavaline user |
-
-### Installation
-
-**Docker installation (ülevaade):**
-```bash
-sudo apt install docker.io
-sudo systemctl start docker      # Start daemon
-sudo usermod -aG docker $USER    # Add to group
-# Logout/login required
-```
-
-**Podman installation:**
-```bash
-sudo apt install podman
-# That's it! Kohe kasutamisvalmis
-```
-
-### Commands - peaaegu identne!
-
-```bash
-# Docker                 →    Podman
-docker pull nginx       →    podman pull nginx
-docker run -d nginx     →    podman run -d nginx
-docker ps               →    podman ps
-docker logs name        →    podman logs name
-docker exec -it name bash → podman exec -it name bash
-```
-
-**Magic trick:** Podman alias
-```bash
-# Lisa ~/.bashrc faili
-alias docker=podman
-
-# Nüüd kõik docker käsud töötavad!
-docker run nginx  # Tegelikult: podman run nginx
-```
-
-### Rootless containers (SUUR eelis!)
-
-**Docker probleem:**
-```bash
-# docker group = root equivalent
-docker run -v /:/host -it alpine chroot /host bash
-# Oled nüüd ROOT host süsteemis! 😱
-```
-
-**Podman lahendus:**
-```bash
-# Töötab tava userina
-podman run -it alpine id
-# uid=0(root) gid=0(root)  ← Inside container
-whoami  # user ← On host
-
-# User namespace mapping:
-# Container root (0) = Host user (1000)
-```
-
-### Podman unique features
-
-#### 1. Pods (Kubernetes-like)
-```bash
-# Loo pod (containers group)
-podman pod create --name web-pod -p 8080:80
-
-# Lisa containers pod'i
-podman run -d --pod web-pod --name web nginx
-podman run -d --pod web-pod --name cache redis
-
-# Containers pod'is jagavad:
-# - Network (localhost communication)
-# - Storage
-# - IP address
-```
-
-#### 2. Systemd integration
-```bash
-# Generate systemd service
-podman run -d --name my-app nginx
-podman generate systemd --new --files --name my-app
-
-# Install USER service (no sudo!)
-mkdir -p ~/.config/systemd/user
-mv *.service ~/.config/systemd/user/
-systemctl --user enable container-my-app.service
-```
-
-#### 3. Kubernetes YAML support
-```bash
-# Generate Kubernetes YAML
-podman generate kube web-pod > pod.yaml
-
-# Deploy Kubernetes'es
-kubectl apply -f pod.yaml
-
-# Või kasuta Podman'iga
-podman play kube pod.yaml
-```
-
-### Performance võrdlus
-
-**Memory usage:**
-- Docker: ~50-200MB daemon + containers
-- Podman: 0MB daemon (ainult containers)
-
-**Startup speed:**
-- Docker: ~2-3 sekundit (daemon communication)  
-- Podman: ~1-2 sekundit (direct execution)
-
-### Millal kasutada mida?
-
-#### Vali Docker kui:
-- Team tunneb juba Docker'it
-- Vajad Docker-specific tooling'ut
-- Windows/macOS development
-- Olemasolev Docker infrastruktuur
-
-#### Vali Podman kui:
-- Turvalisus on prioriteet
-- RHEL/CentOS/Fedora keskkonnas
-- Ei taha daemon overhead'i
-- Rootless containers vajalik
-- Kubernetes workflows
-
-### Lihtne migratsioon
-
-```bash
-# 1. Install Podman
-sudo apt install podman
-
-# 2. Add alias
-echo "alias docker=podman" >> ~/.bashrc
-source ~/.bashrc
-
-# 3. Install podman-compose (if needed)
-pip3 install podman-compose
-
-# 4. Use existing docker-compose.yml
-podman-compose up -d
-```
-
-### Praktiline näide
-
-**Same application, different tools:**
-
-Docker:
-```bash
-docker run -d --name web -p 8080:80 nginx
-docker logs web
-docker exec -it web bash
-```
-
-Podman:
-```bash
-podman run -d --name web -p 8080:80 nginx
-podman logs web  
-podman exec -it web bash
-```
-
-**Result:** Identne kasutuskogemus, turvalisem backend!
-
-### Kokkuvõte
-
-- **Podman = Docker without daemon**
-- **Commands peaaegu identne**
-- **Turvalisem (rootless)**
-- **Kubernetes native support**
-- **Easy migration with aliases**
-
----
-
-# Osa 4: Dockerfile Best Practices
-## Loeng 19.4: Container Build Optimization (20 min)
-
-### Mis on Dockerfile?
-
-**Dockerfile** = retsept teie rakenduse konteineri loomiseks.
-
-Mõtle sellele kui **IKEA mööbli kokkupaneku juhendile** - sammhaaval juhised, kuidas komponentidest valmis toode teha.
-
+**Meeskond 1 - "Big Boy" approach:**
 ```dockerfile
-# See on Dockerfile - simple text file
-FROM nginx:alpine
-COPY index.html /usr/share/nginx/html/
+FROM ubuntu:20.04
+RUN apt-get update && apt-get install -y python3 python3-pip
+RUN pip3 install flask
+COPY app.py .
+CMD ["python3", "app.py"]
+```
+
+**Meeskond 2 - "Ninja" approach:**
+```dockerfile
+FROM python:3.9-alpine
+RUN pip install flask
+COPY app.py .
+CMD ["python", "app.py"]
+```
+
+**Võistlus:**
+```bash
+# Build race!
+docker build -t bigboy . &
+docker build -t ninja . &
+
+# Kes võitis?
+docker images | grep -E "(bigboy|ninja)"
+# bigboy    1.1GB  😭
+# ninja     60MB   🏆
+
+# Speed test
+time docker run -p 5000:5000 ninja
+# Result: Same app, 18x smaller!
+```
+
+### ⚡ Alpine Magic Explained
+
+**Miks Alpine nii väike?**
+- Ubuntu: Täispikk desktop OS (700MB)
+- Alpine: Ainult vajalik (5MB base)
+- Sama tulemused, vähem jama
+
+**Real-world impact:**
+- Netflix: 1000 serverit × 700MB = 700GB vs 50GB
+- Deployment: 10 min → 30 sek
+- AWS bill: $1000/month → $100/month
+
+---
+
+# Part 3: Dockerfile Meisterlikkus (20 min)
+## Algajast Ekspertiks
+
+### The Dockerfile Hierarchy
+
+```mermaid
+graph TD
+    A[FROM: Base Image] --> B[WORKDIR: Set Directory]
+    B --> C[COPY: Dependencies First]
+    C --> D[RUN: Install Dependencies]
+    D --> E[COPY: Application Code]
+    E --> F[USER: Security]
+    F --> G[EXPOSE: Documentation]
+    G --> H[CMD/ENTRYPOINT: Startup]
+```
+
+### Best Practice Evolution
+
+#### Beginner Dockerfile (⚠️ Problems)
+```dockerfile
+FROM ubuntu:latest                    # ❌ Latest is unpredictable
+RUN apt-get update                    # ❌ Separate layers
+RUN apt-get install -y python3       # ❌ Cache invalidation
+RUN apt-get install -y pip           # ❌ Security issues
+COPY . /app                          # ❌ Dependencies rebuild every time
+WORKDIR /app
+RUN pip install -r requirements.txt  # ❌ Cache miss on code change
+CMD python app.py                    # ❌ Runs as root
+```
+
+#### Expert Dockerfile (✅ Optimized)
+```dockerfile
+# Multi-stage build for size optimization
+FROM python:3.11-slim as builder
+WORKDIR /app
+
+# Install dependencies in separate layer (cache optimization)
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+# Production stage
+FROM python:3.11-slim
+WORKDIR /app
+
+# Security: Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Copy only what's needed from builder
+COPY --from=builder /root/.local /home/appuser/.local
+COPY --chown=appuser:appuser . .
+
+# Security: Switch to non-root
+USER appuser
+
+# Add /home/appuser/.local/bin to PATH
+ENV PATH=/home/appuser/.local/bin:$PATH
+
+# Health check for monitoring
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Documentation
+EXPOSE 8000
+
+# Startup
+CMD ["python", "app.py"]
+```
+
+### Advanced Patterns
+
+#### Pattern 1: Multi-Stage for Different Environments
+```dockerfile
+# Development stage
+FROM node:16-alpine as development
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+CMD ["npm", "run", "dev"]
+
+# Testing stage  
+FROM development as testing
+RUN npm run test
+RUN npm run lint
+
+# Production build stage
+FROM node:16-alpine as builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+
+# Production runtime
+FROM nginx:alpine as production
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-### Põhiinstruktsioonid
-
-#### FROM - Base image
-```dockerfile
-# Official image (ALATI eelistatud)
-FROM nginx:alpine
-FROM python:3.9
-FROM node:16
-
-# Konkreetne versioon (production)
-FROM node:16.14.2-alpine
-FROM python:3.9.16-slim
-
-# ÄRA tee nii:
-FROM nginx  # latest tag - ette arvamatu!
-```
-
-#### COPY vs ADD
-```dockerfile
-# COPY - lihtne kopeerimine (kasuta seda!)
-COPY app.py /app/
-COPY src/ /app/src/
-COPY . /app/
-
-# ADD - automaatne ekstraktimine (harva vajad)
-ADD archive.tar.gz /app/  # Automaatselt pakib lahti
-ADD http://example.com/file.txt /app/  # Laeb URL'ist
-
-# REEGEL: Kasuta COPY, välja arvatud kui vajad ADD funktsioone
-```
-
-#### RUN - Commands
-```dockerfile
-# VALE: Palju layer'eid
-RUN apt-get update
-RUN apt-get install -y curl
-RUN apt-get clean
-
-# ÕIGE: Üks layer
-RUN apt-get update && \
-    apt-get install -y curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-```
-
-#### WORKDIR - Working directory
-```dockerfile
-# ÕIGE viis
-WORKDIR /app
-COPY package.json .
-RUN npm install
-
-# VALE viis
-COPY package.json /app/package.json
-RUN cd /app && npm install
-```
-
-#### CMD vs ENTRYPOINT
-```dockerfile
-# CMD - default command (override'itav)
-CMD ["python", "app.py"]
-# docker run myapp              → python app.py
-# docker run myapp echo hello   → echo hello
-
-# ENTRYPOINT - alati jookseb
-ENTRYPOINT ["python", "app.py"]  
-# docker run myapp              → python app.py
-# docker run myapp --debug      → python app.py --debug
-
-# Koos (best practice)
-ENTRYPOINT ["python", "app.py"]
-CMD ["--help"]
-# docker run myapp              → python app.py --help
-# docker run myapp --prod       → python app.py --prod
-```
-
-### Best Practice #1: Layer Cache Optimization
-
-**Probleem:** Iga kord kui muudad koodi, installib dependencies uuesti.
-
-**VALE järjekord:**
-```dockerfile
-FROM node:16
-COPY . /app/          # Kõik kood kopeeritakse kohe
-WORKDIR /app
-RUN npm install      # Dependencies installib uuesti kui kood muutub
-CMD ["npm", "start"]
-```
-
-**ÕIGE järjekord:**
-```dockerfile
-FROM node:16
-WORKDIR /app
-
-# 1. Copy dependency files (muutuvad harva)
-COPY package*.json ./
-RUN npm install
-
-# 2. Copy source code (muutub tihti) 
-COPY . .
-CMD ["npm", "start"]
-```
-
-**Miks töötab:** Docker cache'ib layer'eid. Dependencies muutuvad harva!
-
-### Best Practice #2: Multi-stage Builds
-
-**Probleem:** Build tools suurendavad production image'i.
-
-**Single-stage (SUUR ~1GB):**
-```dockerfile
-FROM node:16
-WORKDIR /app
-COPY package*.json ./
-RUN npm install        # Dev dependencies ka!
-COPY . .
-RUN npm run build
-CMD ["npm", "start"]
-```
-
-**Multi-stage (VÄIKE ~200MB):**
-```dockerfile
-# Stage 1: Build
-FROM node:16 AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-
-# Stage 2: Production
-FROM node:16-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install --only=production
-COPY --from=builder /app/dist ./dist
-CMD ["npm", "start"]
-```
-
-**Tulemus:** 80% väiksem image!
-
-### Best Practice #3: Security
-
-```dockerfile
-# 1. Konkreetsed versioonid
-FROM node:16.14.2-alpine  # Mitte: FROM node
-
-# 2. Non-root user
-RUN addgroup -g 1001 -S appuser && \
-    adduser -S appuser -u 1001
-
-# 3. Ära jookse root'ina
-USER appuser
-
-# 4. Ownership
-COPY --chown=appuser:appuser . .
-
-# 5. Minimal packages
-RUN apk add --no-cache curl
-```
-
-### Best Practice #4: Size Optimization
-
-```dockerfile
-# 1. Alpine images (väiksemad)
-FROM python:3.9-alpine  # vs python:3.9
-
-# 2. Clean up same layer'is
-RUN apk add --no-cache build-base && \
-    pip install -r requirements.txt && \
-    apk del build-base
-
-# 3. .dockerignore file
-```
-
-**.dockerignore näide:**
-```
-node_modules
-.git
-*.md
-.env
-test/
-docs/
-coverage/
-```
-
-### Praktiline näide: Python Flask
-
-```dockerfile
-FROM python:3.9-slim
-
-# Non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-
-WORKDIR /app
-
-# Dependencies first
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Source code last
-COPY --chown=appuser:appuser . .
-
-# Switch to non-root
-USER appuser
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s \
-    CMD curl -f http://localhost:5000/health || exit 1
-
-EXPOSE 5000
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
-```
-
-### Advanced: Extreme size optimization
-
-**Go application (5MB image!):**
+#### Pattern 2: Extreme Size Optimization
 ```dockerfile
 # Build stage
 FROM golang:1.19-alpine AS builder
 WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 go build -o app
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
-# Runtime stage
-FROM scratch  # Tühi image!
-COPY --from=builder /app/app /app
+# Runtime stage - FROM SCRATCH!
+FROM scratch
+COPY --from=builder /app/main /main
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 EXPOSE 8080
-CMD ["/app"]
+USER 65534:65534
+ENTRYPOINT ["/main"]
+
+# Result: 15MB final image! (vs 800MB with full Go image)
 ```
 
-### Common mistakes
+### Security Hardening
 
-#### Mistake 1: Cached package lists
 ```dockerfile
-# VALE
-RUN apt-get update
-RUN apt-get install -y curl  # Kasutab vana cache'i
+FROM node:16-alpine
 
-# ÕIGE  
-RUN apt-get update && apt-get install -y curl
+# Security: Update packages & remove package manager
+RUN apk update && apk upgrade && \
+    apk add --no-cache dumb-init && \
+    rm -rf /var/cache/apk/*
+
+# Security: Non-root user with specific UID
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+WORKDIR /app
+
+# Security: Specific ownership
+COPY --chown=nodejs:nodejs package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
+COPY --chown=nodejs:nodejs . .
+
+# Security: Switch user
+USER nodejs
+
+# Security: Signal handling
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]
 ```
 
-#### Mistake 2: Root user
-```dockerfile
-# VALE
-FROM ubuntu
-COPY app /app
-CMD ["/app"]  # Jookseb root'ina
-
-# ÕIGE
-FROM ubuntu
-RUN useradd -m appuser
-USER appuser
-COPY app /app
-CMD ["/app"]
-```
-
-#### Mistake 3: Secrets in layers
-```dockerfile
-# VALE - secrets jäävad image'i
-COPY secret.key /app/
-RUN echo "PASSWORD=secret" > /app/.env
-
-# ÕIGE - runtime secrets
-ENV PASSWORD_FILE=/run/secrets/password
-CMD ["sh", "-c", "PASSWORD=$(cat $PASSWORD_FILE) /app"]
-```
-
-### Dockerfile linting
+### Dockerfile Linting & Security
 
 ```bash
-# Install Hadolint
+# Install Hadolint (Dockerfile linter)
 docker run --rm -i hadolint/hadolint < Dockerfile
 
-# Common warnings:
-# - DL3008: Pin versions in apt install
-# - DL3025: Use JSON array for CMD
-# - DL3059: Multiple consecutive RUN
+# Install Trivy (security scanner)
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  aquasec/trivy image nginx:alpine
+
+# Build with security scan
+docker build -t myapp . && \
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  aquasec/trivy image myapp
 ```
 
-### Golden Rules
-
-1. **Official base images**
-2. **Dependencies enne, kood pärast** (cache optimization)
-3. **Multi-stage builds** production'is
-4. **Non-root user**
-5. **Pin package versions**
-6. **Combine RUN statements**
-7. **Use .dockerignore**
-8. **Add health checks**
-9. **Lint with Hadolint**
-
-### Build ja test
-
-```bash
-# Build
-docker build -t myapp:v1.0 .
-
-# Test different stages
-docker build --target builder -t myapp:builder .
-
-# Test security
-docker run --rm -it myapp:v1.0 whoami  # Should NOT be root
-```
+**📚 Security Resources:**
+- Docker Security Best Practices: https://docs.docker.com/develop/security-best-practices/
+- OWASP Container Security: https://owasp.org/www-project-container-security/
 
 ---
 
-# Osa 5: Networks ja Volumes
-## Loeng 19.5: Container Connectivity & Data Persistence (10 min)
+# Part 4: Networking & Storage (15 min)
+## Konteinerite Suhtlus ja Andmete Säilitamine
 
-### Docker Networking
+### Network Architecture Deep Dive
 
-**Probleem:** Kuidas containers omavahel suhtlevad?
-
-**Analoogia:** Container = korter majas. Network = telefonikaabel korterite vahel.
-
-### Default networks
-
-```bash
-# Vaata kõiki võrke
-docker network ls
-
-# Default networks:
-# bridge    ← Default network
-# host      ← Host network
-# none      ← No network
+```mermaid
+graph TB
+    subgraph "Host Network Stack"
+        subgraph "Custom Networks"
+            FrontEnd[frontend<br/>172.20.0.0/16]
+            BackEnd[backend<br/>172.21.0.0/16]
+            Database[database<br/>172.22.0.0/16]
+        end
+        
+        subgraph "Default Bridge"
+            Bridge[bridge<br/>172.17.0.0/16]
+        end
+        
+        subgraph "Host Network"
+            Host[host<br/>Use host networking]
+        end
+    end
+    
+    Internet[Internet] --> HostPort[Host:80]
+    HostPort --> FrontEnd
+    FrontEnd -.-> BackEnd
+    BackEnd -.-> Database
 ```
 
-### Bridge network (default)
+### Networking Strategies
 
+#### Strategy 1: 3-Tier Architecture
 ```bash
-# Default käitumine
-docker run -d --name web1 nginx
-docker run -d --name web2 nginx
+# Create isolated networks
+docker network create --driver bridge \
+  --subnet=172.20.0.0/16 \
+  --ip-range=172.20.240.0/20 \
+  frontend
 
-# Containers saavad IP aadressid:
-# web1: 172.17.0.2
-# web2: 172.17.0.3
+docker network create --driver bridge \
+  --subnet=172.21.0.0/16 \
+  --internal \
+  backend
 
-# Saavad ping'ida IP kaudu
-docker exec web1 ping 172.17.0.3  # ✅ Töötab
-
-# AGA EI SAA kasutada nimesid
-docker exec web1 ping web2        # ❌ Ei tööta
-```
-
-### Custom networks (SOOVITATUD!)
-
-```bash
-# Loo custom network
-docker network create myapp-network
-
-# Käivita containers custom network'is
-docker run -d --name web --network myapp-network nginx
-docker run -d --name api --network myapp-network python:3.9
-
-# Nüüd hostname resolution töötab!
-docker exec web ping api          # ✅ Töötab!
-docker exec api ping web          # ✅ Töötab!
-```
-
-### Praktiline näide: 3-tier app
-
-```bash
-# Loo networks
-docker network create frontend   # Web ↔ API
-docker network create backend    # API ↔ Database
-
-# Database (ainult backend)
-docker run -d --name db \
-  --network backend \
-  -e POSTGRES_PASSWORD=secret \
-  postgres:13
-
-# API (mõlemas networks)
-docker run -d --name api \
-  --network backend \
-  python:3.9
-docker network connect frontend api
-
-# Web (ainult frontend)  
-docker run -d --name web \
+# Web tier (internet-facing)
+docker run -d --name nginx \
   --network frontend \
   -p 80:80 \
-  nginx
+  nginx:alpine
+
+# API tier (bridge networks)
+docker run -d --name api \
+  --network backend \
+  python:3.9-alpine
+docker network connect frontend api
+
+# Database tier (internal only)
+docker run -d --name postgres \
+  --network backend \
+  -e POSTGRES_PASSWORD=secret \
+  postgres:13-alpine
 ```
 
-**Topology:**
-```
-Internet → [web] → [api] → [db]
-          frontend backend
-```
-
-### Host networking
-
+#### Strategy 2: Service Discovery
 ```bash
-# Container kasutab host network'i
-docker run -d --network host nginx
+# DNS resolution in custom networks
+docker exec nginx ping api          # ✅ Works by hostname
+docker exec api ping postgres       # ✅ Internal communication
 
-# Container port'id on otse host'is
-# Ei vaja port mapping'ut!
-curl http://localhost:80  # Töötab kohe
-```
-
-### Docker Volumes
-
-**Probleem:** Container kustutamisel KÕIK andmed kaovad!
-
-**Analoogia:** Volume = väline kõvaketas, mida saad container'ite vahel jagada.
-
-### Volume tüübid
-
-#### 1. Named volumes (SOOVITATUD)
-
-```bash
-# Loo named volume
-docker volume create mydata
-
-# Kasuta volume'i
-docker run -d \
-  --name database \
-  -v mydata:/var/lib/mysql \
-  mysql:8.0
-
-# Volume info
-docker volume ls
-docker volume inspect mydata
-```
-
-#### 2. Bind mounts (host kaustade kinnitamine)
-
-```bash
-# Mount host directory → container
-docker run -d \
-  --name web \
-  -v /home/user/website:/usr/share/nginx/html \
-  nginx
-
-# Muudatused host'is on kohe nähtavad container'is!
-echo "<h1>Hello</h1>" > /home/user/website/index.html
-curl http://localhost  # Uus sisu!
-```
-
-#### 3. tmpfs mounts (RAM-based)
-
-```bash
-# Temporary storage (ainult RAM'is)
-docker run -d \
-  --name cache \
-  --tmpfs /tmp \
+# Service discovery with aliases
+docker run -d --name cache \
+  --network backend \
+  --network-alias redis-master \
   redis:alpine
 
-# /tmp data kaob container'i restart'imisel
+docker exec api ping redis-master   # ✅ Works via alias
 ```
 
-### Praktiline näide: Persistent database
+### Volume Strategies for Production
 
-```bash
-# 1. Loo volume
-docker volume create postgres_data
-
-# 2. Käivita database volume'iga
-docker run -d \
-  --name mydb \
-  -e POSTGRES_PASSWORD=secret \
-  -v postgres_data:/var/lib/postgresql/data \
-  postgres:13
-
-# 3. Loo andmeid
-docker exec -it mydb psql -U postgres
-# CREATE TABLE users (id SERIAL, name TEXT);
-# INSERT INTO users (name) VALUES ('Alice'), ('Bob');
-
-# 4. Kustuta container
-docker stop mydb && docker rm mydb
-
-# 5. Käivita uus container SAMA volume'iga
-docker run -d \
-  --name newdb \
-  -e POSTGRES_PASSWORD=secret \
-  -v postgres_data:/var/lib/postgresql/data \
-  postgres:13
-
-# 6. Andmed on alles!
-docker exec -it newdb psql -U postgres -c "SELECT * FROM users;"
+```mermaid
+graph LR
+    subgraph "Volume Types"
+        A[Named Volumes<br/>Managed by Docker]
+        B[Bind Mounts<br/>Host filesystem]
+        C[tmpfs Mounts<br/>Memory only]
+    end
+    
+    subgraph "Use Cases"
+        D[Database Storage]
+        E[Development Code]
+        F[Temporary Cache]
+    end
+    
+    A --> D
+    B --> E
+    C --> F
 ```
 
-### Development workflow
-
+#### Production Database with Backup Strategy
 ```bash
-# Mount source code arendamiseks
-docker run -it \
-  --name dev \
+# Named volume for production
+docker volume create --driver local \
+  --opt type=ext4 \
+  --opt device=/dev/sdb1 \
+  postgres_data
+
+# PostgreSQL with optimized settings
+docker run -d --name postgres-prod \
+  --restart unless-stopped \
+  -v postgres_data:/var/lib/postgresql/data \
+  -v $(pwd)/postgres.conf:/etc/postgresql/postgresql.conf:ro \
+  -e POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password \
+  -e POSTGRES_DB=production \
+  --memory=2g \
+  --cpus=2 \
+  postgres:13-alpine \
+  -c config_file=/etc/postgresql/postgresql.conf
+
+# Backup strategy
+docker run --rm \
+  -v postgres_data:/data:ro \
+  -v $(pwd)/backups:/backup \
+  alpine:latest \
+  tar czf /backup/postgres_$(date +%Y%m%d_%H%M%S).tar.gz -C /data .
+```
+
+#### Development with Live Reload
+```bash
+# Bind mount for development
+docker run -d --name dev-env \
   -v $(pwd):/workspace \
+  -v /workspace/node_modules \
   -w /workspace \
   -p 3000:3000 \
-  node:16 bash
+  node:16-alpine \
+  npm run dev
 
-# Edita faile host'is, jooksu container'is!
+# Anonymous volume for node_modules prevents host override
 ```
 
-### Volume cleanup
+### Monitoring & Observability
 
 ```bash
-# Vaata volumes
-docker volume ls
+# Real-time container monitoring
+docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"
 
-# Kustuta volume
-docker volume rm mydata
+# Network traffic analysis
+docker exec nginx ss -tulpn
+docker exec api netstat -i
 
-# Kustuta kasutamata volumes
-docker volume prune
+# Volume usage monitoring
+docker system df -v
+docker volume ls --filter dangling=true
 ```
 
-### Kokkuvõte
-
-**Networks:** Containers suhtlevad custom network'ides hostname'ide kaudu
-
-**Volumes:** Andmed püsivad container'ite kustutamisel
-
-**Best practices:**
-- Kasuta custom networks
-- Named volumes production'is
-- Bind mounts development'is
+**📊 Monitoring Tools:**
+- cAdvisor: https://github.com/google/cadvisor
+- Portainer: https://www.portainer.io/
+- Docker Desktop: Built-in dashboard
 
 ---
 
-## Kokkuvõte: Week 19 Docker Fundamentals
+# Part 5: Podman - The Daemonless Future (10 min)
+## Docker's Rootless Alternative
 
-Selles nädalas õppisime:
+### Why Podman Matters
 
-### 🎯 **Peamised teemad:**
+**The Daemon Problem:**
+```bash
+# Docker security model
+$ docker run -v /:/host -it alpine chroot /host bash
+root@container:/# rm -rf /usr/bin/*  # 😱 Can destroy host!
+```
 
-1. **Containers vs VMs**
-   - Container efektiivsus ja kiirus
-   - Ressursside optimeerimine
-   - Deployment stsenaariumi valikud
+**Podman's Solution:**
+```bash
+# Rootless by design
+$ podman run -v /:/host -it alpine chroot /host bash
+Error: cannot mount /: permission denied  # ✅ Protected!
+```
 
-2. **Docker CLI Mastery**
-   - Container lifecycle management
-   - Image operations ja cleanup
-   - Development workflows
+### Architecture Comparison
 
-3. **Podman Alternative**
-   - Daemonless architecture
-   - Rootless security
-   - Kubernetes integration
+```mermaid
+graph TB
+    subgraph "Docker Architecture"
+        DC[Docker CLI] --> DD[Docker Daemon<br/>Always running as root]
+        DD --> DCont[Containers]
+    end
+    
+    subgraph "Podman Architecture"  
+        PC[Podman CLI] --> PCont[Containers<br/>Direct execution]
+    end
+    
+    subgraph "Security Model"
+        DR[Docker: Root required]
+        PR[Podman: User namespaces]
+    end
+```
 
-4. **Dockerfile Optimization**
-   - Layer caching strategies
-   - Multi-stage builds
-   - Security best practices
-   - Size optimization
+### Podman Unique Features
 
-5. **Networking & Storage**
-   - Custom networks ja service discovery
-   - Volume persistence strategies
-   - Development ja production patterns
+#### 1. Kubernetes Integration
+```bash
+# Generate Kubernetes YAML
+podman run -d --name web nginx:alpine
+podman generate kube web > pod.yaml
 
-### 🛠️ **Praktilised oskused:**
+# pod.yaml is ready for kubectl!
+kubectl apply -f pod.yaml
 
-- Container technology mõistmine
-- Docker CLI commands fluently
-- Dockerfile kirjutamine optimaalselt
-- Network ja volume management
-- Docker vs Podman trade-offs
+# Or run locally with Podman
+podman play kube pod.yaml
+```
 
-### 📚 **Järgmine nädal:**
+#### 2. Pod Management (Like Kubernetes)
+```bash
+# Create pod with shared resources
+podman pod create --name webapp --publish 8080:80
 
-**Nädal 21 - Docker Compose ja Orchestration:**
-- Multi-container applications
-- Service orchestration
-- Environment management
-- Production deployment strategies
+# Add containers to pod
+podman run -d --pod webapp --name frontend nginx:alpine
+podman run -d --pod webapp --name backend python:3.9-alpine
 
-**Valmistumine:** Mõelge, kuidas hallata keerulist rakendust, mis vajab andmebaasi, web serverit, cache'i ja monitoring'ut kõike koos?
+# Containers in pod share:
+# - Network (localhost communication)
+# - Storage volumes
+# - Process namespace
+```
+
+#### 3. Systemd Integration (No Docker Daemon!)
+```bash
+# Generate systemd service
+podman run -d --name myapp nginx:alpine
+podman generate systemd --new --files --name myapp
+
+# Install as user service (no sudo!)
+mkdir -p ~/.config/systemd/user
+cp container-myapp.service ~/.config/systemd/user/
+systemctl --user enable container-myapp.service
+systemctl --user start container-myapp.service
+
+# Auto-start on boot (no Docker daemon needed!)
+loginctl enable-linger $USER
+```
+
+### Migration Strategy
+
+```bash
+# 1. Install Podman alongside Docker
+sudo apt install podman podman-compose
+
+# 2. Create alias for gradual migration
+echo "alias docker=podman" >> ~/.bashrc
+
+# 3. Test existing workflows
+docker run hello-world  # Actually runs: podman run hello-world
+
+# 4. Migrate docker-compose projects
+podman-compose up -d    # Drop-in replacement!
+```
+
+### Performance Comparison
+
+| Feature | Docker | Podman | Winner |
+|---------|---------|---------|---------|
+| **Memory Usage** | ~50-100MB daemon | 0MB daemon | 🟢 Podman |
+| **Startup Time** | 2-3 seconds | 1-2 seconds | 🟢 Podman |
+| **Security** | Root daemon | User namespaces | 🟢 Podman |
+| **Ecosystem** | Massive | Growing | 🔴 Docker |
+
+**📚 Podman Resources:**
+- Official Documentation: https://docs.podman.io/
+- Migration Guide: https://podman.io/getting-started/
 
 ---
 
-**Head containeriseerimist!** 🐳
+# Part 6: Production Näited (10 min)
+## Töötavad Projektid
+
+### Kiire Stack Demo
+
+**3-tier arhitektuur:**
+```bash
+# Frontend
+docker run -d --name web -p 80:80 nginx:alpine
+
+# Backend API  
+docker run -d --name api python:3.9-alpine
+
+# Database
+docker run -d --name db -e POSTGRES_PASSWORD=secret postgres:alpine
+
+# Network them together
+docker network create myapp
+docker network connect myapp web
+docker network connect myapp api  
+docker network connect myapp db
+```
+
+### Production Tips
+
+1. **Always use specific tags:** `nginx:1.21-alpine` not `nginx:latest`
+2. **Health checks:** `HEALTHCHECK --interval=30s CMD curl -f http://localhost`
+3. **Non-root users:** `USER 1001:1001`
+4. **Multi-stage builds:** Build stage + Runtime stage
+5. **Secret management:** Environment variables, not hardcoded
+
+### Monitoring Stack
+```bash
+# Quick monitoring setup
+docker run -d -p 9090:9090 prom/prometheus     # Metrics
+docker run -d -p 3000:3000 grafana/grafana     # Dashboards
+docker run -d -p 8080:8080 gcr.io/cadvisor/cadvisor  # Container stats
+```
+
+---
+
+### Project 1: High-Performance Web Stack
+
+**Architecture:**
+```
+Internet → CloudFlare → nginx → Node.js API → Redis → PostgreSQL
+```
+
+**docker-compose.production.yml:**
+```yaml
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - static_files:/usr/share/nginx/html/static
+    depends_on:
+      - api
+    restart: unless-stopped
+    
+  api:
+    build: 
+      context: ./api
+      target: production
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://api:${DB_PASSWORD}@postgres:5432/production
+    volumes:
+      - static_files:/app/public
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      
+  postgres:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_DB=production
+      - POSTGRES_USER=api
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres.conf:/etc/postgresql/postgresql.conf
+    restart: unless-stopped
+    
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    
+volumes:
+  postgres_data:
+  redis_data:
+  static_files:
+```
+
+### Project 2: Microservices with Service Mesh
+
+```mermaid
+graph TB
+    subgraph "External"
+        Users[Users] --> LB[Load Balancer]
+    end
+    
+    subgraph "Frontend Network"
+        LB --> Web[Web UI]
+        LB --> API[API Gateway]
+    end
+    
+    subgraph "Backend Network"
+        API --> Auth[Auth Service]
+        API --> User[User Service] 
+        API --> Order[Order Service]
+        API --> Payment[Payment Service]
+    end
+    
+    subgraph "Data Network"
+        Auth --> AuthDB[(Auth DB)]
+        User --> UserDB[(User DB)]
+        Order --> OrderDB[(Order DB)]
+        Payment --> PaymentDB[(Payment DB)]
+    end
+```
+
+### Project 3: CI/CD Pipeline Integration
+
+**Dockerfile.multistage:**
+```dockerfile
+# Development stage
+FROM node:16-alpine as development
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+
+# Testing stage
+FROM development as testing  
+RUN npm run test:coverage
+RUN npm run lint
+RUN npm audit
+
+# Security scan stage
+FROM testing as security
+RUN npm audit --audit-level high
+
+# Production build
+FROM node:16-alpine as builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+
+# Runtime optimized
+FROM nginx:alpine as production
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.prod.conf /etc/nginx/nginx.conf
+HEALTHCHECK --interval=30s CMD curl -f http://localhost || exit 1
+EXPOSE 80
+```
+
+**GitHub Actions Integration:**
+```yaml
+name: Docker Build & Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run tests
+        run: |
+          docker build --target testing .
+          
+  security:
+    runs-on: ubuntu-latest  
+    steps:
+      - uses: actions/checkout@v3
+      - name: Security scan
+        run: |
+          docker build -t myapp .
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy image myapp
+            
+  deploy:
+    needs: [test, security]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to production
+        run: |
+          docker build -t myapp:${{ github.sha }} .
+          docker push registry.company.com/myapp:${{ github.sha }}
+```
+
+### Production Monitoring Stack
+
+```yaml
+version: '3.8'
+
+services:
+  # Application monitoring
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      
+  # Log aggregation  
+  loki:
+    image: grafana/loki
+    ports:
+      - "3100:3100"
+      
+  # Container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+```
+
+---
+
+## 📚 Advanced Resources
+
+### Essential Reading
+- **Docker Best Practices:** https://docs.docker.com/develop/dev-best-practices/
+- **Container Security Guide:** https://kubernetes.io/docs/concepts/security/
+- **Production Patterns:** https://12factor.net/
+
+### Tools & Extensions
+- **Docker Desktop:** https://www.docker.com/products/docker-desktop/
+- **Portainer:** https://www.portainer.io/
+- **Hadolint:** https://github.com/hadolint/hadolint
+- **Trivy Security Scanner:** https://github.com/aquasecurity/trivy
+
+### Community
+- **Docker Community Forum:** https://forums.docker.com/
+- **Reddit r/docker:** https://reddit.com/r/docker
+- **Stack Overflow:** https://stackoverflow.com/questions/tagged/docker
+---
+
+*"Docker is not just a tool, it's a paradigm shift that enables modern software delivery at scale."*
