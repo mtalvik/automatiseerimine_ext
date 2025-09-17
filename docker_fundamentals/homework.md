@@ -393,7 +393,60 @@ Nüüd töötab nginx reverse proxy port 80 peal!
 
 ---
 
-# SAMM 5: Podman Alternatiiv
+# SAMM 6: Docker Hub Publishing
+
+## Looge Docker Hub konto
+
+1. Minge https://hub.docker.com/
+2. Registreeruge (tasuta konto)
+3. Kinnitage email
+
+## Logige sisse
+
+```bash
+# Login Docker Hub'i
+docker login
+
+# Sisestage username ja password
+```
+
+## Tagige ja pushige image
+
+```bash
+# Tag image oma username'iga
+docker tag chatbot-app [teie-username]/chatbot-app:latest
+docker tag chatbot-app [teie-username]/chatbot-app:v1.0
+
+# Push Docker Hub'i (public repository)
+docker push [teie-username]/chatbot-app:latest
+docker push [teie-username]/chatbot-app:v1.0
+```
+
+## Testinge public image'i
+
+```bash
+# Kustutage local image
+docker rmi chatbot-app
+docker rmi [teie-username]/chatbot-app:latest
+
+# Tõmmake Docker Hub'ist
+docker pull [teie-username]/chatbot-app:latest
+
+# Käivitage public image
+docker run -d --name public-chatbot -p 5003:5000 [teie-username]/chatbot-app:latest
+```
+
+## Repository seadistused
+
+Docker Hub'is:
+1. Minge oma repository'sse
+2. Settings tab
+3. Tehke repository **Public**
+4. Lisage kirjeldus: "Docker Fundamentals homework - Chat bot API"
+
+---
+
+# SAMM 7: Podman Alternatiiv
 
 ```bash
 # Install Podman
@@ -416,7 +469,7 @@ Nüüd teil töötab:
 
 ---
 
-# SAMM 6: Lisafunktsioonid
+# SAMM 8: Lisafunktsioonid
 
 ## Chat logi salvestamine
 
@@ -485,22 +538,36 @@ docker-chatbot/
 └── README.md
 ```
 
+**Docker Hub nõuded:**
+- Image pushed Docker Hub'i: `[teie-username]/chatbot-app:latest`
+- Repository on **public**
+- Tag'itud ka versiooniga: `[teie-username]/chatbot-app:v1.0`
+
 ## Esitamise viis
 
 1. **GitHub repository link** esitage õppetoolis
-2. **Repository peab olema avalik**
-3. **Kõik failid commit'itud**
-4. **Chat bot peab töötama**
+2. **Docker Hub repository link** esitage samuti
+3. **Mõlemad peavad olema avalikud**
+4. **Kõik failid commit'itud**
+5. **Chat bot peab töötama**
 
 ## Testimine
 
 Õpetaja testib:
+- GitHub repository clone
+- Docker Hub image pull ja run
 - http://localhost:5000 - Flask app
 - http://localhost:80 - Nginx proxy  
 - Chat bot functionality
 - API endpoints
 
+**Docker Hub test:**
+```bash
+docker pull [teie-username]/chatbot-app:latest
+docker run -d -p 5000:5000 [teie-username]/chatbot-app:latest
+curl http://localhost:5000/api/stats
+```
+
 ---
 
 **Edu kodutööga!**
- 
