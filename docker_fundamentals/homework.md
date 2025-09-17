@@ -1,425 +1,506 @@
-# 📝 Nädal 19 Kodutöö: Süsteemi Oleku Dashboard Deployment
-
-**Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** Õppida Docker ja Podman container'ite kasutamist praktikas  
-**Aeg:** 2-3 tundi (võib olla keeruline, aga jõukohane)
-
-**Te saate valmis veebisaidi - keskenduge container tehnoloogiate õppimisele!**
+# Docker Fundamentals Kodutöö
+*Interaktiivne Web Rakendus*
 
 ---
 
-## 🖥️ **Projekt: Süsteemi Oleku Dashboard**
+## Projekt: Chat Bot API
 
-**Mida see teeb:**
-- Näitab container informatsiooni
-- Kuvab serveri olekut
-- Võimaldab testida connectivity
-- Eristab Docker vs Podman deployment
-
-**Mida te õpite:**
-- Docker ja Podman deployment
-- Environment variables kasutamine  
-- Container networking
-- docker-compose orchestration
+Ehitame lihtsa chat bot'i Docker container'is!
 
 ---
 
-## 📁 **Samm 1: Kloonige starter repository**
+# SAMM 1: Flask API Loomine
 
-### 1.1 Kloonige kodutöö starter repository
-
-```bash
-# Clone valmis starter repository
-git clone https://github.com/teacher/docker-dashboard-starter.git
-cd docker-dashboard-starter
-
-# Loo oma branch
-git checkout -b homework-TEIE-NIMI
-
-# Näiteks: git checkout -b homework-maria-talvik
-```
-
-**Mida me saime?**
-- Valmis HTML dashboard
-- Dockerfile template
-- docker-compose.yml
-- nginx.conf konfiguratsioon
-- README dokumentatsioon
-
-**Ei pea ise kirjutama - fookus container'itel!**
-
-### 1.2 Tutvuge starter failidega
-
-**Kontrollige, mis failid on olemas:**
-```bash
-ls -la
-# Peaksite nägema:
-# index.html - Dashboard rakendus
-# Dockerfile - Container juhised
-# docker-compose.yml - Multi-container setup
-# nginx.conf - Web server config
-# README.md - Dokumentatsioon
-```
-
-**`index.html` on valmis dashboard rakendus** - see näitab:
-- Container runtime info (Docker/Podman)
-- Süsteemi olek ja uptime
-- Interaktiivsed nupud testimiseks
-- Responsive disain
-
-### 1.3 Testage starter rakendust brauseris
+## Looge töökaust
 
 ```bash
-# Avage index.html otse brauseris (ilma container'ita)
-open index.html
-# Või Linux'is: firefox index.html
-
-# Dashboard peaks avanema ja näitama:
-# - Süsteemi oleku info
-# - Container runtime: "Unknown" 
-# - Interactive buttons töötavad
+mkdir docker-chatbot
+cd docker-chatbot
 ```
 
-**Mida need failid teevad?**
-- `index.html` - Dashboard rakendus (juba valmis!)
-- `Dockerfile` - Container ehitamise juhised
-- `docker-compose.yml` - Mitme-container haldamine
-- `nginx.conf` - Veebserveri täpsemad seadistused
+## Looge Python API
+
+Looge fail `app.py`:
+
+```python
+from flask import Flask, render_template, request, jsonify
+import random
+import datetime
+import os
+
+app = Flask(__name__)
+
+# Chat bot vastused
+RESPONSES = {
+    "tere": ["Tere!", "Tsau!", "Mis toimub?"],
+    "kuidas": ["Hästi läheb!", "Olen container'is!", "Docker on äge!"],
+    "kes": ["Olen chat bot", "Container bot", "Sinu Docker assistent"],
+    "aeg": [f"Praegu on {datetime.datetime.now().strftime('%H:%M')}"],
+    "info": ["Töötab Docker'is", "Python + Flask", "Port 5000"]
+}
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    user_message = request.json.get('message', '').lower()
+    
+    # Leia vastus
+    response = "Ei saa aru... Proovi: tere, kuidas, kes, aeg, info"
+    for keyword, replies in RESPONSES.items():
+        if keyword in user_message:
+            response = random.choice(replies)
+            break
+    
+    return jsonify({
+        'response': response,
+        'timestamp': datetime.datetime.now().isoformat(),
+        'container_id': os.environ.get('HOSTNAME', 'unknown')
+    })
+
+@app.route('/api/stats')
+def stats():
+    return jsonify({
+        'uptime': 'Docker container töötab',
+        'python_version': '3.9',
+        'framework': 'Flask',
+        'container_id': os.environ.get('HOSTNAME', 'unknown')
+    })
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
+```
+
+## Looge HTML template
+
+Looge kaust ja fail `templates/index.html`:
+
+```bash
+mkdir templates
+```
+
+```html
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Chat Bot</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .chat-container {
+            width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .user-message {
+            background: #667eea;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        
+        .bot-message {
+            background: #e9ecef;
+            color: #333;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 20px;
+            background: white;
+        }
+        
+        #messageInput {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+        
+        #sendButton {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        #sendButton:hover {
+            background: #5a6fd8;
+        }
+        
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        
+        .container-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-info" id="containerInfo">Loading...</div>
+    
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>🐳 Docker Chat Bot</h2>
+            <p>Tudeng: <strong>[SINU NIMI]</strong></p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Tere! Olen Docker container'is töötav chat bot. 
+                Proovi kirjutada: "tere", "kuidas", "kes", "aeg", "info"
+            </div>
+            <div class="info-box">
+                💡 See rakendus töötab Python Flask serveris Docker container'is!
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Kirjuta sõnum..." 
+                   onkeypress="if(event.key==='Enter') sendMessage()">
+            <button id="sendButton" onclick="sendMessage()">Saada</button>
+        </div>
+    </div>
+
+    <script>
+        // Load container info
+        fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('containerInfo').innerText = 
+                    `Container: ${data.container_id}`;
+            });
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user-message');
+            input.value = '';
+            
+            // Send to API
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage(data.response, 'bot-message');
+            })
+            .catch(error => {
+                addMessage('Viga: Server ei vasta', 'bot-message');
+            });
+        }
+        
+        function addMessage(text, className) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // Auto-focus input
+        document.getElementById('messageInput').focus();
+    </script>
+</body>
+</html>
+```
+
+## Looge requirements fail
+
+Looge fail `requirements.txt`:
+
+```
+Flask==2.3.3
+```
 
 ---
 
-## 🔧 **Samm 2: Docker container loomine**
+# SAMM 2: Dockerfile
 
-### 2.1 Tutvuge Dockerfile'iga
+Looge fail `Dockerfile`:
 
-**Vaadake olemas olevat `Dockerfile` faili:**
-```bash
-cat Dockerfile
-```
-
-**Dockerfile sisu ja selgitus:**
 ```dockerfile
-FROM nginx:alpine              # Kasutame nginx web server'it
-COPY index.html /usr/share/nginx/html/   # Kopeerime HTML faili
-COPY nginx.conf /etc/nginx/conf.d/default.conf  # Custom config
-EXPOSE 80                      # Container port 80
-```
+FROM python:3.9-alpine
 
-**Mida see teeb:**
-- Alustab nginx serveriga (väike Alpine Linux)
-- Kopeerib meie HTML faili õigesse kohta
-- Lisab custom nginx konfiguratsiooni
-- Avab port 80 HTTP liikluseks
+WORKDIR /app
 
-### 2.2 Testige Docker build
+# Copy requirements first (better caching)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-```bash
-# Ehitage container image
-docker build -t my-dashboard .
+# Copy application code
+COPY . .
 
-# Mida see käsk teeb?
-# - Loeb Dockerfile faili
-# - Laadib nginx:alpine image
-# - Kopeerib index.html faili
-# - Loob uue image nimega "my-dashboard"
+# Create non-root user
+RUN adduser -D -s /bin/sh appuser
+USER appuser
 
-# Kontrollige, et image on loodud
-docker images | grep my-dashboard
-```
+EXPOSE 5000
 
-### 2.3 Esimene commit oma branch'iga
-
-```bash
-# Commit esialgsed muudatused (kui tegite mõnda)
-git add .
-git commit -m "Alustasin kodutööd: kontrollisin starter failid ja Docker build"
-
-# Push oma branch GitHub'i
-git push origin homework-TEIE-NIMI
-
-# Miks me commit'ime?
-# - Salvestame oma töö progressi
-# - Näitame, et alustasime tööd
-# - Saame tagasi minna kui midagi läheb valesti
+CMD ["python", "app.py"]
 ```
 
 ---
 
-## 🐳 **Samm 3: Container'ite käivitamine**
-
-### 3.1 Docker'iga deploy
+# SAMM 3: Ehitamine ja Testimine
 
 ```bash
-# Käivitage container
-docker run -d --name my-docker-app -p 8080:80 my-dashboard
+# Build image
+docker build -t chatbot-app .
 
-# Mida see käsk teeb?
-# -d = detached mode (taustal)
-# --name = anname container'ile nime "my-docker-app"
-# -p 8080:80 = ühendame host port 8080 → container port 80
-# my-dashboard = kasutame meie loodud image't
+# Run container
+docker run -d --name chatbot -p 5000:5000 chatbot-app
 
-# Kontrollige, et container töötab
-docker ps
+# Test API
+curl http://localhost:5000/api/stats
 
-# Testidige brauseris
-echo "Avage brauser: http://localhost:8080"
+# Test brauseris
+echo "Avage: http://localhost:5000"
 ```
 
-### 3.2 Podman'iga deploy
+Nüüd saate chat bot'iga rääkida!
 
-```bash
-# Ehitage image Podman'iga
-podman build -t my-dashboard-podman .
+---
 
-# Käivitage Podman container
-podman run -d --name my-podman-app -p 8081:80 my-dashboard-podman
+# SAMM 4: Docker Compose
 
-# Kontrollige Podman container'eid
-podman ps
+Looge fail `docker-compose.yml`:
 
-# Testidige brauseris
-echo "Avage brauser: http://localhost:8081"
-```
-
-**Docker vs Podman erinevused:**
-- Docker vajab daemon'it (background service)
-- Podman töötab ilma daemon'ita
-- Käsud on peaaegu identilised
-- Mõlemad kasutavad sama container format
-
-### 3.3 Docker-compose kasutamine
-
-**Looge `docker-compose.yml` fail:**
 ```yaml
 version: '3.8'
 
 services:
-  dashboard:
+  chatbot:
     build: .
     ports:
-      - "8080:80"
-    container_name: compose-dashboard
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
+    
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - chatbot
 ```
 
-**Käivitage docker-compose'iga:**
-```bash
-# Ehitage ja käivitage
-docker-compose up -d
+Looge fail `nginx.conf`:
 
-# Mida see teeb?
-# - Loeb docker-compose.yml faili
-# - Ehitab image kui vaja
-# - Käivitab container'i
-# - Seadistab networking automaatselt
+```nginx
+events {
+    worker_connections 1024;
+}
 
-# Kontrollige
-docker-compose ps
-
-# Testidige: http://localhost:8080
+http {
+    upstream chatbot {
+        server chatbot:5000;
+    }
+    
+    server {
+        listen 80;
+        
+        location / {
+            proxy_pass http://chatbot;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
+}
 ```
 
-### 3.4 Commit oma edu
+Käivitage:
 
-```bash
-git add docker-compose.yml
-git commit -m "Docker ja Podman deployment töötab - mõlemad testitud"
-```
-
----
-
-## 📊 **Samm 4: Container'ite haldamine**
-
-### 4.1 Container'ite info vaatamine
-
-```bash
-# Vaadake kõiki töötavaid container'eid
-docker ps
-
-# Vaadake container'i logisid
-docker logs my-docker-app
-
-# Sisenege container'isse (debugging)
-docker exec -it my-docker-app sh
-
-# Container'ist väljumine
-exit
-```
-
-**Mida need käsud teevad?**
-- `docker ps` - näitab töötavaid container'eid
-- `docker logs` - näitab container'i väljundit
-- `docker exec -it` - lubab container'isse siseneda
-
-### 4.2 Container'ite peatamine ja kustutamine
-
-```bash
-# Peatage container
-docker stop my-docker-app
-
-# Kustutage container
-docker rm my-docker-app
-
-# Teha mõlemat korraga
-docker rm -f my-docker-app
-
-# Kustutage ka image (kui vaja)
-docker rmi my-dashboard
-```
-
-### 4.3 Docker-compose haldamine
-
-```bash
-# Vaadake docker-compose staatust
-docker-compose ps
-
-# Vaadake logisid
-docker-compose logs
-
-# Peatage kõik teenused
-docker-compose down
-
-# Käivitage uuesti
-docker-compose up -d
-```
-
-### 4.4 Ressursside kasutus
-
-```bash
-# Vaadake container'ite ressursside kasutust
-docker stats
-
-# Vaadake Docker disk kasutust
-docker system df
-
-# Puhastage unused resources
-docker system prune -f
-```
-
-**Commit haldamise oskused:**
-```bash
-git add .
-git commit -m "Õppisin container'ite haldamist - start, stop, logs, cleanup"
-```
-
----
-
-## 📋 **Samm 5: Lõplik dokumentatsioon (10 min)**
-
-### 5.1 Muutke README.md faili
-
-**Fail: `README.md`** (kopeerige ja täitke oma andmed):
-```markdown
-# System Status Dashboard - [TEIE NIMI]
-
-## Mis see on?
-System Status Dashboard on veebirakendus, mis näitab container informatsiooni,
-süsteemi olekut ja võimaldab testida erinevaid operations.
-
-## Kuidas käivitada?
-
-### Docker'iga:
-```bash
-docker build -t dashboard .
-docker run -d -p 8080:80 dashboard
-# Avage: http://localhost:8080?type=Docker
-```
-
-### Podman'iga:
-```bash
-podman build -t dashboard .
-podman run -d -p 8081:80 dashboard  
-# Avage: http://localhost:8081?type=Podman
-```
-
-### Docker-compose'iga:
 ```bash
 docker-compose up -d
-# Docker: http://localhost:8080?type=Docker
-# Podman: http://localhost:8081?type=Podman
 ```
 
-## Funktsioonid
-- System status monitoring
-- Container runtime detection
-- Interactive operations testing
-- Real-time uptime counter
-- Health check endpoint
-- Custom nginx configuration
-
-## Keskkonnamuutujad
-| Muutuja | Kirjeldus |
-|----------|-------------|
-| `CONTAINER_TYPE` | Näitab Docker või Podman |
-| `DEPLOY_DATE` | Millal container deployiti |
-
-## Tervise kontroll
-Külastage `/health` endpoint'i container'i tervise staatuse kontrollimiseks.
-
-## Ekraanipildid
-[Lisage oma screenshot'id siia]
-
-## Mida ma õppisin
-- [Teie kogemus 1]
-- [Teie kogemus 2] 
-- [Teie kogemus 3]
-
-## Probleemid ja lahendused
-**Probleem:** [Kirjeldage probleem mis teil tekkis]  
-**Lahendus:** [Kuidas te selle lahendasite]
-```
-
-### 5.2 Tehke screenshot'id
-
-**Vajalikud screenshot'id:**
-1. Dashboard töötab Docker'is: `http://localhost:8080?type=Docker`
-2. Dashboard töötab Podman'is: `http://localhost:8081?type=Podman`  
-3. Terminal output: `docker ps` ja `podman ps`
-4. Tervise kontrolli test: `curl http://localhost:8082/health`
-
-**Salvestage screenshot'id `screenshots/` kausta.**
+Nüüd töötab nginx reverse proxy port 80 peal!
 
 ---
 
-### 5.2 Lõplik push oma branch'iga
+# SAMM 5: Podman Alternatiiv
 
 ```bash
-# Veenduge, et kõik on commit'itud
-git add .
-git commit -m "Lõplik esitamine: Docker kodutöö valmis - kõik containerid testitud"
+# Install Podman
+sudo apt install podman
 
-# Push final version
-git push origin homework-TEIE-NIMI
+# Build sama image
+podman build -t chatbot-podman .
 
-# GitHub'is saate luua Pull Request õpetajale
-# Teacher repository → Pull Requests → New Pull Request
+# Run different port
+podman run -d --name chatbot-podman -p 5001:5000 chatbot-podman
+
+# Test
+curl http://localhost:5001/api/stats
+```
+
+Nüüd teil töötab:
+- Docker: http://localhost:5000
+- Podman: http://localhost:5001  
+- Nginx proxy: http://localhost:80
+
+---
+
+# SAMM 6: Lisafunktsioonid
+
+## Chat logi salvestamine
+
+Lisage `app.py` faili:
+
+```python
+import json
+from datetime import datetime
+
+# Chat log
+chat_log = []
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    user_message = request.json.get('message', '').lower()
+    
+    # ... existing code ...
+    
+    # Save to log
+    chat_log.append({
+        'user': user_message,
+        'bot': response,
+        'timestamp': datetime.now().isoformat(),
+        'container': os.environ.get('HOSTNAME', 'unknown')
+    })
+    
+    return jsonify({
+        'response': response,
+        'timestamp': datetime.now().isoformat(),
+        'container_id': os.environ.get('HOSTNAME', 'unknown')
+    })
+
+@app.route('/api/logs')
+def get_logs():
+    return jsonify(chat_log[-10:])  # Last 10 messages
+```
+
+## Environment variables
+
+```bash
+# Run with custom environment
+docker run -d --name chatbot-custom \
+    -p 5002:5000 \
+    -e BOT_NAME="DockerBot" \
+    -e BOT_MOOD="happy" \
+    chatbot-app
 ```
 
 ---
 
-## 📋 **Esitamise nõuded**
+# Esitamine
 
-### **Repository peab sisaldama:**
+## Nõuded
+
+Teie repository peab sisaldama:
 
 ```
-docker-fundamentals-homework/
-├── README.md                    # Projekti kirjeldus
-├── index.html                   # Veebisaidi fail
-├── Dockerfile                   # Container definitsioon
-├── docker-compose.yml           # Multi-container setup
-└── screenshots/ (valikuline)    # Töötavate container'ite pildid
+docker-chatbot/
+├── app.py
+├── requirements.txt  
+├── Dockerfile
+├── docker-compose.yml
+├── nginx.conf
+├── templates/
+│   └── index.html
+└── README.md
 ```
 
-### **Esitamine:**
-1. **GitHub Pull Request link** esitage õppetoolis
-2. **Oma branch** teacher repository's: `homework-TEIE-NIMI`
-3. **Töötav demonstratsioon** - õpetaja saab checkout'ida ja testida
+## Esitamise viis
 
-### **Repository peab näitama:**
-- **Töötav rakendus Docker'is**
-- **Töötav rakendus Podman'is**
-- **docker-compose setup**
-- **Selge dokumentatsioon README.md's**
-- **Git commit history näitab progressi**
+1. **GitHub repository link** esitage õppetoolis
+2. **Repository peab olema avalik**
+3. **Kõik failid commit'itud**
+4. **Chat bot peab töötama**
 
+## Testimine
+
+Õpetaja testib:
+- http://localhost:5000 - Flask app
+- http://localhost:80 - Nginx proxy  
+- Chat bot functionality
+- API endpoints
+
+---
+
+**Edu kodutööga!**
  
