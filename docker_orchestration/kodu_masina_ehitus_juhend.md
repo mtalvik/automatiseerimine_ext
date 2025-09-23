@@ -1,369 +1,395 @@
-# 🏠 Kodu Masina Ehitus Juhend
+# Docker Setup Quick Guide 🐳
 
-**Eesmärk:** Seadistada arenduskeskkond kodus Kubernetes ja Docker õppimiseks
+## 1. Choose Your OS
 
----
-
-## 📋 Sisukord
-
-1. [Virtuaalse masina loomine](#virtuaalse-masina-loomine)
-2. [VSCode seadistamine](#vscode-seadistamine)
-3. [SSH ühenduse seadistamine](#ssh-ühenduse-seadistamine)
-4. [Docker ja Kubernetes installimine](#docker-ja-kubernetes-installimine)
-5. [Probleemide lahendamine](#probleemide-lahendamine)
-
----
-
-## 🖥️ Virtuaalse masina loomine
-
-### **Süsteemi nõuded:**
-- **RAM:** Vähemalt 8GB (soovituslik 16GB)
-- **CPU:** Vähemalt 4 tuuma (soovituslik 8 tuuma)
-- **Ketas:** Vähemalt 50GB vaba ruumi
-- **OS:** Windows 10/11, macOS, või Linux
-
-### **1. Multipass (soovituslik - Ubuntu)**
-
-**Windows:**
+### 🪟 Windows → WSL2
 ```bash
-# 1. Laadige alla: https://multipass.run/download/windows
-# 2. Installige ja taaskäivitage arvuti
-# 3. Avage PowerShell ja käivitage:
-
-# Looge virtuaalne masin
-multipass launch --name dev-lab --memory 8G --disk 30G --cpus 4
-
-# Ühenduge masinaga
-multipass shell dev-lab
+# PowerShell (Admin)
+wsl --install -d Ubuntu-22.04
+# Restart PC
 ```
 
-**macOS:**
+### 🍎 macOS → Multipass
 ```bash
-# Installige Homebrew'iga
 brew install --cask multipass
-
-# Looge virtuaalne masin
-multipass launch --name dev-lab --memory 8G --disk 30G --cpus 4
-multipass shell dev-lab
+multipass launch --name docker-vm --memory 4G --disk 20G 22.04
+multipass shell docker-vm
 ```
 
-**Linux:**
+### 🐧 Linux → Native
 ```bash
-# Installige Snap'iga
-sudo snap install multipass
-
-# Looge virtuaalne masin
-multipass launch --name dev-lab --memory 8G --disk 30G --cpus 4
-multipass shell dev-lab
+# You're already there!
 ```
 
-### **2. VirtualBox + Ubuntu Server**
-
-**1. VirtualBox installimine:**
-- Laadige alla: https://www.virtualbox.org/
-- Installige ja taaskäivitage arvuti
-
-**2. Ubuntu Server allalaadimine:**
-- Laadige alla: https://ubuntu.com/download/server
-- Valige LTS versioon (22.04 LTS)
-
-**3. Virtuaalse masina loomine:**
+## 2. Install Docker (All OS)
 ```bash
-# VirtualBox'is:
-# 1. "New" → "Expert mode"
-# 2. Nimi: "Dev-Lab"
-# 3. OS: Ubuntu 64-bit
-# 4. RAM: 8192 MB (8GB)
-# 5. CPU: 4 tuuma
-# 6. Ketas: 50GB
-# 7. Käivitage ja installige Ubuntu Server
-```
-
-### **3. WSL2 (Windows 10/11)**
-
-```bash
-# Avage PowerShell administraatorina
-wsl --install -d Ubuntu
-
-# Taaskäivitage arvuti
-# Avage Ubuntu terminal ja seadistage kasutaja
-```
-
----
-
-## 💻 VSCode seadistamine
-
-### **1. VSCode installimine**
-
-**Windows/macOS/Linux:**
-- Laadige alla: https://code.visualstudio.com/
-- Installige ja avage
-
-### **2. Kasulikud laiendused**
-
-**Kubernetes ja Docker:**
-```bash
-# Installige järgmised laiendused:
-# 1. "Docker" - Microsoft
-# 2. "Kubernetes" - Microsoft
-# 3. "YAML" - Red Hat
-# 4. "Remote - SSH" - Microsoft
-# 5. "Remote - WSL" - Microsoft (Windows)
-```
-
-**Arenduskeskkond:**
-```bash
-# 6. "GitLens" - Git integreerimine
-# 7. "Auto Rename Tag" - HTML/XML
-# 8. "Bracket Pair Colorizer" - koodi lugemine
-# 9. "Material Icon Theme" - failide ikoonid
-# 10. "One Dark Pro" - tumm teema
-```
-
-### **3. VSCode seaded**
-
-**settings.json:**
-```json
-{
-    "editor.fontSize": 14,
-    "editor.fontFamily": "Consolas, 'Courier New', monospace",
-    "editor.tabSize": 2,
-    "editor.insertSpaces": true,
-    "editor.wordWrap": "on",
-    "files.autoSave": "onFocusChange",
-    "terminal.integrated.fontSize": 14,
-    "workbench.colorTheme": "One Dark Pro",
-    "workbench.iconTheme": "material-icon-theme"
-}
-```
-
----
-
-## 🔐 SSH ühenduse seadistamine
-
-### **1. SSH võtmete loomine (host masinal)**
-
-**Windows:**
-```bash
-# Avage PowerShell
-ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
-# Salvestage: C:\Users\YourName\.ssh\id_rsa
-```
-
-**macOS/Linux:**
-```bash
-ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
-# Salvestage: ~/.ssh/id_rsa
-```
-
-### **2. SSH võtme kopeerimine VM'i**
-
-**Multipass:**
-```bash
-# Kopeerige avalik võti VM'i
-multipass exec dev-lab -- bash -c 'mkdir -p ~/.ssh'
-multipass transfer ~/.ssh/id_rsa.pub dev-lab:/home/ubuntu/.ssh/authorized_keys
-multipass exec dev-lab -- bash -c 'chmod 600 ~/.ssh/authorized_keys'
-```
-
-**VirtualBox/WSL2:**
-```bash
-# Kopeerige avalik võti käsitsi või kasutage ssh-copy-id
-ssh-copy-id username@vm-ip-address
-```
-
-### **3. SSH konfiguratsioon**
-
-**~/.ssh/config (host masinal):**
-```bash
-Host dev-lab
-    HostName 192.168.1.100  # VM'i IP aadress
-    User ubuntu
-    Port 22
-    IdentityFile ~/.ssh/id_rsa
-    ServerAliveInterval 60
-    ServerAliveCountMax 3
-```
-
-### **4. VSCode Remote SSH seadistamine**
-
-**1. Avage VSCode**
-**2. Vajutage `Ctrl+Shift+P` (Windows/Linux) või `Cmd+Shift+P` (macOS)**
-**3. Otsige "Remote-SSH: Connect to Host"**
-**4. Valige "Add New SSH Host"**
-**5. Sisestage: `ssh ubuntu@192.168.1.100`**
-**6. Ühenduge ja avage kaust**
-
----
-
-## 🐳 Docker ja Kubernetes installimine
-
-### **1. Docker installimine VM's**
-
-```bash
-# Ühenduge VM'iga
-ssh dev-lab
-
-# Docker installimine
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-
-# Lisa kasutaja docker gruppi
+# One command install
+curl -fsSL https://get.docker.com | sudo sh
 sudo usermod -aG docker $USER
+exit
+# Log back in
+```
 
-# Taaskäivitage terminal
-newgrp docker
-
-# Kontrollige installimist
+## 3. Test Installation
+```bash
 docker --version
 docker run hello-world
 ```
 
-### **2. Minikube installimine**
-
+## 4. Docker Compose
 ```bash
-# Kubectl installimine
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+# Install compose plugin
+sudo apt update && sudo apt install docker-compose-plugin -y
 
-# Minikube installimine
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube
-
-# Minikube käivitamine
-minikube start --driver=docker --memory=4096 --cpus=2
-
-# Kontrollige
-kubectl get nodes
+# Test
+docker compose version
 ```
 
-### **3. Kubernetes Dashboard**
+## 5. VSCode Setup
+
+Install extensions:
+- `ms-vscode-remote.remote-wsl` (Windows)
+- `ms-vscode-remote.remote-ssh` (Mac/Multipass)  
+- `ms-azuretools.vscode-docker`
+- `redhat.vscode-yaml`
+
+## 6. Create Test Project
+```bash
+mkdir ~/docker-test && cd ~/docker-test
+
+cat > docker-compose.yml << EOF
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+EOF
+
+docker compose up -d
+# Open http://localhost:8080
+docker compose down
+```
+
+## 7. Docker Hub (Image Storage)
 
 ```bash
-# Dashboard installimine
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+# Create account at hub.docker.com
+docker login
 
-# Proxy käivitamine
-kubectl proxy --address='0.0.0.0' --port=8001 --accept-hosts='.*'
+# Push image
+docker tag myapp username/myapp
+docker push username/myapp
 
-# Avage brauser: http://vm-ip:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+# Pull anywhere
+docker pull username/myapp
 ```
+
+## 8. Useful Aliases
+
+Add to `~/.bashrc`:
+```bash
+alias dc='docker compose'
+alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
+alias dlog='docker logs -f'
+alias dex='docker exec -it'
+```
+
+## 9. Quick Commands
+
+```bash
+# List everything
+docker ps -a          # containers
+docker images         # images  
+docker volume ls      # volumes
+docker network ls     # networks
+
+# Cleanup
+docker system prune -af    # remove everything unused
+
+# Enter container
+docker exec -it container_name bash
+
+# View logs
+docker logs -f container_name
+
+# Stop all
+docker stop $(docker ps -q)
+```
+
+## 10. Common Issues
+
+**"Cannot connect to Docker daemon"**
+```bash
+sudo service docker start    # Linux/WSL
+```
+
+**"Permission denied"**
+```bash
+newgrp docker    # or logout/login
+```
+
+**Port already in use**
+```bash
+lsof -i :8080    # find what's using port
+```
+
+**WSL2 specific - slow performance**
+- Keep files in Linux (`~/`), not Windows (`/mnt/c/`)
+
+**Multipass specific - file sharing**
+```bash
+multipass mount ~/projects docker-vm:/home/ubuntu/projects
+```
+
+## Registry Options
+
+| Service | Free | Private Repos | Limit |
+|---------|------|---------------|-------|
+| Docker Hub | ✓ | 1 | 200 pulls/6h |
+| GitHub | ✓ | Unlimited | 1GB/month |
+| GitLab | ✓ | Unlimited | 5GB/project |
+
+## Project Structure Example
+
+```
+myapp/
+├── docker-compose.yml
+├── .env
+├── .dockerignore
+├── api/
+│   ├── Dockerfile
+│   └── src/
+├── frontend/
+│   ├── Dockerfile
+│   └── src/
+└── nginx/
+    └── default.conf
+```
+
+## Cloud Registries (Advanced)
+
+### Google Cloud
+```bash
+# Need: Google account + card (free $300 credit)
+gcloud auth login
+gcloud config set project PROJECT_ID
+
+# Push to GCR
+docker tag myapp gcr.io/PROJECT_ID/myapp
+docker push gcr.io/PROJECT_ID/myapp
+
+# Or Artifact Registry (newer)
+gcloud auth configure-docker europe-north1-docker.pkg.dev
+docker tag myapp europe-north1-docker.pkg.dev/PROJECT/REPO/myapp
+docker push europe-north1-docker.pkg.dev/PROJECT/REPO/myapp
+```
+
+### AWS ECR
+```bash
+# Need: AWS account (free tier: 500MB/month)
+aws configure  # enter credentials
+
+# Create repo & push
+aws ecr create-repository --repository-name myapp
+aws ecr get-login-password | docker login --username AWS --password-stdin 123456789.dkr.ecr.region.amazonaws.com
+docker tag myapp 123456789.dkr.ecr.region.amazonaws.com/myapp
+docker push 123456789.dkr.ecr.region.amazonaws.com/myapp
+```
+
+## Security & Firewall
+
+### Open Ports
+```bash
+# Windows PowerShell (Admin)
+New-NetFirewallRule -DisplayName "Docker" -Direction Inbound -Protocol TCP -LocalPort 80,443,8080,3000,5000 -Action Allow
+
+# Linux UFW
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp  
+sudo ufw allow 8080/tcp
+sudo ufw status
+
+# Check what's listening
+netstat -tuln | grep LISTEN
+lsof -i -P -n | grep LISTEN
+```
+
+### Security Scanning
+```bash
+# Scan images for vulnerabilities
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image myapp:latest
+
+# Docker Scout (built-in)
+docker scout cves myapp:latest
+
+# Snyk (free tier available)
+npm install -g snyk
+snyk test --docker myapp:latest
+```
+
+## Network & DNS
+
+### Custom Networks
+```bash
+# Create network (containers can talk by name)
+docker network create app-net
+
+# Run with network
+docker run -d --name db --network app-net postgres
+docker run -d --name api --network app-net -e DB_HOST=db myapp
+
+# Local DNS
+echo "127.0.0.1 myapp.local api.local" | sudo tee -a /etc/hosts
+```
+
+## Volume & Backup
+
+### Data Persistence
+```bash
+# Named volume
+docker volume create mydata
+docker run -v mydata:/data myapp
+
+# Backup volume
+docker run --rm -v mydata:/source -v $(pwd):/backup alpine tar czf /backup/mydata-$(date +%Y%m%d).tar.gz /source
+
+# Restore
+docker run --rm -v mydata:/target -v $(pwd):/backup alpine tar xzf /backup/mydata-20240315.tar.gz -C /target
+```
+
+## Performance Tuning
+
+### WSL2 Memory
+```bash
+# Create: C:\Users\YOU\.wslconfig
+[wsl2]
+memory=4GB
+processors=2
+swap=2GB
+
+# Then: wsl --shutdown
+```
+
+### Docker Limits
+```bash
+# Limit container resources
+docker run -m 512m --cpus="1.0" myapp
+
+# Daemon config: /etc/docker/daemon.json
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+```
+
+## Monitoring
+
+### Simple Monitoring
+```bash
+# Real-time stats
+docker stats
+
+# Disk usage
+docker system df
+
+# Full monitoring stack
+docker run -d -p 19999:19999 \
+  -v /proc:/host/proc:ro \
+  -v /sys:/host/sys:ro \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  netdata/netdata
+```
+
+## Git Integration
+
+```bash
+# Setup Git
+git config --global user.name "Your Name"
+git config --global user.email "you@email.com"
+
+# SSH key for GitHub
+ssh-keygen -t ed25519 -C "you@email.com"
+cat ~/.ssh/id_ed25519.pub  # add to GitHub
+
+# .gitignore for Docker projects
+cat > .gitignore << EOF
+.env
+*.log
+*_data/
+node_modules/
+__pycache__/
+EOF
+```
+
+## Useful Tools
+
+```bash
+# Install productivity tools
+sudo apt install -y htop tree jq curl wget nano tmux
+
+# Docker utilities
+# lazydocker - TUI for Docker
+docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock lazyteam/lazydocker
+
+# dive - analyze image layers
+wget https://github.com/wagoodman/dive/releases/download/v0.11.0/dive_0.11.0_linux_amd64.deb
+sudo dpkg -i dive_0.11.0_linux_amd64.deb
+dive myapp:latest
+```
+
+## Disk Cleanup
+
+```bash
+# Manual cleanup
+docker system prune -af --volumes  # WARNING: deletes everything!
+
+# Auto cleanup cron
+crontab -e
+# Add: 0 2 * * * docker system prune -af
+
+# WSL2 shrink disk
+wsl --shutdown
+# Then use diskpart in Windows to compact vhdx
+```
+
+## Environment Management
+
+```bash
+# .env file
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=myapp
+DB_USER=postgres
+DB_PASS=secret123
+
+# docker-compose.yml
+services:
+  api:
+    env_file: .env
+    environment:
+      - NODE_ENV=production  # override
+
+# Multiple environments
+docker compose --env-file .env.dev up
+docker compose --env-file .env.prod up
+```
+
+## Next Steps
+
+1. ✅ Docker installed and running
+2. ✅ VSCode configured  
+3. ✅ Security basics understood
+4. ✅ Know where to push images
+5. 🎯 Start building real apps!
 
 ---
 
-## 🔧 Probleemide lahendamine
+**Need help?** 
+- Docker docs: https://docs.docker.com
+- This guide: Keep it bookmarked!
+- Class Discord: Ask questions!
 
-### **1. SSH ühenduse probleemid**
-
-**Ühendus ei tööta:**
-```bash
-# Kontrollige VM'i IP aadressi
-ip addr show
-
-# Kontrollige SSH teenust
-sudo systemctl status ssh
-
-# Käivitage SSH teenus
-sudo systemctl start ssh
-sudo systemctl enable ssh
-```
-
-**Võtme probleemid:**
-```bash
-# Kontrollige võtmete õigusi
-chmod 600 ~/.ssh/id_rsa
-chmod 644 ~/.ssh/id_rsa.pub
-
-# Kontrollige VM'i võtmete õigusi
-chmod 700 ~/.ssh
-chmod 600 ~/.ssh/authorized_keys
-```
-
-### **2. Docker probleemid**
-
-**Docker ei käivitu:**
-```bash
-# Kontrollige Docker teenust
-sudo systemctl status docker
-
-# Käivitage Docker
-sudo systemctl start docker
-sudo systemctl enable docker
-
-# Kontrollige kasutaja gruppi
-groups $USER
-```
-
-**Minikube probleemid:**
-```bash
-# Minikube logid
-minikube logs
-
-# Minikube taaskäivitamine
-minikube stop
-minikube delete
-minikube start --driver=docker
-
-# Ressursi kontroll
-free -h
-df -h
-```
-
-### **3. VSCode probleemid**
-
-**Remote SSH ei ühendu:**
-```bash
-# Kontrollige SSH konfiguratsiooni
-ssh -T dev-lab
-
-# Kontrollige VSCode Remote SSH laiendust
-# Vajutage Ctrl+Shift+P ja otsige "Remote-SSH: Show Log"
-```
-
-**Failide sünkroniseerimise probleemid:**
-```bash
-# Kontrollige faili õigusi
-ls -la
-
-# Muutke faili omanikku
-sudo chown -R $USER:$USER /path/to/project
-```
-
----
-
-## 📚 Lisaressursid
-
-### **Dokumentatsioon:**
-- [Multipass Documentation](https://multipass.run/docs)
-- [VSCode Remote Development](https://code.visualstudio.com/docs/remote/remote-overview)
-- [Docker Installation](https://docs.docker.com/engine/install/)
-- [Minikube Documentation](https://minikube.sigs.k8s.io/docs/)
-
-### **Video juhendid:**
-- [VSCode Remote SSH Setup](https://www.youtube.com/watch?v=5qjqoqfV7hI)
-- [Docker Installation on Ubuntu](https://www.youtube.com/watch?v=3c-iBn73dDE)
-- [Minikube Quick Start](https://www.youtube.com/watch?v=7uA1wJq8pzE)
-
-### **Kasulikud käsud:**
-```bash
-# VM'i info
-multipass info dev-lab
-
-# Ressursi kasutus
-htop
-free -h
-df -h
-
-# Võrgu info
-ip addr show
-netstat -tulpn
-
-# Logide vaatamine
-journalctl -f
-docker logs <container>
-kubectl logs <pod>
-```
-
----
-
- 
+**Pro tip:** Start simple, add complexity as needed 🚀
