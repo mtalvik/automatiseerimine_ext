@@ -2,7 +2,7 @@
 
 ## 🎯 Mida ja miks me ehitame?
 
-Täna ehitame **päris töötava rakenduse** - ülesannete halduse süsteemi (todo app). Miks just see? Sest see on piisavalt lihtne mõistmiseks, aga samas piisavalt keeruline, et õppida kõiki olulisi kontsepte.
+Täna ehitame **päris töötava rakenduse** - ülesannete halduse süsteemi (todo app). See on piisavalt lihtne mõistmiseks, aga samas piisavalt keeruline, et õppida kõiki olulisi Docker Compose kontsepte.
 
 **Miks multi-container arhitektuur?**
 
@@ -11,123 +11,120 @@ Kujutage ette, et olete väike meeskond, kes ehitab startup'i. Alguses panete k�
 - Tahate uuendada Node.js versiooni API jaoks, aga ei taha puutuda andmebaasi?
 - Üks arendaja tahab töödata ainult frontend'iga?
 
-Siin tulebki mängu **teenuste eraldamine**. Iga komponent oma konteineris, iga meeskonna liige saab arendada oma osa, iga teenust saab skaleerida iseseisvalt.
-
-```mermaid
-graph LR
-    subgraph "Monoliit - kõik ühes"
-        Mono[Üks suur konteiner<br/>Frontend + API + DB<br/>Raske hallata]
-    end
-    
-    subgraph "Mikroteenused - eraldatud"
-        Frontend[Frontend konteiner]
-        API[API konteiner]
-        DB[DB konteiner]
-        Cache[Cache konteiner]
-    end
-    
-    Mono -->|Refaktoreerimine| Frontend
-    
-    style Mono fill:#ff9999
-    style Frontend fill:#99ff99
-    style API fill:#99ff99
-    style DB fill:#99ff99
-    style Cache fill:#99ff99
-```
+Lahendus: **teenuste eraldamine**. Iga komponent oma konteineris, iga meeskonna liige saab arendada oma osa, iga teenust saab skaleerida iseseisvalt.
 
 ---
 
-## 📖 Arhitektuuri planeerimine
+## 📁 Projekti struktuur
 
-### Miks need komponendid?
+Meie rakendus koosneb järgmistest komponentidest:
 
-Enne kui hakkame koodi kirjutama, mõtleme läbi, mida me tegelikult vajame. See on nagu maja ehitamine - enne kui hakkad telliseid laduma, pead teadma, millise maja tahad.
-
-**1. PostgreSQL andmebaas**
-- **Miks:** Vajame kusagil andmeid hoida. PostgreSQL on tööstusstandardn, tugev ja usaldusväärne.
-- **Alternatiiv võiks olla:** MySQL, MongoDB
-- **Miks mitte SQLite:** SQLite on hea arenduseks, aga ei sobi production'iks multi-user rakendustele
-
-**2. Redis cache**
-- **Miks:** Andmebaasi päringud on kallid (aeglased). Redis hoiab tihti kasutatavaid andmeid mälus.
-- **Reaalne näide:** Kui 100 kasutajat küsivad korraga todo liste, siis ilma cache'ita teeb andmebaas 100 päringut. Redis'ega ainult 1 päring, ülejäänud saavad mälust.
-
-**3. Node.js API**
-- **Miks:** Vajame äriloogikat - kes tohib todos'sid näha? Kuidas valideerida sisendeid?
-- **Miks Node.js:** Lihtne alustada, sama keel mis frontend'is (JavaScript)
-
-**4. React Frontend**
-- **Miks:** Kasutajad vajavad ilusat interface'i
-- **Võiksime ka:** Servida lihtsalt HTML-i API-st, aga React annab parema UX-i
-
-**5. Nginx**
-- **Miks:** Reverse proxy ja load balancer. Tulevikus saame lisada SSL-i, cache'ida staatilist sisu, jaotada koormust mitme API serveri vahel
-
-**6. Adminer**
-- **Miks:** Arenduse ajal on vaja andmebaasi näha ja debuggida. Production'is seda ei kasutaks!
-
-```mermaid
-graph TB
-    subgraph "Kasutaja teekond"
-        User[Kasutaja avab браузeri]
-        Request[Küsib todo listi]
-        Nginx[Nginx võtab vastu]
-        Route{Kuhu suunata?}
-        Frontend[Static files - React]
-        API[API päring]
-        Cache{On cache-is?}
-        Redis[Võta Redis-est]
-        DB[Päri andmebaasist]
-        Response[Tagasta vastus]
-    end
-    
-    User --> Request
-    Request --> Nginx
-    Nginx --> Route
-    Route -->|"/"| Frontend
-    Route -->|"/api"| API
-    API --> Cache
-    Cache -->|Jah| Redis
-    Cache -->|Ei| DB
-    Redis --> Response
-    DB --> Response
-    
-    style User fill:#ffcc99
-    style Response fill:#99ff99
+```
+mariatesttalvik/
+├── api/
+│   ├── .dockerignore      # Millised failid Docker ei peaks kopeerima
+│   ├── Dockerfile          # Kuidas ehitada API konteiner
+│   ├── package.json        # Node.js sõltuvused
+│   └── server.js          # API loogika
+├── database/
+│   └── init.sql           # Andmebaasi algseadistus
+├── frontend/
+│   ├── .dockerignore      
+│   ├── Dockerfile         # Multi-stage build React'i jaoks
+│   ├── package.json       
+│   ├── public/
+│   │   └── index.html     # React'i HTML template
+│   └── src/
+│       ├── App.css        # Stiilid
+│       ├── App.js         # Põhikomponent
+│       └── index.js       # React'i sisendpunkt
+├── nginx/
+│   ├── .dockerignore
+│   └── nginx.conf         # Reverse proxy konfiguratsioon
+├── .dockerignore          # Projekti üldine dockerignore
+├── .env.example           # Näidis keskkonnamuutujad
+├── .gitignore            # Git'i jaoks ignoreeritavad failid
+└── docker-compose.yml     # Orkestreerib kõiki teenuseid
 ```
 
 ---
 
 ## 🚀 Alustame ehitamist
 
-### Projekti loomine
+### 1. Projekti juurkausta failid
 
-Alustame nullist. See on oluline - kui õpid ise looma, saad aru kuidas asjad töötavad:
+#### .gitignore
+```gitignore
+# Dependencies
+node_modules/
+*/node_modules/
 
-```bash
-# Loome projekti kausta
-mkdir todo-app
-cd todo-app
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Miks need kaustad?
-mkdir api        # Backend loogika
-mkdir frontend   # React rakendus
-mkdir nginx      # Reverse proxy konfiguratsioon
-mkdir database   # Andmebaasi init skriptid
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+*.log
 ```
 
-### Docker Compose fail - süsteemi süda
+#### .dockerignore (juurkaustas)
+```dockerignore
+# Miks need failid?
+# Docker kopeerib kogu konteksti konteinerisse
+# See võib olla VÄGA aeglane kui node_modules kaasas
+node_modules
+*/node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.DS_Store
+.vscode
+.idea
+```
 
-Alustame `docker-compose.yml` failiga. See on nagu orkestri partituur - ütleb igale "muusikule" (konteinerile) mida teha:
+#### .env.example
+```bash
+# Keskkonnamuutujad - ära kunagi pane paroole Git'i!
+NODE_ENV=
+DB_PASSWORD=
+REDIS_PASSWORD=
+```
 
+#### .env (looge ise, see EI lähe Git'i)
+```bash
+NODE_ENV=development
+DB_PASSWORD=secretpassword123
+REDIS_PASSWORD=redispass123
+```
+
+#### docker-compose.yml
 ```yaml
-# docker-compose.yml
 version: '3.8'
 
 # Miks versioon 3.8? 
 # - 3.x on production-ready
 # - 3.8+ toetab kõiki vajalikke feature'id
-# - Uuem kui 3.8 pole veel laialdaselt toetatud
 
 services:
   # Andmebaas - kõige aluseks
@@ -209,7 +206,8 @@ services:
       dockerfile: Dockerfile
     container_name: todo_frontend
     environment:
-      REACT_APP_API_URL: http://api:3000
+      NODE_ENV: production
+      REACT_APP_API_URL=  # OLULINE! Tühi = kasutab suhtelisi URL-e
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -231,26 +229,13 @@ services:
       - frontend
     networks:
       - frontend_network
-
-  # Adminer - andmebaasi UI (ainult development!)
-  adminer:
-    image: adminer:latest
-    container_name: todo_adminer
-    ports:
-      - "8080:8080"
-    environment:
-      ADMINER_DEFAULT_SERVER: database
-    networks:
       - backend_network
-    profiles:
-      - dev  # Käivitub ainult kui --profile dev
 
 networks:
   # Miks kaks võrku?
   # Turvalisus - andmebaas ei pea olema frontend võrgus
   backend_network:
     driver: bridge
-    internal: true  # Pole internetti vaja
   frontend_network:
     driver: bridge
 
@@ -264,12 +249,7 @@ volumes:
 
 ## 🗄️ Andmebaasi seadistamine
 
-### Miks alustada andmebaasist?
-
-Andmebaas on rakenduse vundament. Kui andmestruktuur on vale, on kõik muu ka vale. See on nagu maja vundament - kui see on kõver, on kogu maja kõver.
-
-Loome `database/init.sql`:
-
+#### database/init.sql
 ```sql
 -- Miks UUID primary key, mitte serial?
 -- 1. Turvalisem - ei saa ennustada järgmist ID-d
@@ -318,21 +298,22 @@ INSERT INTO todos (title, description) VALUES
 
 ---
 
-## 🔧 API teenuse ehitamine
+## 🔧 API teenus
 
-### Miks Node.js API?
+#### api/.dockerignore
+```dockerignore
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.DS_Store
+.vscode
+.idea
+```
 
-API on rakenduse aju - kogu äriloogika on siin. Miks eraldi API, miks mitte otse andmebaasiga rääkida?
-
-1. **Turvalisus** - Kunagi ära lase frontend'il otse andmebaasi puutuda
-2. **Valideerimine** - Kontrolli sisendeid enne andmebaasi
-3. **Cache** - Optimeeri päringuid
-4. **Äriloogika** - Reeglid, õigused, arvutused
-
-### API struktuur
-
-Loome `api/package.json`:
-
+#### api/package.json
 ```json
 {
   "name": "todo-api",
@@ -343,35 +324,21 @@ Loome `api/package.json`:
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "pg": "^8.11.0",
-    "redis": "^4.6.7",
-    "cors": "^2.8.5",
-    "helmet": "^7.0.0",
-    "morgan": "^1.10.0",
-    "joi": "^17.9.2"
+    "express": "^4.18.2",      // Web framework
+    "pg": "^8.11.0",           // PostgreSQL klient
+    "redis": "^4.6.7",         // Redis klient cache jaoks
+    "cors": "^2.8.5",          // Lubab frontend'il API-ga suhelda
+    "helmet": "^7.0.0",        // Lisab turvalisuse headereid
+    "morgan": "^1.10.0",       // Logib kõik päringud (debugging)
+    "joi": "^17.9.2"           // Valideerib sisendeid - ÄRA KUNAGI usalda kasutaja sisendit!
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22"       // Restardib serveri kui kood muutub
   }
 }
 ```
 
-### Miks need paketid?
-
-- **express** - Web framework, lihtne ja kiire
-- **pg** - PostgreSQL klient
-- **redis** - Redis klient cache jaoks
-- **cors** - Lubab frontend'il API-ga suhelda
-- **helmet** - Lisab turvalisuse headereid
-- **morgan** - Logib kõik päringud (debugging)
-- **joi** - Valideerib sisendeid (ära kunagi usalda kasutaja sisendit!)
-- **nodemon** - Restardib serveri kui kood muutub (development)
-
-### API server
-
-Loome `api/server.js`:
-
+#### api/server.js
 ```javascript
 const express = require('express');
 const { Pool } = require('pg');
@@ -444,7 +411,7 @@ redisClient.on('connect', () => console.log('Connected to Redis'));
 // Miks Joi? Valideerib ja puhastab sisendid
 const todoSchema = Joi.object({
   title: Joi.string().min(1).max(255).required(),
-  description: Joi.string().max(1000).optional(),
+  description: Joi.string().max(1000).allow('', null).optional(),
   completed: Joi.boolean().optional()
 });
 
@@ -590,7 +557,7 @@ app.post('/api/todos', async (req, res) => {
       `INSERT INTO todos (title, description) 
        VALUES ($1, $2) 
        RETURNING *`,
-      [title, description]
+      [title, description || null]
     );
 
     // Invalidate cache
@@ -606,6 +573,7 @@ app.post('/api/todos', async (req, res) => {
 });
 
 // UPDATE todo
+// NB! API vajab KÕIKI välju - see on oluline teadmine!
 app.put('/api/todos/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -623,13 +591,13 @@ app.put('/api/todos/:id', async (req, res) => {
   try {
     const result = await pool.query(
       `UPDATE todos 
-       SET title = COALESCE($1, title),
-           description = COALESCE($2, description),
-           completed = COALESCE($3, completed),
+       SET title = $1,
+           description = $2,
+           completed = $3,
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $4
        RETURNING *`,
-      [title, description, completed, id]
+      [title, description || null, completed, id]
     );
 
     if (result.rows.length === 0) {
@@ -691,7 +659,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`API server running on port ${port}`);
   console.log(`Environment: ${process.env.NODE_ENV}`);
 });
@@ -718,10 +686,7 @@ process.on('SIGTERM', async () => {
 });
 ```
 
-### API Dockerfile
-
-Loome `api/Dockerfile`:
-
+#### api/Dockerfile
 ```dockerfile
 # Multi-stage build - miks?
 # 1. Väiksem lõplik image (pole build tööriistu)
@@ -730,7 +695,6 @@ Loome `api/Dockerfile`:
 
 # Build stage
 FROM node:16-alpine AS builder
-
 WORKDIR /app
 
 # Miks package*.json eraldi?
@@ -740,7 +704,7 @@ COPY package*.json ./
 
 # ci vs install?
 # ci on kiirem ja deterministlik (kasutab package-lock.json)
-RUN npm ci --only=production
+RUN npm ci --production
 
 # Production stage
 FROM node:16-alpine
@@ -771,14 +735,22 @@ CMD ["node", "server.js"]
 
 ---
 
-## 🌐 Frontend ehitamine
+## 🌐 Frontend
 
-### Miks React?
+#### frontend/.dockerignore
+```dockerignore
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.DS_Store
+.vscode
+.idea
+```
 
-React on de facto standard. Alternatiivid: Vue, Angular, Svelte. Kõik head, aga React'il on suurim community.
-
-Loome `frontend/package.json`:
-
+#### frontend/package.json
 ```json
 {
   "name": "todo-frontend",
@@ -786,27 +758,70 @@ Loome `frontend/package.json`:
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "axios": "^1.4.0"
+    "axios": "^1.4.0",
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build"
   },
-  "devDependencies": {
-    "react-scripts": "5.0.1"
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
 ```
 
-Loome `frontend/src/App.js`:
+#### frontend/public/index.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Todo app built with Docker Compose" />
+  <title>Todo App</title>
+</head>
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+</body>
+</html>
+```
 
+#### frontend/src/index.js
+```javascript
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+#### frontend/src/App.js
 ```javascript
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
 // API URL tuleb environment muutujast
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+// OLULINE: Tühi string = kasutab suhtelisi URL-e
+// Miks? Sest browser ei tea midagi Docker'i sisemistest hostnimedes
+const API_URL = '';
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -836,24 +851,47 @@ function App() {
   const createTodo = async (e) => {
     e.preventDefault();
     if (!newTodo.title.trim()) return;
-
+    
     try {
-      const response = await axios.post(`${API_URL}/api/todos`, newTodo);
+      // OLULINE õppetund: API ei aktsepteeri tühja stringi description'iks
+      // Peame saatma ainult need väljad, mis pole tühjad
+      const todoData = {
+        title: newTodo.title
+      };
+      
+      if (newTodo.description.trim()) {
+        todoData.description = newTodo.description;
+      }
+      
+      const response = await axios.post(`${API_URL}/api/todos`, todoData);
       setTodos([response.data, ...todos]);
       setNewTodo({ title: '', description: '' });
+      setError(null);
     } catch (err) {
       setError('Failed to create todo');
+      console.error('Create error:', err.response?.data || err);
     }
   };
 
   const toggleTodo = async (id, completed) => {
     try {
-      await axios.put(`${API_URL}/api/todos/${id}`, { completed: !completed });
-      setTodos(todos.map(todo => 
+      // OLULINE õppetund: API vajab PUT päringu jaoks KÕIKI välju
+      // See on tavaline REST API pattern - PUT asendab kogu objekti
+      const todo = todos.find(t => t.id === id);
+      
+      await axios.put(`${API_URL}/api/todos/${id}`, {
+        title: todo.title,
+        description: todo.description,
+        completed: !completed
+      });
+      
+      setTodos(todos.map(todo =>
         todo.id === id ? { ...todo, completed: !completed } : todo
       ));
+      setError(null);
     } catch (err) {
       setError('Failed to update todo');
+      console.error('Update error:', err);
     }
   };
 
@@ -861,13 +899,13 @@ function App() {
     try {
       await axios.delete(`${API_URL}/api/todos/${id}`);
       setTodos(todos.filter(todo => todo.id !== id));
+      setError(null);
     } catch (err) {
       setError('Failed to delete todo');
     }
   };
 
   if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="App">
@@ -875,7 +913,9 @@ function App() {
         <h1>📝 Todo App</h1>
         <p>Built with Docker Compose</p>
       </header>
-
+      
+      {error && <div className="error">{error}</div>}
+      
       <form onSubmit={createTodo} className="todo-form">
         <input
           type="text"
@@ -923,29 +963,146 @@ function App() {
 export default App;
 ```
 
-### Frontend Dockerfile
+#### frontend/src/App.css
+```css
+/* Lihtne ja puhas disain */
+.App {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
 
-Loome `frontend/Dockerfile`:
+h1 {
+  color: #333;
+  text-align: center;
+}
 
+.todo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.todo-form input,
+.todo-form textarea {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.todo-form button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.todo-form button:hover {
+  background-color: #45a049;
+}
+
+.todo-list {
+  list-style: none;
+  padding: 0;
+}
+
+.todo-item {
+  padding: 15px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  display: flex;
+  gap: 10px;
+  align-items: start;
+}
+
+.todo-item.completed {
+  opacity: 0.6;
+}
+
+.todo-item.completed .todo-content h3 {
+  text-decoration: line-through;
+}
+
+.todo-content {
+  flex: 1;
+}
+
+.todo-content h3 {
+  margin: 0 0 5px 0;
+}
+
+.todo-content p {
+  margin: 0 0 10px 0;
+  color: #666;
+}
+
+.todo-content small {
+  color: #999;
+}
+
+.delete-btn {
+  padding: 5px 10px;
+  font-size: 14px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #da190b;
+}
+
+.loading,
+.error,
+.no-todos {
+  text-align: center;
+  padding: 20px;
+}
+
+.error {
+  color: #f44336;
+  background-color: #ffebee;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+```
+
+#### frontend/Dockerfile
 ```dockerfile
-# Build stage
+# Build stage - ehitame React rakenduse
 FROM node:16-alpine AS builder
-
 WORKDIR /app
 
+# Kopeeri package failid ja installi
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
+# Kopeeri kogu kood ja ehita
 COPY . .
 RUN npm run build
 
 # Production stage - servime nginx'iga
+# Miks nginx? 
+# 1. Kiire staatiliste failide servimine
+# 2. Gzip compression
+# 3. Browser caching headers
 FROM nginx:alpine
 
-# Kopeeri build React'ist
+# Kopeeri ehitatud React app
 COPY --from=builder /app/build /usr/share/nginx/html
 
 # Custom nginx config React router'i jaoks
+# try_files on oluline - ilma selleta ei tööta React Router
 RUN echo 'server { \
     listen 80; \
     location / { \
@@ -956,7 +1113,6 @@ RUN echo 'server { \
 }' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
@@ -964,100 +1120,50 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ## 🔧 Nginx konfiguratsioon
 
-### Miks Nginx?
+#### nginx/.dockerignore
+```dockerignore
+*.log
+.DS_Store
+```
 
-Nginx on värav välismaailma. See:
-1. Suunab päringud õigesse kohta (routing)
-2. Servib staatilisi faile (kiire)
-3. Lisab turvalisuse (rate limiting, SSL)
-4. Cache'ib vastuseid
-5. Load balancing (mitme API serveri korral)
-
-Loome `nginx/nginx.conf`:
-
+#### nginx/nginx.conf
 ```nginx
 # Miks see number? Tavaliselt = CPU tuumade arv
-worker_processes auto;
-
-# Kui palju ühendusi üks worker haldab
 events {
     worker_connections 1024;
 }
 
 http {
-    # MIME types - brauser teab, mis tüüpi failid
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-
-    # Logimine
-    access_log /var/log/nginx/access.log;
-    error_log /var/log/nginx/error.log;
-
-    # Performance tuning
-    sendfile on;  # Kernel kopeerib failid, kiirem
-    tcp_nopush on;  # Saada suuremaid pakette
-    tcp_nodelay on;  # Ära oota, saada kohe
-    keepalive_timeout 65;  # Hoia ühendus 65s avatuna
-
-    # Gzip compression
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml;
-
-    # Rate limiting - kaitse DDoS vastu
-    limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
-
-    # Upstream servers - mitme API serveri korral
-    upstream api_backend {
-        server api:3000;
+    # Upstream servers - kui tahad lisada load balancing
+    upstream frontend {
+        server frontend:80;
         # Tulevikus saab lisada:
-        # server api2:3000;
-        # server api3:3000;
+        # server frontend2:80;
+        # server frontend3:80;
+    }
+
+    upstream api {
+        server api:3000;
     }
 
     server {
         listen 80;
-        server_name localhost;
-
-        # Security headers
-        add_header X-Frame-Options "SAMEORIGIN";
-        add_header X-Content-Type-Options "nosniff";
-        add_header X-XSS-Protection "1; mode=block";
-
-        # Frontend
+        
+        # Frontend päringud
         location / {
             proxy_pass http://frontend;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
         }
-
-        # API endpoints
+        
+        # API päringud
+        # Kõik mis algab /api läheb API konteinerisse
         location /api {
-            # Rate limiting
-            limit_req zone=api burst=20;
-
-            proxy_pass http://api_backend;
+            proxy_pass http://api;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-
-            # WebSocket support (kui vaja)
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-
-            # Timeout'id pikematele päringutele
-            proxy_connect_timeout 60s;
-            proxy_send_timeout 60s;
-            proxy_read_timeout 60s;
-        }
-
-        # Health check endpoint
-        location /health {
-            access_log off;  # Ära logi health check'e
-            return 200 "OK\n";
         }
     }
 }
@@ -1065,189 +1171,139 @@ http {
 
 ---
 
-## 🚀 Rakenduse käivitamine
+## 🚀 Käivitamise juhised
 
-### Environment muutujad
+### 1. Eeldused
+- Docker ja Docker Compose peavad olema installitud
+- Internetiühendus Docker image'ite allalaadimiseks
 
-Loome `.env` faili (ära kunagi commit'i Git'i!):
-
-```bash
-# .env
-NODE_ENV=development
-DB_PASSWORD=supersecret123
-REDIS_PASSWORD=redissecret456
-```
-
-Loome `.env.example` (see võib Git'i minna):
+### 2. Setup sammud
 
 ```bash
-# .env.example
-NODE_ENV=
-DB_PASSWORD=
-REDIS_PASSWORD=
-```
+# 1. Mine projekti kausta
+cd labs/lab-docker-compose/mariatesttalvik
 
-### Käivitamine
+# 2. Loo environment fail
+cp .env.example .env
+# Muuda .env failis paroolid
 
-Nüüd kui kõik on valmis, käivitame:
+# 3. OLULINE! Genereeri package-lock.json failid
+# See samm on KRIITILINE - ilma selleta ei tööta npm ci käsk Dockerfile'ides
+cd api && npm install && cd ..
+cd frontend && npm install && cd ..
 
-```bash
-# Ehita ja käivita kõik teenused
+# 4. Käivita kõik konteinerid
 docker-compose up --build
-
-# Või taustal
-docker-compose up --build -d
-
-# Vaata logisid
-docker-compose logs -f
-
-# Vaata ainult API logisid
-docker-compose logs -f api
-
-# Kui tahad Adminer'it ka (dev profile)
-docker-compose --profile dev up
 ```
 
-### Testimine
+### 3. Testimine
 
 1. Ava brauser: http://localhost
-2. Adminer (kui dev profile): http://localhost:8080
-   - Server: `database`
-   - Username: `todouser`
-   - Password: `defaultpass` (või .env failist)
-   - Database: `tododb`
+2. API health check: http://localhost/api/health
 
-### Debugging käsud
+---
+
+## 🛠️ Kasulikud käsud
 
 ```bash
-# Vaata mis konteinerid töötavad
+# Logide vaatamine
+docker-compose logs -f
+docker-compose logs -f api  # Ainult API logid
+
+# Konteinerite staatus
 docker-compose ps
 
-# Mine API konteinerisse
-docker-compose exec api sh
+# Peatamine
+docker-compose down
 
-# Testi andmebaasi ühendust
-docker-compose exec api node -e "
-  const { Pool } = require('pg');
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
-  });
-  pool.query('SELECT NOW()').then(console.log).catch(console.error);
-"
-
-# Testi Redis ühendust
-docker-compose exec redis redis-cli ping
-
-# Vaata võrke
-docker network ls
-docker network inspect todo-app_backend_network
-
-# Puhasta kõik ja alusta uuesti
+# Peatamine koos andmete kustutamisega
 docker-compose down -v
-docker-compose up --build
+
+# Taaskäivitus
+docker-compose restart
+
+# Ühe teenuse taaskäivitus
+docker-compose restart api
+
+# Konteinerisse sisenemine debugging'uks
+docker-compose exec api sh
+docker-compose exec database psql -U todouser -d tododb
 ```
 
 ---
 
 ## 🔍 Troubleshooting
 
-### Tüüpilised probleemid ja lahendused
-
-**1. "Cannot connect to database"**
-
+### "Port already in use"
 ```bash
-# Kontrolli, kas DB on valmis
-docker-compose exec database pg_isready
+# Mac/Linux
+lsof -i :80
+# Windows
+netstat -ano | findstr :80
 
-# Vaata DB logisid
-docker-compose logs database
-
-# Lahendus: oota kuni DB on healthy
-depends_on:
-  database:
-    condition: service_healthy
-```
-
-**2. "Port already in use"**
-
-```bash
-# Vaata, mis kasutab porti
-sudo lsof -i :80
-
-# Lahendus: muuda porti või tapa protsess
+# Lahendus: muuda porti docker-compose.yml failis
 ports:
-  - "8081:80"  # Kasuta teist porti
+  - "8080:80"
 ```
 
-**3. "Module not found"**
-
+### "npm ci error - missing package-lock.json"
 ```bash
-# Lahendus: ära mapi node_modules kausta
+# See on kõige sagedasem viga!
+# Genereeri puuduvad failid
+cd api && npm install && cd ..
+cd frontend && npm install && cd ..
+```
+
+### "Failed to fetch todos"
+- Kontrolli et REACT_APP_API_URL on tühi string docker-compose.yml failis
+- Kontrolli nginx.conf - peab olema events ja http blokid
+
+### "Failed to update todo"
+- API vajab PUT päringus KÕIKI välju (title, description, completed)
+- See on tavaline REST API pattern
+
+### "nginx: [emerg] "upstream" directive is not allowed here"
+- nginx.conf vajab events {} ja http {} blokke
+- Kõik server ja upstream direktiivid peavad olema http bloki sees
+
+### Windows path probleem
+```yaml
+# Kasuta absolute path
 volumes:
-  - ./api:/app
-  - /app/node_modules  # Anonymous volume
-```
-
-**4. Cache ei tööta**
-
-```bash
-# Kontrolli Redis'e
-docker-compose exec api node -e "
-  const redis = require('redis');
-  const client = redis.createClient({url: process.env.REDIS_URL});
-  client.connect().then(() => client.ping()).then(console.log);
-"
+  - C:/Users/YourName/mariatesttalvik/api:/app
 ```
 
 ---
 
-## 🎯 Kokkuvõte ja edasiarendus
+## 📚 Kokkuvõte
 
-### Mida me ehitasime?
+Õppisime:
+1. **Multi-container arhitektuur** - iga teenus eraldi konteineris
+2. **Container networking** - kuidas konteinerid omavahel suhtlevad
+3. **Volume persistence** - andmete püsimine restartide vahel
+4. **Environment configuration** - konfiguratsioon läbi muutujate
+5. **Health checks** - teenuste tervise kontroll
+6. **Production patterns** - multi-stage builds, security
+7. **Debugging oskused** - kuidas vigu leida ja parandada
 
-1. **Production-ready arhitektuur** - eraldatud teenused, skaleeritav
-2. **Turvaline** - võrgud eraldatud, healthcheck'id, validation
-3. **Kiire** - Redis cache, optimeeritud päringud
-4. **Debuggitav** - logid, health endpointid, monitoring valmidus
+---
 
-### Kuidas edasi arendada?
+## 🎯 Edasised sammud
 
-1. **Lisa autentimine** - JWT tokenid, kasutajate haldus
-2. **Lisa testid** - Jest API jaoks, React Testing Library frontendile
-3. **Lisa CI/CD** - GitHub Actions, automaatne deployment
-4. **Lisa monitoring** - Prometheus + Grafana
-5. **Lisa backup** - automaatne andmebaasi backup
+1. **Lisa autentimine** (JWT tokens)
+2. **Lisa testid** (Jest, React Testing Library)
+3. **Lisa CI/CD pipeline** (GitHub Actions)
+4. **Lisa SSL sertifikaat** (Let's Encrypt)
+5. **Lisa monitoring** (Prometheus, Grafana)
+6. **Optimeeri** (väiksemad Docker images, cache strategia)
 
-### Production deployment
+---
 
-```yaml
-# docker-compose.prod.yml
-version: '3.8'
+## 💡 Õppetunnid
 
-services:
-  api:
-    restart: unless-stopped
-    deploy:
-      replicas: 3
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-
-  database:
-    restart: unless-stopped
-    volumes:
-      - postgres_backups:/backups
-    environment:
-      POSTGRES_PASSWORD: ${SECURE_DB_PASSWORD}
-
-  redis:
-    restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-```
-
-Käivitamine production'is:
-
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
+1. **package-lock.json on kriitiline** - ilma selleta ei tööta npm ci
+2. **nginx vajab õiget struktuuri** - events ja http blokid
+3. **API URL peab olema õige** - Docker sisemised hostinimed ei tööta browseris
+4. **Validation on oluline** - API peab kontrollima sisendeid
+5. **Health checks aitavad** - depends_on üksi ei piisa
+6. **Logid on sõbrad** - docker-compose logs aitab vigu leida
