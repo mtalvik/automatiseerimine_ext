@@ -711,9 +711,6 @@ curl http://localhost/api/health
 # Get todos
 curl http://localhost/api/todos
 ```
-```
-
----
 
 ## Esitamine
 
@@ -761,8 +758,6 @@ curl http://localhost/api/todos
   - README.md
   - Screenshots
   - Deploy script
-
----
 
 ## Troubleshooting
 
