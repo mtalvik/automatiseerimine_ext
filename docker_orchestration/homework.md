@@ -711,7 +711,7 @@ curl http://localhost/api/health
 # Get todos
 curl http://localhost/api/todos
 ```
-
+```
 ## Esitamine
 
 ### Nõutud materjalid
@@ -758,7 +758,7 @@ curl http://localhost/api/todos
   - README.md
   - Screenshots
   - Deploy script
-
+```
 ## Troubleshooting
 
 ### Docker Hub login probleem
