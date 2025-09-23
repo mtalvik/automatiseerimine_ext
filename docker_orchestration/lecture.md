@@ -166,16 +166,16 @@ Docker Compose on deklaratiivne - te ütlete **mida** tahate, mitte **kuidas** s
 
 ```mermaid
 graph LR
-    subgraph "🍕 Restorani analoogia"
-        Order[📝 Tellimus<br/>"Tahan pitsat<br/>juustu ja sinkiga"]
-        Kitchen[👨‍🍳 Köök<br/>Teab kuidas<br/>pitsat teha]
-        Pizza[🍕 Valmis pitsa<br/>Täpselt nagu<br/>tellisite]
+    subgraph "Restorani analoogia"
+        Order[Tellimus - Tahan pitsat juustu ja sinkiga]
+        Kitchen[Köök - Teab kuidas pitsat teha]
+        Pizza[Valmis pitsa - Täpselt nagu tellisite]
     end
     
-    subgraph "🐳 Docker Compose"
-        YAML[📄 docker-compose.yml<br/>"Tahan PostgreSQL<br/>ja Redis"]
-        Compose[⚙️ Docker Compose<br/>Teab kuidas<br/>käivitada]
-        System[🏭 Töötav süsteem<br/>Kõik teenused<br/>töötavad koos]
+    subgraph "Docker Compose"
+        YAML[docker-compose.yml - Tahan PostgreSQL ja Redis]
+        Compose[Docker Compose - Teab kuidas käivitada]
+        System[Töötav süsteem - Kõik teenused töötavad koos]
     end
     
     Order --> Kitchen
