@@ -57,15 +57,20 @@ docker login
 ### Projekti setup
 
 ```bash
-# Loo uus kaust kodutöö jaoks
+# Mine oma labori kausta
+cd labs/lab-docker-compose/mariatesttalvik
+
+# Või loo uus kaust ja kopeeri failid
 mkdir ~/docker-registry-homework && cd ~/docker-registry-homework
+cp -r /path/to/your/mariatesttalvik/* .
 
-# Kopeeri labori kood või kasuta oma
-cp -r ~/todo-app/* . # või kirjuta ise
-
-# Git setup
+# Git setup (kui pole veel)
 git init
-echo -e ".env\nnode_modules/\n*.log\n*_data/\n.DS_Store" > .gitignore
+echo -e ".env\nnode_modules/\n*/node_modules/\n*.log\n*_data/\n.DS_Store" > .gitignore
+
+# Genereeri package-lock.json failid (OLULINE!)
+cd api && npm install && cd ..
+cd frontend && npm install && cd ..
 ```
 
 ---
@@ -179,6 +184,7 @@ services:
     container_name: todo_api_prod
     environment:
       NODE_ENV: production
+      PORT: 3000
       DATABASE_URL: postgres://todouser:${DB_PASSWORD}@database:5432/tododb
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       APP_VERSION: ${VERSION:-1.0.0}
@@ -287,8 +293,7 @@ docker-compose -f docker-compose.prod.yml logs -f
 ### Testi rakendust
 
 ```bash
-# Test health endpoints
-curl http://localhost/health
+# Test API health
 curl http://localhost/api/health
 
 # Ava brauser
@@ -299,14 +304,29 @@ open http://localhost
 
 ## Osa 4: Versioonihaldus
 
+### Lisa version endpoint API-sse (valikuline)
+
+Muuda `api/server.js` ja lisa peale health endpoint'i:
+
+```javascript
+// Version endpoint
+app.get('/api/version', (req, res) => {
+  res.json({
+    version: process.env.APP_VERSION || '1.0.0',
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString()
+  });
+});
+```
+
 ### Tee muudatus ja ehita uus versioon
 
 ```bash
-# Muuda midagi API koodis
-echo "// Version 1.1.0 - Added new feature" >> api/server.js
+# Muuda midagi API koodis (näiteks lisa kommentaar)
+cd api/
+echo "// Version 1.1.0 - Added version endpoint" >> server.js
 
 # Ehita uus versioon
-cd api/
 docker build -t $DOCKER_USER/todo-api:1.1.0 .
 
 # Lisa tagid
@@ -336,6 +356,9 @@ docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d api
 
 # Kontrolli
 docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+
+# Test version endpoint (kui lisasid)
+curl http://localhost/api/version
 ```
 
 **📸 SCREENSHOT 3:** Tee screenshot kus on näha version upgrade (containers with new version)
@@ -397,7 +420,7 @@ Deploy erinevad keskkonnad:
 # Development
 docker-compose -f docker-compose.prod.yml --env-file .env.dev up -d
 
-# Staging (test new version)
+# Staging (test new version)  
 docker-compose -f docker-compose.prod.yml --env-file .env.staging up -d
 
 # Production (stable)
@@ -406,7 +429,7 @@ docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
 
 ---
 
-## Osa 6: CI/CD Pipeline
+## Osa 6: CI/CD Pipeline (Bonus)
 
 ### GitHub Actions workflow
 
@@ -480,13 +503,13 @@ jobs:
 
 GitHub repo Settings → Secrets → Actions:
 - `DOCKER_USERNAME`: your_dockerhub_username
-- `DOCKER_PASSWORD`: your_dockerhub_password
+- `DOCKER_PASSWORD`: your_dockerhub_password_or_token
 
-**📸 SCREENSHOT 4:** Tee screenshot GitHub Actions successful run'ist
+**📸 SCREENSHOT 4:** Tee screenshot GitHub Actions successful run'ist (kui teed CI/CD osa)
 
 ---
 
-## Osa 7: Deployment script
+## Osa 7: Deployment Script
 
 ### Loo deployment script
 
@@ -636,7 +659,7 @@ Production-ready Todo application deployed using Docker Hub registry workflow.
 export DOCKER_USER=your_username
 
 # Deploy
-docker-compose -f docker-compose.prod.yml up -d
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
 ```
 
 ## Deployment
@@ -681,7 +704,7 @@ Automated builds via GitHub Actions on:
 ## Environment Configuration
 
 - `.env.dev` - Development environment
-- `.env.staging` - Staging environment
+- `.env.staging` - Staging environment  
 - `.env.prod` - Production environment
 
 ## Architecture
@@ -702,16 +725,27 @@ Automated builds via GitHub Actions on:
 ## Testing
 
 ```bash
-# Health check
-curl http://localhost/health
-
 # API health
 curl http://localhost/api/health
 
 # Get todos
 curl http://localhost/api/todos
+
+# Version info (if implemented)
+curl http://localhost/api/version
 ```
+
+## Troubleshooting
+
+- **Login issues**: `docker logout && docker login`
+- **Rate limits**: Wait 6h or authenticate
+- **Port conflicts**: Change port in docker-compose.prod.yml
 ```
+
+**📸 SCREENSHOT 5:** Tee screenshot brauserist kus on näha töötav rakendus
+
+---
+
 ## Esitamine
 
 ### Nõutud materjalid
@@ -721,65 +755,111 @@ curl http://localhost/api/todos
    - `/frontend` - Frontend kood Dockerfile'iga
    - `/nginx` - Nginx konfiguratsioon
    - `/database` - Init SQL skriptid
+   - `docker-compose.yml` - Development compose (laborist)
    - `docker-compose.prod.yml` - Production compose fail
    - `.env.example` - Environment näidis
+   - `.env.prod`, `.env.staging`, `.env.dev` - Environment failid
    - `deploy.sh` - Deployment script
-   - `.github/workflows/` - CI/CD pipeline
+   - `.github/workflows/` - CI/CD pipeline (bonus)
    - `README.md` - Dokumentatsioon
 
 2. **Screenshots** (5 tk):
    - Docker Hub repositories ja tagid
    - Running containers (`docker-compose ps`)
    - Version upgrade (containers with new version)
-   - GitHub Actions successful run
+   - GitHub Actions successful run (kui teed CI/CD)
    - Brauser kus töötav rakendus
 
 3. **Docker Hub lingid**:
-   - Link API repository'le
-   - Link Frontend repository'le
+   - Link API repository'le (nt: https://hub.docker.com/r/username/todo-api)
+   - Link Frontend repository'le (nt: https://hub.docker.com/r/username/todo-frontend)
 
 ### Hindamiskriteeriumid
 
 - **Docker Registry workflow** (40%)
-  - Image'd pushed Docker Hub'i
-  - Korrektsed tagid (mitte ainult latest)
-  - Versiooni haldus
+  - Image'd pushed Docker Hub'i ✓
+  - Korrektsed tagid (versioonid, mitte ainult latest) ✓
+  - Toimiv pull/push workflow ✓
   
 - **Production deployment** (30%)
-  - docker-compose.prod.yml töötab
-  - Kasutab registry image'id
-  - Environment muutujate haldus
+  - docker-compose.prod.yml töötab registry image'dega ✓
+  - Environment muutujate korrektne haldus ✓
+  - Health checks ja restart policies ✓
   
-- **CI/CD Pipeline** (20%)
-  - GitHub Actions workflow
-  - Automaatne build ja push
+- **Version management** (20%)
+  - Deploy erinevate versioonidega ✓
+  - Rollback funktsioon töötab ✓
+  - Deploy script või manual workflow ✓
   
-- **Dokumentatsioon** (10%)
-  - README.md
-  - Screenshots
-  - Deploy script
-```
+- **Dokumentatsioon ja esitamine** (10%)
+  - README.md kirjeldab deployment'i ✓
+  - Screenshots tõestavad töötamist ✓
+  - Kood on GitHub'is ✓
+
+---
+
 ## Troubleshooting
 
 ### Docker Hub login probleem
 ```bash
+# Proovi uuesti
 docker logout
 docker login
 ```
 
 ### Rate limit error
-Docker Hub tasuta plaanil on 200 pulls/6h. Lahendus:
-- Oota 6 tundi
-- Või logi sisse: `docker login`
-
-### Version conflict
 ```bash
-# Force pull
-docker-compose -f docker-compose.prod.yml pull --ignore-pull-failures
+# Docker Hub tasuta plaanil on limiidid
+# Lahendus 1: Oota 6 tundi
+# Lahendus 2: Logi sisse (authenticated users have higher limits)
+docker login
+```
+
+### Permission denied error
+```bash
+# Build käigus
+sudo docker build ...
+
+# Deploy script
+chmod +x deploy.sh
 ```
 
 ### Container ei käivitu
 ```bash
 # Vaata logisid
 docker-compose -f docker-compose.prod.yml logs api
+docker-compose -f docker-compose.prod.yml logs frontend
 ```
+
+### Port already in use
+```bash
+# Muuda port docker-compose.prod.yml failis
+ports:
+  - "8080:80"  # Kasuta teist porti
+```
+
+### npm ci error Dockerfile'is
+```bash
+# Genereeri package-lock.json failid enne build'i
+cd api && npm install && cd ..
+cd frontend && npm install && cd ..
+```
+
+---
+
+## Bonus ülesanded (lisapunktid)
+
+1. **Multi-architecture build** (arm64 + amd64)
+2. **Docker image scanning** turvaaukude jaoks
+3. **Kubernetes deployment YAML** failid
+4. **Monitoring stack** (Prometheus + Grafana)
+5. **Backup script** andmebaasi jaoks
+
+---
+
+## Kasulikud lingid
+
+- [Docker Hub dokumentatsioon](https://docs.docker.com/docker-hub/)
+- [Docker Compose production guide](https://docs.docker.com/compose/production/)
+- [GitHub Actions Docker guide](https://docs.github.com/en/actions/publishing-packages/publishing-docker-images)
+- [Docker security best practices](https://docs.docker.com/develop/security-best-practices/)
