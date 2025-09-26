@@ -1,6 +1,7 @@
 # Kubernetes: Sissejuhatus Konteinerite Orkestreerimisse
 
 ## 1. Mis on Kubernetes ja Miks Me Seda Vajame?
+[Celebrating 10 years of Kubernetes: the evolution of database operators](https://www.cncf.io/blog/2024/06/28/celebrating-10-years-of-kubernetes-the-evolution-of-database-operators/)
 
 ### 1.1 Kubernetes'i Sünd ja Ajalugu
 
