@@ -101,22 +101,79 @@ Minikube loob lokaalse Kubernetes klasteri teie arvutisse. See on nagu mini andm
 
 **Allikas:** https://minikube.sigs.k8s.io/docs/start/
 
-```bash
-# Windows (Admin PowerShell)
-# Laadige alla: https://minikube.sigs.k8s.io/docs/start/
-# Või Chocolatey kaudu:
-choco install minikube
+#### Minikube Versioonide Erinevused ja Ühilduvus
 
-# macOS
+| Versioon | Toetatud OS | Docker Ühilduvus | Multipass Ühilduvus | ARM64 Toetus |
+|----------|-------------|------------------|---------------------|---------------|
+| v1.34.0 | macOS, Linux, Windows | ✅ Hea | ✅ Hea | ⚠️ Probleemid |
+| v1.37.0+ | macOS, Linux, Windows | ✅ Hea | ✅ Hea | ✅ Parem toetus |
+| v1.40.0+ | macOS, Linux, Windows | ✅ Hea | ✅ Hea | ✅ Täielik toetus |
+
+**Olulised erinevused:**
+- **v1.34.0 ja vanemad**: ARM64 Mac'idel võivad tekkida platform mismatch vead Docker driver'iga
+- **v1.37.0+**: Parem ARM64 toetus, vähem platform probleeme
+- **v1.40.0+**: Täielik ARM64 toetus, kõige stabiilsem versioon
+
+#### Installatsiooni Valikud
+
+**Valik 1: Homebrew (soovitatav macOS'ile)**
+```bash
+# macOS - installi uusim versioon
 brew install minikube
+
+# Või installi konkreetne versioon
+brew install minikube@1.40.0
+```
+
+**Valik 2: Otsene alla laadimine (kui Homebrew ei tööta)**
+```bash
+# macOS ARM64 (Apple Silicon)
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-arm64
+sudo install minikube-darwin-arm64 /usr/local/bin/minikube
+
+# macOS Intel
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-amd64
+sudo install minikube-darwin-amd64 /usr/local/bin/minikube
 
 # Linux (Ubuntu/Debian)
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 sudo install minikube-linux-amd64 /usr/local/bin/minikube
 
-# Kontrollige installatsiooni
+# Windows (Admin PowerShell)
+# Laadige alla: https://minikube.sigs.k8s.io/docs/start/
+# Või Chocolatey kaudu:
+choco install minikube
+```
+
+**Valik 3: Vanema versiooni eemaldamine ja uue installimine**
+```bash
+# Eemalda vana versioon
+sudo rm /usr/local/bin/minikube
+# või
+brew uninstall minikube
+
+# Installi uus versioon
+brew install minikube
+```
+
+#### Driver'ite Ühilduvus
+
+| Driver | macOS | Linux | Windows | ARM64 Toetus | Soovitus |
+|--------|-------|-------|---------|--------------|----------|
+| docker | ✅ | ✅ | ✅ | ⚠️ Probleemid v1.34.0 | Kasuta v1.37.0+ |
+| multipass | ✅ | ✅ | ❌ | ✅ Hea | Soovitatav macOS'ile |
+| podman | ✅ | ✅ | ❌ | ✅ Hea | Alternatiiv |
+| virtualbox | ✅ | ✅ | ✅ | ❌ Ei toeta | Vananenud |
+| vmware | ✅ | ✅ | ✅ | ❌ Ei toeta | Vananenud |
+
+#### Kontrollige installatsiooni
+```bash
+# Kontrollige versiooni
 minikube version
-# Peaks näitama: minikube version: v1.31.0 või uuemat
+# Peaks näitama: minikube version: v1.37.0 või uuemat
+
+# Kontrollige saadaolevaid driver'eid
+minikube config defaults driver
 ```
 
 ### 1.3 Kubernetes Klasteri Käivitamine (15 minutit)
@@ -161,6 +218,67 @@ minikube addons enable ingress  # Välise ligipääsu jaoks
 # Kui midagi ei tööta, proovige:
 minikube delete  # Kustutab vana klasteri
 minikube start --force  # Sunnitud käivitus
+```
+
+#### Levinud Probleemid ja Lahendused
+
+**1. Platform Mismatch Error (ARM64 Mac'idel)**
+```
+WARNING: The requested image's platform (linux/arm64) does not match the detected host platform (linux/amd64/v1)
+```
+**Lahendus:**
+```bash
+# Uuenda Minikube uusima versioonini
+brew upgrade minikube
+# või
+sudo rm /usr/local/bin/minikube
+brew install minikube
+
+# Kasuta Multipass driver'it
+minikube start --driver=multipass
+```
+
+**2. Docker Memory Limitation**
+```
+Docker Desktop has only 3911MB memory but you specified 4096MB
+```
+**Lahendus:**
+```bash
+# Vähenda mälu nõuet
+minikube start --memory=3000 --cpus=2
+# või kasuta Multipass
+minikube start --driver=multipass --memory=4000 --cpus=2
+```
+
+**3. Driver Mismatch Error**
+```
+The existing "minikube" cluster was created using the "docker" driver, which is incompatible with requested "multipass" driver
+```
+**Lahendus:**
+```bash
+# Kustuta vana klaster ja loo uus
+minikube delete
+minikube start --driver=multipass
+```
+
+**4. Image Pull Errors**
+```
+minikube was unable to download gcr.io/k8s-minikube/kicbase:v0.0.45
+```
+**Lahendus:**
+```bash
+# See on tavaliselt ajutine viga, proovige uuesti
+minikube delete
+minikube start
+```
+
+**5. ARM64 Mac Spetsiifilised Probleemid**
+```bash
+# Kui Docker driver ei tööta, kasutage Multipass
+minikube start --driver=multipass --cpus=2 --memory=4000
+
+# Või kasutage Podman driver'it
+minikube start --driver=podman --cpus=2 --memory=4000
 ```
 
 ---
