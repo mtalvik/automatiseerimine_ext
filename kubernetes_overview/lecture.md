@@ -5,13 +5,27 @@
 
 ### 1.1 Kubernetes'i Sünd ja Ajalugu
 
-Alustame päris algusest - mis üldse on Kubernetes? Kubernetes on avatud lähtekoodiga platvorm, mille Google tegi avalikuks 2014. aastal, tuginedes nende 15-aastasele kogemusele miljardite konteinerite käitamisel nädalas. Google'i insenerid Craig McLuckie, Joe Beda ja Brendan Burns lõid Kubernetes'i, et tuua Google'i sisemise süsteemi Borg'i õppetunnid kõigile kättesaadavaks. Nimi "Kubernetes" tuleb kreeka keelest ja tähendab tüürimeest või piloti - see juhib teie konteinereid nagu kapten juhib laeva. Tänapäeval haldab Cloud Native Computing Foundation (CNCF) Kubernetes'i arendust, ning see on muutunud de facto standardiks konteinerite orkestreerimiseks.
+![A brief history of Kubernetes](https://cdn.shortpixel.ai/spai/q_lossless+ret_img+to_webp/www.apptio.com/wp-content/uploads/timeline-of-kubernetes-events.png)
+
+Alustame päris algusest - mis üldse on Kubernetes? 
+
+Kubernetes on avatud lähtekoodiga platvorm, mille Google tegi avalikuks 2014. aastal, tuginedes nende 15-aastasele kogemusele miljardite konteinerite käitamisel nädalas. 
+
+Google'i insenerid Craig McLuckie, Joe Beda ja Brendan Burns lõid Kubernetes'i, et tuua Google'i sisemise süsteemi Borg'i õppetunnid kõigile kättesaadavaks. 
+
+Nimi "Kubernetes" tuleb kreeka keelest ja tähendab tüürimeest või piloti - see juhib teie konteinereid nagu kapten juhib laeva. 
+
+Tänapäeval haldab Cloud Native Computing Foundation (CNCF) Kubernetes'i arendust, ning see on muutunud de facto standardiks konteinerite orkestreerimiseks.
 
 Allikas: https://kubernetes.io/docs/concepts/overview/
 
 ### 1.2 Probleem, Mida Kubernetes Lahendab
 
-Kujutage ette, et teil on veebirakendus, mis töötab Docker'i konteineris. Alguses on teil üks server ja paar konteinerit - lihtne hallata käsitsi kubectl või docker käskudega. Kuid mis juhtub, kui teil on 100 serverit ja 1000 konteinerit? Kuidas tagada, et kui üks server kukub, teie rakendus jätkab tööd? Kuidas uuendada rakendust ilma katkestusteta? Just neid probleeme lahendab Kubernetes automaatselt - see on nagu intelligentne orkestrijuht, kes tagab, et kõik konteinerid mängivad õiget meloodiat õigel ajal õiges kohas.
+Kujutage ette, et teil on veebirakendus, mis töötab Docker'i konteineris. Alguses on teil üks server ja paar konteinerit - lihtne hallata käsitsi kubectl või docker käskudega. 
+
+Kuid mis juhtub, kui teil on 100 serverit ja 1000 konteinerit? Kuidas tagata, et kui üks server kukub, teie rakendus jätkab tööd? Kuidas uuendada rakendust ilma katkestusteta? 
+
+Just neid probleeme lahendab Kubernetes automaatselt - see on nagu intelligentne orkestrijuht, kes tagab, et kõik konteinerid mängivad õiget meloodiat õigel ajal õiges kohas.
 
 ```mermaid
 graph LR
@@ -38,7 +52,15 @@ graph LR
 
 ### 1.3 Kubernetes vs Docker
 
-Paljud arvavad ekslikult, et Kubernetes ja Docker on konkurendid - see pole tõsi. Docker on konteinerite loomise ja käitamise tehnoloogia, Kubernetes aga haldab neid konteinereid suurel skaalal. Docker on nagu üksik auto, Kubernetes on nagu intelligentne liikluskorralduse süsteem, mis juhib tuhandeid autosid. Tegelikult kasutab Kubernetes ise Docker'it (või teisi konteinerite runtime'e nagu containerd või CRI-O) konteinerite käitamiseks. Lihtsalt öeldes: Docker pakendab ja käitab, Kubernetes orkestreerib ja haldab.
+![Super basic understanding of K8s](https://www.techyv.com/sites/default/2022/10/users/Proofreader1/Kubernetes-vs-Docker-article_2@2x-1.jpg)
+
+Paljud arvavad ekslikult, et Kubernetes ja Docker on konkurendid - see pole tõsi. 
+
+Docker on konteinerite loomise ja käitamise tehnoloogia, Kubernetes aga haldab neid konteinereid suurel skaalal. Docker on nagu üksik auto, Kubernetes on nagu intelligentne liikluskorralduse süsteem, mis juhib tuhandeid autosid. 
+
+Tegelikult kasutab Kubernetes ise Docker'it (või teisi konteinerite runtime'e nagu containerd või CRI-O) konteinerite käitamiseks. 
+
+Lihtsalt öeldes: Docker pakendab ja käitab, Kubernetes orkestreerib ja haldab.
 
 | Aspekt | Docker | Kubernetes |
 |--------|--------|------------|
@@ -54,7 +76,15 @@ Allikas: https://www.redhat.com/en/topics/containers/what-is-kubernetes
 
 ### 2.1 Klaster ja Node'id
 
-Kubernetes klaster koosneb vähemalt ühest Control Plane node'ist (vanem nimetus Master) ja mitmest Worker node'ist. Control Plane on nagu ajurakk - seal toimub kogu otsustamine, planeerimine ja jälgimine. Worker node'id on nagu käed ja jalad - seal jooksevad tegelikud rakendused. Iga node on füüsiline või virtuaalne server, millel töötab Kubernetes'i tarkvara. Minimaalne produktsiooni klaster vajab vähemalt 3 Control Plane node'i (kõrge käideldavuse jaoks) ja 2+ Worker node'i.
+![Control Plane of K8s](https://i.ytimg.com/vi/TlHvYWVUZyc/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDeAgmiuxWVD1JAgOjEfppl0cF15g)
+
+Kubernetes klaster koosneb vähemalt ühest Control Plane node'ist (vanem nimetus Master) ja mitmest Worker node'ist. 
+
+Control Plane on nagu ajurakk - seal toimub kogu otsustamine, planeerimine ja jälgimine. Worker node'id on nagu käed ja jalad - seal jooksevad tegelikud rakendused. 
+
+Iga node on füüsiline või virtuaalne server, millel töötab Kubernetes'i tarkvara. 
+
+Minimaalne produktsiooni klaster vajab vähemalt 3 Control Plane node'i (kõrge käideldavuse jaoks) ja 2+ Worker node'i.
 
 ```yaml
 # Lihtne näide: kuidas vaadata oma klasteri node'e
