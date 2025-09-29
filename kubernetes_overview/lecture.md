@@ -99,7 +99,15 @@ worker-node-2       Ready    <none>          30d   v1.28.0
 
 ### 2.2 Pod - Väikseim Üksus Kubernetes'is
 
-Pod on Kubernetes'i aatom - väikseim juurutatav üksus. Pod võib sisaldada ühte või mitut konteinerit, kuid praktikas on tavaliselt üks konteiner pod'i kohta. Kõik konteinerid pod'is jagavad sama võrgu (IP aadressi) ja salvestusruumi. Miks mitte lihtsalt kasutada konteinereid otse? Pod annab meile abstraktsiooni kihi - Kubernetes ei pea teadma, kas kasutate Docker'it, containerd'i või midagi muud. Samuti võimaldab pod lisada kõrvalmahuteid (sidecar containers) logimiseks või monitoorimiseks.
+![Pods in Kubernetes](https://dotnettrickscloud.blob.core.windows.net/article/kubernetes/4920250521165411.png)
+
+Pod on Kubernetes'i aatom - väikseim juurutatav üksus. 
+
+Pod võib sisaldada ühte või mitut konteinerit, kuid praktikas on tavaliselt üks konteiner pod'i kohta. Kõik konteinerid pod'is jagavad sama võrgu (IP aadressi) ja salvestusruumi. 
+
+Miks mitte lihtsalt kasutada konteinereid otse? Pod annab meile abstraktsiooni kihi - Kubernetes ei pea teadma, kas kasutate Docker'it, containerd'i või midagi muud. 
+
+Samuti võimaldab pod lisada kõrvalmahuteid (sidecar containers) logimiseks või monitoorimiseks.
 
 ```yaml
 # Lihtne Pod definitsioon
@@ -119,7 +127,15 @@ spec:
 
 ### 2.3 Deployment - Deklaratiivne Rakenduse Haldamine
 
-Deployment on Kubernetes'i võimas kontseptsioon, mis hoiab teie rakenduse soovitud olekus. Te ütlete "ma tahan 3 koopiat oma rakendusest" ja Kubernetes tagab, et need 3 koopiat alati töötavad. Kui üks pod kukub, loob Deployment automaatselt uue. Kui uuendate rakendust, teeb Deployment seda järk-järgult (rolling update), tagades null downtime'i. See on nagu autopiloot lennukis - te määrate sihtkoha, Kubernetes viib teid sinna.
+![Deployment](https://matthewpalmer.net/kubernetes-app-developer/articles/deployment-diagram-kubernetes.gif)
+
+Deployment on Kubernetes'i võimas kontseptsioon, mis hoiab teie rakenduse soovitud olekus. 
+
+Te ütlete "ma tahan 3 koopiat oma rakendusest" ja Kubernetes tagab, et need 3 koopiat alati töötavad. Kui üks pod kukub, loob Deployment automaatselt uue. 
+
+Kui uuendate rakendust, teeb Deployment seda järk-järgult (rolling update), tagades null downtime'i. 
+
+See on nagu autopiloot lennukis - te määrate sihtkoha, Kubernetes viib teid sinna.
 
 ```yaml
 # Deployment näide - hoiab alati 3 pod'i töös
@@ -155,7 +171,17 @@ spec:
 
 ### 3.1 Control Plane Komponendid
 
-Control Plane koosneb viiest põhikomponendist, millest igaüks täidab spetsiifilist rolli. API Server (kube-apiserver) on keskne suhtluspunkt - kõik käsud ja päringud käivad läbi tema. Scheduler (kube-scheduler) otsustab, millisele node'ile pod paigutada, võttes arvesse ressursse ja piiranguid. Controller Manager (kube-controller-manager) jooksutab kontrollereid, mis jälgivad klasteri olekut ja teevad muudatusi. etcd on hajutatud võti-väärtus andmebaas, kus hoitakse kogu klasteri konfiguratsiooni. Cloud Controller Manager suhtleb pilveteenuse pakkujaga (AWS, Azure, GCP).
+Control Plane koosneb viiest põhikomponendist, millest igaüks täidab spetsiifilist rolli:
+
+**API Server (kube-apiserver)** on keskne suhtluspunkt - kõik käsud ja päringud käivad läbi tema.
+
+**Scheduler (kube-scheduler)** otsustab, millisele node'ile pod paigutada, võttes arvesse ressursse ja piiranguid.
+
+**Controller Manager (kube-controller-manager)** jooksutab kontrollereid, mis jälgivad klasteri olekut ja teevad muudatusi.
+
+**etcd** on hajutatud võti-väärtus andmebaas, kus hoitakse kogu klasteri konfiguratsiooni.
+
+**Cloud Controller Manager** suhtleb pilveteenuse pakkujaga (AWS, Azure, GCP).
 
 ```mermaid
 graph TB
@@ -187,11 +213,33 @@ Allikas: https://kubernetes.io/docs/concepts/architecture/
 
 ### 3.2 Worker Node Komponendid
 
-Igal Worker node'il töötavad kolm põhikomponenti. Kubelet on agent, mis suhtleb Control Plane'iga ja tagab, et pod'id töötavad vastavalt spetsifikatsioonile. Kube-proxy haldab võrgureegleid ja võimaldab teenuste kaudu ligipääsu pod'idele. Container Runtime (Docker, containerd või CRI-O) käitab tegelikke konteinereid. Need komponendid töötavad koos nagu hästi õlitatud masin - kubelet saab käsud, container runtime käivitab konteinerid, ja kube-proxy tagab, et neile pääseb ligi.
+## Worker Node komponendid
+
+Igal Worker node'il töötavad kolm põhikomponenti:
+
+**Kubelet** on agent, mis suhtleb Control Plane'iga ja tagab, et pod'id töötavad vastavalt spetsifikatsioonile.
+
+**Kube-proxy** haldab võrgureegleid ja võimaldab teenuste kaudu ligipääsu pod'idele.
+
+**Container Runtime** (Docker, containerd või CRI-O) käitab tegelikke konteinereid.
+
+Need komponendid töötavad koos nagu hästi õlitatud masin - kubelet saab käsud, container runtime käivitab konteinerid, ja kube-proxy tagab, et neile pääseb ligi.
 
 ### 3.3 Kuidas Kõik Koos Töötab
 
-Vaatame, mis juhtub, kui te loote uue deployment'i käsuga `kubectl apply -f deployment.yaml`. Kubectl saadab YAML faili API serverisse, mis valideerib ja salvestab selle etcd'sse. Controller Manager märkab uue deployment'i ja loob ReplicaSet'i, mis omakorda loob vajalikud pod'id. Scheduler märkab uusi pod'e, millel pole määratud node'i, ja otsustab, kuhu need paigutada. Kubelet vastaval node'il saab teate uuest pod'ist ja käivitab konteinerid. Kogu see protsess võtab tavaliselt paar sekundit ja on täielikult automatiseeritud.
+![Yaml](https://i.ytimg.com/vi/y_vy9NVeCzo/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLD6sbG9ZIHGYksQ_IlF06Y0mFf0Ng)
+
+Vaatame, mis juhtub, kui te loote uue deployment'i käsuga `kubectl apply -f deployment.yaml`:
+
+Kubectl saadab YAML faili API serverisse, mis valideerib ja salvestab selle etcd'sse. 
+
+Controller Manager märkab uue deployment'i ja loob ReplicaSet'i, mis omakorda loob vajalikud pod'id. 
+
+Scheduler märkab uusi pod'e, millel pole määratud node'i, ja otsustab, kuhu need paigutada. 
+
+Kubelet vastaval node'il saab teate uuest pod'ist ja käivitab konteinerid. 
+
+Kogu see protsess võtab tavaliselt paar sekundit ja on täielikult automatiseeritud.
 
 ```bash
 # Praktiline näide: deployment'i loomine
@@ -211,7 +259,13 @@ kubectl logs -f deployment/veebileht-deployment
 
 ### 4.1 Service - Stabiilne Ligipääs Pod'idele
 
-Pod'idel on dünaamilised IP aadressid - iga kord kui pod taaskäivitub, saab ta uue IP. Service lahendab selle probleemi, pakkudes stabiilset DNS nime ja IP aadressi pod'ide grupile. Service toimib nagu koormusjaotur, suunates liikluse automaatselt töötavatele pod'idele. Kubernetes'is on neli service tüüpi: ClusterIP (vaikimisi, ainult klasteri sees), NodePort (avab pordi igal node'il), LoadBalancer (loob välise koormusjaoturi pilves) ja ExternalName (DNS alias välisele teenusele).
+![ClusterIP](https://cdn.prod.website-files.com/6340354625974824cde2e195/65c58ea9081cb346a245b820_GIF_3.gif)
+
+Pod'idel on dünaamilised IP aadressid - iga kord kui pod taaskäivitub, saab ta uue IP. 
+
+Service lahendab selle probleemi, pakkudes stabiilset DNS nime ja IP aadressi pod'ide grupile. Service toimib nagu koormusjaotur, suunates liikluse automaatselt töötavatele pod'idele. 
+
+Kubernetes'is on neli service tüüpi: **ClusterIP** (vaikimisi, ainult klasteri sees), **NodePort** (avab pordi igal node'il), **LoadBalancer** (loob välise koormusjaoturi pilves) ja **ExternalName** (DNS alias välisele teenusele).
 
 ```yaml
 # Service näide
@@ -230,7 +284,13 @@ spec:
 
 ### 4.2 DNS ja Service Discovery
 
-Kubernetes'il on sisseehitatud DNS server (tavaliselt CoreDNS), mis võimaldab teenustel üksteist leida nimede järgi. Iga service saab DNS kirje kujul `<service-name>.<namespace>.svc.cluster.local`. Näiteks kui teil on service nimega "database" namespace'is "production", saavad teised pod'id sellega ühenduda kasutades nime `database.production.svc.cluster.local` või lihtsalt `database` kui nad on samas namespace'is. See teeb mikroteenuste arhitektuuri lihtsamaks - te ei pea hardkoodima IP aadresse.
+Kubernetes'il on sisseehitatud DNS server (tavaliselt CoreDNS), mis võimaldab teenustel üksteist leida nimede järgi. 
+
+Iga service saab DNS kirje kujul `<service-name>.<namespace>.svc.cluster.local`. 
+
+Näiteks kui teil on service nimega "database" namespace'is "production", saavad teised pod'id sellega ühenduda kasutades nime `database.production.svc.cluster.local` või lihtsalt `database` kui nad on samas namespace'is. 
+
+See teeb mikroteenuste arhitektuuri lihtsamaks - te ei pea hardkoodima IP aadresse.
 
 | DNS Formaat | Näide | Kasutus |
 |------------|--------|---------|
@@ -240,7 +300,13 @@ Kubernetes'il on sisseehitatud DNS server (tavaliselt CoreDNS), mis võimaldab t
 
 ### 4.3 Ingress - Väline Ligipääs
 
-Service'id on head klasteri sees, kuid kuidas pääseda ligi väljast? Ingress on HTTP/HTTPS ruuter, mis suunab välise liikluse õigetele service'idele URL-i põhjal. Ingress Controller (näiteks NGINX või Traefik) jälgib Ingress ressursse ja konfigureerib end vastavalt. See on nagu intelligentne väravavaht - vaatab, mida külaline küsib, ja suunab ta õigesse kohta. Ingress võimaldab ka SSL/TLS terminatsiooni, virtuaalhostide tuge ja URL-põhist marsruutimist.
+Service'id on head klasteri sees, kuid kuidas pääseda ligi väljast? 
+
+Ingress on HTTP/HTTPS ruuter, mis suunab välise liikluse õigetele service'idele URL-i põhjal. Ingress Controller (näiteks NGINX või Traefik) jälgib Ingress ressursse ja konfigureerib end vastavalt. 
+
+See on nagu intelligentne väravavaht - vaatab, mida külaline küsib, ja suunab ta õigesse kohta. 
+
+Ingress võimaldab ka SSL/TLS terminatsiooni, virtuaalhostide tuge ja URL-põhist marsruutimist.
 
 ```yaml
 # Ingress näide
@@ -268,7 +334,11 @@ Allikas: https://kubernetes.io/docs/concepts/services-networking/ingress/
 
 ### 5.1 ConfigMaps ja Secrets
 
-ConfigMap võimaldab eraldada konfiguratsiooni koodist - te saate muuta seadeid ilma konteinerit ümber ehitamata. ConfigMap võib sisaldada võti-väärtus paare või terveid konfiguratsioonifaile. Secrets on sarnased ConfigMap'idega, kuid mõeldud tundlike andmete jaoks nagu paroolid või API võtmed. Kubernetes salvestab Secret'id base64 kodeeritult ja piirab neile ligipääsu. Mõlemad saab mount'ida pod'i kas keskkonna muutujatena või failidena.
+ConfigMap võimaldab eraldada konfiguratsiooni koodist - te saate muuta seadeid ilma konteinerit ümber ehitamata. ConfigMap võib sisaldada võti-väärtus paare või terveid konfiguratsioonifaile. 
+
+Secrets on sarnased ConfigMap'idega, kuid mõeldud tundlike andmete jaoks nagu paroolid või API võtmed. Kubernetes salvestab Secret'id base64 kodeeritult ja piirab neile ligipääsu. 
+
+Mõlemad saab mount'ida pod'i kas keskkonna muutujatena või failidena.
 
 ```yaml
 # ConfigMap näide
@@ -315,7 +385,13 @@ spec:
 
 ### 5.2 Persistent Volumes
 
-Konteinerid on loomult ajutised - kui konteiner taaskäivitub, kaob kogu data. Persistent Volumes (PV) lahendavad selle probleemi, pakkudes püsivat salvestust, mis elab kauem kui pod. PersistentVolumeClaim (PVC) on kasutaja taotlus salvestuse jaoks, nagu "ma vajan 10GB kiiret SSD salvestust". Kubernetes leiab sobiva PV ja seob need kokku. See on nagu üürikorteri otsimine - te esitate nõuded (PVC), ja Kubernetes leiab sobiva korteri (PV).
+Konteinerid on loomult ajutised - kui konteiner taaskäivitub, kaob kogu data. 
+
+Persistent Volumes (PV) lahendavad selle probleemi, pakkudes püsivat salvestust, mis elab kauem kui pod. PersistentVolumeClaim (PVC) on kasutaja taotlus salvestuse jaoks, nagu "ma vajan 10GB kiiret SSD salvestust". 
+
+Kubernetes leiab sobiva PV ja seob need kokku. 
+
+See on nagu üürikorteri otsimine - te esitate nõuded (PVC), ja Kubernetes leiab sobiva korteri (PV).
 
 ```yaml
 # PersistentVolumeClaim näide
@@ -336,7 +412,13 @@ spec:
 
 ### 6.1 Minikube - Kohalik Kubernetes
 
-Minikube on parim viis Kubernetes'i õppimiseks kohalikus arvutis. See loob ühe-node'i klasteri virtuaalmasinas või Docker'is, võimaldades teil katsetada ilma pilvekuludeta. Minikube sisaldab kõiki Kubernetes'i komponente ja lisaks mitmeid kasulikke addon'e nagu dashboard, metrics-server ja ingress controller. Installimine on lihtne ja töötab Windows'il, macOS'il ja Linux'il. Minikube on ideaalne õppimiseks ja arenduseks, kuid mitte produktsiooniks.
+Minikube on parim viis Kubernetes'i õppimiseks kohalikus arvutis. 
+
+See loob ühe-node'i klasteri virtuaalmasinas või Docker'is, võimaldades teil katsetada ilma pilvekuludeta. Minikube sisaldab kõiki Kubernetes'i komponente ja lisaks mitmeid kasulikke addon'e nagu dashboard, metrics-server ja ingress controller. 
+
+Installimine on lihtne ja töötab Windows'il, macOS'il ja Linux'il. 
+
+Minikube on ideaalne õppimiseks ja arenduseks, kuid mitte produktsiooniks.
 
 ```bash
 # Minikube installimine (Linux)
@@ -360,7 +442,13 @@ Allikas: https://minikube.sigs.k8s.io/docs/start/
 
 ### 6.2 kubectl - Kubernetes'i Käsurea Tööriist
 
-kubectl on peamine tööriist Kubernetes'iga suhtlemiseks käsurealt. See on nagu kaugjuhtimispult teie klasteri jaoks - saate luua, muuta, kustutada ja jälgida ressursse. kubectl töötab deklaratiivselt (YAML failidega) või imperatiivselt (käskudega). Kõige kasulikumad käsud on `get` (näita ressursse), `describe` (detailne info), `logs` (vaata logisid), `exec` (käivita käsk pod'is) ja `apply` (rakenda muudatusi). kubectl'i õppimine on Kubernetes'i kasutamise alus.
+kubectl on peamine tööriist Kubernetes'iga suhtlemiseks käsurealt. 
+
+See on nagu kaugjuhtimispult teie klasteri jaoks - saate luua, muuta, kustutada ja jälgida ressursse. kubectl töötab deklaratiivselt (YAML failidega) või imperatiivselt (käskudega). 
+
+Kõige kasulikumad käsud on `get` (näita ressursse), `describe` (detailne info), `logs` (vaata logisid), `exec` (käivita käsk pod'is) ja `apply` (rakenda muudatusi). 
+
+kubectl'i õppimine on Kubernetes'i kasutamise alus.
 
 ```bash
 # Põhilised kubectl käsud
@@ -375,7 +463,13 @@ kubectl delete pod nginx-pod        # Kustuta pod
 
 ### 6.3 Esimene Deployment
 
-Loome nüüd päris deployment'i, mis käitab lihtsat veebirakendust. See deployment loob 3 pod'i, igaüks nginx konteineriga, ja tagab, et nad alati töötavad. Kui kustutate pod'i, loob Kubernetes automaatselt uue. See on Kubernetes'i võlu - deklaratiivne lähenemine, kus te ütlete, mida tahate, mitte kuidas seda teha. Proovige muuta replicate arvu või container image'i versiooni ja vaadake, kuidas Kubernetes teeb rolling update'i.
+Loome nüüd päris deployment'i, mis käitab lihtsat veebirakendust. 
+
+See deployment loob 3 pod'i, igaüks nginx konteineriga, ja tagab, et nad alati töötavad. Kui kustutate pod'i, loob Kubernetes automaatselt uue. 
+
+See on Kubernetes'i võlu - deklaratiivne lähenemine, kus te ütlete, mida tahate, mitte kuidas seda teha. 
+
+Proovige muuta replicate arvu või container image'i versiooni ja vaadake, kuidas Kubernetes teeb rolling update'i.
 
 ```yaml
 # deployment.yaml - salvestage see fail
@@ -436,7 +530,15 @@ minikube service veebirakendus-service
 
 ## Kokkuvõte
 
-Kubernetes on võimas tööriist, mis automatiseerib konteinerite haldamise produktsioonis. Põhikontseptsioonid on Pod (väikseim üksus), Deployment (hoiab rakenduse töös), Service (võimaldab ligipääsu) ja ConfigMap/Secret (konfiguratsioon). Kubernetes'i õppimine võtab aega, kuid tasub end ära - see on muutunud tööstuse standardiks ja nõudlus Kubernetes'i oskustega inseneride järele kasvab pidevalt. Alustage Minikube'iga, õppige kubectl'i põhikäske ja ehitage järk-järgult keerukamaid rakendusi.
+Kubernetes on võimas tööriist, mis automatiseerib konteinerite haldamise produktsioonis. 
+
+Põhikontseptsioonid on Pod (väikseim üksus), Deployment (hoiab rakenduse töös), Service (võimaldab ligipääsu) ja ConfigMap/Secret (konfiguratsioon). 
+
+Kubernetes'i õppimine võtab aega, kuid tasub end ära - see on muutunud tööstuse standardiks ja nõudlus Kubernetes'i oskustega inseneride järele kasvab pidevalt. 
+
+Alustage Minikube'iga, õppige kubectl'i põhikäske ja ehitage järk-järgult keerukamaid rakendusi.
+
+---
 
 Järgmises loengus sukeldume sügavamale Kubernetes'i võrgu arhitektuuri ja õpime, kuidas mikroteenused omavahel suhtlevad.
 
