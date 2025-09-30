@@ -53,7 +53,7 @@ graph LR
 
 💡 Service teeb **round-robin** load balancing: päring 1 → pod 1, päring 2 → pod 2, jne.
 
-## 1. Skalee Backend'i
+## 1. Skaleeri Backend'i
 
 ### 📍 VM SEES
 
