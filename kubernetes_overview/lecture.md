@@ -99,7 +99,7 @@ worker-node-2       Ready    <none>          30d   v1.28.0
 
 ### 2.2 Pod - Väikseim Üksus Kubernetes'is
 
-![Pods in Kubernetes](https://dotnettrickscloud.blob.core.windows.net/article/kubernetes/4920250521165411.png)
+![Pods in Kubernetes](https://media.geeksforgeeks.org/wp-content/uploads/20230418171834/Kubernetes-pods-architecture-for-Kubernetes-pod.webp)
 
 Pod on Kubernetes'i aatom - väikseim juurutatav üksus. 
 
@@ -124,6 +124,7 @@ spec:
     ports:
     - containerPort: 80
 ```
+Allikas: https://www.geeksforgeeks.org/devops/kubernetes-pods/
 
 ### 2.3 Deployment - Deklaratiivne Rakenduse Haldamine
 
@@ -300,6 +301,8 @@ See teeb mikroteenuste arhitektuuri lihtsamaks - te ei pea hardkoodima IP aadres
 
 ### 4.3 Ingress - Väline Ligipääs
 
+![Ingress](https://cdn.prod.website-files.com/633e9bad8f71dfa75ae4c9db/672345a5d24f2b18e3fa7072_635782bf21ca0c157bc62c37_Service%2520types.webp)
+
 Service'id on head klasteri sees, kuid kuidas pääseda ligi väljast? 
 
 Ingress on HTTP/HTTPS ruuter, mis suunab välise liikluse õigetele service'idele URL-i põhjal. Ingress Controller (näiteks NGINX või Traefik) jälgib Ingress ressursse ja konfigureerib end vastavalt. 
@@ -333,6 +336,8 @@ Allikas: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ## 5. Storage ja ConfigMaps
 
 ### 5.1 ConfigMaps ja Secrets
+
+![Configmap](https://www.code4projects.net/wp-content/uploads/2020/08/configmap-diagram.gif)
 
 ConfigMap võimaldab eraldada konfiguratsiooni koodist - te saate muuta seadeid ilma konteinerit ümber ehitamata. ConfigMap võib sisaldada võti-väärtus paare või terveid konfiguratsioonifaile. 
 
@@ -385,6 +390,8 @@ spec:
 
 ### 5.2 Persistent Volumes
 
+![PV](https://miro.medium.com/v2/resize:fit:720/format:webp/0*v7-cw-1KYxQHGjVa.png)
+
 Konteinerid on loomult ajutised - kui konteiner taaskäivitub, kaob kogu data. 
 
 Persistent Volumes (PV) lahendavad selle probleemi, pakkudes püsivat salvestust, mis elab kauem kui pod. PersistentVolumeClaim (PVC) on kasutaja taotlus salvestuse jaoks, nagu "ma vajan 10GB kiiret SSD salvestust". 
@@ -407,10 +414,13 @@ spec:
       storage: 10Gi
   storageClassName: fast-ssd
 ```
+Allikas: https://medium.com/@ravipatel.it/introduction-to-kubernetes-persistent-volumes-pv-and-persistent-volume-claims-pvc-2a7d0eff0a92
 
 ## 6. Praktiline Alustamine
 
 ### 6.1 Minikube - Kohalik Kubernetes
+
+![Minikube](https://www.devopsschool.com/blog/wp-content/uploads/2022/12/minikube-architecture-4-1024x683.png)
 
 Minikube on parim viis Kubernetes'i õppimiseks kohalikus arvutis. 
 
@@ -442,6 +452,8 @@ Allikas: https://minikube.sigs.k8s.io/docs/start/
 
 ### 6.2 kubectl - Kubernetes'i Käsurea Tööriist
 
+![kubectl](https://www.itsupportwale.com/blog/wp-content/uploads/2023/09/the-ultimate-kubectl-cheat-sheet-you-ever-need.jpg)
+
 kubectl on peamine tööriist Kubernetes'iga suhtlemiseks käsurealt. 
 
 See on nagu kaugjuhtimispult teie klasteri jaoks - saate luua, muuta, kustutada ja jälgida ressursse. kubectl töötab deklaratiivselt (YAML failidega) või imperatiivselt (käskudega). 
@@ -460,10 +472,43 @@ kubectl exec -it nginx-pod -- bash  # Mine pod'i sisse
 kubectl apply -f deployment.yaml    # Rakenda konfiguratsioon
 kubectl delete pod nginx-pod        # Kustuta pod
 ```
+Allikas: https://www.geeksforgeeks.org/devops/kubernetes-kubectl/
 
 ### 6.3 Esimene Deployment
 
-Loome nüüd päris deployment'i, mis käitab lihtsat veebirakendust. 
+Loome nüüd päris deployment'i, mis käitab lihtsat veebirakendust.
+
+```mermaid
+graph LR
+    USER[👤 Kasutaja]
+    
+    subgraph "Kubernetes = Automaatne Juht"
+        DEPLOY[🎯 Deployment<br/>Hoolitseb, et alati 3 pod'i töötab]
+        
+        POD1[📦 Pod 1<br/>Nginx konteiner]
+        POD2[📦 Pod 2<br/>Nginx konteiner]
+        POD3[📦 Pod 3<br/>Nginx konteiner]
+        
+        SERVICE[🚪 Service<br/>Uksehoidja - jagab tööd]
+    end
+    
+    USER -->|Küsib veebilehte| SERVICE
+    SERVICE -->|Saadab töö| POD1
+    SERVICE -->|Saadab töö| POD2
+    SERVICE -->|Saadab töö| POD3
+    
+    DEPLOY -.->|Loob ja jälgib| POD1
+    DEPLOY -.->|Loob ja jälgib| POD2
+    DEPLOY -.->|Loob ja jälgib| POD3
+    
+    style USER fill:#4ecdc4,color:#000
+    style DEPLOY fill:#326ce5,color:#fff
+    style SERVICE fill:#ff6b6b,color:#fff
+    style POD1 fill:#13aa52,color:#fff
+    style POD2 fill:#13aa52,color:#fff
+    style POD3 fill:#13aa52,color:#fff
+```
+
 
 See deployment loob 3 pod'i, igaüks nginx konteineriga, ja tagab, et nad alati töötavad. Kui kustutate pod'i, loob Kubernetes automaatselt uue. 
 
@@ -537,10 +582,6 @@ Põhikontseptsioonid on Pod (väikseim üksus), Deployment (hoiab rakenduse tö�
 Kubernetes'i õppimine võtab aega, kuid tasub end ära - see on muutunud tööstuse standardiks ja nõudlus Kubernetes'i oskustega inseneride järele kasvab pidevalt. 
 
 Alustage Minikube'iga, õppige kubectl'i põhikäske ja ehitage järk-järgult keerukamaid rakendusi.
-
----
-
-Järgmises loengus sukeldume sügavamale Kubernetes'i võrgu arhitektuuri ja õpime, kuidas mikroteenused omavahel suhtlevad.
 
 ---
 
