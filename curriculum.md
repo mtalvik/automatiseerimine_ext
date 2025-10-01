@@ -31,7 +31,7 @@
 | Oskab koostada Ansible PlayBooki ja hallatavate masinate loendit | • Kirjutab YAML süntaksiga Ansible playbook'e<br>• Loob ja haldab inventory faile<br>• Kasutab Ansible mooduleid ja rolle<br>• Rakendab Jinja2 template'id ja muutujaid<br>• Kasutab Ansible Vault'i secrets haldamiseks | Eristav hindamine |
 | Automatiseerib operatsioonisüsteemide haldustegevused kasutades Ansible tarkvara | • Loob taaskasutatavaid Ansible rolle<br>• Optimeerib playbook'ide jõudlust<br>• Rakendab error handling'ut<br>• Kasutab conditional execution'it | Eristav hindamine |
 | Automatiseerib operatsioonisüsteemides tarkvarapakettide paigalduse ja seadistuste rakendamise kasutades Ansible tarkvara ja GitLabi keskkonda | • Rakendab Infrastructure as Code põhimõtteid Terraform'iga<br>• Kirjutab Terraform HCL koodi<br>• Haldab Terraform state'i lokaalselt ja remote'lt<br>• Paigaldab infrastruktuuri pilves (AWS/Azure)<br>• Kasutab Terraform mooduleid ja workspaces'eid | Eristav hindamine |
-| Oskab läbi Ansible AWX rakenduse käivitada playbooke | • Orkestreerib konteineriseeritud rakendusi Kubernetes'es<br>• Haldab Kubernetes klastreid (Minikube/Kind)<br>• Loob Kubernetes ressursse (Deployments, Services, Ingress)<br>• Skaleerib rakendusi Kubernetes'es<br>• Kasutab kubectl käsurida | Eristav hindamine |
+| Orkestreerib konteineriseeritud rakendusi Kubernetes'es | • Haldab Kubernetes klastreid (Minikube/Kind)<br>• Loob Kubernetes ressursse (Deployments, Services, Ingress)<br>• Skaleerib rakendusi Kubernetes'es<br>• Kasutab kubectl käsurida<br>• Rakendab Kubernetes best practices'eid | Eristav hindamine |
 | Automatiseerib tarkvara arenduse ja juurutamise CI/CD'ga | • Loob GitLab CI/CD pipeline'e<br>• Seadistab .gitlab-ci.yml konfiguratsiooni<br>• Lõimib testimist ja deployment'i<br>• Automatiseerib konteinerite ehitamist ja paigaldamist<br>• Rakendab CI/CD best practices'eid | Eristav hindamine |
 | Integreerib kõiki DevOps tööriistu lõpuprojektis | • Projekteerib täieliku DevOps infrastruktuuri<br>• Lõimib Git, Docker, Ansible, Terraform, Kubernetes ja CI/CD<br>• Dokumenteerib arhitektuuri ja tehnilisi otsuseid<br>• Esitleb projekti professionaalselt<br>• Teostab koodireview'd teiste projektidele | Eristav hindamine |
 
@@ -68,15 +68,22 @@
 
 ## Hindamismeetodid
 
-| Parameeter | Väärtus |
+| Meetod | Kirjeldus |
 |---|---|
-| **Hindamismeetodid** | Praktiliste tööde hindamine (funktsionaalsus, koodikvaliteet, dokumentatsioon), lõpuprojekti hindamine (integratsioon, arhitektuur, esitlus), portfoolio hindamine (GitHub repository kvaliteet) |
+| **Praktiliste tööde hindamine** | Funktsionaalsus, koodikvaliteet, dokumentatsioon |
+| **Lõpuprojekti hindamine** | Integratsioon, arhitektuur, esitlus |
+| **Portfoolio hindamine** | GitHub repository kvaliteet |
 
 ## Lõimitud teemad
 
-| Parameeter | Väärtus |
+| Teema | Seosed |
 |---|---|
-| **Lõimitud teemad** | Programmeerimine (Bash skriptimine, YAML, HCL, Python), võrgud (TCP/IP, SSH, DNS, load balancing), andmebaasid (PostgreSQL/MySQL), turvalisus (SSL/TLS, SSH key management, secrets handling), operatsioonisüsteemid (Linux süsteemihaldus), pilvetehnoloogiad (AWS, Azure) |
+| **Programmeerimine** | Bash skriptimine, YAML, HCL, Python |
+| **Võrgud** | TCP/IP, SSH, DNS, load balancing |
+| **Andmebaasid** | PostgreSQL, MySQL |
+| **Turvalisus** | SSL/TLS, SSH key management, secrets handling |
+| **Operatsioonisüsteemid** | Linux süsteemihaldus |
+| **Pilvetehnoloogiad** | AWS, Azure |
 
 ## Mooduli hindamine
 
@@ -84,16 +91,27 @@
 |---|---|
 | **Mooduli hindamine** | Eristav hindamine |
 
-## Mooduli jagunemine - soovi ja vajaduse korral kirjeldage teemasid/alateemasid
+## Mooduli sisu ja teemad
 
-| Parameeter | Väärtus |
-|---|---|
-| **Automatiseerimine** | Auditoorne õpe 50, Iseseisev õpe 15 |
-| **Alateemad** | Git versioonihaldus, Docker konteineriseerimine, Ansible automatiseerimine, Terraform Infrastructure as Code, Kubernetes orkestreerimine, CI/CD pipeline'id, Lõpuprojekt |
-| **Seos õpiväljundiga** | Git → ÕV1, Docker → ÕV2, Ansible → ÕV3+4, Terraform → ÕV5, Kubernetes → ÕV6, CI/CD → ÕV7, Lõpuprojekt → ÕV8 |
+| Teema | Kestus | Õpiväljund |
+|---|---|---|
+| **Git versioonihaldus** | 5.5h | ÕV1: Git versioonihaldus meeskonnatöös |
+| **Ansible alused** | 5.5h | ÕV3: PlayBook ja automatiseerimine |
+| **Docker alused** | 5.5h | ÕV2: Konteinerite loomine ja seadistamine |
+| **Docker orkestratsioon** | 5.5h | ÕV2: Multi-container rakendused |
+| **Ansible edasijõudnud** | 5.5h | ÕV4: Edasijõudnud automatiseerimine |
+| **Ansible rollid** | 5.5h | ÕV4: Rollide loomine ja haldamine |
+| **Terraform alused** | 5.5h | ÕV5: IaC põhimõtted |
+| **Terraform edasijõudnud** | 5.5h | ÕV5: Pilve ressursid ja workspaces |
+| **Kubernetes** | 5.5h | ÕV6: Konteinerite orkestreerimine |
+| **CI/CD** | 5.5h | ÕV7: Automatiseeritud arendus |
+| **Lõpuprojekt** | 10h | ÕV8: Tööriistade integratsioon |
+| **KOKKU** | **65h** | **Kõik õpiväljundid** |
 
 ## Õppematerjalid
 
-| Parameeter | Väärtus |
+| Materjal | Kirjeldus |
 |---|---|
-| **Õppematerjalid** | Kohustuslik kirjandus: 1. GitHub repositoorium: https://github.com/mtalvik/automatiseerimine_ext 2. Ametlik dokumentatsioon: Git, Ansible, Docker, Terraform, Kubernetes, GitLab CI/CD |
+| **GitHub repositoorium** | https://github.com/mtalvik/automatiseerimine_ext (11 moodulit) |
+| **Ametlik dokumentatsioon** | Git, Ansible, Docker, Terraform, Kubernetes, GitLab CI/CD |
+| **Kursuse moodulid** | Git, Ansible (alused/edasijõudnud/rollid), Docker (alused/orkestratsioon), Terraform (alused/edasijõudnud), Kubernetes, CI/CD, Lõpuprojekt |
