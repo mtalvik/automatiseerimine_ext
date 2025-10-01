@@ -52,7 +52,7 @@
 | Parameeter | Väärtus |
 |---|---|
 | **sh kokkuvõtva hinde kujunemine** | Esitatud praktilised tööd koos dokumentatsiooniga |
-| **sh hindamiskriteeriumid** |  |
+| **sh hindamiskriteeriumid** | Praktilised tööd (50%), Lõpuprojekt (40%), Portfoolio (10%) |
 
 | Hinne | Nõuded |
 |---|---|
@@ -90,7 +90,7 @@
 |---|---|
 | **Automatiseerimine** | Auditoorne õpe 50, Iseseisev õpe 15 |
 | **Alateemad** | Git versioonihaldus, Docker konteineriseerimine, Ansible automatiseerimine, Terraform Infrastructure as Code, Kubernetes orkestreerimine, CI/CD pipeline'id, Lõpuprojekt |
-| **Seos õpiväljundiga** | |
+| **Seos õpiväljundiga** | Git → ÕV1, Docker → ÕV2, Ansible → ÕV3+4, Terraform → ÕV5, Kubernetes → ÕV6, CI/CD → ÕV7, Lõpuprojekt → ÕV8 |
 
 ## Õppematerjalid
 
