@@ -1,23 +1,22 @@
-# 🚀 Terraform Edasijõudnud - Moodul 8
+# Terraform Edasijõudnud
 
 **Kestus:** 4 tundi  
-**Eesmärk:** Õppida Terraform'i edasijõudnud funktsioone ja pilve integratsiooni  
-**Eeltingimused:** Terraform põhiteadmised, AWS/Azure konto
+**Teemad:** Pilve ressursid, AWS/Azure integratsioon, workspaces, turvalisus, moodulid
 
 ---
 
-## 📋 Ülevaade
+## 🎯 Õpiväljundid
 
-See moodul keskendub Terraform'i edasijõudnud funktsioonidele, sealhulgas pilve ressursid, AWS/Azure integratsioon, Workspaces ja turvalisus.
-
----
-
-## 🎯 Õpieesmärgid
-
-- Mõista pilve ressursid ja providerid
-- Oskama luua AWS/Azure infrastruktuuri
-- Kasutada Terraform Workspaces ja keskkondi
+Pärast seda loengut oskate:
+- Mõista pilve ressursid ja provider'id
+- Luua AWS/Azure infrastruktuuri Terraform'iga
+- Kasutada Terraform workspaces'eid ja keskkondi
 - Rakendada turvalisuse parimaid praktikaid
+- Kasutada Terraform mooduleid ja taaskasutatavaid komponente
+
+---
+
+## 📖 Pilve Ressursid ja Provider'id
 
 ## ⏰ Ajaplaneerimine
 

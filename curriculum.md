@@ -1,32 +1,31 @@
-# Haapsalu Kutsehariduskeskus
+# Automatiseerimise Kursus
 
-**IT-süsteemide nooremspetsialist (441 Neljanda taseme kutseõppe esmaõpe (kutsekeskharidusõpe)) mooduli rakenduskava**
+**IT-süsteemide nooremspetsialist - Automatiseerimise moodul**
 
 ---
 
-## Põhiandmed
+## Kursuse Ülevaade
 
 | | |
 |---|---|
-| **Sihtrühm** | Põhiharidusega noor |
-| **Õppevorm** | statsionaarne õpe - koolipõhine õpe |
+| **Sihtrühm** | IT-süsteemide nooremspetsialist |
+| **Kestus** | 65 tundi (50h auditoorset + 15h iseseisvat) |
+| **Õppevorm** | Statsionaarne õpe |
+| **Õpetajad** | Rain Koor, Maria Talvik |
 
-| Mooduli nr | Mooduli nimetus | Mooduli maht (EKAP) | Õpetajad |
-|---|---|---|---|
-| 1 | Automatiseerimine | 2,5 EKAP | Rain Koor, Maria Talvik |
+### Eeltingimused
 
 **Nõuded mooduli alustamiseks:**
+- Puuduvad. Moodul õpetatakse III kursusel.
 
-Puuduvad. Moodul õpetatakse III kursusel.
-
-Soovituslikud eelteadmised:
+**Soovituslikud eelteadmised:**
 - Põhilised Linux süsteemihalduse oskused
 - Bash skriptimise alused
 - TCP/IP võrkude põhiteadmised
 
-**Mooduli eesmärk:**
+### Kursuse Eesmärk
 
-Õpetusega taotletakse, et õppija omandab kaasaegsed DevOps automatiseerimise tööriistad ja meetodid. Õppija oskab kasutada Git, Docker, Ansible, Terraform, Kubernetes ja GitLab CI/CD tööriistu tarkvara arendamise, testimise ning juurutamise automatiseerimiseks ning infrastruktuuri kui koodi (Infrastructure as Code) põhimõtete rakendamiseks.
+Õppija omandab kaasaegsed DevOps automatiseerimise tööriistad ja meetodid. Õppija oskab kasutada Git, Docker, Ansible, Terraform, Kubernetes ja GitLab CI/CD tööriistu tarkvara arendamise, testimise ning juurutamise automatiseerimiseks ning infrastruktuuri kui koodi (Infrastructure as Code) põhimõtete rakendamiseks.
 
 Õppija omandab:
 - Git versioonihalduse meeskonnatöös
@@ -60,104 +59,35 @@ Soovituslikud eelteadmised:
 
 **Automatiseerimine**
 
-Auditoorne õpe: 50h  
-Iseseisev õpe: 15h  
-Kokku: 65h
+| | |
+|---|---|
+| **Auditoorne õpe** | 50h |
+| **Iseseisev õpe** | 15h |
+| **Kokku** | 65h |
 
-### Tunniplaan:
+### Tunniplaan
 
-Kursus koosneb 10 teemaloengust + lõpuprojekt:
-- **10 teemaloengut** × 4h auditoorset tööd = 40h
-- **Iseseisev töö** moodulite kaupa = 15h (kodutööd, harjutused, lugemine)
-- **Lõpunädal/Intensiiv** = 10h (projekti juhendamine, esitlused, hindamine)
+| Komponent | Kestus | Kirjeldus |
+|-----------|--------|-----------|
+| **10 teemaloengut** | 40h | 4h auditoorset tööd per loeng |
+| **Iseseisev töö** | 15h | Kodutööd, harjutused, lugemine |
+| **Lõpunädal** | 10h | Projekti juhendamine, esitlused, hindamine |
 
-### Alateemad:
+### Moodulid
 
-**1. Git Versioonihaldus (Loeng 1: 4h auditoorset + 1.5h iseseisev)**
-- Git kontseptsioonid ja töövoog
-- Põhilised käsud praktikas (clone, commit, push, pull, branch, merge)
-- GitHub/GitLab koostöö ja Pull Request'id
-- Harude loomine ja ühendamine
-- Konfliktide lahendamine
-- Git Flow branching strategy
-
-**2. Ansible Alused (Loeng 2: 4h auditoorset + 1.5h iseseisev)**
-- Ansible arhitektuuri ülevaade
-- Kohalik VM seadistus Vagrant'iga
-- SSH seadistus ja inventory
-- Ad-hoc käskude praktika
-- YAML süntaks
-- Esimeste playbook'ide loomine
-
-**3. Docker Alused (Loeng 3: 4h auditoorset + 1.5h iseseisev)**
-- Konteinerite kontseptsioonid vs VM'id
-- Docker'i installimine ja põhikäsud
-- Dockerfile'i loomine ja best practices
-- Docker'i võrgustik ja volumes
-- Docker Hub ja registrid
-- Konteinerite turvalisus
-
-**4. Docker Orkestratsioon (Loeng 4: 4h auditoorset + 1.5h iseseisev)**
-- Docker Compose süntaks
-- Mitme-konteineriga rakendused
-- Keskkonna-spetsiifilised konfiguratsioonid
-- Kohalikud arenduse töövood
-- Docker Swarm tutvustus
-- Orkestreerimise mustrid
-
-**5. Ansible Edasijõudnud (Loeng 5: 4h auditoorset + 1.5h iseseisev)**
-- Muutujad ja Jinja2 mallid
-- Käsitlejad (handlers) ja veakäsitlus
-- Ansible Vault turvalisuse labor
-- Ansible Galaxy kogukond
-- Edasijõudnud playbook'id
-- Jõudluse optimeerimine
-
-**6. Ansible Rollid (Loeng 6: 4h auditoorset + 1.5h iseseisev)**
-- Rolli struktuur ja best practices
-- Rolli loomine samm-sammult
-- Rolli muutujad ja sõltuvused
-- Galaxy rollide kasutamine
-- Rollide testimine
-- Rollide versioneerimine
-
-**7. Terraform Alused (Loeng 7: 4h auditoorset + 1.5h iseseisev)**
-- Infrastructure as Code ülevaade
-- Terraform alused ja HCL keel
-- Kohalikud providerid
-- State'i haldamise kontseptsioonid
-- Terraform Cloud tutvustus
-- Moodulid ja tööruumid
-
-**8. Terraform Edasijõudnud (Loeng 8: 4h auditoorset + 1.5h iseseisev)**
-- Pilve ressursid ja providerid
-- AWS/Azure põhilised ressursid
-- Terraform Workspaces ja keskkonnad
-- Turvalisus ja IAM
-- Edasijõudnud Terraform mustrid
-- Optimeerimine ja best practices
-
-**9. Kubernetes Sügavõte (Loeng 9: 4h auditoorset + 1.5h iseseisev)**
-- Kubernetes arhitektuur ja kontseptsioonid
-- Kohalik klastri haldamine (Minikube/Kind)
-- Ressursside haldamine (Deployments, Services, Ingress)
-- Skaleerimine ja jõudlus
-- Helm charts tutvustus
-- Kubernetes best practices
-
-**10. CI/CD Pipeline'id (Loeng 10: 4h auditoorset + 1.5h iseseisev)**
-- CI/CD kontseptsioonid ja töövood
-- GitLab CI/CD ja .gitlab-ci.yml
-- Pipeline'ide loomine ja optimeerimine
-- Automatiseeritud testimine
-- Automatiseeritud deployment
-- GitOps põhimõtted
-
-**11. Lõpuprojekt ja Integratsioon (Intensiivnädal/Eksamiperiood: 10h)**
-- Projekti esitlused ja demo'd (auditoorset)
-- Koodireview sessioonid (auditoorset)
-- Projekti dokumentatsiooni viimistlemine (iseseisev)
-- Hindamine ja tagasiside (auditoorset)
+| Nr | Moodul | Kestus | Põhiteemad |
+|----|--------|--------|------------|
+| 1 | **Git** | 4h + 1.5h | Versioonihaldus, GitHub koostöö, Git Flow |
+| 2 | **Ansible Alused** | 4h + 1.5h | Arhitektuur, YAML, playbook'id, Vagrant |
+| 3 | **Docker Basics** | 4h + 1.5h | Konteinerid, Dockerfile, võrgustik, turvalisus |
+| 4 | **Docker Orkestratsioon** | 4h + 1.5h | Docker Compose, multi-container, Swarm |
+| 5 | **Ansible Edasijõudnud** | 4h + 1.5h | Muutujad, Jinja2, Vault, Galaxy |
+| 6 | **Ansible Rollid** | 4h + 1.5h | Rolli struktuur, best practices, testimine |
+| 7 | **Terraform Alused** | 4h + 1.5h | IaC, HCL, state haldamine, moodulid |
+| 8 | **Terraform Edasijõudnud** | 4h + 1.5h | Pilve ressursid, workspaces, turvalisus |
+| 9 | **Kubernetes** | 4h + 1.5h | Arhitektuur, Minikube, ressursid, Helm |
+| 10 | **CI/CD** | 4h + 1.5h | Pipeline'id, GitLab, testimine, GitOps |
+| 11 | **Lõpuprojekt** | 10h | Integratsioon, esitlused, hindamine |
 
 ---
 
@@ -269,20 +199,6 @@ Kursus koosneb 10 teemaloengust + lõpuprojekt:
 
 ---
 
-## Mooduli hindamine
-
-Eristav hindamine (3, 4, 5)
-
----
-
-## Mooduli kokkuvõtva hinde kujunemine
-
-Praktilised tööd 50% + Lõpuprojekt 40% + Portfoolio 10%
-
-Nõue: Kõik 10 mooduli tööd ja lõpuprojekt peavad olema esitatud ja funktsionaalsed.
-
----
-
 ## Õppematerjalid
 
 ### Veebiallikad ja dokumentatsioon:
@@ -307,16 +223,17 @@ Nõue: Kõik 10 mooduli tööd ja lõpuprojekt peavad olema esitatud ja funktsio
 
 | Moodul | Loeng | Lab | Kodutöö | Lisad |
 |--------|-------|-----|---------|-------|
-| **1. Git** | [lecture.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/git_version_control/lecture.md) | [lab.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/git_version_control/lab.md) | [homework.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/git_version_control/homework.md) | [reading](https://github.com/mtalvik/automatiseerimine_ext/blob/main/git_version_control/reading_materials.md) |
-| **2. Ansible Basics** | [lecture.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_basics/lecture.md) | [lab.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_basics/lab.md) | [homework.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_basics/homework.md) | [vagrant.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_basics/vagrant.md) |
-| **3. Docker Fundamentals** | [lecture.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_fundamentals/lecture.md) | [lab.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_fundamentals/lab.md) | [homework.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_fundamentals/homework.md) | - |
-| **4. Docker Orchestration** | [lecture.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_orchestration/lecture.md) | [lab.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_orchestration/lab.md) | [homework.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_orchestration/homework.md) | [setup guide](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_orchestration/kodu_masina_ehitus_juhend.md) |
-| **5. Ansible Advanced** | [lecture.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_advanced/lecture.md) | [lab.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_advanced/lab.md) | [homework.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_advanced/homework.md) | - |
-| **6. Ansible Roles** | [lecture.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_roles/lecture.md) | [lab.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_roles/lab.md) | [homework.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_roles/homework.md) | - |
-| **7. Terraform Basics** | [lecture.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/terraform_basics/lecture.md) | [lab.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/terraform_basics/lab.md) | [homework.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/terraform_basics/homework.md) | - |
-| **8. Terraform Advanced** | - | - | - | [additional_modules](https://github.com/mtalvik/automatiseerimine_ext/tree/main/additional_modules) |
-| **9. Kubernetes** | [lecture.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/kubernetes_overview/lecture.md) | [lab.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/kubernetes_overview/lab.md) | [homework.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/kubernetes_overview/homework.md) | [lisa_lab.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/kubernetes_overview/lisa_lab.md) |
-| **10. CI/CD** | [lecture.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ci_cd_advanced/lecture.md) | [lab.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ci_cd_advanced/lab.md) | [homework.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ci_cd_advanced/homework.md) | - |
+| **1. Git** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/git/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/git/labor.md) | [kodutoo.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/git/kodutoo.md) | [lisamaterjalid.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/git/lisamaterjalid.md) |
+| **2. Ansible Basics** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_basics/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_basics/labor.md) | [kodutoo.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_basics/kodutoo.md) | [seadistus.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_basics/seadistus.md) |
+| **3. Docker Basics** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_basics/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_basics/labor.md) | [kodutoo.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_basics/kodutoo.md) | - |
+| **4. Docker Orchestration** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_orchestration/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_orchestration/labor.md) | [kodutoo.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_orchestration/kodutoo.md) | [seadistus.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/docker_orchestration/seadistus.md) |
+| **5. Ansible Advanced** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_advanced/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_advanced/labor.md) | [kodutoo.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_advanced/kodutoo.md) | - |
+| **6. Ansible Roles** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_roles/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_roles/labor.md) | [kodutoo.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ansible_roles/kodutoo.md) | - |
+| **7. Terraform Basics** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/terraform_basics/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/terraform_basics/labor.md) | [kodutoo.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/terraform_basics/kodutoo.md) | - |
+| **8. Terraform Advanced** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/terraform_advanced/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/terraform_advanced/labor.md) | [kodutoo.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/terraform_advanced/kodutoo.md) | - |
+| **9. Kubernetes** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/kubernetes/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/kubernetes/labor.md) | [kodutoo.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/kubernetes/kodutoo.md) | [lisa_labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/kubernetes/lisa_labor.md) |
+| **10. CI/CD** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ci_cd/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ci_cd/labor.md) | [kodutoo.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/ci_cd/kodutoo.md) | - |
+| **11. Lõpuprojekt** | [loeng.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/lopuprojekt/loeng.md) | [labor.md](https://github.com/mtalvik/automatiseerimine_ext/blob/main/lopuprojekt/labor.md) | - | - |
 
 ### Tehniline keskkond:
 - Arvuti vähemalt 8GB RAM ja 50GB vaba ruumi
