@@ -1,6 +1,6 @@
-# Haapsalu Kutsehariduskeskus
+# IT-süsteemide nooremspetsialist (441 Neljanda taseme kutseõppe esmaõpe (kutsekeskharidusõpe)) mooduli töökava
 
-**IT-süsteemide nooremspetsialist (441 Neljanda taseme kutseõppe esmaõpe (kutsekeskharidusõpe)) mooduli rakenduskava**
+**Automatiseerimine**
 
 ---
 
@@ -52,43 +52,13 @@
 | Parameeter | Väärtus |
 |---|---|
 | **sh kokkuvõtva hinde kujunemine** | Esitatud praktilised tööd koos dokumentatsiooniga |
-| **sh hindamiskriteeriumid** | (hea, kui õpetaja kohe alguses need kirjeldab, siis hiljem selgem ja üheselt arusaadav) |
+| **sh hindamiskriteeriumid** |  |
 
-**"3" saamise tingimus:**
-- Kõik 10 mooduli praktilised tööd on esitatud ja põhifunktsionaalsus töötab
-- Git: oskab teha põhilisi operatsioone (clone, commit, push, pull, branch, merge)
-- Docker: oskab luua lihtsaid Dockerfile'e ja käivitada konteinereid
-- Ansible: oskab kirjutada põhilisi playbook'e ja kasutada levinumaid mooduleid
-- Terraform: oskab kirjutada lihtsat HCL koodi ja hallata state'i
-- Kubernetes: oskab paigaldada rakendusi Minikube'is
-- CI/CD: oskab luua lihtsa GitLab pipeline'i
-- Dokumentatsioon on minimaalne, kuid olemas
-- Lõpuprojekt töötab ja integreerib vähemalt 4 tööriista, kuid võib sisaldada vigu
-
-**"4" saamise tingimus:**
-- Kõik "3" kriteeriumid on täidetud
-- Kood järgib enamasti best practices'eid ja on loetav
-- Git: oskab lahendada merge konflikte ja kasutada Git Flow
-- Docker: oskab kirjutada multi-stage Dockerfile'e ja kasutada Docker Compose
-- Ansible: oskab kasutada rolle, muutujaid, Jinja2 template'id ja Vault'i
-- Terraform: oskab kasutada mooduleid ja workspaces'eid
-- Kubernetes: oskab hallata Deployments, Services ja Ingress ressursse
-- CI/CD: pipeline sisaldab testimist ja mitut stage'i
-- Dokumentatsioon on hea ja selgitab lahendusi
-- Lõpuprojekt on hästi struktureeritud, integreerib 5+ tööriista ja on funktsionaalne
-
-**"5" saamise tingimus:**
-- Kõik "4" kriteeriumid on täidetud
-- Kood on optimeeritud, järgib best practices'eid ja on täielikult dokumenteeritud
-- Git: kasutab Git Flow professionaalselt, teeb kvaliteetseid commit'e
-- Docker: rakendab turvalisuse best practices'eid, optimeerib image'ide suurust
-- Ansible: kirjutab modulaarseid, taaskasutatavaid rolle, optimeerib jõudlust
-- Terraform: rakendab IaC best practices'eid, kirjutab taaskasutatavaid mooduleid
-- Kubernetes: rakendab skaaleerimist, jõudluse optimeerimist
-- CI/CD: pipeline on optimeeritud, sisaldab security scanning'ut, automatiseeritud deployment'i
-- Dokumentatsioon on professionaalne (README, arhitektuuridiagrammid, API docs)
-- Lõpuprojekt demonstreerib sügavat mõistmist, innovaatilist lähenemist, integreerib kõik tööristad
-- Lisafunktsioonid ja boonus ülesanded on tehtud
+| Hinne | Nõuded |
+|---|---|
+| **"3" (rahuldav)** | • Kõik praktilised tööd on esitatud<br>• Põhifunktsionaalsus töötab<br>• Git: põhilised käsud (clone, commit, push, pull)<br>• Docker: lihtsad Dockerfile'id<br>• Ansible: põhilised playbook'id<br>• Terraform: lihtne HCL kood<br>• Kubernetes: rakenduste paigaldamine<br>• CI/CD: lihtne pipeline<br>• Lõpuprojekt: 2-3 tööriista kasutatud |
+| **"4" (hea)** | • Kõik "3" nõuded täidetud<br>• Kood on loetav ja kommenteeritud<br>• Git: branch'ide haldamine<br>• Docker: Docker Compose kasutamine<br>• Ansible: muutujate ja rolle kasutamine<br>• Terraform: moodulite kasutamine<br>• Kubernetes: Services ja Deployments<br>• CI/CD: testimise integratsioon<br>• Lõpuprojekt: 3-4 tööriista hästi integreeritud |
+| **"5" (väga hea)** | • Kõik "4" nõuded täidetud<br>• Kood järgib best practices'eid<br>• Git: Git Flow kasutamine<br>• Docker: multi-stage builds<br>• Ansible: Vault ja template'id<br>• Terraform: workspaces ja remote state<br>• Kubernetes: Ingress ja scaling<br>• CI/CD: mitme stage'i pipeline<br>• Lõpuprojekt: 4+ tööriista professionaalselt integreeritud |
 
 ## Õppemeetodid
 
@@ -114,57 +84,13 @@
 |---|---|
 | **Mooduli hindamine** | Eristav hindamine |
 
-## Mooduli kokkuvõtva hinde kujunemine
-
-| Parameeter | Väärtus |
-|---|---|
-| **Mooduli kokkuvõtva hinde kujunemine** | Esitatud praktilised tööd koos dokumentatsiooniga |
-
-### sh lävend
-
-**"3" saamise tingimus:**
-- Kõik 10 mooduli praktilised tööd on esitatud ja põhifunktsionaalsus töötab
-- Git: oskab teha põhilisi operatsioone (clone, commit, push, pull, branch, merge)
-- Docker: oskab luua lihtsaid Dockerfile'e ja käivitada konteinereid
-- Ansible: oskab kirjutada põhilisi playbook'e ja kasutada levinumaid mooduleid
-- Terraform: oskab kirjutada lihtsat HCL koodi ja hallata state'i
-- Kubernetes: oskab paigaldada rakendusi Minikube'is
-- CI/CD: oskab luua lihtsa GitLab pipeline'i
-- Dokumentatsioon on minimaalne, kuid olemas
-- Lõpuprojekt töötab ja integreerib vähemalt 4 tööriista, kuid võib sisaldada vigu
-
-**"4" saamise tingimus:**
-- Kõik "3" kriteeriumid on täidetud
-- Kood järgib enamasti best practices'eid ja on loetav
-- Git: oskab lahendada merge konflikte ja kasutada Git Flow
-- Docker: oskab kirjutada multi-stage Dockerfile'e ja kasutada Docker Compose
-- Ansible: oskab kasutada rolle, muutujaid, Jinja2 template'id ja Vault'i
-- Terraform: oskab kasutada mooduleid ja workspaces'eid
-- Kubernetes: oskab hallata Deployments, Services ja Ingress ressursse
-- CI/CD: pipeline sisaldab testimist ja mitut stage'i
-- Dokumentatsioon on hea ja selgitab lahendusi
-- Lõpuprojekt on hästi struktureeritud, integreerib 5+ tööriista ja on funktsionaalne
-
-**"5" saamise tingimus:**
-- Kõik "4" kriteeriumid on täidetud
-- Kood on optimeeritud, järgib best practices'eid ja on täielikult dokumenteeritud
-- Git: kasutab Git Flow professionaalselt, teeb kvaliteetseid commit'e
-- Docker: rakendab turvalisuse best practices'eid, optimeerib image'ide suurust
-- Ansible: kirjutab modulaarseid, taaskasutatavaid rolle, optimeerib jõudlust
-- Terraform: rakendab IaC best practices'eid, kirjutab taaskasutatavaid mooduleid
-- Kubernetes: rakendab skaaleerimist, jõudluse optimeerimist
-- CI/CD: pipeline on optimeeritud, sisaldab security scanning'ut, automatiseeritud deployment'i
-- Dokumentatsioon on professionaalne (README, arhitektuuridiagrammid, API docs)
-- Lõpuprojekt demonstreerib sügavat mõistmist, innovaatilist lähenemist, integreerib kõik tööristad
-- Lisafunktsioonid ja boonus ülesanded on tehtud
-
 ## Mooduli jagunemine - soovi ja vajaduse korral kirjeldage teemasid/alateemasid
 
 | Parameeter | Väärtus |
 |---|---|
 | **Automatiseerimine** | Auditoorne õpe 50, Iseseisev õpe 15 |
 | **Alateemad** | Git versioonihaldus, Docker konteineriseerimine, Ansible automatiseerimine, Terraform Infrastructure as Code, Kubernetes orkestreerimine, CI/CD pipeline'id, Lõpuprojekt |
-| **Seos õpiväljundiga (pole vaja täita)** | |
+| **Seos õpiväljundiga** | |
 
 ## Õppematerjalid
 
