@@ -1,6 +1,23 @@
 # Docker Compose ja Mitme Konteineri Haldamine
 
+**Kestus:** 4 tundi  
+**Teemad:** Docker Compose põhialused, multi-container rakendused, keskkondade haldamine, orkestreerimise põhimõtted
+
 ---
+
+## 🎯 Õpiväljundid
+
+Pärast seda loengut oskate:
+- Kirjutada ja käivitada Docker Compose faile
+- Ehitada multi-container rakendusi
+- Mõista teenuste vahelist suhtlust ja võrgustikku
+- Hallata erinevaid keskkondi (development, production)
+- Debuggida ja tõrkeotsingut teha
+- Mõista orkestreerimise põhimõtteid ja vajadust
+
+---
+
+![Docker Compose](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*IzzwDYFNsfHxYexpgHqqSA.png)
 
 ## Sissejuhatus
 
