@@ -1,6 +1,6 @@
-# Ansible: Edasijõudnud Funktsioonid - Täiendatud Loengumaterjal
+# Ansible: Edasijõudnud Funktsioonid
 
-## Sissejuhatus ja kontekst
+## Sissejuhatus
 
 Tere, täna räägime Ansible'i edasijõudnutest funktsioonidest. Eelmisel nädalal õppisime Ansible'i põhitõdesid - kuidas kirjutada lihtsaid playbook'e ja hallata servereid. Aga mis juhtub siis, kui teie infrastruktuur kasvab kolmest serverist kolmesajani? Mis juhtub, kui teil on arenduskeskkond, testimiskeskkond ja produktsioon, kõik erinevate konfiguratsioonidega? Täna õpime tööriistu, mis muudavad suure infrastruktuuri haldamise võimalikuks ja turvaliseks.
 
