@@ -1,4 +1,4 @@
-# 🚀 Docker Seadistuse Juhend
+# 🚀 Docker Seadistus
 
 **Eesmärk:** Seadistada Docker keskkond kodu arvutis  
 **Aeg:** 30-60 minutit  
