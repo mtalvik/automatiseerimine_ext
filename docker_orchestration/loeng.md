@@ -63,6 +63,7 @@ See on deklaratiivne lähenemine. Imperatiivselt sa ütleksid "tee samm üks, si
 
 ## Kuidas Compose fail välja näeb
 
+![Compose file](https://www.simplilearn.com/ice9/free_resources_article_thumb/docker-yaml.JPG)
 Compose fail on YAML formaadis tekstifail. YAML on lihtne formaat kus struktuur on määratud taandetega - täpselt nagu Python koodis. Kui midagi on rohkem taandatud, on see eelmise asja "sees".
 
 Iga Compose fail algab versiooniga. See number ütleb Compose'ile millise formaadiga on tegemist. Kasuta alati vähemalt `3.8` - see on piisavalt uus et kõik kasulikud võimalused oleksid olemas, aga piisavalt stabiilne et igal pool töötaks.
