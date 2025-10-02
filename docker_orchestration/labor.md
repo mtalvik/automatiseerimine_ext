@@ -1,4 +1,4 @@
-# Docker Compose Labor: Täielik Töötav Juhend
+# Docker Compose Labor
 
 **Kestus:** 2-3 tundi  
 **Eesmärk:** Ehitada töötav multi-container rakendus VM-is
