@@ -1,270 +1,240 @@
-# 📝 Git Kodutöö: Git Projekti Portfolio
+# 📝 Git Kodutöö: Minu Git Portfolio (1.5h)
 
-**Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** Demonstreerida Git'i ja GitHub'i oskusi  
-**Aeg:** 2 tundi
-
----
-
-## 🎯 Ülesande kirjeldus
-
-Loo Git projekti portfolio, mis demonstreerib kõiki õpitud Git'i ja GitHub'i oskusi. See on praktiline projekt, mis näitab teie versioonihalduse oskusi.
+**Tähtaeg:** Järgmise nädala algus  
+**Eesmärk:** Näidata, et oskad Git'i põhitõdesid praktikas kasutada  
+**Aeg:** ~1.5 tundi (isetempoline)
 
 ---
 
-## 📋 Ülesande Kirjeldus
+## 🎯 Mis sa teed?
 
-Looge lihtne projekt, mis demonstreerib kõiki Git'i ja GitHub'i peamisi oskusi. **Fookus on Git workflow'l, mitte koodi keerukusel.**
-
-## 🔄 OLULINE: Õige Git Flow
-
-```
-main (toodang)        ●─────────●─────────●
-                       \         \         \  
-develop (test)          ●─────●───●─────●───●
-                         \     \ /     /
-feature branch'id        ●─────●─────●
-```
-
-**ALATI järgige:** feature → develop → main
-
-**MITTE KUNAGI:** feature → main
+Loo GitHubis oma avalik repositoorium nimega `git-portfolio` (või muu nimi, mis sulle meeldib). See on nagu sinu CV, aga koodis – näita, et oskad Git'i kasutada nagu proff! 🚀
 
 ---
 
-## 🚀 Juhend
+## 📋 Samm-sammult juhend
 
-### Samm 1: Repository Loomine (20 min)
+### Osa 1: Ettevalmistus (0–15 min)
 
-1. **GitHub'is looge uus repository**
-   - Nimi: `its-git-demo` (või sarnane)
-   - Public, README, MIT license
+1. **Loo GitHubis uus avalik repositoorium:**
+   - Nimi: `git-portfolio` (või `minu-esimene-git-projekt`)
+   - Avalik (public)
+   - Lisa **README.md** kohe (linnuke)
+   - Lisa **.gitignore** (vali Python, Node, või muu, mis sobib)
+   - Lisa **MIT License** (linnuke)
 
-2. **Kloonige repository**
+2. **Klooni oma arvutisse:**
    ```bash
-   git clone https://github.com/teie-nimi/its-git-demo.git
-   cd its-git-demo
+   git clone https://github.com/SINU-KASUTAJANIMI/git-portfolio.git
+   cd git-portfolio
    ```
 
-3. **Looge põhilised failid**
-   - Muutke README.md
-   - Looge .gitignore: `echo "*.log\n*.tmp" > .gitignore`
-
-4. **Esimene commit**
+3. **Kontrolli, et töötab:**
    ```bash
-   git add .
-   git commit -m "Initial commit"
+   git status
+   git log --oneline
+   ```
+
+---
+
+### Osa 2: Projekt ja commit'id (15–60 min)
+
+**Vali üks projektitüüp:**
+
+**Variant A: Python kalkulaator**
+- `calculator.py` – lihtne kalkulaator (add, subtract, multiply, divide)
+- `README.md` – kuidas kasutada
+- `.gitignore` – ignoreeri `*.pyc`, `__pycache__/`
+
+**Variant B: HTML/CSS veebileht**
+- `index.html` – lihtne portfolio leht
+- `style.css` – disain
+- `README.md` – kuidas avada
+- `.gitignore` – ignoreeri `.DS_Store`, `Thumbs.db`
+
+**Variant C: Bash/Python skriptid**
+- `backup.sh` või `backup.py` – faili varukoopia skript
+- `cleanup.sh` või `cleanup.py` – temp failide puhastus
+- `README.md` – kuidas kasutada
+- `.gitignore` – ignoreeri `*.log`, `*.tmp`
+
+**Vaba variant:** Tee midagi enda huvitavat! (väike mäng, script, veebileht, jne)
+
+---
+
+**Tee vähemalt 5 commit'i:**
+
+Näited headest commit-sõnumitest:
+```bash
+git add README.md
+git commit -m "Lisa README projekti kirjeldusega"
+
+git add calculator.py
+git commit -m "Lisa põhilised matemaatilised funktsioonid (add, subtract)"
+
+git add calculator.py
+git commit -m "Lisa multiply ja divide funktsioonid"
+
+git add .gitignore
+git commit -m "Lisa .gitignore Python cache failide jaoks"
+
+git add README.md
+git commit -m "Täienda README kasutamisjuhendiga ja näidetega"
+```
+
+❌ **Halvad näited (ära tee nii):**
+```bash
+git commit -m "fix"
+git commit -m "update"
+git commit -m "asdf"
+git commit -m "WIP"
+```
+
+---
+
+**Näpunäiteid:**
+
+- Tee `git status` enne iga commit'i – vaata, mis on muutunud
+- Kasuta `git log --oneline` – vaata oma ajalugu
+- Kasuta `git diff` – vaata täpselt, mida muutsid
+- Iga commit peaks olema **üks loogiline muudatus**, mitte kõik korraga
+
+---
+
+### Osa 3: Push ja viimistlus (60–90 min)
+
+1. **Push'i oma muudatused GitHubi:**
+   ```bash
    git push origin main
    ```
 
-### Samm 2: Lihtne Script (25 min)
+2. **Kontrolli GitHubis:**
+   - Kas kõik failid on nähtavad?
+   - Kas commit-sõnumid on loetavad?
+   - Kas `.gitignore` töötab? (temp failid ei ole repos)
 
-1. **Looge develop branch**
-   - Minge main branch'ilt develop branch'ile
-   - Push'ige develop branch GitHub'i
-
-2. **Looge feature branch**
-   - Develop branch'ilt looge uus branch, näiteks "feature/system-info"
-   - Vahetage sellele branch'ile
-
-3. **Kirjutage lihtne script**
-   - Looge bash script fail (näiteks system_info.sh)
-   - **Kopeerige see kood:**
-     ```bash
-     #!/bin/bash
-     echo "=== System Information ==="
-     echo "Date: $(date)"
-     echo "User: $(whoami)"
-     echo "Current directory: $(pwd)"
-     echo "Home directory: $HOME"
-     echo ""
-     echo "=== Disk Usage ==="
-     df -h | head -5
-     echo ""
-     echo "=== Memory Info ==="
-     free -h 2>/dev/null || echo "Memory info not available"
-     echo ""
-     echo "Script completed successfully!"
-     ```
-   - Tehke script käivitatavaks: `chmod +x system_info.sh`
-   - Testige script'i: `./system_info.sh`
-
-4. **Looge dokumentatsioon**
-   - Looge USAGE.md fail
-   - **Kopeerige see sisu:**
-     ```markdown
-     # Usage Guide
-     
-     ## System Info Script
-     
-     ### Purpose
-     Shows basic system information.
-     
-     ### Usage
-     ```bash
-     ./system_info.sh
-     ```
-     
-     ### Output
-     Script displays:
-     - Current date and time
-     - Current user name
-     - Current directory path
-     - Disk usage information
-     - Memory information
-     
-     ### Requirements
-     - Bash shell
-     - Unix/Linux system
-     ```
-
-5. **Seadistage GitHub Actions**
-   - Looge `.github/workflows` kaust
-   - Looge test.yml fail:
-   ```yaml
-   name: Test
-   on: [push, pull_request]
-   jobs:
-     test:
-       runs-on: ubuntu-latest
-       steps:
-       - uses: actions/checkout@v4
-       - run: |
-           bash -n system_info.sh
-           chmod +x system_info.sh
-           ./system_info.sh
-   ```
-
-6. **Commit ja push kõik muudatused**
-   - **Staging area selgitus:** Git'is on 3 ala:
-     - Working Directory (teie failid)
-     - Staging Area (failid valmis commit'iks) ⬅️ SIIN
-     - Repository (commit'itud failid)
-   - Lisage kõik failid staging area'le: `git add .`
-   - Vaadake olekut: `git status` (rohelised failid on staging area's)
-   - Tehke commit selge sõnumiga: `git commit -m "feat: add system info script and docs"`
-   - Push'ige feature branch GitHub'i: `git push origin feature/system-info`
-
-### Samm 3: GitHub Features (35 min)
-
-1. **Looge Issues GitHub'is**
-   - Issue #1: "Add system info script" - märgistage label'iga "enhancement"
-   - Issue #2: "Improve documentation" - märgistage label'iga "documentation"
-
-2. **Tehke Pull Request**
-   - GitHub'is looge PR: feature/system-info → develop
-   - **OLULINE:** PR PEAB minema develop branch'i, MITTE main'i
-   - Kirjutage hea pealkiri ja kirjeldus
-   - Mainige, et see lahendab Issue #1 ("Closes #1")
-   - Merge'ige PR (ise endale)
-
-3. **Cleanup pärast PR merge'it**
-   - Minge develop branch'ile: `git checkout develop`
-   - Pull'ige muudatused: `git pull origin develop`
-   - Kustutage feature branch: `git branch -d feature/system-info`
-   - Kustutage remote feature branch: `git push origin --delete feature/system-info`
-
-4. **Testige GitHub Actions**
-   - Vaadake GitHub'is Actions tab'is
-   - Veenduge, et workflow töötab
-   - Kui ei tööta, parandage vead
-
-### Samm 4: Git Advanced Features (25 min)
-
-1. **Looge tahtlikult merge conflict**
-   - Minge develop branch'ile: `git checkout develop`
-   - Muutke README.md faili (lisage rida lõppu): "Develop branch versioon"
-   - Commit'ige: `git commit -am "docs: update from develop"`
-   
-   - Minge main branch'ile: `git checkout main`  
-   - Muutke README.md SAMA KOHTA teisiti: "Main branch versioon"
-   - Commit'ige: `git commit -am "docs: update from main"`
-   
-   - Nüüd merge develop → main: `git merge develop`
-   - Git ütleb konflikt! ✅
-
-2. **Lahendage merge conflict**
-   - Avage README.md ja näete konflikti märke
-   - **Konflikti näide:**
-     ```
-     <<<<<<< HEAD
-     Main branch versioon
-     =======
-     Develop branch versioon
-     >>>>>>> develop
-     ```
-   - Otsustage, kumba versiooni hoida või kombineerige
-   - Eemaldage konflikti märgid (<<<<, ====, >>>>)
-   - Lisage fail staging area'le
-   - Lõpetage merge commit'iga
-
-3. **Näidake rebase kasutamist**
-   - Looge uus feature branch develop'ist: `git checkout -b feature/rebase-demo`
-   - Tehke seal mõni muudatus ja commit
-   - Kasutage git rebase käsku main branch'i peale: `git rebase main`
-   - Merge'ige muudatus develop'i
-
-4. **TÄHTIS: Merge develop → main (toodangusse)**
-   - Kui develop on valmis: `git checkout main`
-   - Merge develop: `git merge develop`
-   - Push toodangusse: `git push origin main`
-
-5. **Looge tagged release'd**
-   - Tag'ige praegune main versioon v1.0.0: `git tag v1.0.0`
-   - Push'ige tag'id GitHub'i: `git push origin v1.0.0`
-   - GitHub'is looge Release v1.0.0 tag'i põhjal
-
-### Samm 5: Finalize (15 min)
-
-1. **Uuendage README.md**
-   - **Kopeerige see sisu README.md faili:**
-     ```markdown
-     # Git Demo Project
-     
-     Lihtne projekt Git ja GitHub oskuste demonstreerimiseks.
-     
-     ## Eesmärk
-     See projekt näitab:
-     - Git branching ja merging
-     - GitHub collaboration
-     - Automatiseeritud testimine
-     - Dokumentatsiooni haldus
-     
-     ## Git Oskused
-     - ✅ Repository seadistamine
-     - ✅ Feature branch workflow
-     - ✅ Merge conflict lahendamine
-     - ✅ Pull Request'id
-     - ✅ GitHub Actions
-     - ✅ Tagged release'id
-     
-     ## Failid
-     - `system_info.sh` - Süsteemi info script
-     - `USAGE.md` - Kasutamise juhend
-     - `.github/workflows/test.yml` - Automaatne testimine
-     
-     ## Kasutamine
-     ```bash
-     ./system_info.sh
-     ```
-     
-     See on õppeprojekt Git workflow demonstreerimiseks.
-     ```
-
-2. **Tehke teine release**
-   - Commit'ige README muudatused develop branch'is
-   - Merge develop → main
-   - Tag'ige versioon v1.1.0
-   - Push'ige kõik muudatused ja tag'id
-
-3. **Lõplik kontroll**
-   - Veenduge, et GitHub'is on näha:
-     - Vähemalt 10 commit'i
-     - Mitu branch'i
-     - Issues ja PR
-     - GitHub Actions töötab
-     - 2 tag'i/release'i
+3. **Täienda README.md:**
+   Lisa oma README.md faili lõppu **refleksioon** (vastused küsimustele):
 
 ---
 
- 
+## 🧠 Refleksioon (kirjuta README.md lõppu)
+
+Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
+
+### Küsimused (vasta 2-3 lausega igaühele):
+
+1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
+   - Näide: "Kõige raskem oli mõista, mis vahe on `git add` ja `git commit` vahel. Aitasin end sellest välja, et lugesin dokumentatsiooni ja tegin mitu testkorda."
+
+2. **Milline Git käsk või kontseptsioon oli sulle kõige suurem "ahaa!"-elamus ja miks?**
+   - Näide: "Git log --oneline oli mulle suur avastus, sest nägin esimest korda oma projekti ajalugu nagu ajajoont!"
+
+3. **Kuidas saaksid Git'i kasutada oma teistes koolitöödes või isiklikes projektides?**
+   - Näide: "Võiksin Git'i kasutada oma matemaatika kodutööde jaoks, et jälgida, kuidas mu lahendused arenevad."
+
+4. **Kui peaksid oma sõbrale selgitama, mis on Git ja miks see on kasulik, siis mida ütleksid?**
+   - Näide: "Git on nagu Ctrl+Z aga superjõul – saad alati tagasi minna ja vaadata, mis sa tegid!"
+
+5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
+   - Näide: "Mulle meeldis, et ma sain oma koodi GitHubi panna ja nüüd saavad teised seda näha!"
+
+---
+
+## ✅ Kontrollnimekiri (enne esitamist)
+
+**Kontrolli need asjad:**
+
+- [ ] GitHubis on avalik repositoorium `git-portfolio` (või muu nimi)
+- [ ] Repos on vähemalt 3 erinevat faili (README, projekt, .gitignore)
+- [ ] Ajalugu sisaldab **vähemalt 5 tähenduslikku commit'i**
+- [ ] Iga commit-sõnum on selge ja kirjeldab **MIKS** sa selle muudatuse tegid
+- [ ] `.gitignore` fail on olemas ja töötab (temp failid ei ole repos)
+- [ ] README.md sisaldab:
+  - [ ] Projekti kirjeldus (mis see on?)
+  - [ ] Kuidas kasutada (käivitamise juhend)
+  - [ ] Refleksioon (5 küsimuse vastused, 2-3 lauset igaüks)
+- [ ] Kõik muudatused on GitHubi push'itud
+- [ ] Repository on **avalik** ja ligipääsetav
+
+---
+
+## 🎓 Hindamiskriteeriumid
+
+| Kriteerium | Punktid | Kirjeldus |
+|------------|---------|-----------|
+| **Repo struktuur** | 15% | Repo on korras, `.gitignore` töötab, failid organiseeritud |
+| **Commit kvaliteet** | 40% | ≥5 commit'i; sõnumid selged, kirjeldavad ja põhjendavad |
+| **Töövoog** | 15% | `add → commit → push` õigesti kasutatud; `status`/`log` nähtav |
+| **README** | 15% | Projekti kirjeldus, kasutamisjuhend, selge ja informatiivne |
+| **Refleksioon** | 15% | 5 küsimust vastatud, sisukas, näitab mõistmist (2-3 lauset/küsimus) |
+
+**Kokku: 100%**
+
+---
+
+## 📚 Abimaterjalid ja lugemine (enne kodutöö tegemist)
+
+**Kiirviited:**
+- [Git Cheat Sheet (PDF)](https://education.github.com/git-cheat-sheet-education.pdf)
+- [Kuidas kirjutada head commit-sõnumit?](../reference/commit_guide.md)
+- [`.gitignore` näited](https://github.com/github/gitignore)
+
+**Video tutor'id (valikuline):**
+- [Git in 15 minutes](https://www.youtube.com/watch?v=USjZcfj8yxE) (inglise keeles)
+- [GitHub for Beginners](https://www.youtube.com/watch?v=RGOj5yH7evk) (inglise keeles)
+
+**Kui abi vaja:**
+1. Vaata `lisapraktika.md` faili täiendavate näidete jaoks
+2. Kasuta `git --help` või `git <käsk> --help`
+3. Küsi klassikaaslaselt või õpetajalt
+
+---
+
+## 🚀 Boonus (valikuline, +10%)
+
+**Kui tahad ekstra punkte, tee üks või mitu neist:**
+
+1. **Lisa Git tag:** Märgi oma "1.0 versioon" tag'iga
+   ```bash
+   git tag -a v1.0 -m "Esimene töötav versioon"
+   git push origin v1.0
+   ```
+
+2. **Lisa GitHub README badge:** Näiteks "Made with ❤️" või "License: MIT"
+   - [Shields.io](https://shields.io/) badge generaator
+
+3. **Tee branch ja merge:** Loo `feature/new-feature` branch, tee muudatus, merge main'i
+   ```bash
+   git checkout -b feature/lisafunktsioon
+   # tee muudatus
+   git add .
+   git commit -m "Lisa uus funktsioon"
+   git checkout main
+   git merge feature/lisafunktsioon
+   git push origin main
+   ```
+
+4. **Paranda oma GitHub profiil:** Lisa profile README (vaata [neid näiteid](https://github.com/abhisheknaiidu/awesome-github-profile-readme))
+
+---
+
+## 📝 Esitamine
+
+**Kuidas esitada:**
+
+1. Veendu, et repositoorium on **avalik** (public)
+2. Mine oma GitHub repo lehele
+3. Kopeeri URL (näiteks: `https://github.com/SINU-KASUTAJANIMI/git-portfolio`)
+4. Esita see link õpetajale (e-mail või õppeplatvorm)
+
+**Alternatiiv (kui ei saa GitHubi kasutada):**
+- Tee `.zip` fail oma projektist
+- Lisa juurde `git_log.txt` fail: `git log --oneline > git_log.txt`
+- Esita ZIP fail
+
+---
+
+**Edu ja head Git'itamist!** 🎉💻
+
+**P.S.** Pärast kodutöö esitamist võid jätkata projekti arendamist ja lisada sinna rohkem asju – see on sinu enda portfoolio! 🌟 

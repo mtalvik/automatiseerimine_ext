@@ -1,3 +1,38 @@
+# 🧪 Git Labor: Põhitõed (3×45 min)
+
+## Struktuur ja eesmärgid
+- Eesmärk: repo loomine, tähenduslikud commit’id, töövoog add → commit → (push)
+- Vorm: 3 × 45 min plokki, paaristöö, lühikesed kontrollid
+
+### Blokk 1 (45 min) – Alustamine
+- Tegevused: Git seadistus; `git init`; esimene ja teine commit (README + muudatus)
+- Kiirküsitlus (fun, 30s): Kumba teed tihemini: Ctrl+Z või commit? 🙃
+- Kontrollnimekiri:
+  - [ ] Repo olemas, 2 commit’i
+  - [ ] Sõnumid selgitavad „miks“
+- Kontrollküsimused: Mis vahe on `add` ja `commit` vahel?
+- Refleksioon (1–2 min): Mis aitas, mis oli raske? Kui Git oleks loom, mis ta oleks ja miks? 🦊
+
+### Blokk 2 (45 min) – Töövoog ja nähtavus
+- Tegevused: uus fail → `add/commit`; `git status`/`git log`; (võimalusel) remote + `push`
+- Kiirküsitlus (fun, 30s): Mis on parem commit‑sõnum? A) "fix" B) "Lisa README, et selgitada paigaldust" 📢
+- Kontrollnimekiri:
+  - [ ] ≥3 commit’i
+  - [ ] Töövoog on põhjendatud (millal add/commit/push)
+- Kontrollküsimused: Millal on mõistlik `push` teha?
+- Refleksioon (1–2 min): Mis infot saad `git log --oneline` väljundist? Kirjelda seda kui ilmakaarti ☁️🌞
+
+### Blokk 3 (45 min) – Kvaliteet ja `.gitignore`
+- Tegevused: lisa `.gitignore` (nt `*.log`, `__pycache__/`) ja põhjenda; veel 1 selgitav commit
+- Kiirküsitlus (fun, 30s): Kas `.mp4` faile peaks repos hoidma? A) jah B) ei C) ainult kassivideod 🐱
+- Kontrollnimekiri:
+  - [ ] `.gitignore` olemas ja põhjendatud
+  - [ ] Viimane commit‑sõnum seletab „miks“
+- Kontrollküsimused: Mida ei tohi repos hoida ja miks?
+- Refleksioon (1–2 min): Mida teeksid järgmisel korral teisiti? 6 sõnaga mikro‑päevik.
+
+---
+
 # 🧪 Git Labor: GitHub Actions
 
 **Kestus:** 2 tundi  
@@ -515,463 +550,66 @@ git push origin --delete feature/documentation
 
 ---
 
-## 🎯 Samm 4: Advanced Git Features (15 min)
-
-### Harjutus 4.1: Git Rebase ja History Cleanup
-
-**Interactive Rebase:**
-```bash
-# Looge mitu väikest commit'i
-echo "# TODO" >> TODO.md
-git add TODO.md
-git commit -m "Lisa TODO fail"
-
-echo "- Lisa testid" >> TODO.md
-git add TODO.md
-git commit -m "Lisa esimene ülesanne"
-
-echo "- Paranda dokumentatsiooni" >> TODO.md
-git add TODO.md
-git commit -m "Lisa teine ülesanne"
-
-echo "- Optimiseeri kood" >> TODO.md
-git add TODO.md
-git commit -m "Lisa kolmas ülesanne"
-
-# Vaadake ajalugu
-git log --oneline -5
-
-# Ühendage viimased 4 commit'i üheks
-git rebase -i HEAD~4
-
-# Editor avaneb - muutke:
-# pick → squash (või s) viimastel 3 real
-# Jätke esimene "pick"
-
-# Salvestage ja sulgege editor
-# Uus editor commit sõnumiga - redigeerige vajadusel
-```
-
-### Harjutus 4.2: Git Stash
-
-```bash
-# Alustage muudatusi
-echo "Pooleli töö" >> calculator.py
-
-# Aga vajate kiiresti minna teise branch'i
-git stash
-
-# Kontrollige olukorda
-git status
-
-# Minge teise branch'i, tehke tööd
-git checkout feature/advanced-math
-echo "Kiire parandus" >> advanced_math.py
-git add advanced_math.py
-git commit -m "Kiire parandus advanced math'is"
-
-# Minge tagasi ja taastage stash
-git checkout main
-git stash pop
-
-# Lõpetage töö
-git add calculator.py
-git commit -m "Lõpeta pooleli töö"
-```
-
-### Harjutus 4.3: Cherry-pick
-
-```bash
-# Oletame, et feature branch'is on hea commit, mida tahate main'is
-git log --oneline feature/advanced-math
-
-# Võtke konkreetne commit main'i (kasutage õiget hash'i)
-git cherry-pick COMMIT-HASH
-
-# Vaadake tulemust
-git log --oneline -3
-```
-
-**Kontrollpunkt:** Oskate kasutada Git'i täpsemaid funktsioone.
+## 🎉 Kiire lõbusaine: Commit Meme Check (60s)
+- Kirjuta üks hea commit‑sõnum kui see oleks meemi pealkiri (ilma ära keeramata sisulist mõtet). 😄
+- Näide: "docs(readme): päästan õpetaja närvid ja lisan setup'i"
 
 ---
 
-## 🎯 Kokkuvõte ja Kontrolljaarati (10 min)
+## 🚀 Boonus (valikuline, kui lõpetasid kiiremini)
 
-### Lõplik kontroll
+**Kui sul on aega järele**, proovi neid lisaülesandeid:
 
-**Kontrollige oma oskusi:**
+### Boonus 1: Git Tags ja Releases (10 min)
 ```bash
-# 1. Repository struktuur
-ls -la
-git log --oneline --graph -10
+# Loo tag
+git tag -a v1.0 -m "Esimene versioon"
 
-# 2. Remote'id
-git remote -v
+# Vaata kõiki tag'e
+git tag
 
-# 3. Branch'id
-git branch -a
+# Push tag'id GitHubi
+git push origin v1.0
+git push origin --tags
 
-# 4. Viimased commit'id
-git log --oneline -5
-
-# 5. Git config
-git config --list | grep user
+# Loo GitHub'is release (veebi kaudu)
 ```
 
-### Mida te nüüd oskate:
-
-- Git'i seadistamine ja põhikäsud
-- Staging area kasutamine
-- Branch'ide loomine ja merge'imine
-- Merge konfliktide lahendamine
-- SSH seadistamine GitHub'iga
-- Remote repository workflow
-- Pull Request'ide tegemine
-- Advanced Git features (rebase, stash, cherry-pick)
-
-### Järgmised sammud:
-
-1. **Harjutage iga päev** - Git on nagu jalgrattasõit
-2. **Liituge open source projektidega** - tehke PR'e
-3. **Seadistage Git aliases** - kiiremaks töötamiseks
-4. **Õppige Git GUI tööriistu** - GitKraken, SourceTree
-5. **Uurige GitHub Actions** - CI/CD automatiseerimine
-
-### Git Aliases (boonusülesanne):
-
+### Boonus 2: Git Aliases (5 min)
 ```bash
-# Kasulikud aliased
+# Loo lühendid
 git config --global alias.st status
-git config --global alias.co checkout  
+git config --global alias.co checkout
 git config --global alias.br branch
-git config --global alias.ci commit
-git config --global alias.unstage 'reset HEAD --'
-git config --global alias.last 'log -1 HEAD'
-git config --global alias.visual '!gitk'
-git config --global alias.lg 'log --oneline --graph --all'
+git config --global alias.cm commit
+git config --global alias.lg "log --oneline --graph --all"
 
-# Testage
+# Nüüd saad kasutada:
 git st
 git lg
 ```
 
-**🎉 Õnnitleme! Olete läbinud Git'i põhilise väljaõppe.**
-
----
-
-## 🚀 **BOONUSÜLESANDED** (juba Git'i oskajatele)
-
-### Samm B1: Advanced Git Features (30 min)
-
-#### Interactive Rebase - Commit'ide Ühendamine
+### Boonus 3: Git Stash (10 min)
 ```bash
-# Looge mitu väikest commiti
-echo "Feature 1" > feature1.txt && git add . && git commit -m "Add feature 1"
-echo "Feature 2" > feature2.txt && git add . && git commit -m "Add feature 2" 
-echo "Fix typo" >> feature1.txt && git add . && git commit -m "Fix typo in feature 1"
+# Tee muudatusi, mis sa ei taha veel commit'ida
+echo "Poolik töö" >> calculator.py
 
-# Interactive rebase - ühendage commitid
-git rebase -i HEAD~3
-# Muutke "pick" -> "squash" kahel viimasel real
-# Salvestage ja sulgege editor
-```
+# Salvesta ajutiselt
+git stash
 
-#### Cherry-pick ja Advanced Stash
-```bash
-# Stash koos metadata'ga
-echo "Pooleli töö" > wip.txt
-git add .
-git stash push -m "WIP: new authentication feature"
-
-# Cherry-pick - kopeerige konkreetne commit
-git log --oneline -5  # Leidke commit hash
-git cherry-pick <commit-hash>
-
-# Stash management
+# Vaata stash'e
 git stash list
-git stash show stash@{0}
-git stash pop  # või git stash apply
+
+# Taasta stash
+git stash pop
 ```
 
-#### Advanced Log ja Blame
-```bash
-# Graafiline commit history
-git log --graph --pretty=format:'%h -%d %s (%cr) <%an>' --abbrev-commit --all
+### Boonus 4: GitHub README Ilu (15 min)
+Lisa oma README.md-le:
+- Badge'id (näiteks: ![GitHub](https://img.shields.io/github/stars/USERNAME/REPO))
+- Illustratsioonid või GIF'id
+- Sisukord (Table of Contents)
+- Code examples koos syntax highlighting'uga
+- Emojid 🎉
 
-# Failispetsiifilised muutused
-git log --follow -p -- filename.txt
-
-# Blame - kes kirjutas millise rea
-git blame README.md
-git blame -L 10,20 README.md  # Ainult read 10-20
-
-# Commit range'ide võrdlus
-git diff main..feature-branch
-git log main..feature-branch --oneline
-```
-
-### Samm B2: Git Hooks ja Workflow Automation (25 min)
-
-#### Pre-commit Hook (automaatne kvaliteedikontroll)
-```bash
-# Looge pre-commit hook
-mkdir -p .git/hooks
-cat > .git/hooks/pre-commit << 'EOF'
-#!/bin/bash
-echo "🔍 Kontrollime koodi enne commit'i..."
-
-# Kontrolli, et ei commitita suuri faile
-find . -size +1M -type f -exec ls -lh {} \; | grep -E '\.(jpg|png|gif|mp4|zip)$' 
-if [ $? -eq 0 ]; then
-  echo "❌ Suured failid leitud! Kasutage Git LFS."
-  exit 1
-fi
-
-# Kontrolli, et ei ole debug koodi
-grep -r "console.log\|debugger\|TODO" --include="*.js" .
-if [ $? -eq 0 ]; then
-  echo "⚠️  Debug kood leitud! Kas olete kindel?"
-  echo "Jätkamiseks vajutage Enter, katkestamiseks Ctrl+C"
-  read
-fi
-
-echo "✅ Pre-commit kontroll OK!"
-EOF
-
-chmod +x .git/hooks/pre-commit
-
-# Testige hook'i
-echo "console.log('test')" > debug.js
-git add debug.js
-git commit -m "Test hook" # Hook küsib kinnitust
-```
-
-#### Post-merge Hook (automaatne cleanup)
-```bash
-cat > .git/hooks/post-merge << 'EOF'
-#!/bin/bash
-echo "🧹 Post-merge cleanup..."
-
-# Kustuta vanale branch'id
-git branch --merged | grep -v "\*\|main\|master" | xargs -n 1 git branch -d
-
-# Update dependencies kui package.json muutus
-if [ -f package.json ] && git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD | grep -q "package.json"; then
-  echo "📦 package.json muutus, updatein dependencies..."
-  npm install
-fi
-
-echo "✅ Post-merge cleanup lõpetatud!"
-EOF
-
-chmod +x .git/hooks/post-merge
-```
-
-### Samm B3: Git Submodules ja Worktrees (20 min)
-
-#### Submodules - Dependency Management
-```bash
-# Lisa library submodule'ina
-git submodule add https://github.com/lodash/lodash.git vendor/lodash
-git commit -m "Add lodash as submodule"
-
-# Clone repo koos submodule'itega
-git clone --recursive <your-repo-url>
-
-# Update submodule'id
-git submodule update --remote --merge
-
-# Eemalda submodule
-git submodule deinit vendor/lodash
-git rm vendor/lodash
-```
-
-#### Worktrees - Parallel Development
-```bash
-# Loo worktree uue feature jaoks
-git worktree add ../feature-payment feature/payment
-cd ../feature-payment
-# Nüüd saate töödata samaaegselt main ja feature branch'idega
-
-# List worktrees
-git worktree list
-
-# Remove worktree
-cd ../git-practice-lab
-git worktree remove ../feature-payment
-```
-
-### Samm B4: Advanced Git Performance (15 min)
-
-#### Git LFS - Large File Storage
-```bash
-# Installi Git LFS
-git lfs install
-
-# Track suured failid
-git lfs track "*.png"
-git lfs track "*.jpg"
-git lfs track "*.pdf"
-git add .gitattributes
-
-# Test LFS
-echo "Large file content" > large-file.png
-git add large-file.png
-git commit -m "Add large file with LFS"
-```
-
-#### Repository Optimization
-```bash
-# Cleanup unreachable objects
-git gc --aggressive --prune=now
-
-# Shallow clone performance'iks
-git clone --depth 1 <repo-url> quick-clone
-
-# Partial clone (Git 2.19+)
-git clone --filter=blob:none <repo-url> partial-clone
-```
-
-### Samm B5: Expert Level Debugging (25 min)
-
-#### Git Bisect - Bug Hunt
-```bash
-# Simuleerige bug'i otsimist
-# Looge 10 commiti, millest üks on "broken"
-for i in {1..10}; do
-  if [ $i -eq 7 ]; then
-    echo "broken code" > app.js
-  else
-    echo "good code $i" > app.js
-  fi
-  git add app.js
-  git commit -m "Version $i"
-done
-
-# Kasuta bisect bug'i leidmiseks
-git bisect start
-git bisect bad HEAD
-git bisect good HEAD~10
-
-# Test iga commit (Git pakub)
-while true; do
-  if grep -q "broken" app.js; then
-    git bisect bad
-  else
-    git bisect good
-  fi
-  # Jätka kuni Git leiab probleemse commiti
-done
-
-git bisect reset
-```
-
-#### Custom Git Commands
-```bash
-# Looge custom Git command
-mkdir -p ~/.local/bin
-cat > ~/.local/bin/git-summary << 'EOF'
-#!/bin/bash
-echo "📊 Repository Summary:"
-echo "====================="
-echo "📍 Current branch: $(git branch --show-current)"
-echo "📈 Total commits: $(git rev-list --count HEAD)"
-echo "👥 Contributors: $(git log --format='%an' | sort -u | wc -l)"
-echo "⏰ Last commit: $(git log -1 --format='%cr')"
-echo "📝 Lines of code:"
-git ls-files | xargs wc -l | tail -1
-echo "🌿 Branches:"
-git branch -a | head -5
-EOF
-
-chmod +x ~/.local/bin/git-summary
-
-# Kasutage: git summary
-export PATH="$HOME/.local/bin:$PATH"
-git summary
-```
-
-#### Advanced Conflict Resolution
-```bash
-# Seadista merge tool
-git config --global merge.tool vimdiff
-# või
-git config --global merge.tool code
-
-# 3-way merge conflicts
-git config --global mergetool.keepBackup false
-
-# Resolve konflikti merge tool'iga
-# (simuleerige konflikti ja kasutage)
-git mergetool
-```
-
-### Samm B6: Git Flow ja Release Management (20 min)
-
-```bash
-# Git Flow setup (kui installitud)
-git flow init
-
-# Feature development
-git flow feature start user-authentication
-echo "auth code" > auth.js
-git add auth.js && git commit -m "Add authentication"
-git flow feature finish user-authentication
-
-# Release management
-git flow release start v1.0.0
-echo "1.0.0" > VERSION
-git add VERSION && git commit -m "Version bump to 1.0.0"
-git flow release finish v1.0.0
-
-# Hotfix
-git flow hotfix start critical-security-fix
-echo "security fix" > security.patch
-git add security.patch && git commit -m "Security fix"
-git flow hotfix finish critical-security-fix
-```
-
-### Samm B7: Git Best Practices Enforcement (15 min)
-
-```bash
-# Conventional commits hook
-cat > .git/hooks/commit-msg << 'EOF'
-#!/bin/bash
-commit_regex='^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .{1,50}'
-
-if ! grep -qE "$commit_regex" "$1"; then
-    echo "❌ Invalid commit message format!"
-    echo "Use: type(scope): description"
-    echo "Types: feat, fix, docs, style, refactor, test, chore"
-    echo "Example: feat(auth): add user login functionality"
-    exit 1
-fi
-EOF
-
-chmod +x .git/hooks/commit-msg
-
-# Test conventional commits
-git commit -m "feat(auth): add user authentication"
-git commit -m "fix: resolve login bug"
-```
-
----
-
-## 📝 Lab'i esitamine
-
-**Esitage järgmine GitHub repository link:**
-- Repository nimi: `git-practice-lab`
-- Peab sisaldama kõiki harjutuste faile
-- Clean Git history nähtav
-- Vähemalt üks Pull Request tehtud ja merge'itud
-
-**Hindamiskriteeriumid:**
-- Repository õigesti seadistatud (20%)
-- Kõik harjutused tehtud (50%)
-- Clean Git history (20%)
-- Pull Request workflow (10%)
-
----
-
-*Lab koostatud Git tööstuse parimate praktikate põhjal*
+**Vaata täiendavaid edasijõudnud ülesandeid:** `lisapraktika.md`
