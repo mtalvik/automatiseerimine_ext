@@ -1,22 +1,21 @@
-# 📚 Ansible: Põhitõed
+#  Ansible: Põhitõed
 
-**Kestus:** 4 tundi  
-**Teemad:** Ansible arhitektuur, YAML süntaks, playbook'id, inventory, ad-hoc käsud
-
----
-
-## 🎯 Õpiväljundid
-
-Pärast seda loengut oskate:
-- Mõista Ansible arhitektuuri ja tööpõhimõtteid
-- Kirjutada YAML süntaksiga playbook'e
-- Seadistada inventory faile ja SSH ühendusi
-- Kasutada ad-hoc käske serverite haldamiseks
-- Rakendada Ansible mooduleid põhiliste ülesannete jaoks
+**Teemad:** Ansible arhitektuur, SSH setup, playbook'id, YAML, idempotence
 
 ---
 
-## 📖 Mis on Ansible?
+##  Õpiväljundid
+
+Pärast seda moodulit oskate:
+- Selgitada, mis probleemi Ansible lahendab ja miks see on parem kui shell skriptid
+- Seadistada SSH ühendusi ja inventory faile mitme serveri jaoks
+- Kirjutada YAML süntaksiga playbook'e ja kasutada põhilisi mooduleid
+- Kasutada ad-hoc käske kiireks serverite haldamiseks
+- Rakendada idempotentsuse printsiipi ja best practices'eid
+
+---
+
+##  Mis on Ansible?
 
 Ansible on automatiseerimistööriist, mis laseb hallata mitmeid arvuteid korraga. Mõelge sellele nagu kaugjuhtimispuldile - ühest kohast saate kontrollida ja seadistada kümneid või sadu servereid.
 
@@ -29,11 +28,34 @@ Ansible on automatiseerimistööriist, mis laseb hallata mitmeid arvuteid korrag
 
 ## Kuidas Ansible töötab?
 
+```mermaid
+graph LR
+    Control[ Control Node<br/>Teie arvuti<br/>Ansible installed]
+    Inv[ Inventory]
+    Play[ Playbook]
+    
+    S1[ Server 1<br/>web]
+    S2[ Server 2<br/>web]
+    S3[ Server 3<br/>db]
+    
+    Control --> Inv
+    Control --> Play
+    Control -->|SSH| S1
+    Control -->|SSH| S2
+    Control -->|SSH| S3
+    
+    style Control fill:#EE0000,color:#fff
+    style Inv fill:#f0f0f0
+    style Play fill:#f0f0f0
+    style S1 fill:#1a1a1a,color:#fff
+    style S2 fill:#1a1a1a,color:#fff
+    style S3 fill:#1a1a1a,color:#fff
 ```
-[Teie arvuti] ---SSH---> [Server 1]
-              ---SSH---> [Server 2] 
-              ---SSH---> [Server 3]
-```
+
+**Põhiprintsiibid:**
+- **Agentless:** Ei pea serveritesse midagi installima (ainult SSH)
+- **Push model:** Control node lükkab konfiguratsiooni serveritesse
+- **Idempotent:** Sama käsk võib jooksutada mitu korda, tulemus on alati sama
 
 Ansible kasutab SSH ühendust (sama, mida tavaliselt kasutate serverisse sisselogimiseks). Erinevalt paljudest teistest tööriistadest ei pea serveritesse midagi täiendavat installima.
 
@@ -187,6 +209,34 @@ ansible all:!databases -i inventory -m ping
 ## Playbook'id - korduv automatiseerimine
 
 Kui soovite teha keerulisemaid asju või salvestada oma käsud tulevikuks, kasutage playbook'e. Need on YAML failid, mis kirjeldavad, mida teha.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Ansible
+    participant Server1
+    participant Server2
+    
+    User->>Ansible: ansible-playbook webserver.yml
+    Ansible->>Ansible: Read playbook
+    Ansible->>Ansible: Parse inventory
+    
+    Ansible->>Server1: Connect via SSH
+    Ansible->>Server1: Gather facts
+    Ansible->>Server1: Task 1: Install nginx
+    Server1-->>Ansible:  Changed
+    Ansible->>Server1: Task 2: Start nginx
+    Server1-->>Ansible:  OK
+    
+    Ansible->>Server2: Connect via SSH
+    Ansible->>Server2: Gather facts
+    Ansible->>Server2: Task 1: Install nginx
+    Server2-->>Ansible:  Changed
+    Ansible->>Server2: Task 2: Start nginx
+    Server2-->>Ansible:  OK
+    
+    Ansible-->>User: PLAY RECAP: 2 ok, 2 changed
+```
 
 ### Lihtne playbook näide
 

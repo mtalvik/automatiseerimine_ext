@@ -1,11 +1,10 @@
 # Terraform Edasijõudnud
 
-**Kestus:** 4 tundi  
 **Teemad:** Pilve ressursid, AWS/Azure integratsioon, workspaces, turvalisus, moodulid
 
 ---
 
-## 🎯 Õpiväljundid
+##  Õpiväljundid
 
 Pärast seda loengut oskate:
 - Mõista pilve ressursid ja provider'id
@@ -16,7 +15,7 @@ Pärast seda loengut oskate:
 
 ---
 
-## 📖 Pilve Ressursid ja Provider'id
+##  Pilve Ressursid ja Provider'id
 
 ## ⏰ Ajaplaneerimine
 
@@ -24,7 +23,7 @@ Pärast seda loengut oskate:
 - **Iseseisev õppimine:** 7.5 tundi
 - **Kokku:** 12.5 tundi
 
-## 📚 Teoreetiline Taust
+##  Teoreetiline Taust
 
 ### Pilve Ressursid ja Providerid
 
@@ -47,37 +46,20 @@ provider "azurerm" {
 
 ### AWS Põhilised Ressursid
 
-```hcl
-# VPC ja alamvõrgu
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
-  
-  tags = {
-    Name = "main-vpc"
-    Environment = var.environment
-  }
-}
+AWS'is saab Terraform'iga hallata:
+- **VPC** (Virtual Private Cloud) - isoleeritud võrk
+- **Subnets** - alamvõrgud (public/private)
+- **EC2 Instances** - virtuaalsed serverid
+- **S3 Buckets** - failimajutus
+- **RDS** - hallatavad andmebaasid
 
-resource "aws_subnet" "public" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = "10.0.1.0/24"
-  
-  tags = {
-    Name = "public-subnet"
-  }
-}
+**Näide struktureeritud ressurssidest:**
+ Vaata [labor.md - Samm 1: AWS VPC ja ressursid](labor.md#-samm-1-aws-provider-seadistamine)
 
-# EC2 Instance
-resource "aws_instance" "web" {
-  ami           = "ami-12345678"
-  instance_type = "t3.micro"
-  subnet_id     = aws_subnet.public.id
-  
-  tags = {
-    Name = "web-server"
-  }
-}
-```
+**Põhiprintsiibid:**
+- Ressursid viitavad üksteisele (nt subnet kasutab VPC ID'd)
+- Tag'id aitavad ressursse organiseerida
+- CIDR blokid määravad IP vahemikud
 
 ### Azure Põhilised Ressursid
 
@@ -105,82 +87,7 @@ resource "azurerm_subnet" "subnet" {
 }
 ```
 
-## 🛠️ Praktilised Harjutused
-
-### Harjutus 1: AWS VPC Loomine
-
-Loo AWS VPC koos avaliku ja privaatse alamvõrguga:
-
-```hcl
-# main.tf
-provider "aws" {
-  region = "eu-west-1"
-}
-
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
-  
-  tags = {
-    Name = "main-vpc"
-  }
-}
-
-resource "aws_subnet" "public" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = "10.0.1.0/24"
-  
-  tags = {
-    Name = "public-subnet"
-  }
-}
-
-resource "aws_subnet" "private" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = "10.0.2.0/24"
-  
-  tags = {
-    Name = "private-subnet"
-  }
-}
-```
-
-### Harjutus 2: Azure Web App
-
-Loo Azure Web App koos vajalike ressursidega:
-
-```hcl
-# main.tf
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "rg" {
-  name     = "webapp-rg"
-  location = "West Europe"
-}
-
-resource "azurerm_app_service_plan" "plan" {
-  name                = "webapp-plan"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  kind                = "Linux"
-  reserved            = true
-  
-  sku {
-    tier = "Basic"
-    size = "B1"
-  }
-}
-
-resource "azurerm_app_service" "webapp" {
-  name                = "webapp-12345"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  app_service_plan_id = azurerm_app_service_plan.plan.id
-}
-```
-
-## 🔐 Turvalisus ja IAM
+##  Turvalisus ja IAM
 
 ### AWS IAM Rollid
 
@@ -250,7 +157,7 @@ resource "azurerm_role_assignment" "role" {
 }
 ```
 
-## 🌍 Terraform Workspaces
+##  Terraform Workspaces
 
 ### Workspace'ide Kasutamine
 
@@ -299,7 +206,7 @@ resource "aws_instance" "web" {
 }
 ```
 
-## 📊 State'i Haldamine
+##  State'i Haldamine
 
 ### Remote State
 
@@ -335,7 +242,7 @@ resource "aws_instance" "web" {
 }
 ```
 
-## 🧪 Testimine ja Valideerimine
+##  Testimine ja Valideerimine
 
 ### Terraform Validate
 
@@ -371,46 +278,28 @@ func TestTerraformBasicExample(t *testing.T) {
 }
 ```
 
-## 📝 Kodutööd
-
-### Ülesanne 1: Pilve Infrastruktuur
-
-Loo AWS või Azure infrastruktuur, mis sisaldab:
-- VPC/Virtual Network
-- Avalik ja privaatne alamvõrk
-- Security Groups/Network Security Groups
-- Load Balancer
-- Auto Scaling Group/VM Scale Set
-
-### Ülesanne 2: Turvalisus ja IAM
-
-Rakenda turvalisuse parimad praktikad:
-- IAM rollid ja poliitikad
-- Security Groups/NSG reeglid
-- VPC endpoints
-- Krypto võtmed ja saladused
-
-### Lisapraktika: Mitme Keskkonna Konfiguratsioon
-
-Loo Terraform konfiguratsioon, mis toetab:
-- Development, Staging, Production keskkondi
-- Workspace'ide kasutamist
-- Keskkonna-spetsiifilisi ressursse
-- Remote state haldamist
-
-## 🔍 Kasulikud Ressursid
+##  Kasulikud Ressursid
 
 - [Terraform AWS Provider Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [Terraform Azure Provider Documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - [Terraform Best Practices](https://www.terraform.io/docs/cloud/guides/recommended-practices/index.html)
 - [Terraform Testing with Terratest](https://terratest.gruntwork.io/)
 
-## 📊 Hindamine
+---
 
-- **Praktiline töö (60%):** Pilve infrastruktuuri loomine ja konfigureerimine
-- **Teoreetiline mõistmine (25%):** Turvalisuse ja IAM kontseptsioonid
-- **Lisapraktika (15%):** Mitme keskkonna konfiguratsioon ja optimeerimine
+##  Järgmised sammud
+
+**Lab'is täna:**
+- Loome AWS/Azure ressursse
+- Seadistame workspaces
+- Implementeerime remote state
+- Rakendame turvalisuse best practices
+
+**Õpi rohkem:**
+- [Terraform AWS Provider Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+- [Terraform Azure Provider Documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
+- [Terraform Best Practices](https://www.terraform.io/docs/cloud/guides/recommended-practices/index.html)
 
 ---
 
-**🎯 Edu mooduli läbimisel!**
+**Edu ja head IaC'itamist!** 

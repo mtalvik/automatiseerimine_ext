@@ -1,19 +1,19 @@
-# 📝 Terraform Kodutöö: AWS Backup (Alternatiiv)
+#  Terraform Kodutöö: AWS Backup (Alternatiiv)
 
 **Tähtaeg:** Järgmise nädala alguseks  
 **Eesmärk:** AWS ressursside loomine Terraform'iga  
-**Aeg:** 2-3 tundi  
+
 **Raskusaste:** Keskmine
 
 ---
 
-## 🎯 Ülesande kirjeldus
+##  Ülesande kirjeldus
 
 AWS-põhine alternatiiv Terraform kodutööle. Fookus on AWS ressursside loomisel Terraform'iga!
 
 ---
 
-## 🎯 **Projekt: Kohalik Infrastruktuur Terraform'iga**
+##  **Projekt: Kohalik Infrastruktuur Terraform'iga**
 
 ### Mis on see projekt?
 
@@ -21,7 +21,7 @@ Looge kohalik infrastruktuur Terraform'i abil. See on nagu "digitaalse maja ehit
 
 ### Mida te ehitate?
 
-**💻 Kohalik Infrastruktuur**
+** Kohalik Infrastruktuur**
 - **Failid ja kaustad** - projektifailide struktuur
 - **Konfiguratsioonid** - JSON ja YAML failid
 - **Skriptid** - automatiseerimise skriptid
@@ -35,12 +35,12 @@ Looge kohalik infrastruktuur Terraform'i abil. See on nagu "digitaalse maja ehit
 
 ### Miks see arhitektuur on hea õppimiseks?
 
-**🎯 Lihtne ja selge:**
+** Lihtne ja selge:**
 - **Kohalik** - ei vaja internetti ega pilve
 - **Praktiline** - õpite Terraform'i põhitõdesid
 - **Skaleeritav** - saate hiljem liikuda pilve
 
-**🔗 Infrastruktuuri komponendid:**
+** Infrastruktuuri komponendid:**
 ```
 Kohalik Infrastruktuur:
 ├── Projektifailid
@@ -48,7 +48,7 @@ Kohalik Infrastruktuur:
 └── Skriptid ja dokumentatsioon
 ```
 
-**📚 Mida õpite:**
+** Mida õpite:**
 - Kuidas kirjutada Terraform koodi
 - Kuidas kasutada variable'id ja outputs
 - Kuidas seadistada kohalikke ressursse
@@ -58,20 +58,20 @@ Kohalik Infrastruktuur:
 
 ```mermaid
 graph TB
-    subgraph "💻 Kohalik Infrastruktuur"
-        User[👤 Kasutaja]
-        Files[📁 Failid<br/>Local Files]
-        Config[⚙️ Konfiguratsioonid<br/>JSON/YAML]
-        Scripts[📜 Skriptid<br/>Bash/Python]
+    subgraph " Kohalik Infrastruktuur"
+        User[ Kasutaja]
+        Files[ Failid<br/>Local Files]
+        Config[ Konfiguratsioonid<br/>JSON/YAML]
+        Scripts[ Skriptid<br/>Bash/Python]
     end
     
     User --> Files
     User --> Config
     User --> Scripts
     
-    subgraph "🔧 Terraform"
-        Code[📝 Terraform Kood]
-        State[🗄️ State Fail]
+    subgraph " Terraform"
+        Code[ Terraform Kood]
+        State[ State Fail]
     end
     
     Code --> Files
@@ -81,7 +81,7 @@ graph TB
 
 ---
 
-## 📋 **Ülesanne 1: Projekti struktuuri loomine (15 min)**
+##  **Ülesanne 1: Projekti struktuuri loomine (15 min)**
 
 ### Samm 1: Projekti kataloogi struktuur
 
@@ -134,7 +134,7 @@ Kohalikus keskkonnas kasutame `terraform.tfstate` faili, mis luuakse automaatsel
 
 ---
 
-## 📋 **Ülesanne 2: Lihtne Terraform projekt (45 min)**
+##  **Ülesanne 2: Lihtne Terraform projekt (45 min)**
 
 ### Samm 1: Provider konfiguratsioon
 
@@ -615,7 +615,7 @@ data "aws_ami" "ubuntu" {
 
 ---
 
-## 📋 **Ülesanne 3: Variables ja outputs failid (15 min)**
+##  **Ülesanne 3: Variables ja outputs failid (15 min)**
 
 ### Samm 1: Variables fail
 
@@ -815,7 +815,7 @@ output "db_port" {
 
 ---
 
-## 📋 **Ülesanne 4: AWS konsooli uurimine (30 min)**
+##  **Ülesanne 4: AWS konsooli uurimine (30 min)**
 
 ### Samm 1: AWS konsooli avamine
 
@@ -859,7 +859,7 @@ output "db_port" {
 - Need kontrollivad, kes pääseb serverisse
 - Ilma nendeta ei saaks veebilehte vaadata
 
-## 📋 **Ülesanne 5: Eksperimenteerimine ja muutmine (45 min)**
+##  **Ülesanne 5: Eksperimenteerimine ja muutmine (45 min)**
 
 ### Samm 1: Regiooni muutmine
 
@@ -992,7 +992,7 @@ terraform apply
 - `user_data` muutub ainult serveri taaskäivitamisel
 - Terraform kustutab vana serveri ja loob uue
 
-## 📋 **Ülesanne 6: Probleemide lahendamine (30 min)**
+##  **Ülesanne 6: Probleemide lahendamine (30 min)**
 
 ### Samm 1: Vale regioon
 
@@ -1064,7 +1064,7 @@ terraform plan
 - Muutke CIDR tagasi õigeks (10.0.0.0/16)
 - Käivitage `terraform plan` uuesti
 
-## 📋 **Ülesanne 7: Projekti testimine ja puhastamine (15 min)**
+##  **Ülesanne 7: Projekti testimine ja puhastamine (15 min)**
 
 ### Samm 1: Testige kõiki muudatusi
 
@@ -1136,7 +1136,7 @@ output "bucket_name" {
 
 ---
 
-## 📋 **Ülesanne 6: Environment konfiguratsioonid (45 min)**
+##  **Ülesanne 6: Environment konfiguratsioonid (45 min)**
 
 ### Samm 1: Development environment
 
@@ -1390,7 +1390,7 @@ db_password  = "prod_password_789"
 
 ---
 
-## 📋 **Ülesanne 7: Juurutamine ja testimine (60 min)**
+##  **Ülesanne 7: Juurutamine ja testimine (60 min)**
 
 ### Samm 1: Development keskkonna juurutamine
 
@@ -1470,7 +1470,7 @@ curl http://<public-ip>
 
 ---
 
-## 📋 **Ülesanne 8: Dokumentatsioon ja cleanup (30 min)**
+##  **Ülesanne 8: Dokumentatsioon ja cleanup (30 min)**
 
 ### Samm 1: README faili loomine
 
@@ -1582,7 +1582,7 @@ terraform destroy
 
  
 
-## 📚 **Lisaressursid**
+##  **Lisaressursid**
 
 - **Terraform AWS Provider:** https://registry.terraform.io/providers/hashicorp/aws/latest/docs
 - **Terraform Modules:** https://www.terraform.io/docs/language/modules
@@ -1591,7 +1591,7 @@ terraform destroy
 
 ---
 
-## 🤔 **Küsimused ja abi**
+##  **Küsimused ja abi**
 
 Kui teil on küsimusi või probleeme:
 
@@ -1600,4 +1600,4 @@ Kui teil on küsimusi või probleeme:
 3. **Debugige sammud** - kasutage `terraform plan` ja `terraform validate`
 4. **Küsige abi** - õpetajalt või klassikaaslastelt
 
-**Edu kodutööga!** 🚀
+**Edu kodutööga!** 

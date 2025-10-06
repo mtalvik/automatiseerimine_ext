@@ -1,7 +1,70 @@
-# Docker Compose Labor
+#  Docker Compose Labor: Multi-container rakendus (3×45 min)
 
-**Kestus:** 2-3 tundi  
-**Eesmärk:** Ehitada töötav multi-container rakendus VM-is
+## Lab'i eesmärk
+Täna õpid Docker Compose'i - tööriista, mis võimaldab hallata mitut container'it korraga! Nagu orkester, kus iga container on üks instrument. 
+
+##  Õpiväljundid
+Pärast seda lab'i oskad:
+- Kirjutada `docker-compose.yml` faile
+- Käivitada multi-container rakendusi
+- Ühendada container'eid võrkude kaudu
+- Kasutada volumes andmete säilitamiseks
+- Skaleerida teenuseid
+
+---
+
+### Blokk 1 (45 min) – Docker Compose põhitõed
+- **Eesmärk:** Mõista Docker Compose'i ja luua esimene multi-container rakendus
+- **Tegevused:**
+  - Docker Compose installimine ja setup
+  - Esimene `docker-compose.yml` (web + database)
+  - `docker-compose up` - käivitamine
+  - `docker-compose ps` - container'ite vaatamine
+  - `docker-compose logs` - logide vaatamine
+- **Kontrollnimekiri:**
+  - [ ] Docker Compose on installeeritud
+  - [ ] Esimene `docker-compose.yml` fail on loodud
+  - [ ] Rakendus töötab (`docker-compose up`)
+  - [ ] Näed container'eid (`docker-compose ps`)
+- **Kontrollküsimus:** "Mis vahe on `docker run` ja `docker-compose up` vahel?"
+- **Refleksioon (1 min):** "Docker Compose on nagu... A) Spotify playlist  B) restorani menüü  C) orkestri partituur "
+
+---
+
+### Blokk 2 (45 min) – Networks ja volumes
+- **Eesmärk:** Ühendada container'eid ja säilitada andmeid
+- **Tegevused:**
+  - Networks seadistamine (`docker-compose.yml` - networks)
+  - Volumes andmete säilitamiseks
+  - Environment variables konfiguratsioon
+  - Container'ite vaheline suhtlus
+- **Kontrollnimekiri:**
+  - [ ] Container'id suhtlevad omavahel (ping test)
+  - [ ] Volumes säilitavad andmeid (restart test)
+  - [ ] Environment variables toimivad
+- **Kontrollküsimus:** "Miks kasutada volumes, mitte bind mounts?"
+- **Refleksioon (1 min):** "Volumes on nagu... A) USB stick  B) cloud storage  C) mõlemad"
+
+---
+
+### Blokk 3 (45 min) – Scaling ja production practices
+- **Eesmärk:** Skaleerida rakendusi ja rakendada parimaid tavasid
+- **Tegevused:**
+  - `docker-compose up --scale` - teenuste skaleerimine
+  - Health checks lisamine
+  - Restart policies
+  - `.env` failide kasutamine
+  - `docker-compose down` - puhastamine
+- **Kontrollnimekiri:**
+  - [ ] Saad skaleerida teenuseid (3× web container)
+  - [ ] Health checks toimivad
+  - [ ] Restart policy töötab (tapa container, vaata restart)
+- **Kontrollküsimus:** "Mida teeb restart policy: on-failure?"
+- **Refleksioon (1 min):** "Kõige lahedam asi täna oli... A) nägin andmebaasi ja web'i koos töötamas  B) scaling oli nii lihtne! C) mul on nüüd oma orkester! "
+
+---
+
+**Valmis? Alustame detailsete sammudega!** ⬇
 
 ---
 
@@ -199,7 +262,7 @@ const pool = new Pool({
 });
 
 pool.on('connect', () => {
-  console.log('✓ Connected to PostgreSQL');
+  console.log(' Connected to PostgreSQL');
 });
 
 pool.on('error', (err) => {
@@ -348,7 +411,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✓ API server running on port ${PORT}`);
+  console.log(` API server running on port ${PORT}`);
   console.log(`  Health: http://localhost:${PORT}/health`);
   console.log(`  Todos:  http://localhost:${PORT}/api/todos`);
 });
@@ -601,7 +664,7 @@ function App() {
   return (
     <div className="App">
       <header className="header">
-        <h1>📝 Todo App</h1>
+        <h1> Todo App</h1>
         <p>Built with Docker Compose</p>
       </header>
       
@@ -640,7 +703,7 @@ function App() {
           
           {todos.length === 0 ? (
             <div className="no-todos">
-              <p>🎉 No todos yet!</p>
+              <p> No todos yet!</p>
               <p>Create your first todo above</p>
             </div>
           ) : (
@@ -666,7 +729,7 @@ function App() {
                     className="btn-delete"
                     title="Delete todo"
                   >
-                    🗑️
+                    
                   </button>
                 </div>
               ))}
@@ -1214,8 +1277,8 @@ docker-compose up --build
 **OOTA kuni näed:**
 ```
 todo_db       | PostgreSQL init process complete; ready for start up.
-todo_api      | ✓ Connected to PostgreSQL
-todo_api      | ✓ API server running on port 3000
+todo_api      |  Connected to PostgreSQL
+todo_api      |  API server running on port 3000
 todo_frontend | (nginx startup logs)
 todo_nginx    | (nginx startup logs)
 ```
@@ -1546,12 +1609,12 @@ docker-compose up --scale api=3
 
 ## Kokkuvõte
 
-✅ Ehitasime töötava multi-container rakenduse  
-✅ Õppisime Docker Compose põhitõdesid  
-✅ Mõistame kuidas konteinerid suhtlevad  
-✅ Oskame debugida ja probleeme lahendada  
+ Ehitasime töötava multi-container rakenduse  
+ Õppisime Docker Compose põhitõdesid  
+ Mõistame kuidas konteinerid suhtlevad  
+ Oskame debugida ja probleeme lahendada  
 
-**Palju õnne! Sa oled nüüd Docker Compose ekspert! 🎉**
+**Palju õnne! Sa oled nüüd Docker Compose ekspert! **
 
 ---
 

@@ -1,26 +1,70 @@
-# 🧪 Docker Labor: Konteinerite Põhitõed
+#  Docker Labor: Konteinerite Põhitõed (3×45 min)
 
-**Kestus:** 2 tundi  
-**Eesmärk:** Õppida Docker'i alused praktiliselt läbi hands-on harjutuste
+## Lab'i eesmärk
+Täna õpid Docker'i alused ja harjutad konteinerite kasutamist. Docker on nagu superkiire väike virtuaalmasin – 10× kiirem! 
 
----
-
-## 🎯 Õpiväljundid
-
-Pärast laborit oskate:
-- Paigaldada ja seadistada Docker keskkonna
-- Käivitada esimesi konteinereid
-- Luua lihtsaid Dockerfile'e
-- Kasutada Docker võrgustikku ja volumes'eid
-- Optimeerida konteinerite jõudlust
+##  Õpiväljundid
+Pärast seda lab'i oskad:
+- Käivitada ja hallata Docker container'eid
+- Kirjutada Dockerfile'i ja ehitada image'e
+- Kasutada volume'e ja port mapping'u
+- Rakendada põhilisi best practices'eid
 
 ---
 
-## 📋 Lab'i Eesmärk
+### Blokk 1 (45 min) – Docker põhitõed ja esimesed container'id
+- **Eesmärk:** Käivitada esimesed container'id ja mõista, mis Docker teeb
+- **Tegevused:**
+  - Docker'i kiiruse testimine (`hello-world`, `alpine`)
+  - Web serveri käivitamine (`nginx`)
+  - Port mapping'u mõistmine (localhost:8080 → container:80)
+  - Container'ide vaatamine (`docker ps`)
+- **Kontrollnimekiri:**
+  - [ ] Docker töötab (`docker --version`)
+  - [ ] Käivitatud vähemalt 2 container'it
+  - [ ] Nginx töötab brauseris (localhost:8080)
+- **Kontrollküsimus:** "Mis on image ja mis on container? Kuidas nad erinevad?"
+- **Refleksioon (1 min):** "Mis oli kõige üllatavam Docker'i kohta? Kui kiire see oli?"
+- **Fun Poll:** "Kui Docker oleks sõiduk, siis milline? A) auto B) rongi vagun C) helikopter "
 
-Täna õpite Docker'i alused praktiliselt. Lab kestab 2 tundi ja ei ole vaja eelteadmisi!
+---
 
-[![Docker Tutorial](https://img.youtube.com/vi/Wfou2bBtiMU/mqdefault.jpg)](https://www.youtube.com/shorts/Wfou2bBtiMU?feature=share)
+### Blokk 2 (45 min) – Container'ide haldamine ja Dockerfile
+- **Eesmärk:** Hallata container'eid ja kirjutada esimene Dockerfile
+- **Tegevused:**
+  - Container'ide haldamine (`ps`, `logs`, `stop`, `rm`)
+  - Interaktiivne shell (`docker exec -it`)
+  - Dockerfile kirjutamine (Python/Node rakendus)
+  - Image'i build'imine (`docker build -t minu-app .`)
+- **Kontrollnimekiri:**
+  - [ ] Oskad siseneda container'isse (`exec -it`)
+  - [ ] Dockerfile on kirjutatud
+  - [ ] Image on edukalt build'itud
+  - [ ] Container töötab oma image'ist
+- **Kontrollküsimus:** "Miks build teist korda oli kiirem? Mis on cache?"
+- **Refleksioon (1 min):** "Dockerfile on nagu retsept. Mis on kõige tähtsam osa?"
+
+---
+
+### Blokk 3 (45 min) – Volumes, andmete säilitamine ja best practices
+- **Eesmärk:** Kasutada volume'e andmete säilitamiseks ja rakendada best practices'eid
+- **Tegevused:**
+  - Volume'ide loomine ja kasutamine (`-v` flag)
+  - Andmete säilimine pärast container'i kustutamist
+  - `.dockerignore` loomine
+  - Image'i optimeerimise põhitõed
+- **Kontrollnimekiri:**
+  - [ ] Volume on loodud ja töötab
+  - [ ] Andmed säilivad pärast `docker rm`
+  - [ ] `.dockerignore` on olemas
+  - [ ] Mõistad, miks väiksemad image'd on paremad
+- **Kontrollküsimus:** "Millal kasutada volume? Mida `.dockerignore` teeb?"
+- **Refleksioon (1 min):** "Mida teeksid järgmisel korral teisiti? Mis oli kõige kasulikum?"
+- **Docker Quiz:** "Mis on kiirem: container või VM?" 
+
+---
+
+**Valmis? Alustame detailsete sammudega!** ⬇
 
 ---
 
@@ -224,7 +268,7 @@ cat > index.html << 'EOF'
 </head>
 <body>
     <div class="box">
-        <h1>🐳 Minu Esimene Docker Rakendus!</h1>
+        <h1> Minu Esimene Docker Rakendus!</h1>
         <p>Tervitused: <strong>KIRJUTA SIIA OMA NIMI</strong></p>
         <p>Kuupäev: <span id="date"></span></p>
     </div>
@@ -487,7 +531,7 @@ Container'id on **ephemeral** (ajutised):
 docker run -d --name db postgres
 # Lisa andmeid...
 docker stop db && docker rm db
-# ❌ Kõik andmed kadunud!
+#  Kõik andmed kadunud!
 ```
 
 ## Volume'ide tüübid
@@ -939,6 +983,6 @@ docker exec limited sh -c 'dd if=/dev/zero of=/tmp/test bs=1M count=300'
 
 ---
 
-**Palju õnne!** 🎉 
+**Palju õnne!**  
 
 Te olete edukalt läbinud Docker fundamentals lab'i ja olete valmis järgmiseks tasemeks!

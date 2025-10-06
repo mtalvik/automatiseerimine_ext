@@ -1,0 +1,68 @@
+/* Modern custom styles */
+
+/* Smooth gradients for headers */
+.md-typeset h1 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+}
+
+/* Modern card-like code blocks */
+.md-typeset pre {
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Smoother tables */
+.md-typeset table:not([class]) {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Modern button style for links */
+.md-typeset a.md-button {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.md-typeset a.md-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Glassmorphism effect for admonitions */
+.md-typeset .admonition {
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border-left: 4px solid;
+}
+
+/* Smooth scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Modern navigation hover effects */
+.md-tabs__link:hover {
+    opacity: 0.8;
+}
+
+/* Add subtle animations */
+.md-content {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+

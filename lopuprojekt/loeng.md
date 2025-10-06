@@ -1,11 +1,10 @@
 # Lõpuprojekt: DevOps Integratsioon
 
-**Kestus:** 4 tundi  
 **Teemad:** Projekti planeerimine, arhitektuur, integratsioon, dokumentatsioon, esitlus
 
 ---
 
-## 🎯 Õpiväljundid
+##  Õpiväljundid
 
 Pärast seda loengut oskate:
 - Planeerida täielikku DevOps infrastruktuuri
@@ -16,7 +15,7 @@ Pärast seda loengut oskate:
 
 ---
 
-## 📖 Projekti Ülevaade
+##  Projekti Ülevaade
 
 ### Mis on lõpuprojekt?
 
@@ -32,7 +31,7 @@ Lõpuprojekt on praktiline töö, kus integreerite kõiki õpitud DevOps tööri
 
 ---
 
-## 📋 Projekti Nõuded
+##  Projekti Nõuded
 
 ### Kohustuslikud komponendid
 
@@ -72,7 +71,7 @@ Lõpuprojekt on praktiline töö, kus integreerite kõiki õpitud DevOps tööri
 
 ---
 
-## 🎯 Projekti Valikud
+##  Projekti Valikud
 
 ### Valik 1: Lihtne Veebirakendus
 
@@ -118,7 +117,7 @@ Lõpuprojekt on praktiline töö, kus integreerite kõiki õpitud DevOps tööri
 
 ---
 
-## 📊 Projekti Struktuur
+##  Projekti Struktuur
 
 ### 1. Planeerimine (1 nädal)
 
@@ -167,7 +166,7 @@ Lõpuprojekt on praktiline töö, kus integreerite kõiki õpitud DevOps tööri
 
 ---
 
-## 🛠️ Tehnilised Nõuded
+##  Tehnilised Nõuded
 
 ### Repository struktuur
 
@@ -211,7 +210,7 @@ lopuprojekt/
 
 ---
 
-## 📈 Hindamiskriteeriumid
+##  Hindamiskriteeriumid
 
 ### Funktsionaalsus (30%)
 
@@ -250,7 +249,7 @@ lopuprojekt/
 
 ---
 
-## 📊 Hindamine
+##  Hindamine
 
 ### Hindamiskriteeriumid
 
@@ -284,7 +283,7 @@ lopuprojekt/
 
 ---
 
-## 🎯 Järgmised sammud
+##  Järgmised sammud
 
 1. **Valige projekt** - Mõelge, mis teid huvitab
 2. **Planeerige arhitektuur** - Joonistage diagramm
@@ -293,4 +292,4 @@ lopuprojekt/
 5. **Testige** - Veenduge, et kõik töötab
 6. **Esitage** - Valmistage demo ette
 
-**Edu projekti tegemisel!** 🚀
+**Edu projekti tegemisel!** 

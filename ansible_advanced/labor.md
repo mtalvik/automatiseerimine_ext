@@ -1,17 +1,77 @@
-# 🧪 Ansible Edasijõudnud Labor: Mallipõhine Konfiguratsioon
+#  Ansible Edasijõudnud Labor: Templates ja Vault (3×45 min)
 
-**Kestus:** 2 tundi  
-**Eesmärk:** Õppida Ansible'i täpsemaid funktsioone ja luua dünaamilisi konfiguratsioone
+## Lab'i eesmärk
+Täna õpid Ansible'i professionaalseid funktsioone - Jinja2 templates, Ansible Vault, advanced variables! Nagu päris DevOps engineer! 
+
+##  Õpiväljundid
+Pärast seda lab'i oskad:
+- Kasutada Jinja2 templates dünaamiliste konfiguratsioonide jaoks
+- Krüpteerida salajasi Ansible Vault'iga
+- Hallata keerulisi variable'eid (group_vars, host_vars)
+- Luua professionaalset Ansible projekti struktuuri
+- Rakendada best practices tootmiskeskkonnas
 
 ---
 
-## 🎯 Õpiväljundid
-
-Pärast selle labori läbimist oskate luua professionaalseid Ansible projekte, kus konfiguratsioonid kohanduvad automaatselt vastavalt serverite omadustele ja keskkonnale. Te mõistate, kuidas hoida tundlikke andmeid turvaliselt Ansible Vault'is ning kuidas template'id aitavad vältida korduvat koodi. Need oskused on kriitilised tootmiskeskkonnas, kus iga server vajab veidi erinevat seadistust.
+### Blokk 1 (45 min) – Jinja2 templates ja dynamic configs
+- **Eesmärk:** Luua dünaamilisi konfiguratsioone template'idega
+- **Tegevused:**
+  - Jinja2 syntax (variables, loops, conditions)
+  - Nginx config template loomine
+  - Variables erinevatel tasanditel (all, group, host)
+  - Template'i rendering ja vaatamine
+  - Conditional logic template'is
+- **Kontrollnimekiri:**
+  - [ ] Template fail on loodud (`templates/nginx.conf.j2`)
+  - [ ] Variables töötavad template'is
+  - [ ] Conditional logic toimib (erinevad config'id dev vs prod)
+  - [ ] Nginx config on dünaamiliselt genereeritud
+- **Kontrollküsimus:** "Miks kasutada template'eid, mitte static faile?"
+- **Refleksioon (1 min):** "Jinja2 on nagu... A) Mad Libs mäng  B) form auto-fill C) mõlemad"
 
 ---
 
-## 📋 Samm 1: Advanced Variables Setup (30 min)
+### Blokk 2 (45 min) – Ansible Vault ja secrets management
+- **Eesmärk:** Õppida krüpteerima ja haldama salajasi
+- **Tegevused:**
+  - Ansible Vault seadistamine
+  - Vault faili loomine (`group_vars/all/vault.yml`)
+  - Paroolide ja API võtmete krüpteerimine
+  - Vault parooliga playbook jooksutamine
+  - Variables vault failist kasutamine
+- **Kontrollnimekiri:**
+  - [ ] Vault fail on loodud ja krüpteeritud
+  - [ ] Paroolid on vault'is (mitte plain text!)
+  - [ ] Playbook kasutab vault variables
+  - [ ] `ansible-playbook --ask-vault-pass` töötab
+- **Kontrollküsimus:** "Miks ei tohi paroole Git'i panna ilma vault'ita?"
+- **Refleksioon (1 min):** "Ansible Vault on nagu... A) seif  B) invisible ink C) password manager"
+
+---
+
+### Blokk 3 (45 min) – Advanced project structure ja best practices
+- **Eesmärk:** Luua professionaalset projekti struktuuri
+- **Tegevused:**
+  - Full project structure (inventory, group_vars, host_vars, roles, playbooks)
+  - Environment-specific configs (dev/staging/prod)
+  - Ansible.cfg seadistamine
+  - Error handling ja debugging
+  - Full deployment test
+- **Kontrollnimekiri:**
+  - [ ] Project structure on organiseeritud
+  - [ ] Group_vars ja host_vars töötavad koos
+  - [ ] Ansible.cfg on seadistatud
+  - [ ] Full deployment töötab dev ja prod keskkonnas
+- **Kontrollküsimus:** "Kuidas struktureerida Ansible projekti, et see oleks maintainable?"
+- **Refleksioon (1 min):** "Kõige professionaalsem osa täna oli... A) templates B) vault C) structure D) ma tunnen end nagu päris DevOps engineer! "
+
+---
+
+**Valmis? Alustame detailsete sammudega!** ⬇
+
+---
+
+##  Samm 1: Advanced Variables Setup (30 min)
 
 ### 1.1: Projekti struktuuri loomine - Organiseeritud struktuur
 
@@ -138,7 +198,7 @@ Inventory on Ansible'i süda - see määrab, milliste serveritega töötate ja k
    ```
    Keskkonna grupid (`development` ja `production`) võimaldavad sama playbook'i kasutada erinevates keskkondades. Arenduskeskkonnas on debug mode sisse lülitatud ja SSL välja, tootmises vastupidi. See lähenemine tagab, et tootmises ei unune kunagi turvaseadistusi sisse lülitada.
 
-**❓ Mõelge:** Miks on kasulik grupeerida servereid nii rolli kui keskkonna järgi?
+** Mõelge:** Miks on kasulik grupeerida servereid nii rolli kui keskkonna järgi?
 
 ### 1.3: Variables hierarchy loomine
 
@@ -249,14 +309,14 @@ Ansible'is kehtib muutujate hierarhia - spetsiifilisemad muutujad kirjutavad ül
    ```
    Andmebaasi kasutaja õigused on piiratud ainult vajaliku andmebaasiga. Parool hoitakse krüpteeritult Vault'is, mitte tavalises tekstifailis.
 
-**💡 Märkused:**
+** Märkused:**
 - Kasutame Jinja2 loogikat dünaamilisteks väärtusteks
 - Serverite võimsus mõjutab konfiguratsiooni
 - Keskkond määrab turvalisuse taseme
 
 ---
 
-## 📋 Samm 2: Jinja2 Template'ite loomine (45 min)
+##  Samm 2: Jinja2 Template'ite loomine (45 min)
 
 ### 2.1: Apache virtual host template - Dünaamiline konfiguratsioon
 
@@ -339,7 +399,7 @@ Template'id on nagu vormid, kuhu saate sisestada erinevaid andmeid ja saada väl
    ```
    SSL konfiguratsioon lisatakse ainult siis, kui see on lubatud nii virtual host'i kui keskkonna tasemel. TLS 1.2 ja 1.3 on ainsad turvalised protokollid - vanemad versioonid on haavatavad. Sertifikaadi teed tulevad vault'ist, kuid on ka vaikeväärtused testimiseks.
 
-**🤔 Analüüs:** Kuidas template aitab hallata erinevaid keskkondi (dev vs prod)?
+** Analüüs:** Kuidas template aitab hallata erinevaid keskkondi (dev vs prod)?
 
 ### 2.2: MySQL konfiguratsioon template
 
@@ -464,7 +524,7 @@ PHP-FPM (FastCGI Process Manager) haldab PHP protsesse efektiivsemalt kui tradit
 
 ---
 
-## 📋 Samm 3: Handlers ja Advanced Playbook (30 min)
+##  Samm 3: Handlers ja Advanced Playbook (30 min)
 
 ### 3.1: Playbook handlers'itega
 
@@ -575,7 +635,7 @@ Handler'id on Ansible'i viis teenuste tõhusaks haldamiseks - nad käivituvad ai
    ```
    Reload laeb konfiguratsiooni uuesti ilma ühendusi katkestamata, restart peatab ja käivitab teenuse täielikult. Eelistame reload'i, kui võimalik, et vältida teenuse katkestusi.
 
-**💭 Mõelge:** Miks kasutame `reload` mitte `restart`? Mis vahe on?
+** Mõelge:** Miks kasutame `reload` mitte `restart`? Mis vahe on?
 
 ### 3.2: Testimine
 
@@ -603,7 +663,7 @@ Testimine on kriitiline osa automatiseerimisest - parem leida vead testimisel ku
 
 ---
 
-## 📋 Samm 4: Ansible Vault rakendamine (35 min)
+##  Samm 4: Ansible Vault rakendamine (35 min)
 
 ### 4.1: Vault failide loomine
 
@@ -743,11 +803,11 @@ Vault failidega töötamine nõuab teadmisi erinevatest käskudest. Need käsud 
    ```
    Paroolifail on mugav automatiseeritud käivitusteks (nt CI/CD). Õigused 600 tähendavad, et ainult omanik saab faili lugeda - see on kriitiline turvalisuse jaoks.
 
-**🔐 Turvalisus:** Ära iial commiti `.vault_pass` faili Git'i! Lisage see kohe `.gitignore` faili.
+** Turvalisus:** Ära iial commiti `.vault_pass` faili Git'i! Lisage see kohe `.gitignore` faili.
 
 ---
 
-## 🎯 Samm 5: Lõplik kontrollnimekiri
+##  Samm 5: Lõplik kontrollnimekiri
 
 Veenduge, et olete lõpetanud kõik osad ja mõistnud põhimõtteid:
 
@@ -776,7 +836,7 @@ Veenduge, et olete lõpetanud kõik osad ja mõistnud põhimõtteid:
 - [ ] **Dry run** - --check mode töötab vigadeta
 - [ ] **Template testing** - konfiguratsioonid genereeruvad õigesti
 
-## 🚀 Järgmised sammud
+##  Järgmised sammud
 
 **Valmis kodutööks:**
 
@@ -787,6 +847,6 @@ Kasutage siin õpitud mustreid oma projektides - need on industry standard prakt
 - Automated testing strategies - molecule ja ansible-lint
 - Enterprise deployment patterns - blue-green deployment, rolling updates
 
-**Hästi tehtud! 🎉** 
+**Hästi tehtud! ** 
 
 Te oskate nüüd luua production-ready Ansible projekte, mis on turvalised, skaleeruvad ja hooldatavad. Need oskused on väärtuslikud igas DevOps meeskonnas ja aitavad teil automatiseerida keerukaid infrastruktuure. Jätkake harjutamist ja eksperimenteerimist!

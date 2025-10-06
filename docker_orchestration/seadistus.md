@@ -1,34 +1,34 @@
-# 🚀 Docker Seadistus
+#  Docker Seadistus
 
 **Eesmärk:** Seadistada Docker keskkond kodu arvutis  
-**Aeg:** 30-60 minutit  
+
 **Nõuded:** Windows/Mac/Linux arvuti
 
 ---
 
-## 📋 Ülevaade
+##  Ülevaade
 
 See juhend aitab teil seadistada Docker keskkonna kodu arvutis, et saaksite harjutada konteineritega.
 
 ---
 
-## 🛠️ 1. Choose Your OS
+##  1. Choose Your OS
 
-### 🪟 Windows → WSL2
+###  Windows → WSL2
 ```bash
 # PowerShell (Admin)
 wsl --install -d Ubuntu-22.04
 # Restart PC
 ```
 
-### 🍎 macOS → Multipass
+###  macOS → Multipass
 ```bash
 brew install --cask multipass
 multipass launch --name docker-vm --memory 4G --disk 20G 22.04
 multipass shell docker-vm
 ```
 
-### 🐧 Linux → Native
+###  Linux → Native
 ```bash
 # You're already there!
 ```
@@ -157,9 +157,9 @@ multipass mount ~/projects docker-vm:/home/ubuntu/projects
 
 | Service | Free | Private Repos | Limit |
 |---------|------|---------------|-------|
-| Docker Hub | ✓ | 1 | 200 pulls/6h |
-| GitHub | ✓ | Unlimited | 1GB/month |
-| GitLab | ✓ | Unlimited | 5GB/project |
+| Docker Hub |  | 1 | 200 pulls/6h |
+| GitHub |  | Unlimited | 1GB/month |
+| GitLab |  | Unlimited | 5GB/project |
 
 ## Project Structure Example
 
@@ -391,11 +391,11 @@ docker compose --env-file .env.prod up
 
 ## Next Steps
 
-1. ✅ Docker installed and running
-2. ✅ VSCode configured  
-3. ✅ Security basics understood
-4. ✅ Know where to push images
-5. 🎯 Start building real apps!
+1.  Docker installed and running
+2.  VSCode configured  
+3.  Security basics understood
+4.  Know where to push images
+5.  Start building real apps!
 
 ---
 
@@ -404,4 +404,4 @@ docker compose --env-file .env.prod up
 - This guide: Keep it bookmarked!
 - Class Discord: Ask questions!
 
-**Pro tip:** Start simple, add complexity as needed 🚀
+**Pro tip:** Start simple, add complexity as needed 

@@ -1,11 +1,11 @@
-# 💡 Git Apply Näited
+#  Git Apply Näited
 
 **Eesmärk:** Näidata, kuidas kasutada Git apply käsku praktikas  
 **Kontekst:** Kasutage neid näiteid, kui õpite patch failide rakendamist
 
 ---
 
-## 📋 Mis on Patch?
+##  Mis on Patch?
 
 Patch on fail, mis sisaldab muudatuste kirjeldust. Seda saab kasutada, et rakendada muudatusi olemasolevatele failidele.
 
@@ -16,7 +16,7 @@ Patch on fail, mis sisaldab muudatuste kirjeldust. Seda saab kasutada, et rakend
 
 ---
 
-## 📖 Patch'id ja Versioonihaldus
+##  Patch'id ja Versioonihaldus
 
 ### Miks kasutame patch'e?
 
@@ -41,7 +41,7 @@ Patch on fail, mis sisaldab muudatuste kirjeldust. Seda saab kasutada, et rakend
 
 ---
 
-## 📖 Kuidas Rakendada Patch'i?
+##  Kuidas Rakendada Patch'i?
 
 ### Kaks Lihtsat Viisi
 
@@ -59,7 +59,7 @@ git apply muudatused.patch
 
 ---
 
-## 📖 Praktiline Näide
+##  Praktiline Näide
 
 ### Samm 1: Sul on fail `cpu_usage.py`
 
@@ -133,7 +133,7 @@ else:
 
 ---
 
-## 📖 Lihtne Harjutus
+##  Lihtne Harjutus
 
 ### Proovi Ise!
 
@@ -166,7 +166,7 @@ cat hello.py
 
 ---
 
-## 📖 Kasulikud Käsud
+##  Kasulikud Käsud
 
 ```bash
 # Lihtne patch rakendamine
@@ -181,7 +181,7 @@ git apply --check muudatused.patch
 
 ---
 
-## 📖 Kokkuvõte
+##  Kokkuvõte
 
 ### Mida õppisid?
 

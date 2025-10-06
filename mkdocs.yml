@@ -1,0 +1,127 @@
+site_name: DevOps Automatiseerimine
+site_description: DevOps Automatiseerimine - praktilised materjalid
+site_author: Maria Talvik
+repo_url: https://github.com/mtalvik/automatiseerimine_ext
+repo_name: mtalvik/automatiseerimine_ext
+
+theme:
+  name: material
+  language: et
+  palette:
+  - scheme: default
+    primary: deep purple
+    accent: cyan
+    toggle:
+      icon: material/brightness-7
+      name: Lülita tumedale teemale
+  - scheme: slate
+    primary: deep purple
+    accent: cyan
+    toggle:
+      icon: material/brightness-4
+      name: Lülita heledaleale teemale
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+  - navigation.tabs
+  - navigation.sections
+  - navigation.top
+  - navigation.footer
+  - search.suggest
+  - search.highlight
+  - content.code.copy
+  - content.code.annotate
+  - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+- search:
+    lang: et
+
+markdown_extensions:
+- pymdownx.highlight:
+    anchor_linenums: true
+    line_spans: __span
+    pygments_lang_class: true
+- pymdownx.inlinehilite
+- pymdownx.snippets
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+      format: !!python/name:pymdownx.superfences.fence_code_format ""
+- pymdownx.tabbed:
+    alternate_style: true
+- admonition
+- pymdownx.details
+- pymdownx.tasklist:
+    custom_checkbox: true
+- attr_list
+- md_in_html
+- tables
+
+extra_css:
+- stylesheets/extra.css
+
+nav:
+- Avaleht: index.md
+- Git Versioonihaldus:
+  - Loeng: git/loeng.md
+  - Labor: git/labor.md
+  - Kodutöö: git/kodutoo.md
+  - Lisapraktika: git/lisapraktika.md
+- Docker Alused:
+  - Loeng: docker_basics/loeng.md
+  - Labor: docker_basics/labor.md
+  - Kodutöö: docker_basics/kodutoo.md
+  - Lisapraktika: docker_basics/lisapraktika.md
+- Docker Orkestratsioon:
+  - Loeng: docker_orchestration/loeng.md
+  - Labor: docker_orchestration/labor.md
+  - Kodutöö: docker_orchestration/kodutoo.md
+  - Lisapraktika: docker_orchestration/lisapraktika.md
+- Ansible Alused:
+  - Loeng: ansible_basics/loeng.md
+  - Labor: ansible_basics/labor.md
+  - Kodutöö: ansible_basics/kodutoo.md
+  - Lisapraktika: ansible_basics/lisapraktika.md
+- Ansible Rollid:
+  - Loeng: ansible_roles/loeng.md
+  - Labor: ansible_roles/labor.md
+  - Kodutöö: ansible_roles/kodutoo.md
+  - Lisapraktika: ansible_roles/lisapraktika.md
+- Ansible Edasijõudnud:
+  - Loeng: ansible_advanced/loeng.md
+  - Labor: ansible_advanced/labor.md
+  - Kodutöö: ansible_advanced/kodutoo.md
+  - Lisapraktika: ansible_advanced/lisapraktika.md
+- Terraform Alused:
+  - Loeng: terraform_basics/loeng.md
+  - Labor: terraform_basics/labor.md
+  - Kodutöö: terraform_basics/kodutoo.md
+  - Lisapraktika: terraform_basics/lisapraktika.md
+- Terraform Edasijõudnud:
+  - Loeng: terraform_advanced/loeng.md
+  - Labor: terraform_advanced/labor.md
+  - Kodutöö: terraform_advanced/kodutoo.md
+  - Lisapraktika: terraform_advanced/lisapraktika.md
+- Kubernetes:
+  - Loeng: kubernetes/loeng.md
+  - Labor: kubernetes/labor.md
+  - Kodutöö: kubernetes/kodutoo.md
+  - Lisapraktika: kubernetes/lisapraktika.md
+- CI/CD:
+  - Loeng: ci_cd/loeng.md
+  - Labor: ci_cd/labor.md
+  - Kodutöö: ci_cd/kodutoo.md
+  - Lisapraktika: ci_cd/lisapraktika.md
+- Lõpuprojekt:
+  - Loeng: lopuprojekt/loeng.md
+  - Kodutöö: lopuprojekt/kodutoo.md
+
+extra:
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/mtalvik

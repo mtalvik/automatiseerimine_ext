@@ -1,22 +1,77 @@
-# 🧪 CI/CD Edasijõudnud Labor: Täielik Automatiseerimine
+#  CI/CD Labor: Täielik DevOps pipeline (3×45 min)
 
-**Kestus:** 2 tundi  
-**Eesmärk:** Integreerida kõik õpitud DevOps tööriistad ühes lõppprojektis
+## Lab'i eesmärk
+Täna integreerimeKÕIK õpitud DevOps tööriistad ühes lõppprojektis! Git + Docker + Kubernetes + CI/CD = täielik automatiseerimine! 
 
----
-
-## 🎯 Õpiväljundid
-
-Pärast laborit oskate:
-- Integreerida Git, Docker, Ansible, Terraform, Kubernetes ja CI/CD
-- Luua täieliku DevOps pipeline'i
-- Rakendada Infrastructure as Code põhimõtteid
-- Optimeerida automatiseerimise töövooge
-- Dokumenteerida arhitektuuri ja tehnilisi otsuseid
+##  Õpiväljundid
+Pärast seda lab'i oskad:
+- Luua täieliku CI/CD pipeline'i
+- Integreerida Git, Docker, Kubernetes ja CI/CD
+- Automatiseerida build → test → deploy protsessi
+- Kasutada GitOps põhimõtteid
+- Rakendada production-ready practices (rollback, monitoring)
 
 ---
 
-## 📋 Lab'i eesmärk
+### Blokk 1 (45 min) – CI pipeline setup (build + test)
+- **Eesmärk:** Seadistada Continuous Integration pipeline
+- **Tegevused:**
+  - GitLab CI / GitHub Actions setup
+  - `.gitlab-ci.yml` või `.github/workflows/` konfiguratsioon
+  - Build stage - Docker image loomine
+  - Test stage - automated tests
+  - Image push Docker Hub'i
+- **Kontrollnimekiri:**
+  - [ ] CI pipeline on seadistatud
+  - [ ] Build stage töötab (Docker image)
+  - [ ] Test stage töötab (automated tests)
+  - [ ] Image push'ib Docker Hub'i
+- **Kontrollküsimus:** "Mis on Continuous Integration ja miks see oluline?"
+- **Refleksioon (1 min):** "CI/CD on nagu... A) robottehases  B) automaatne kojahoidja  C) maagiline võlukepp "
+
+---
+
+### Blokk 2 (45 min) – CD pipeline (deploy to Kubernetes)
+- **Eesmärk:** Automatiseerida deployment Kubernetes'e
+- **Tegevused:**
+  - Deploy stage lisamine
+  - `kubectl apply` automatiseerimine
+  - Environment'id (dev, staging, prod)
+  - Secrets management (GitLab CI variables / GitHub Secrets)
+  - Rolling updates
+- **Kontrollnimekiri:**
+  - [ ] Deploy stage töötab
+  - [ ] Rakendus deploy'ib Kubernetes'e
+  - [ ] Environment'id on seadistatud
+  - [ ] Secrets on turvalised
+- **Kontrollküsimus:** "Mis vahe on Continuous Delivery ja Continuous Deployment vahel?"
+- **Refleksioon (1 min):** "Automated deployment on nagu... A) Amazon Prime same-day delivery  B) teleportation  C) time machine ⏰"
+
+---
+
+### Blokk 3 (45 min) – Monitoring, rollback ja best practices
+- **Eesmärk:** Lisa monitooring ja õpi, kuidas rollback teha
+- **Tegevused:**
+  - Pipeline monitoring (success/failure notifications)
+  - Rollback strategy (manual + automated)
+  - Environment protection rules
+  - Cache optimisation (Docker layers, dependencies)
+  - Full end-to-end test (commit → deploy)
+- **Kontrollnimekiri:**
+  - [ ] Monitooring töötab (notifications)
+  - [ ] Rollback strategy on olemas
+  - [ ] Pipeline on optimeeritud (cache)
+  - [ ] Full flow töötab: commit → build → test → deploy
+- **Kontrollküsimus:** "Kuidas teha turvalised production deployments?"
+- **Refleksioon (1 min):** "Kõige lahedam asi täna oli... A) commit ja 2 min hiljem on live!  B) rollback saved me! C) nüüd olen DevOps engineer! "
+
+---
+
+**Valmis? Alustame detailsete sammudega!** ⬇
+
+---
+
+##  Lab'i eesmärk
 
 **Täna teeme LÕPPPROJEKTI!** Kasutame KÕIKI oskusi, mida õppisime:
 
@@ -27,7 +82,7 @@ Pärast laborit oskate:
 - **CI/CD** (Nädal 25) → Automated deployment
 - **Monitoring** → Production visibility
 
-## 🏢 **PROJEKT: "TechShop" E-commerce Automatiseerimine**
+##  **PROJEKT: "TechShop" E-commerce Automatiseerimine**
 
 **Klient:** Väike e-commerce startup "TechShop"
 
@@ -41,7 +96,7 @@ Pärast laborit oskate:
 
 ---
 
-## 🛠️ **Vajalikud tööriistad**
+##  **Vajalikud tööriistad**
 
 **Kontrollige, et teil on:**
 - Git
@@ -54,7 +109,7 @@ Pärast laborit oskate:
 
 ---
 
-## 🚀 **Samm 2: Infrastructure as Code (Terraform) - 30 min**
+##  **Samm 2: Infrastructure as Code (Terraform) - 30 min**
 
 ### 2.1: Loo Terraform projekt
 
@@ -181,7 +236,7 @@ terraform output > outputs.txt
 
 ---
 
-## 🔧 **Samm 3: Server Configuration (Ansible) - 30 min**
+##  **Samm 3: Server Configuration (Ansible) - 30 min**
 
 ### 3.1: Loo Ansible projekt
 
@@ -341,7 +396,7 @@ ansible webservers -i inventory.yml -m ping
 
 ---
 
-## 🐳 **Samm 4: Application Development (Docker) - 30 min**
+##  **Samm 4: Application Development (Docker) - 30 min**
 
 ### 4.1: Loo rakendus
 
@@ -492,7 +547,7 @@ docker-compose down
 
 ---
 
-## 🚀 **HARJUTUS 4: CI/CD Pipeline (GitLab CI) - 45 min**
+##  **HARJUTUS 4: CI/CD Pipeline (GitLab CI) - 45 min**
 
 ### Samm 1: Loo Git repository
 
@@ -564,7 +619,7 @@ test-app:
   script:
     - cd app
     - pip install -r requirements.txt
-    - python -c "import app; print('✅ App import successful')"
+    - python -c "import app; print(' App import successful')"
     - echo "Application tests passed!"
   only:
     - main
@@ -581,7 +636,7 @@ build-app:
     - cd app
     - docker build -t $DOCKER_IMAGE:$CI_COMMIT_SHA .
     - docker push $DOCKER_IMAGE:$CI_COMMIT_SHA
-    - echo "✅ Docker image built and pushed!"
+    - echo " Docker image built and pushed!"
   only:
     - main
 
@@ -616,7 +671,7 @@ configure-servers:
   script:
     - cd ansible
     - ansible-playbook -i inventory.yml playbook.yml
-    - echo "✅ Local environment configured!"
+    - echo " Local environment configured!"
   dependencies:
     - deploy-infrastructure
   only:
@@ -631,14 +686,14 @@ deploy-application:
     - apk add --no-cache docker-cli curl
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - echo "🚀 Deploying application locally..."
+    - echo " Deploying application locally..."
     - docker pull $DOCKER_IMAGE:$CI_COMMIT_SHA
     - docker stop techshop-app || true
     - docker rm techshop-app || true
     - docker run -d --name techshop-app -p 5000:5000 $DOCKER_IMAGE:$CI_COMMIT_SHA
     - sleep 10
     - curl -f http://localhost:5000/health || exit 1
-    - echo "✅ Application deployed successfully!"
+    - echo " Application deployed successfully!"
   dependencies:
     - configure-servers
   only:
@@ -657,7 +712,7 @@ deploy-application:
 
 ---
 
-## 📊 **HARJUTUS 5: Monitoring ja Troubleshooting - 30 min**
+##  **HARJUTUS 5: Monitoring ja Troubleshooting - 30 min**
 
 ### Samm 1: Lisa monitoring
 
@@ -712,11 +767,11 @@ health-check:
     - apk add --no-cache curl
     - python3 -c "import json; data=json.load(open('terraform/outputs.json')); print(f'export WEB_SERVER_IP={data[\"web_server_public_ip\"][\"value\"]}')" > set_ip.sh
     - source set_ip.sh
-    - echo "🏥 Running health checks..."
+    - echo " Running health checks..."
     - curl -f http://$WEB_SERVER_IP/health || exit 1
     - curl -f http://$WEB_SERVER_IP/metrics || exit 1
     - curl -f http://$WEB_SERVER_IP/status || exit 1
-    - echo "✅ All health checks passed!"
+    - echo " All health checks passed!"
   dependencies:
     - deploy-application
   only:
@@ -760,7 +815,7 @@ ansible webservers -i inventory.yml -m ping -vvv
 
 ---
 
-## 📝 **HARJUTUS 6: Dokumenteerimine ja Demo - 15 min**
+##  **HARJUTUS 6: Dokumenteerimine ja Demo - 15 min**
 
 ### Samm 1: Loo README.md
 
@@ -869,7 +924,7 @@ curl http://localhost:5000/
 
 ---
 
-## 🎯 **Samm 2: Lab Kokkuvõte**
+##  **Samm 2: Lab Kokkuvõte**
 
 ### **Kõik oskused kasutatud:**
 1. **Git** → Version control ja collaboration
@@ -880,22 +935,22 @@ curl http://localhost:5000/
 6. **Monitoring** → Production visibility
 7. **Troubleshooting** → Probleemide lahendamine
 
-### 🚀 **Real-world projekt:**
+###  **Real-world projekt:**
 - **Production-ready** e-commerce lahendus
 - **Täielik automatiseerimine** - nullist kuni deployment'ini
 - **Kõik DevOps praktikad** ühes projektis
 
-### 📊 **Tulemused:**
+###  **Tulemused:**
 - **Deployment aeg**: 2-3 tundi → 5 minutit
 - **Vigade arv**: 30% → 2%
 - **Rollback aeg**: 1 tund → 2 minutit
 - **Arendaja stress**: Kõrge → Madal
 
-### 📚 **Järgmised sammud:**
+###  **Järgmised sammud:**
 - Lisa andmebaas automatiseerimine
 - Lisa monitoring ja alerting
 - Lisa security scanning
 - Lisa backup ja disaster recovery
 
-**🎉 Palju õnne! Oled nüüd valmis automatiseerimise projektideks!**
+** Palju õnne! Oled nüüd valmis automatiseerimise projektideks!**
 

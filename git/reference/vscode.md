@@ -1,11 +1,11 @@
-# 📖 VS Code Viitematerjal
+#  VS Code Viitematerjal
 
 **Eesmärk:** VS Code seadistamine ja kasutamine Git projektides  
 **Kasutamine:** Kasutage seda viidet VS Code seadistamiseks ja Git integratsiooni jaoks
 
 ---
 
-## 📋 Mis on IDE (Integrated Development Environment)?
+##  Mis on IDE (Integrated Development Environment)?
 
 **IDE** on integreeritud arenduskeskkond - üks programm, mis sisaldab kõiki arendamiseks vajalikke tööriistu:
 

@@ -1,4 +1,4 @@
-# 🧪 Git Labor: Põhitõed (3×45 min)
+#  Git Labor: Põhitõed (3×45 min)
 
 ## Struktuur ja eesmärgid
 - Eesmärk: repo loomine, tähenduslikud commit’id, töövoog add → commit → (push)
@@ -6,25 +6,25 @@
 
 ### Blokk 1 (45 min) – Alustamine
 - Tegevused: Git seadistus; `git init`; esimene ja teine commit (README + muudatus)
-- Kiirküsitlus (fun, 30s): Kumba teed tihemini: Ctrl+Z või commit? 🙃
+- Kiirküsitlus (fun, 30s): Kumba teed tihemini: Ctrl+Z või commit? 
 - Kontrollnimekiri:
   - [ ] Repo olemas, 2 commit’i
   - [ ] Sõnumid selgitavad „miks“
 - Kontrollküsimused: Mis vahe on `add` ja `commit` vahel?
-- Refleksioon (1–2 min): Mis aitas, mis oli raske? Kui Git oleks loom, mis ta oleks ja miks? 🦊
+- Refleksioon (1–2 min): Mis aitas, mis oli raske? Kui Git oleks loom, mis ta oleks ja miks? 
 
 ### Blokk 2 (45 min) – Töövoog ja nähtavus
 - Tegevused: uus fail → `add/commit`; `git status`/`git log`; (võimalusel) remote + `push`
-- Kiirküsitlus (fun, 30s): Mis on parem commit‑sõnum? A) "fix" B) "Lisa README, et selgitada paigaldust" 📢
+- Kiirküsitlus (fun, 30s): Mis on parem commit‑sõnum? A) "fix" B) "Lisa README, et selgitada paigaldust" 
 - Kontrollnimekiri:
   - [ ] ≥3 commit’i
   - [ ] Töövoog on põhjendatud (millal add/commit/push)
 - Kontrollküsimused: Millal on mõistlik `push` teha?
-- Refleksioon (1–2 min): Mis infot saad `git log --oneline` väljundist? Kirjelda seda kui ilmakaarti ☁️🌞
+- Refleksioon (1–2 min): Mis infot saad `git log --oneline` väljundist? Kirjelda seda kui ilmakaarti 
 
 ### Blokk 3 (45 min) – Kvaliteet ja `.gitignore`
 - Tegevused: lisa `.gitignore` (nt `*.log`, `__pycache__/`) ja põhjenda; veel 1 selgitav commit
-- Kiirküsitlus (fun, 30s): Kas `.mp4` faile peaks repos hoidma? A) jah B) ei C) ainult kassivideod 🐱
+- Kiirküsitlus (fun, 30s): Kas `.mp4` faile peaks repos hoidma? A) jah B) ei C) ainult kassivideod 
 - Kontrollnimekiri:
   - [ ] `.gitignore` olemas ja põhjendatud
   - [ ] Viimane commit‑sõnum seletab „miks“
@@ -33,14 +33,13 @@
 
 ---
 
-# 🧪 Git Labor: GitHub Actions
+#  Git Labor: GitHub Actions
 
-**Kestus:** 2 tundi  
 **Eesmärk:** Praktiliselt harjutada kõiki Git'i peamisi funktsioone
 
 ---
 
-## 🎯 Õpiväljundid
+##  Õpiväljundid
 
 Pärast laborit oskate:
 - Seadistada Git keskkonna ja teha esimesi commit'e
@@ -51,7 +50,7 @@ Pärast laborit oskate:
 
 ---
 
-## 📋 Samm 1: Git Basics ja Kohalik Kasutamine (45 min)
+##  Samm 1: Git Basics ja Kohalik Kasutamine (45 min)
 
 ### Harjutus 1.1: Git Setup ja Esimene Repository (15 min)
 
@@ -226,7 +225,7 @@ git checkout -- calculator.py
 
 ---
 
-## 🎯 Samm 2: Branching ja Merging (45 min)
+##  Samm 2: Branching ja Merging (45 min)
 
 ### Harjutus 2.1: Harude Loomine ja Haldamine (20 min)
 
@@ -404,7 +403,7 @@ git log --oneline --graph
 
 ---
 
-## 🎯 Samm 3: GitHub ja Remote Repositories (45 min)
+##  Samm 3: GitHub ja Remote Repositories (45 min)
 
 ### Harjutus 3.1: GitHub Setup ja SSH (15 min)
 
@@ -550,13 +549,13 @@ git push origin --delete feature/documentation
 
 ---
 
-## 🎉 Kiire lõbusaine: Commit Meme Check (60s)
-- Kirjuta üks hea commit‑sõnum kui see oleks meemi pealkiri (ilma ära keeramata sisulist mõtet). 😄
+##  Kiire lõbusaine: Commit Meme Check (60s)
+- Kirjuta üks hea commit‑sõnum kui see oleks meemi pealkiri (ilma ära keeramata sisulist mõtet). 
 - Näide: "docs(readme): päästan õpetaja närvid ja lisan setup'i"
 
 ---
 
-## 🚀 Boonus (valikuline, kui lõpetasid kiiremini)
+##  Boonus (valikuline, kui lõpetasid kiiremini)
 
 **Kui sul on aega järele**, proovi neid lisaülesandeid:
 
@@ -610,6 +609,6 @@ Lisa oma README.md-le:
 - Illustratsioonid või GIF'id
 - Sisukord (Table of Contents)
 - Code examples koos syntax highlighting'uga
-- Emojid 🎉
+- Emojid 
 
 **Vaata täiendavaid edasijõudnud ülesandeid:** `lisapraktika.md`

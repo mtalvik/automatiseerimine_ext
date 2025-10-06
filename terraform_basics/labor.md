@@ -1,22 +1,75 @@
-# 🧪 Terraform Labor: Infrastruktuuri Automatiseerimine
+#  Terraform Labor: Infrastruktuur koodina (3×45 min)
 
-**Kestus:** 2 tundi  
-**Eesmärk:** Õppida Terraform'i praktilist kasutamist ja luua lihtsa infrastruktuuri
+## Lab'i eesmärk
+Täna õpid Terraform'i - tööriista, mis võimaldab kirjeldada infrastruktuuri koodina! Nagu ehitusplaan, aga serveritele. 
 
----
-
-## 🎯 Õpiväljundid
-
-Pärast laborit oskate:
-- **Kirjutada lihtsaid Terraform faile** - HCL süntaks ja põhilised ressursid
-- **Kasutada local provider'it** - failide ja kataloogide loomine
-- **Mõista Terraform workflow** - init, plan, apply, destroy
-- **Debugida probleeme** - logide vaatamine ja veateadete mõistmine
-- **Kasutada dokumentatsiooni** - abi leidmine ja näidete kasutamine
+##  Õpiväljundid
+Pärast seda lab'i oskad:
+- Kirjutada lihtsaid Terraform faile (HCL süntaks)
+- Kasutada Terraform workflow'i: init → plan → apply → destroy
+- Mõista Infrastructure as Code (IaC) põhimõtteid
+- Kasutada variables ja outputs
 
 ---
 
-## 📋 Samm 1: Terraform'i installimine ja seadistamine (15 min)
+### Blokk 1 (45 min) – Terraform setup ja esimene ressurss
+- **Eesmärk:** Installeerida Terraform ja luua esimene ressurss
+- **Tegevused:**
+  - Terraform'i installimine ja versioon check
+  - Esimene `main.tf` fail (local_file ressurss)
+  - `terraform init` - provider'ite allalaadimine
+  - `terraform plan` - näha, mida Terraform teeks
+  - `terraform apply` - ressursi loomine
+- **Kontrollnimekiri:**
+  - [ ] Terraform on installeeritud (`terraform --version`)
+  - [ ] Esimene `main.tf` fail on loodud
+  - [ ] `terraform init` töötab (provider allalaaditud)
+  - [ ] `terraform apply` lõi faili
+- **Kontrollküsimus:** "Mida teeb `terraform plan` enne `apply`?"
+- **Refleksioon (1 min):** "Terraform on nagu... A) ehitusplaan  B) robot  C) maagiline võlukepike "
+
+---
+
+### Blokk 2 (45 min) – Variables ja outputs
+- **Eesmärk:** Kasutada variables parameetriseerimiseks ja outputs tulemuste kuvamiseks
+- **Tegevused:**
+  - `variables.tf` loomine
+  - Variable kasutamine `main.tf` failis (`var.name`)
+  - `terraform.tfvars` - variables väärtuste seadmine
+  - `outputs.tf` - tulemuste kuvamine
+  - `terraform output` käsk
+- **Kontrollnimekiri:**
+  - [ ] `variables.tf` fail on loodud
+  - [ ] Variables toimivad `main.tf` failis
+  - [ ] `outputs.tf` näitab tulemusi
+  - [ ] `terraform output` kuvab õigeid väärtusi
+- **Kontrollküsimus:** "Miks kasutada variables, mitte hardcode väärtuseid?"
+- **Refleksioon (1 min):** "Kui Terraform oleks tööriist, siis milline? A) haamer B) 3D printer C) koopia-kleebi shortcut"
+
+---
+
+### Blokk 3 (45 min) – State management ja destroy
+- **Eesmärk:** Mõista Terraform state'i ja ressursside eemaldamist
+- **Tegevused:**
+  - `terraform.tfstate` faili uurimine
+  - Mõista, kuidas Terraform jälgib ressursse
+  - `terraform refresh` - state'i värskendamine
+  - `terraform destroy` - ressursside eemaldamine
+  - Idempotence testimine (apply 2×)
+- **Kontrollnimekiri:**
+  - [ ] Mõistad, mis on `terraform.tfstate` ja miks see oluline
+  - [ ] `terraform destroy` eemaldab ressursid
+  - [ ] Tead, miks state'i ei tohiks käsitsi muuta
+- **Kontrollküsimus:** "Mis juhtub, kui kustutan `terraform.tfstate` faili?"
+- **Refleksioon (1 min):** "Kõige lahedam asi täna oli... A) esimene apply success  B) destroy watching things disappear  C) mõistsin IaC'i mõtet "
+
+---
+
+**Valmis? Alustame detailsete sammudega!** ⬇
+
+---
+
+##  Samm 1: Terraform'i installimine ja seadistamine (15 min)
 
 ### 1.1: Terraform'i installimine
 
@@ -66,7 +119,7 @@ terraform --help
 
 ---
 
-## 📋 Samm 2: Lihtsa Terraform projekti loomine (45 min)
+##  Samm 2: Lihtsa Terraform projekti loomine (45 min)
 
 ### 2.1: Põhilise Terraform faili loomine
 
@@ -192,7 +245,7 @@ terraform state list
 
 ---
 
-## 📋 Samm 3: Muudatuste tegemine ja haldamine (30 min)
+##  Samm 3: Muudatuste tegemine ja haldamine (30 min)
 
 ### 3.1: Konfiguratsiooni muutmine
 
@@ -272,7 +325,7 @@ terraform destroy
 
 ---
 
-## 📋 Samm 4: Variables ja Outputs (30 min)
+##  Samm 4: Variables ja Outputs (30 min)
 
 ### 4.1: Variables faili loomine
 
@@ -474,7 +527,7 @@ terraform output
 
 ---
 
-## 📋 Samm 5: Advanced Features (30 min)
+##  Samm 5: Advanced Features (30 min)
 
 ### 5.1: Data sources kasutamine
 
@@ -558,7 +611,7 @@ cat summary.txt
 
 ---
 
-## 🎯 Samm 2: Kokkuvõte
+##  Samm 2: Kokkuvõte
 
 Täna õppisime:
 
@@ -575,7 +628,7 @@ Täna õppisime:
 
 ---
 
-## 🚀 **BOONUSÜLESANDED** (Terraform'i oskajatele)
+##  **BOONUSÜLESANDED** (Terraform'i oskajatele)
 
 ### B1: Advanced Local Infrastructure (30 min)
 
@@ -865,11 +918,11 @@ resource "local_file" "monitoring_config" {
 }
 ```
 
-**Kas teil on küsimusi?** 🤔
+**Kas teil on küsimusi?** 
 
 ---
 
-## 📚 Lisaressursid
+##  Lisaressursid
 
 - **Terraform CLI Commands:** https://www.terraform.io/docs/cli
 - **Local Provider:** https://registry.terraform.io/providers/hashicorp/local/latest/docs
@@ -878,7 +931,7 @@ resource "local_file" "monitoring_config" {
 
 ---
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### Levinumad probleemid ja lahendused:
 

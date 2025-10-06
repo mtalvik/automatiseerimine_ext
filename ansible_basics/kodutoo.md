@@ -1,12 +1,12 @@
-# 📝 Ansible Kodutöö: LAMP Stack
+#  Ansible Kodutöö: LAMP Stack
 
 **Tähtaeg:** Järgmise nädala alguseks  
 **Eesmärk:** Automatiseerida LAMP stack'i paigaldus Ansible'iga  
-**Aeg:** 2-3 tundi
+
 
 ---
 
-## 🎯 Ülesande kirjeldus
+##  Ülesande kirjeldus
 
 Looge Ansible lahendus, mis paigaldab täieliku LAMP stack'i (Linux, Apache, MySQL, PHP) ühele või mitmele serverile. Lahendus peab olema taaskasutatav ja konfigureeritav.
 
@@ -17,11 +17,11 @@ Looge Ansible lahendus, mis paigaldab täieliku LAMP stack'i (Linux, Apache, MyS
 ### 1. Infrastruktuur (10 punkti)
 - Vähemalt 2 VM-i (controller + server)
 - SSH võtmepõhine autentimine
-- **⚠️ OLULINE: Lahendus PEAB olema konfigureeritav!**
+- ** OLULINE: Lahendus PEAB olema konfigureeritav!**
 
 **Teie lahendus peab töötama kui õpetaja testib:**
 ```bash
-# Õpetaja muudab ainult neid faile:
+# [hindaja] muudab ainult neid faile:
 # 1. inventory.ini - oma IP-d
 # 2. group_vars/all/main.yml - oma kasutajanimi
 
@@ -38,31 +38,31 @@ server1 ansible_host=MUUDETAV_IP ansible_user=MUUDETAV_KASUTAJA
 **Näide group_vars/all/main.yml:**
 ```yaml
 # Muudetavad muutujad
-student_username: "jaan.tamm"  # Õpetaja muudab oma nimeks
-server_ip: "192.168.1.100"     # Õpetaja muudab oma IP-ks
+student_username: "jaan.tamm"  # [hindaja] muudab oma nimeks
+server_ip: "192.168.1.100"     # [hindaja] muudab oma IP-ks
 domain_name: "lamp.local"
 ```
 
-**❌ VALE - hardcoded väärtused:**
+** VALE - hardcoded väärtused:**
 ```yaml
 - name: "Create user"
   user:
-    name: "jaan.tamm"  # ❌ VALE - peab olema muutuja
+    name: "jaan.tamm"  #  VALE - peab olema muutuja
     
 - name: "Copy file"  
   copy:
-    dest: "/home/jaan.tamm/file"  # ❌ VALE - hardcoded path
+    dest: "/home/jaan.tamm/file"  #  VALE - hardcoded path
 ```
 
-**✅ ÕIGE - muutujatega:**
+** ÕIGE - muutujatega:**
 ```yaml
 - name: "Create user"
   user:
-    name: "{{ student_username }}"  # ✅ ÕIGE
+    name: "{{ student_username }}"  #  ÕIGE
     
 - name: "Copy file"
   copy:
-    dest: "/home/{{ student_username }}/file"  # ✅ ÕIGE
+    dest: "/home/{{ student_username }}/file"  #  ÕIGE
 ```
 
 ### 2. Süsteemi ettevalmistus (15 punkti)
@@ -112,7 +112,7 @@ Looge playbook mis:
 
 ### 6. Organiseerimine (10 punkti)
 
-**⚠️ OLULINE: Failid PEAVAD olema organiseeritud!**
+** OLULINE: Failid PEAVAD olema organiseeritud!**
 
 ```
 ansible_lamp/
@@ -137,12 +137,12 @@ ansible_lamp/
     └── packages.yml
 ```
 
-**❌ MITTE LUBATUD:**
+** MITTE LUBATUD:**
 - Kõik muutujad playbook'is (`vars:` sektsioonis)
 - Kõik ühes suures playbook failis
 - Handlers playbooki sees (lubatud ainult väikestes)
 
-**✅ NÕUTUD:**
+** NÕUTUD:**
 - Muutujad `group_vars/` või `host_vars/` kaustades
 - Iga teenus eraldi playbook'is
 - Templates `templates/` kaustas
@@ -150,35 +150,35 @@ ansible_lamp/
 
 **Näide VALE struktuuri kohta:**
 ```yaml
-# ❌ HALB - kõik ühes failis
+#  HALB - kõik ühes failis
 - name: "Everything in one file"
   hosts: servers
-  vars:              # ❌ Muutujad peaks olema group_vars
+  vars:              #  Muutujad peaks olema group_vars
     mysql_pass: xyz
   tasks:
     - name: "Install Apache"
-    - name: "Install MySQL"  # ❌ Erinevad teenused segamini
-  handlers:          # ❌ Handlers võiks olla eraldi
+    - name: "Install MySQL"  #  Erinevad teenused segamini
+  handlers:          #  Handlers võiks olla eraldi
     - name: restart
 ```
 
 **Näide ÕIGE struktuuri kohta:**
 ```yaml
-# ✅ HEA - apache.yml
+#  HEA - apache.yml
 - name: "Apache setup"
   hosts: lamp_servers
   tasks:
     - name: "Install Apache"
       # ...
     
-# ✅ HEA - mysql.yml  
+#  HEA - mysql.yml  
 - name: "MySQL setup"
   hosts: lamp_servers
   tasks:
     - name: "Install MySQL"
       # ...
 
-# ✅ HEA - site.yml
+#  HEA - site.yml
 - import_playbook: apache.yml
 - import_playbook: mysql.yml
 ```
@@ -219,7 +219,7 @@ ansible_lamp/
 
 ## Nõuanded
 
-**📝 TÄHTIS ERINEVUS:**
+** TÄHTIS ERINEVUS:**
 - **Laboris:** Näitasime kõik ühes failis (algajatele lihtsam)
 - **Kodutöös:** PEATE organiseerima õigesti!
 
@@ -258,11 +258,11 @@ Kodutöös peab olema professionaalne struktuur!
 
 ## Mida EI tohiks teha
 
-❌ Paroolid otse koodis  
-❌ Kõik ühes suures playbook'is  
-❌ SSH parooliga autentimine  
-❌ Root kasutaja kasutamine  
-❌ Muutujad otse playbook'is  
+ Paroolid otse koodis  
+ Kõik ühes suures playbook'is  
+ SSH parooliga autentimine  
+ Root kasutaja kasutamine  
+ Muutujad otse playbook'is  
 
 ---
 
@@ -362,6 +362,109 @@ vars_prompt:
 
 ---
 
+##  Refleksioon (kirjuta README.md lõppu)
+
+Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
+
+### Küsimused (vasta 2-3 lausega igaühele):
+
+1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
+   - Näide: "Kõige raskem oli mõista, kuidas variables ja handlers töötavad koos. Aitasin end sellest välja, et lugesin dokumentatsiooni ja tegin teste."
+
+2. **Milline Ansible kontseptsioon oli sulle kõige suurem "ahaa!"-elamus ja miks?**
+   - Näide: "Idempotence oli mulle suur avastus – võin playbook'i jooksutada 100× ja tulemus on sama!"
+
+3. **Kuidas saaksid Ansible'i kasutada oma teistes projektides või töös?**
+   - Näide: "Võiksin Ansible'iga automatiseerida oma testserverite seadistamise, et ei peaks iga kord käsitsi tegema."
+
+4. **Kui peaksid oma sõbrale selgitama, mis on Ansible ja miks see on kasulik, siis mida ütleksid?**
+   - Näide: "Ansible on nagu kaugjuhtimispult – ühe käsuga saad seadistada 100 serverit korraga!"
+
+5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
+   - Näide: "Mulle meeldis, et ma sain näha, kuidas Ansible automaatselt 2 serverit seadistab – nagu maagia!"
+
+---
+
+##  Kontrollnimekiri (enne esitamist)
+
+**Kontrolli need asjad:**
+
+- [ ] GitHubis on avalik repositoorium
+- [ ] Ansible playbook'id töötavad ilma vigadeta
+- [ ] Inventory ja variables on õigesti seadistatud
+- [ ] LAMP stack on funktsionaalne (Apache, MySQL, PHP)
+- [ ] Idempotence testitud (playbook jookseb 2× ilma muudatusteta)
+- [ ] README.md sisaldab:
+  - [ ] Projekti kirjeldus (mis see on?)
+  - [ ] Kuidas seadistada (SSH, inventory)
+  - [ ] Kuidas käivitada (`ansible-playbook` käsud)
+  - [ ] Refleksioon (5 küsimuse vastused, 2-3 lauset igaüks)
+- [ ] Kõik muudatused on GitHubi push'itud
+
+---
+
+##  Hindamiskriteeriumid
+
+| Kriteerium | Punktid | Kirjeldus |
+|------------|---------|-----------|
+| **Infrastruktuur** | 15% | SSH töötab, inventory õigesti, 2+ VM |
+| **Playbook kvaliteet** | 30% | LAMP stack installeerub, idempotent, variables kasutatud |
+| **Handlers** | 15% | Teenused restarditakse ainult muudatuse korral |
+| **Kood struktuur** | 15% | Failid organiseeritud, nimed selged, group_vars kasutatud |
+| **README** | 10% | Projekti kirjeldus, käivitamisjuhend, selge |
+| **Refleksioon** | 15% | 5 küsimust vastatud, sisukas, näitab mõistmist |
+
+**Kokku: 100%**
+
+---
+
+##  Abimaterjalid ja lugemine (enne kodutöö tegemist)
+
+**Kiirviited:**
+- [Ansible Docs - Playbooks](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html)
+- [Ansible Docs - Variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html)
+- [Ansible Docs - Handlers](https://docs.ansible.com/ansible/latest/user_guide/playbooks_handlers.html)
+- [YAML Syntax](https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html)
+
+**Kui abi vaja:**
+1. Vaata `lisamaterjalid.md` faili täiendavate näidete jaoks
+2. Kasuta `ansible-doc <module>` dokumentatsiooni vaatamiseks
+3. Küsi klassikaaslaselt või õpetajalt
+4. Stack Overflow: search "ansible [sinu probleem]"
+
+---
+
+##  Boonus (valikuline, +10%)
+
+**Kui tahad ekstra punkte, tee üks või mitu neist:**
+
+1. **Ansible Vault:** Krüpteeri MySQL paroolid Vault'iga
+   ```bash
+   ansible-vault encrypt group_vars/all/vault.yml
+   ```
+
+2. **Multiple environments:** Dev vs Prod inventory ja variables
+   ```
+   inventory/
+     dev/hosts
+     prod/hosts
+   group_vars/
+     dev/main.yml
+     prod/main.yml
+   ```
+
+3. **Automated testing:** Lisa tests playbook'i lõppu (check if services running)
+   ```yaml
+   - name: "Test Apache"
+     uri:
+       url: "http://{{ inventory_hostname }}"
+       status_code: 200
+   ```
+
+4. **Firewall rules:** Kasuta `ufw` moodulit firewall'i seadistamiseks
+
+---
+
 ## Tähtis
 
 - Tehke GitHubi commit'e tihti
@@ -369,3 +472,7 @@ vars_prompt:
 - Testige iga sammu
 - Küsige abi kui jääte kinni
 - Google ja StackOverflow on lubatud!
+
+---
+
+**Edu ja head Ansible'itamist!** 

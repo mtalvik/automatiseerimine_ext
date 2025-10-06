@@ -1,22 +1,70 @@
-# 🧪 Ansible Labor: 2 VM Seadistus ja Automatiseerimine
+#  Ansible Labor: Põhitõed (3×45 min)
 
-**Kestus:** 2 tundi  
-**Eesmärk:** Õppida Ansible põhitõed läbi praktiliste harjutuste
+## Lab'i eesmärk
+Täna õpid Ansible põhitõdesid ja harjutad serverite automatiseerimist. Ansible on nagu kaugjuhtimispult sadadele serveritele korraga! 
 
----
-
-## 🎯 Õpiväljundid
-
-Pärast laborit oskate:
-- Seadistada Vagrant keskkonna 2 VM-iga
-- Konfigureerida SSH ühendused ja inventory
-- Kirjutada esimesi playbook'e
-- Käivitada ad-hoc käske serverite haldamiseks
-- Kasutada Ansible mooduleid praktilistes ülesannetes
+##  Õpiväljundid
+Pärast seda lab'i oskad:
+- Seadistada SSH ja inventory faili
+- Kirjutada esimesi playbook'e YAML'is
+- Kasutada ad-hoc käske kiireks serverite haldamiseks
+- Mõista idempotentsuse printsiipi
 
 ---
 
-## 📋 SETUP: 2 VM ETTEVALMISTUS
+### Blokk 1 (45 min) – SSH setup ja esimene ad-hoc käsk
+- **Eesmärk:** Seadistada SSH ühendused ja testida Ansible'i
+- **Tegevused:**
+  - SSH võtmete genereerimine ja kopeerimine
+  - Inventory faili loomine
+  - `ansible all -m ping` - esimene test
+  - `ansible all -m command` - ad-hoc käsud
+- **Kontrollnimekiri:**
+  - [ ] SSH töötab ilma paroolita
+  - [ ] Inventory fail on loodud
+  - [ ] `ansible all -m ping` tagastab SUCCESS
+- **Kontrollküsimus:** "Miks on SSH võtmed paremad kui paroolid?"
+- **Refleksioon (1 min):** "Kui Ansible oleks superjõud, siis milline? A) telepatia B) kloonimine C)  ajareisimine"
+
+---
+
+### Blokk 2 (45 min) – Esimene playbook ja YAML
+- **Eesmärk:** Kirjutada esimene playbook ja mõista YAML süntaksit
+- **Tegevused:**
+  - YAML süntaksi tutvustus (indentation!)
+  - Esimene playbook (nginx installimine)
+  - `ansible-playbook` käsu kasutamine
+  - Idempotentsuse testimine (jooksuta 2×)
+- **Kontrollnimekiri:**
+  - [ ] Playbook on kirjutatud (YAML korrektne)
+  - [ ] Nginx on installeeritud
+  - [ ] Teine run näitab "changed: 0" (idempotent!)
+- **Kontrollküsimus:** "Mis on idempotence ja miks see oluline?"
+- **Refleksioon (1 min):** "YAML on nagu... A) Python (tühikud on tähtsad!) B) JSON ilma sulgudeta C) mõlemad"
+
+---
+
+### Blokk 3 (45 min) – Variables ja handlers
+- **Eesmärk:** Kasutada variables parameetriseerimiseks ja handlers teenuste jaoks
+- **Tegevused:**
+  - Variables deklareerimine (`vars:`)
+  - `{{ variable }}` kasutamine
+  - Handlers (nginx restart on change)
+  - `notify` direktiiv
+- **Kontrollnimekiri:**
+  - [ ] Variables toimivad playbook'is
+  - [ ] Handler restartib nginx'i ainult muudatuse korral
+  - [ ] Mõistad, millal handler triggerib
+- **Kontrollküsimus:** "Mis vahe on task ja handler vahel?"
+- **Refleksioon (1 min):** "Kuidas sa selgitaksid Ansible'i oma vanaisale? "
+
+---
+
+**Valmis? Alustame detailsete sammudega!** ⬇
+
+---
+
+##  SETUP: 2 VM ETTEVALMISTUS
 
 ### Teie VM-id:
 - **VM1:** ansible-controller (näiteks 192.168.56.10)
@@ -24,7 +72,7 @@ Pärast laborit oskate:
 
 ### SAMM 1: Kasutajate loomine
 
-**📝 KONTEKST:** Praegu oled kas root või ubuntu kasutajana. Loome uue kasutaja Ansible jaoks.
+** KONTEKST:** Praegu oled kas root või ubuntu kasutajana. Loome uue kasutaja Ansible jaoks.
 
 ```bash
 # MÕLEMAS VM-is teeme sama kasutaja
@@ -49,23 +97,23 @@ pwd                       # Peaks näitama: /home/ansible
 groups                    # Peaks näitama: ansible sudo
 ```
 
-**❓ KAS ANSIBLE VAJAB SUDO ÕIGUSI?**
+** KAS ANSIBLE VAJAB SUDO ÕIGUSI?**
 
 **Lühike vastus:** JAH ja EI - oleneb mida teete!
 
-**📌 EI VAJA sudo õigusi:**
+** EI VAJA sudo õigusi:**
 - Failide kopeerimine oma kausta
 - Info kogumine (osaliselt)
 - Käskude käivitamine tavakasutajana
 
-**📌 VAJAB sudo õigusi:**
+** VAJAB sudo õigusi:**
 - Tarkvara installimine (apt, yum)
 - Süsteemifailide muutmine (/etc/...)
 - Teenuste haldamine (nginx restart)
 - Kasutajate loomine
 - Firewall reeglid
 
-**🔧 KUIDAS ANSIBLE SUDO KASUTAB:**
+** KUIDAS ANSIBLE SUDO KASUTAB:**
 
 ```yaml
 # Playbook'is - kogu playbook sudo õigustega
@@ -98,14 +146,14 @@ groups                    # Peaks näitama: ansible sudo
       become: yes                 # Ainult see task vajab sudo
 ```
 
-**📁 KASUTAJA KONTEKST:**
+** KASUTAJA KONTEKST:**
 - **Alguses:** root või ubuntu (VM-i vaikekasutaja)
 - **Pärast:** ansible (meie loodud kasutaja)
 - **Edaspidi:** KÕIK tegevused ansible kasutajana!
 
 ### SAMM 2: SSH setup
 
-**📝 OLULINE:** SSH võtmed on KASUTAJA-PÕHISED! Iga kasutaja hoiab oma võtmeid oma kodukaustas.
+** OLULINE:** SSH võtmed on KASUTAJA-PÕHISED! Iga kasutaja hoiab oma võtmeid oma kodukaustas.
 
 ```bash
 # KONTROLL - kes sa oled ja kus sa oled?
@@ -155,26 +203,26 @@ hostname
 exit
 ```
 
-**📁 KUS VÕTMED ASUVAD:**
+** KUS VÕTMED ASUVAD:**
 - **VM1:** `/home/ansible/.ssh/` - ansible kasutaja kodukaustas
   - `id_ed25519` - privaatne võti (ÄRA jaga!)
   - `id_ed25519.pub` - avalik võti (selle kopeerid)
   
 - **VM2:** `/home/ansible/.ssh/authorized_keys` - lubatud võtmete nimekiri
 
-**❓ MIS JUHTUB:**
+** MIS JUHTUB:**
 1. ansible@VM1 genereerib võtmepaari
 2. Avalik võti kopeeritakse ansible@VM2 authorized_keys faili
 3. Nüüd saab ansible@VM1 logida ansible@VM2 ilma paroolita
 
-**⚠️ TÄHTIS:**
+** TÄHTIS:**
 - Võtmed on KASUTAJA kohased - ansible kasutaja võti töötab ainult ansible kasutajaga
 - Kui lood root võtme, see töötab ainult root'iga
 - Iga kasutaja hoiab võtmeid oma ~/.ssh/ kaustas
 
 ---
 
-## 📋 OSA 1: ANSIBLE INSTALL JA INVENTORY
+##  OSA 1: ANSIBLE INSTALL JA INVENTORY
 
 ### SAMM 3: Ansible installimine
 
@@ -214,7 +262,7 @@ control
 webservers
 ```
 
-**📝 MUUDA:** `192.168.56.11` asenda oma VM2 IP-ga!
+** MUUDA:** `192.168.56.11` asenda oma VM2 IP-ga!
 
 ### SAMM 5: Testi ühendust
 
@@ -227,14 +275,14 @@ ansible -i inventory.ini all -m ping
 # web1 | SUCCESS => { "ping": "pong" }
 ```
 
-**❌ Kui ei tööta:**
+** Kui ei tööta:**
 - Kontrolli IP: `ip addr show`
 - Kontrolli SSH: `ssh ansible@<VM2-IP>`
 - Kontrolli inventory fail
 
 ---
 
-## 📋 OSA 2: AD-HOC KÄSUD
+##  OSA 2: AD-HOC KÄSUD
 
 Sedalaadi kasutamist nimetatakse tavaliselt ad-hoc kasutamiseks ning kasutada saab kõiki moodulite parameetreid. Ansible kasutab kõigi asjade tegemiseks mooduleid. Nende abil paigaldab ta tarkvara, kopeerib faile jne.
 
@@ -269,7 +317,7 @@ ansible -i inventory.ini webservers -m setup -a "filter=ansible_distribution*"
 ansible -i inventory.ini webservers -m ping
 ```
 
-**📝 PARAMEETRITE SELGITUS:**
+** PARAMEETRITE SELGITUS:**
 - `-i inventory.ini` = millisest failist serverite nimekirja võtta
 - `-m mooduli_nimi` = millist moodulit kasutada (ping, shell, copy, apt, user, setup)
 - `-a "argumendid"` = argumendid moodulile
@@ -279,7 +327,7 @@ ansible -i inventory.ini webservers -m ping
 
 **Kõigi kasutatavate moodulite nimekirja leiab:** https://docs.ansible.com/ansible/latest/modules/modules_by_category.html
 
-**📝 PARAMEETRID:**
+** PARAMEETRID:**
 - `-i inventory.ini` = kasuta seda inventory't
 - `-m module_name` = moodul (ping, shell, copy, apt)
 - `-a "arguments"` = argumendid moodulile
@@ -287,7 +335,7 @@ ansible -i inventory.ini webservers -m ping
 
 ---
 
-## 📋 OSA 3: ESIMENE PLAYBOOK
+##  OSA 3: ESIMENE PLAYBOOK
 
 Playbook = YAML fail ülesannetega
 
@@ -329,14 +377,14 @@ nano playbooks/01_info.yml
 ansible-playbook -i inventory.ini playbooks/01_info.yml
 ```
 
-**📝 OUTPUT:**
+** OUTPUT:**
 - `ok` = ülesanne õnnestus
 - `changed` = midagi muudeti
 - `failed` = viga (playbook peatub)
 
 ---
 
-## 📋 OSA 4: NGINX INSTALLIMINE
+##  OSA 4: NGINX INSTALLIMINE
 
 Keerukam lahendus, mis lisaks paigaldab nginx veebiserveri, loob konfiguratsiooni ja paigaldab veebiserverisse sisu.
 
@@ -394,7 +442,7 @@ nano playbooks/02_nginx.yml
         state: restarted          # Taaskäivita teenus
 ```
 
-**📝 HANDLERITE SELGITUS:**
+** HANDLERITE SELGITUS:**
 Handlers on taskid mis käivitatakse teiste taskide eduka lõpetamise korral. Näiteks teenustele tehtavad restardid. Need käivituvad:
 - AINULT kui task tegi muudatuse (changed=true)
 - Alles playbooki LÕPUS
@@ -412,7 +460,7 @@ curl http://192.168.56.11
 ansible -i inventory.ini webservers -m service -a "name=nginx state=started" --check
 ```
 
-**🔐 SUDO PAROOLI VARIANDID:**
+** SUDO PAROOLI VARIANDID:**
 
 **1. Küsi iga kord:**
 ```bash
@@ -433,11 +481,11 @@ sudo visudo
 ansible ALL=(ALL) NOPASSWD: ALL
 ```
 
-**⚠️ PRODUCTION'is:** Kasutage Ansible Vault parooli krüpteerimiseks!
+** PRODUCTION'is:** Kasutage Ansible Vault parooli krüpteerimiseks!
 
 ---
 
-## 📋 OSA 5: TEMPLATE KASUTAMINE
+##  OSA 5: TEMPLATE KASUTAMINE
 
 Templatedega saab luua vaikekonfe, mis paigaldamise ajal täidetakse vastavalt masinale sobiva infoga. Templates = dünaamilised failid muutujatega, kasutavad Jinja2 süntaksit.
 
@@ -499,7 +547,7 @@ nano templates/website.html.j2
 </html>
 ```
 
-**📝 JINJA2 SÜNTAKS:**
+** JINJA2 SÜNTAKS:**
 - `{{ muutuja }}` = muutuja väärtus
 - `{% if tingimus %}` = tingimuslause
 - `{% for item in list %}` = tsükkel
@@ -548,7 +596,7 @@ curl http://192.168.56.11
 
 ---
 
-## 📋 OSA 6: MUUTUJAD JA LOOPS
+##  OSA 6: MUUTUJAD JA LOOPS
 
 ```bash
 nano playbooks/04_users.yml
@@ -599,7 +647,7 @@ nano playbooks/04_users.yml
 
 ---
 
-## 📋 OSA 7: ORGANISEERIMINE
+##  OSA 7: ORGANISEERIMINE
 
 ### Group variables
 
@@ -675,7 +723,7 @@ nano playbooks/05_main.yml
 
 ---
 
-## 📋 OSA 8: ANSIBLE.CFG
+##  OSA 8: ANSIBLE.CFG
 
 ```bash
 # Konfiguratsioonifail - teeb elu lihtsamaks
@@ -704,7 +752,7 @@ ansible-playbook playbooks/05_main.yml
 
 ---
 
-## 📋 OSA 9: DEBUGGING
+##  OSA 9: DEBUGGING
 
 ```bash
 nano playbooks/99_debug.yml
@@ -748,7 +796,7 @@ ansible-playbook playbooks/02_nginx.yml --check
 
 ---
 
-## 📁 GITHUB REPO STRUKTUUR
+##  GITHUB REPO STRUKTUUR
 
 ```
 ansible_tutorial/
@@ -778,7 +826,7 @@ ansible_tutorial/
 
 ---
 
-## ✅ KONTROLL-NIMEKIRI
+##  KONTROLL-NIMEKIRI
 
 - [ ] VM1 ja VM2 seadistatud
 - [ ] SSH võti töötab ilma paroolita
@@ -793,7 +841,7 @@ ansible_tutorial/
 
 ---
 
-## 📚 DOKUMENTATSIOON
+##  DOKUMENTATSIOON
 
 - **Ansible Docs:** https://docs.ansible.com/
 - **Moodulid:** `ansible-doc -l` või `ansible-doc <moodul>`
@@ -802,7 +850,7 @@ ansible_tutorial/
 
 ---
 
-## 🏆 HINDAMINE
+##  HINDAMINE
 
 **A:** Kõik töötab + organiseeritud + dokumenteeritud  
 **B:** Põhiülesanded töötavad  

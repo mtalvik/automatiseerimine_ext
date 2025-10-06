@@ -1,11 +1,11 @@
-# 💡 Git Diff Näited
+#  Git Diff Näited
 
 **Eesmärk:** Näidata, kuidas lugeda Git diff väljundit praktikas  
 **Kontekst:** Kasutage neid näiteid, kui õpite diff väljundi lugemist
 
 ---
 
-## 📋 Sissejuhatus Diff'i Lugemisse
+##  Sissejuhatus Diff'i Lugemisse
 
 Diff on tööriist, mis näitab failide vahelisi erinevusi. Git kasutab sama formaati, mis Unix/Linux `diff` käsk.
 
@@ -18,7 +18,7 @@ Diff on tööriist, mis näitab failide vahelisi erinevusi. Git kasutab sama for
 
 ---
 
-## 📖 Diff Väljundi Formaat
+##  Diff Väljundi Formaat
 
 ### Põhiline Struktuur
 
@@ -40,7 +40,7 @@ Diff on tööriist, mis näitab failide vahelisi erinevusi. Git kasutab sama for
 
 ---
 
-## 📖 Praktilised Näited
+##  Praktilised Näited
 
 ### Näide 1: Lihtne Rida Muutmine
 
@@ -182,7 +182,7 @@ $ diff -u validations1.py validations2.py
 
 ---
 
-## 📖 Git Diff Näited
+##  Git Diff Näited
 
 ### Git Diff Töökausta vs Staging
 
@@ -266,7 +266,7 @@ index x1y2z3a..b4c5d6e 100644
 
 ---
 
-## 📖 Diff'i Lugemine
+##  Diff'i Lugemine
 
 ### 1. Vaata Konteksti
 ```
@@ -291,7 +291,7 @@ index x1y2z3a..b4c5d6e 100644
 
 ---
 
-## 📖 Harjutused
+##  Harjutused
 
 ### Harjutus 1: Loe Diff'i
 
@@ -354,7 +354,7 @@ index x1y2z3a..b4c5d6e 100644
 
 ---
 
-## 📖 Kasulikud Diff Käsud
+##  Kasulikud Diff Käsud
 
 ### Git Diff Variandid
 
@@ -405,7 +405,7 @@ diff -r kaust1/ kaust2/
 
 ---
 
-## 📖 Kokkuvõte
+##  Kokkuvõte
 
 ### Olulised Punktid
 

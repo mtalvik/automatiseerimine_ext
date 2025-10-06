@@ -1,11 +1,10 @@
 # Lõpuprojekt Labor: Projekti Alustamine
 
-**Kestus:** 2 tundi  
 **Eesmärk:** Alustada lõpuprojekti ja seadistada põhistruktuur
 
 ---
 
-## 🎯 Õpiväljundid
+##  Õpiväljundid
 
 Pärast laborit oskate:
 - Valida sobiva projekti teema
@@ -16,7 +15,7 @@ Pärast laborit oskate:
 
 ---
 
-## 📋 Samm 1: Projekti Valik (30 min)
+##  Samm 1: Projekti Valik (30 min)
 
 ### 1.1 Projekti valik
 
@@ -71,7 +70,7 @@ Kirjutage lühike kirjeldus (2-3 lauset):
 
 ---
 
-## 📋 Samm 2: Arhitektuuri Planeerimine (45 min)
+##  Samm 2: Arhitektuuri Planeerimine (45 min)
 
 ### 2.1 Arhitektuuridiagramm
 
@@ -110,7 +109,7 @@ Dokumenteerige otsused:
 
 ---
 
-## 📋 Samm 3: Repository Seadistamine (30 min)
+##  Samm 3: Repository Seadistamine (30 min)
 
 ### 3.1 GitHub repository
 
@@ -183,7 +182,7 @@ git checkout main
 
 ---
 
-## 📋 Samm 4: CI/CD Alustamine (15 min)
+##  Samm 4: CI/CD Alustamine (15 min)
 
 ### 4.1 GitHub Actions
 
@@ -257,7 +256,7 @@ CMD ["npm", "start"]
 
 ---
 
-## 📋 Samm 5: Dokumentatsiooni Alustamine (15 min)
+##  Samm 5: Dokumentatsiooni Alustamine (15 min)
 
 ### 5.1 Tehnilised otsused
 
@@ -329,7 +328,7 @@ kubectl apply -f kubernetes/
 
 ---
 
-## 🎯 Labori Kokkuvõte
+##  Labori Kokkuvõte
 
 Pärast seda laborit on teil:
 
@@ -349,4 +348,4 @@ Pärast seda laborit on teil:
 5. **Testimine** - Kirjuta testid
 6. **Dokumentatsioon** - Täienda dokumentatsiooni
 
-**Edu projekti jätkamisel!** 🚀
+**Edu projekti jätkamisel!** 

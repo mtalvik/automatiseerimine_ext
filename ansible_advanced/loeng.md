@@ -1,4 +1,8 @@
-# Ansible: Edasijõudnud Funktsioonid
+#  Ansible: Edasijõudnud Funktsioonid
+
+**Teemad:** Ansible Vault, Jinja2 templates, optimiseerimine, troubleshooting
+
+---
 
 ## Sissejuhatus
 
@@ -548,12 +552,13 @@ Järgmisel nädalal räägime Ansible role'idest, mis viivad korduvkasutuse veel
 
 Samuti tutvume Puppet'iga, mis on alternatiivne configuration management tööriist. Puppet läheneb samadele probleemidele teise nurga alt - deklaratiivne vs imperatiivne lähenemine. Huvitav on näha, kuidas erinevad tööriistad lahendavad samu väljakutseid.
 
-## Praktilised harjutused
+##  Praktilised näited
 
-Proovime nüüd koos läbi mõned praktilised näited. Alustame lihtsast ja liigume keerulisema poole.
+Vaatame mõned praktilised näited. Alustame lihtsast ja liigume keerulisema poole.
 
-**Harjutus 1: Muutujate hierarhia**
-Loome projekti struktuuri ja testime, milline muutuja võidab:
+### Näide 1: Muutujate hierarhia
+
+Näide, kuidas luua projekti struktuur ja testida, milline muutuja võidab:
 ```bash
 mkdir ansible-practice
 cd ansible-practice
@@ -572,8 +577,9 @@ cat > test.yml << EOF
 EOF
 ```
 
-**Harjutus 2: Lihtne template**
-Loome dünaamilise konfiguratsioonifaili:
+### Näide 2: Lihtne template
+
+Näide dünaamilise konfiguratsioonifaili loomisest:
 ```bash
 mkdir templates
 cat > templates/app.conf.j2 << EOF
@@ -594,7 +600,8 @@ pool_size = 5
 EOF
 ```
 
-**Harjutus 3: Handler'iga playbook**
+### Näide 3: Handler'iga playbook
+
 ```yaml
 - name: "Web server setup"
   hosts: webservers
@@ -624,6 +631,6 @@ Järgmiseks korraks palun:
 3. Harjutage vault'i kasutamist - krüpteerige testfail
 4. Mõelge, millised osad teie infrastruktuurist saaksid kasu automatiseerimisest
 
-Küsimused on teretulnud! Võite küsida kohe või hiljem kursuse chat'is. Remember - monkey see, monkey do, aga targem ahv mõistab ka miks ta seda teeb! 🐵
+Küsimused on teretulnud! Võite küsida kohe või hiljem kursuse chat'is. Remember - monkey see, monkey do, aga targem ahv mõistab ka miks ta seda teeb! 
 
 Edu automatiseerimisel ja kohtumiseni järgmisel nädalal!

@@ -1,18 +1,23 @@
-# 📝 Docker Kodutöö: Chat Bot API
+#  Docker Kodutöö: Chat Bot Container (1.5h)
 
-**Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** Ehitada interaktiivne chat bot API Docker konteineris  
-**Aeg:** 2-3 tundi
+**Tähtaeg:** Järgmise nädala algus  
+**Eesmärk:** Näidata, et oskad Docker'i praktikas kasutada  
 
----
-
-## 🎯 Ülesande kirjeldus
-
-Ehitame lihtsa chat bot'i Docker container'is! See projekt õpetab teid konteinerite praktilist kasutamist päris rakenduse loomisel.
 
 ---
 
-## 📋 Projekt: Chat Bot API
+##  Mis sa teed?
+
+Ehita lihtne Flask/Node chat bot Docker container'is! See on nagu sinu esimene "päris" Dockeri projekt – näita, et oskad konteinereid teha nagu professionaal! 
+
+---
+
+##  Samm-sammult juhend
+
+### Ülesanne (soovituslik ajakava)
+- 0–30 min: Loo Python/Node rakendus (chat bot API)
+- 30–60 min: Kirjuta Dockerfile ja `.dockerignore`
+- 60–90 min: Build image, testi container, kirjuta README refleksiooniga
 
 ---
 
@@ -210,7 +215,7 @@ mkdir templates
     
     <div class="chat-container">
         <div class="chat-header">
-            <h2>🐳 Docker Chat Bot</h2>
+            <h2> Docker Chat Bot</h2>
             <p>Tudeng: <strong>[SINU NIMI]</strong></p>
         </div>
         
@@ -220,7 +225,7 @@ mkdir templates
                 Proovi kirjutada: "tere", "kuidas", "kes", "aeg", "info"
             </div>
             <div class="info-box">
-                💡 See rakendus töötab Python Flask serveris Docker container'is!
+                 See rakendus töötab Python Flask serveris Docker container'is!
             </div>
         </div>
         
@@ -577,4 +582,113 @@ curl http://localhost:5000/api/stats
 
 ---
 
-**Edu kodutööga!**
+##  Refleksioon (kirjuta README.md lõppu)
+
+Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
+
+### Küsimused (vasta 2-3 lausega igaühele):
+
+1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
+   - Näide: "Kõige raskem oli mõista, kuidas port mapping töötab. Aitasin end sellest välja, et joonistasin diagrammi."
+
+2. **Milline Docker kontseptsioon või käsk oli sulle kõige suurem "ahaa!"-elamus ja miks?**
+   - Näide: "Docker cache oli mulle suur avastus – esimene build võttis 5 min, teine ainult 10 sekundit!"
+
+3. **Kuidas saaksid Docker'i kasutada oma teistes projektides või koolitöödes?**
+   - Näide: "Võiksin Docker'i kasutada oma veebirakenduste testimiseks, et nad töötaksid sõprade arvutites ka."
+
+4. **Kui peaksid oma sõbrale selgitama, mis on Docker ja miks see on kasulik, siis mida ütleksid?**
+   - Näide: "Docker on nagu miniatuurne virtuaalmasin – super kiire ja töötab kõikjal ühesuguselt!"
+
+5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
+   - Näide: "Mulle meeldis, et ma sain oma rakenduse Docker Hub'i panna ja nüüd saavad teised seda kasutada!"
+
+---
+
+##  Kontrollnimekiri (enne esitamist)
+
+**Kontrolli need asjad:**
+
+- [ ] GitHub repos on avalik ja sisaldab kõiki vajalikke faile
+- [ ] `Dockerfile` on olemas ja töötab (image build'ub ilma vigadeta)
+- [ ] `.dockerignore` on olemas (ignoreeri `__pycache__/`, `*.pyc`, `venv/`)
+- [ ] `docker-compose.yml` on olemas ja töötab
+- [ ] Image on Docker Hub'i push'itud ja avalik
+- [ ] Container käivitub ja on ligipääsetav (port mapping töötab)
+- [ ] Chat bot vastab küsimustele õigesti
+- [ ] README.md sisaldab:
+  - [ ] Projekti kirjeldus (mis see on?)
+  - [ ] Kuidas käivitada (Docker käsud)
+  - [ ] Kuidas kasutada (API endpoints)
+  - [ ] Refleksioon (5 küsimuse vastused, 2-3 lauset igaüks)
+
+---
+
+##  Hindamiskriteeriumid
+
+| Kriteerium | Punktid | Kirjeldus |
+|------------|---------|-----------|
+| **Dockerfile kvaliteet** | 25% | Dockerfile toimib, kasutab best practices (cache, väike image) |
+| **Container töötab** | 25% | Image build'ub ja container käivitub õigesti |
+| **Funktsioon** | 20% | Chat bot vastab küsimustele, API töötab |
+| **Docker Hub** | 10% | Image on Docker Hub'i push'itud ja avalik |
+| **README** | 10% | Projekti kirjeldus, käivitamisjuhend, selge |
+| **Refleksioon** | 10% | 5 küsimust vastatud, sisukas, näitab mõistmist |
+
+**Kokku: 100%**
+
+---
+
+##  Abimaterjalid ja lugemine (enne kodutöö tegemist)
+
+**Kiirviited:**
+- [Dockerfile Best Practices](https://docs.docker.com/develop/dev-best-practices/)
+- [Docker CLI Cheat Sheet](https://docs.docker.com/get-started/docker_cheatsheet.pdf)
+- [Docker Hub dokumentatsioon](https://docs.docker.com/docker-hub/)
+
+**Video tutor'id (valikuline):**
+- [Docker in 100 Seconds](https://www.youtube.com/watch?v=Gjnup-PuquQ) (inglise keeles)
+- [Learn Docker in 7 Easy Steps](https://www.youtube.com/watch?v=gAkwW2tuIqE) (inglise keeles)
+
+**Kui abi vaja:**
+1. Vaata lab'i materjalide (`labor.md`) näiteid
+2. Kasuta `docker --help` või `docker <käsk> --help`
+3. Küsi klassikaaslaselt või õpetajalt
+4. Stack Overflow: search "docker [sinu probleem]"
+
+---
+
+##  Boonus (valikuline, +10%)
+
+**Kui tahad ekstra punkte, tee üks või mitu neist:**
+
+1. **Lisa health check Dockerfile'i:**
+   ```dockerfile
+   HEALTHCHECK --interval=30s --timeout=3s \
+     CMD curl -f http://localhost:5000/api/stats || exit 1
+   ```
+
+2. **Multi-stage build:** Optimeeri Dockerfile'i kasutades multi-stage build'i
+   ```dockerfile
+   FROM python:3.9 AS builder
+   # build steps
+   FROM python:3.9-slim
+   COPY --from=builder ...
+   ```
+
+3. **Docker Compose environment variables:** Lisa `.env` fail ja kasuta environment variables
+   ```yaml
+   services:
+     app:
+       environment:
+         - API_KEY=${API_KEY}
+         - DEBUG=${DEBUG:-False}
+   ```
+
+4. **Monitoring:** Lisa Prometheus metrics endpoint või lihtne `/health` endpoint
+
+---
+
+**Edu ja head Docker'itamist!** 
+
+**P.S.** Pärast kodutöö esitamist võid jätkata projekti arendamist – see on sinu portfoolio! Näiteks: lisa autentimine, andmebaas (PostgreSQL container), või frontend (React container). 

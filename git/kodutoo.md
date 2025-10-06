@@ -1,18 +1,18 @@
-# 📝 Git Kodutöö: Minu Git Portfolio (1.5h)
+#  Git Kodutöö: Minu Git Portfolio (1.5h)
 
 **Tähtaeg:** Järgmise nädala algus  
 **Eesmärk:** Näidata, et oskad Git'i põhitõdesid praktikas kasutada  
-**Aeg:** ~1.5 tundi (isetempoline)
+
 
 ---
 
-## 🎯 Mis sa teed?
+##  Mis sa teed?
 
-Loo GitHubis oma avalik repositoorium nimega `git-portfolio` (või muu nimi, mis sulle meeldib). See on nagu sinu CV, aga koodis – näita, et oskad Git'i kasutada nagu proff! 🚀
+Loo GitHubis oma avalik repositoorium nimega `git-portfolio` (või muu nimi, mis sulle meeldib). See on nagu sinu CV, aga koodis – näita, et oskad Git'i kasutada nagu proff! 
 
 ---
 
-## 📋 Samm-sammult juhend
+##  Samm-sammult juhend
 
 ### Osa 1: Ettevalmistus (0–15 min)
 
@@ -82,7 +82,7 @@ git add README.md
 git commit -m "Täienda README kasutamisjuhendiga ja näidetega"
 ```
 
-❌ **Halvad näited (ära tee nii):**
+ **Halvad näited (ära tee nii):**
 ```bash
 git commit -m "fix"
 git commit -m "update"
@@ -118,7 +118,7 @@ git commit -m "WIP"
 
 ---
 
-## 🧠 Refleksioon (kirjuta README.md lõppu)
+##  Refleksioon (kirjuta README.md lõppu)
 
 Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
 
@@ -141,7 +141,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-## ✅ Kontrollnimekiri (enne esitamist)
+##  Kontrollnimekiri (enne esitamist)
 
 **Kontrolli need asjad:**
 
@@ -159,7 +159,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-## 🎓 Hindamiskriteeriumid
+##  Hindamiskriteeriumid
 
 | Kriteerium | Punktid | Kirjeldus |
 |------------|---------|-----------|
@@ -173,7 +173,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-## 📚 Abimaterjalid ja lugemine (enne kodutöö tegemist)
+##  Abimaterjalid ja lugemine (enne kodutöö tegemist)
 
 **Kiirviited:**
 - [Git Cheat Sheet (PDF)](https://education.github.com/git-cheat-sheet-education.pdf)
@@ -191,7 +191,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-## 🚀 Boonus (valikuline, +10%)
+##  Boonus (valikuline, +10%)
 
 **Kui tahad ekstra punkte, tee üks või mitu neist:**
 
@@ -201,7 +201,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
    git push origin v1.0
    ```
 
-2. **Lisa GitHub README badge:** Näiteks "Made with ❤️" või "License: MIT"
+2. **Lisa GitHub README badge:** Näiteks "Made with " või "License: MIT"
    - [Shields.io](https://shields.io/) badge generaator
 
 3. **Tee branch ja merge:** Loo `feature/new-feature` branch, tee muudatus, merge main'i
@@ -219,7 +219,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-## 📝 Esitamine
+##  Esitamine
 
 **Kuidas esitada:**
 
@@ -235,6 +235,6 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-**Edu ja head Git'itamist!** 🎉💻
+**Edu ja head Git'itamist!** 
 
-**P.S.** Pärast kodutöö esitamist võid jätkata projekti arendamist ja lisada sinna rohkem asju – see on sinu enda portfoolio! 🌟 
+**P.S.** Pärast kodutöö esitamist võid jätkata projekti arendamist ja lisada sinna rohkem asju – see on sinu enda portfoolio!  

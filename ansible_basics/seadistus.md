@@ -1,18 +1,18 @@
-# 🚀 Vagrant Seadistuse Juhend Ansible Laboriks
+#  Vagrant Seadistuse Juhend Ansible Laboriks
 
 **Eesmärk:** Seadistada Vagrant keskkond Ansible laborite jaoks  
-**Aeg:** 30-45 minutit  
+
 **Nõuded:** VirtualBox, Vagrant
 
 ---
 
-## 📋 Ülevaade
+##  Ülevaade
 
 See juhend aitab teil seadistada Vagrant keskkonna, kus saate harjutada Ansible automatiseerimist.
 
 ---
 
-## 🛠️ Windows Setup Guide
+##  Windows Setup Guide
 
 ### 1. Install Required Software
 

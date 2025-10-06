@@ -1,30 +1,17 @@
-# 📚 Docker: Konteinerite Põhitõed
+#  Docker: Konteinerite Põhitõed
 
-**Kestus:** 4 tundi  
-**Teemad:** Konteinerite kontseptsioonid, Docker põhikäsud, Dockerfile, võrgustik, turvalisus
-
----
-
-## 🎯 Õpiväljundid
-
-Pärast seda loengut oskate:
-- Mõista konteinerite erinevust virtuaalmasinatest
-- Kasutada Docker põhikäske praktikas
-- Kirjutada Dockerfile'e best practices'idega
-- Seadistada Docker võrgustikku ja volumes'eid
-- Rakendada konteinerite turvalisuse põhimõtteid
+**Teemad:** Container vs VM, Docker põhikäsud, Dockerfile, volumes, best practices
 
 ---
 
-## 📖 Loengu Struktuur
+##  Õpiväljundid
 
-```
-⏰ Sissejuhatus ja motivatsioon
-⏰ Docker install ja esimesed käsud  
-⏰ Dockerfile ja image'ide loomine
-⏰ Volumes, networks ja Docker Compose
-⏰ Produktsiooni parimad praktikad
-```
+Pärast seda moodulit oskate:
+- Selgitada, mis probleemi Docker lahendab ja miks see on parem kui VM
+- Käivitada ja hallata Docker container'eid (`run`, `ps`, `logs`, `exec`)
+- Kirjutada Dockerfile'i ja ehitada image'e
+- Kasutada volume'e andmete säilitamiseks ja port mapping'u
+- Rakendada põhilisi best practices'eid (`.dockerignore`, cache, väiksemad image'd)
 
 ---
 
@@ -43,15 +30,15 @@ Klient: "Miks ei tööta?!"
 **Näide:** Python rakendus
 - Arendaja: Python 3.8 + Ubuntu 20.04
 - Server: Python 3.6 + CentOS 7  
-- Tulemus: 💥 Dependency conflict
+- Tulemus:  Dependency conflict
 
 ### Kuidas lahendati varem?
 
 #### 1. Virtuaalmasinad (2000-2010)
 ```
-❌ Aeglased (30s+ käivitus)
-❌ Ressursinõudlikud (GB RAM per VM)
-❌ Keerulised haldada
+ Aeglased (30s+ käivitus)
+ Ressursinõudlikud (GB RAM per VM)
+ Keerulised haldada
 ```
 
 #### 2. Configuration Management (2010-2015)
@@ -62,20 +49,35 @@ Klient: "Miks ei tööta?!"
 - config: /etc/nginx/nginx.conf
 ```
 ```
-❌ Drift (serverid muutuvad aja jooksul)
-❌ Keeruline debugida
-❌ Snowflake serverid
+ Drift (serverid muutuvad aja jooksul)
+ Keeruline debugida
+ Snowflake serverid
 ```
 
 ## Docker'i revolutsioon (2013)
 
 ### Konteinerite idee
-```
-🖥️  Host OS (Linux)
-├── 📦 Container 1 (Python app)
-├── 📦 Container 2 (Node.js app)  
-├── 📦 Container 3 (Database)
-└── 📦 Container 4 (Redis)
+
+```mermaid
+graph TB
+    subgraph "Host OS (Linux)"
+        Docker[Docker Engine]
+        C1[ Container 1<br/>Python app]
+        C2[ Container 2<br/>Node.js app]
+        C3[ Container 3<br/>Database]
+        C4[ Container 4<br/>Redis]
+        
+        Docker --> C1
+        Docker --> C2
+        Docker --> C3
+        Docker --> C4
+    end
+    
+    style Docker fill:#2496ed,color:#fff
+    style C1 fill:#f0f0f0
+    style C2 fill:#f0f0f0
+    style C3 fill:#f0f0f0
+    style C4 fill:#f0f0f0
 ```
 
 ### Peamised eelised
@@ -152,6 +154,22 @@ docker run hello-world
 - GUI + Linux VM taustal
 
 ## Põhimõisted
+
+```mermaid
+graph LR
+    Registry[ Registry<br/>Docker Hub]
+    Image[ Image<br/>read-only template]
+    Container[ Container<br/>running instance]
+    
+    Registry -->|docker pull| Image
+    Image -->|docker run| Container
+    Container -->|docker commit| Image
+    Image -->|docker push| Registry
+    
+    style Registry fill:#0db7ed,color:#fff
+    style Image fill:#384d54,color:#fff
+    style Container fill:#2496ed,color:#fff
+```
 
 ### 1. Image
 - **Read-only template** 
@@ -252,6 +270,32 @@ docker system df
 - **Text file** mis kirjeldab kuidas image ehitada
 - **Layer-based:** iga käsk = uus layer
 - **Cached:** korduvad layerid kasutatakse uuesti
+
+```mermaid
+graph TD
+    DF[ Dockerfile]
+    Build[docker build]
+    L1[Layer 1: FROM ubuntu]
+    L2[Layer 2: RUN apt-get update]
+    L3[Layer 3: COPY app.py]
+    L4[Layer 4: CMD python app.py]
+    Image[ Final Image]
+    
+    DF --> Build
+    Build --> L1
+    L1 --> L2
+    L2 --> L3
+    L3 --> L4
+    L4 --> Image
+    
+    style DF fill:#f9f9f9
+    style Build fill:#2496ed,color:#fff
+    style L1 fill:#e8f4f8
+    style L2 fill:#e8f4f8
+    style L3 fill:#e8f4f8
+    style L4 fill:#e8f4f8
+    style Image fill:#384d54,color:#fff
+```
 
 ### Dockerfile süntaks
 ```dockerfile
@@ -366,10 +410,10 @@ CMD python app.py
 ```
 
 **Probleemid:**
-- ❌ Ei kasuta cache'i optimaalselt
-- ❌ Suur base image
-- ❌ Runs as root
-- ❌ No health check
+-  Ei kasuta cache'i optimaalselt
+-  Suur base image
+-  Runs as root
+-  No health check
 
 ### Optimeeritud Dockerfile (hea)
 ```dockerfile
@@ -434,9 +478,9 @@ CMD ["nginx", "-g", "daemon off;"]
 ```
 
 **Eelised:**
-- ✅ Väiksem final image (ainult runtime)
-- ✅ Turvalisem (no build tools)
-- ✅ Kiirem deployment
+-  Väiksem final image (ainult runtime)
+-  Turvalisem (no build tools)
+-  Kiirem deployment
 
 ---
 
@@ -451,7 +495,7 @@ docker exec db createdb myapp
 docker stop db
 docker rm db
 
-# ❌ Kõik andmed kadunud!
+#  Kõik andmed kadunud!
 ```
 
 ### Volume tüübid
@@ -508,7 +552,7 @@ docker run -d --tmpfs /tmp nginx
 docker run -d --name web nginx
 docker run -d --name app python:3.9-alpine
 
-docker exec app ping web  # ❌ Fails!
+docker exec app ping web  #  Fails!
 ```
 
 ### Custom networks
@@ -521,7 +565,7 @@ docker run -d --name web --network myapp-network nginx
 docker run -d --name app --network myapp-network python:3.9-alpine
 
 # Now they can communicate!
-docker exec app ping web  # ✅ Works!
+docker exec app ping web  #  Works!
 docker exec app nslookup web  # DNS resolution
 ```
 
@@ -742,6 +786,79 @@ FROM python:latest
 FROM python:3.9.18-alpine3.18
 ```
 
+### 5. Security Scanning (Trivy)
+
+**Security scanning** leiab haavatavused (vulnerabilities) image'itest.
+
+**Trivy** on populaarne, tasuta security scanner Docker image'itele:
+
+```bash
+# Installi Trivy
+sudo apt install wget
+wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+sudo apt update
+sudo apt install trivy
+
+# Skanni image
+trivy image nginx:latest
+
+# Näita ainult HIGH ja CRITICAL
+trivy image --severity HIGH,CRITICAL python:3.9
+
+# Skanni kohaliku Dockerfile
+docker build -t myapp:test .
+trivy image myapp:test
+```
+
+**Näide väljund:**
+```
+Total: 45 (HIGH: 8, CRITICAL: 2)
+
+┌────────────┬──────────────┬──────────┬────────┬─────────────────┐
+│  Library   │ Vulnerability│ Severity │ Status │    Title        │
+├────────────┼──────────────┼──────────┼────────┼─────────────────┤
+│ openssl    │ CVE-2023-123 │ CRITICAL │  fixed │ Buffer overflow │
+│ curl       │ CVE-2023-456 │ HIGH     │  fixed │ Auth bypass     │
+└────────────┴──────────────┴──────────┴────────┴─────────────────┘
+```
+
+**Mida teha tulemustega?**
+
+1. **Update base image:**
+   ```dockerfile
+   FROM python:3.9.18-alpine3.18  # vanem versioon, haavatavused
+   ↓
+   FROM python:3.11.7-alpine3.19  # uuem, turvalisem
+   ```
+
+2. **Update dependencies:**
+   ```dockerfile
+   RUN pip install requests==2.28.0  # vanem, haavatav
+   ↓
+   RUN pip install requests==2.31.0  # uuem, parandatud
+   ```
+
+3. **Accept risk** (kui ei saa parandada):
+   - Dokumenteeri, miks ei saa uuendada
+   - Lisa `.trivyignore` fail
+
+**CI/CD integration:**
+```yaml
+# GitLab CI
+security_scan:
+  image: aquasec/trivy:latest
+  script:
+    - trivy image --exit-code 1 --severity CRITICAL myapp:latest
+  # Failib kui CRITICAL haavatavusi leitakse
+```
+
+**Hea tava:**
+-  Skanni image'd enne production'i
+-  Automaatne scanning CI/CD's
+-  Blokeeri CRITICAL vulnerabilities
+-  Fix regulaarselt (mitte ainult release'i ajal)
+
 ## Performance Optimization
 
 ### 1. Layer caching
@@ -766,18 +883,22 @@ node_modules/
 ```
 
 ### 3. Multi-stage builds
-```dockerfile
-# Build stage
-FROM node:16 AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
 
-# Production stage
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
+Multi-stage build võimaldab:
+- Ehitada rakendust ühes stage'is (build tools)
+- Käivitada teises stage'is (ainult runtime)
+- Väiksemad image'id (100MB+ → 10MB)
+
+**Praktiline näide:**
+ Vaata [labor.md - Samm 6: Multi-stage build](labor.md#-samm-6-multi-stage-build)
+
+**Kontseptsioon:**
+```dockerfile
+FROM builder-image AS build  # 1. stage
+# ... compile, build ...
+
+FROM runtime-image           # 2. stage
+COPY --from=build /app/dist  # Kopeeri ainult build result
 ```
 
 ## Monitoring ja Logging
@@ -909,17 +1030,54 @@ kubectl apply -f pod.yaml
 3. **Orchestration:** Kubernetes või Docker Swarm
 4. **Monitoring:** Prometheus + Grafana + logs
 
-### Ressursid
+---
+
+##  Kokkuvõte ja Refleksioon
+
+### Põhiline töövoog
+
+```bash
+# Iga päev:
+docker pull image-nimi          # võta uusim image
+docker run -d -p 8080:80 image  # käivita container
+docker ps                       # vaata, mis töötab
+docker logs container-nimi      # debugi
+docker stop container-nimi      # peata
+
+# Arendus:
+# 1. Kirjuta Dockerfile
+# 2. docker build -t minu-app .
+# 3. docker run minu-app
+# 4. Testi ja paranda
+# 5. Korda 2-4
+```
+
+###  Refleksioonküsimused (mõtle läbi)
+
+1. **Kuidas Docker lahendab "Works on My Machine" probleemi?**
+2. **Millal kasutada volume'e ja millal mitte?**
+3. **Miks on cache oluline Dockerfile build'imisel?**
+4. **Kuidas container erineb VM'ist? Mis on peamised eelised?**
+5. **Mida MITTE panna Dockerfile'i või image'isse?** (paroolid, logid, cache)
+
+###  Järgmised sammud
+
+- **Labor:** Harjuta kõiki neid käske praktikas!
+- **Kodutöö:** Loo oma rakendus Docker container'is
+- **Edasijõudnud:** Docker Compose, Docker Swarm, Kubernetes
+
+###  Ressursid ja lugemine
 
 - **Docker dokumentatsioon:** https://docs.docker.com/
 - **Docker Hub:** https://hub.docker.com/
 - **Best practices guide:** https://docs.docker.com/develop/dev-best-practices/
-- **Security guide:** https://docs.docker.com/engine/security/
+- **Play with Docker** (brauseris): https://labs.play-with-docker.com/
+- **Docker Cheat Sheet:** https://docs.docker.com/get-started/docker_cheatsheet.pdf
 
 ---
 
-## Küsimused? 🙋‍♂️🙋‍♀️
+**Küsimus enne lab'i alustamist:** Kui Docker oleks superjõud, siis milline see oleks ja miks? ‍
 
 ---
 
-*"Container technology is not the future - it's the present of software development!"*
+*"Container technology is not the future - it's the present of software development!"* 

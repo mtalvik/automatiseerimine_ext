@@ -1,7 +1,7 @@
 # Docker Registry ja Production Deployment - Kodutöö
 
 **Tähtaeg:** Järgmise nädala algus  
-**Aeg:** 2-3 tundi
+
 
 ---
 
@@ -98,7 +98,7 @@ cd ..
 
 **Kontrolli:** Ava brauseris Docker Hub ja vaata oma repositories.
 
-**📸 SCREENSHOT 1:** Docker Hub repositories koos tagidega
+** SCREENSHOT 1:** Docker Hub repositories koos tagidega
 
 ---
 
@@ -224,7 +224,7 @@ curl http://localhost/api/health
 open http://localhost
 ```
 
-**📸 SCREENSHOT 2:** `docker-compose ps` output kus on running containers
+** SCREENSHOT 2:** `docker-compose ps` output kus on running containers
 
 ---
 
@@ -280,7 +280,7 @@ docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
 curl http://localhost/api/version
 ```
 
-**📸 SCREENSHOT 3:** Version upgrade (containers with new version)
+** SCREENSHOT 3:** Version upgrade (containers with new version)
 
 ### Rollback
 
@@ -490,7 +490,7 @@ Nginx (80) → Frontend → API → Database
 ```
 ```
 
-**📸 SCREENSHOT 4:** Brauseris töötav rakendus
+** SCREENSHOT 4:** Brauseris töötav rakendus
 
 ---
 
@@ -536,24 +536,24 @@ docker-registry-homework/
 ## Hindamine
 
 **Docker Registry (40%)**
-- ✓ Image'd Docker Hub'is
-- ✓ Korrektsed tagid (1.0.0, 1.1.0, 1.0, 1, latest)
-- ✓ Pull/push workflow töötab
+-  Image'd Docker Hub'is
+-  Korrektsed tagid (1.0.0, 1.1.0, 1.0, 1, latest)
+-  Pull/push workflow töötab
 
 **Production Deployment (30%)**
-- ✓ `docker-compose.prod.yml` kasutab registry image'id
-- ✓ Environment muutujad korrektselt
-- ✓ Health checks ja restart policies
+-  `docker-compose.prod.yml` kasutab registry image'id
+-  Environment muutujad korrektselt
+-  Health checks ja restart policies
 
 **Version Management (20%)**
-- ✓ Deploy erinevaid versioone
-- ✓ Rollback töötab
-- ✓ Deploy script
+-  Deploy erinevaid versioone
+-  Rollback töötab
+-  Deploy script
 
 **Dokumentatsioon (10%)**
-- ✓ README kirjeldab deployment'i
-- ✓ Screenshot'id tõestavad töötamist
-- ✓ Kood GitHub'is
+-  README kirjeldab deployment'i
+-  Screenshot'id tõestavad töötamist
+-  Kood GitHub'is
 
 ---
 
@@ -594,9 +594,70 @@ ports:
 
 ---
 
+##  Refleksioon (kirjuta README.md lõppu)
+
+Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
+
+### Küsimused (vasta 2-3 lausega igaühele):
+
+1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
+   - Näide: "Kõige raskem oli Docker Compose'i networks seadistamine. Lugesin dokumentatsiooni ja tegin palju teste."
+
+2. **Milline Docker Compose kontseptsioon oli sulle kõige suurem "ahaa!"-elamus ja miks?**
+   - Näide: "Volumes! Nüüd saan aru, kuidas andmed säilivad container'ite vahel."
+
+3. **Kuidas saaksid Docker Compose'i kasutada oma teistes projektides või töös?**
+   - Näide: "Võiksin Docker Compose'iga seadistada oma arenduskeskkonna – database, backend, frontend kõik korraga!"
+
+4. **Kui peaksid oma sõbrale selgitama, mis on Docker Compose ja miks see on kasulik, siis mida ütleksid?**
+   - Näide: "Docker Compose on nagu orkestri juht – käivitad 10 container'it ühe käsuga!"
+
+5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
+   - Näide: "Mulle meeldis scaling - `--scale web=5` ja BAM, mul on 5 koopiat!"
+
+---
+
+##  Kontrollnimekiri (enne esitamist)
+
+**Kontrolli need asjad:**
+
+- [ ] GitHubis on avalik repositoorium
+- [ ] Docker Compose fail (`docker-compose.yml`) töötab
+- [ ] Kõik teenused käivituvad (`docker-compose up`)
+- [ ] Networks ja volumes on seadistatud
+- [ ] Health checks toimivad
+- [ ] README.md sisaldab:
+  - [ ] Projekti kirjeldus
+  - [ ] Kuidas käivitada (`docker-compose up`)
+  - [ ] Teenuste kirjeldused
+  - [ ] Refleksioon (5 küsimuse vastused)
+- [ ] Kõik muudatused on GitHubi push'itud
+
+---
+
+##  Hindamiskriteeriumid
+
+| Kriteerium | Punktid | Kirjeldus |
+|------------|---------|-----------|
+| **Docker Compose fail** | 25% | `docker-compose.yml` korrektne, kõik teenused töötavad |
+| **Networks** | 15% | Container'id suhtlevad omavahel |
+| **Volumes** | 15% | Andmed säilivad |
+| **Health checks** | 15% | Health checks lisatud ja toimivad |
+| **Scaling** | 10% | Teenuseid saab skaleerida |
+| **README** | 10% | Projekti kirjeldus, käivitamisjuhend, selge |
+| **Refleksioon** | 10% | 5 küsimust vastatud, sisukas, näitab mõistmist |
+
+**Kokku: 100%**
+
+---
+
 ## Kasulikud lingid
 
 - Docker Hub: https://docs.docker.com/docker-hub/
 - Docker Compose production: https://docs.docker.com/compose/production/
 - Semantic Versioning: https://semver.org/
 - GitHub Actions: https://docs.github.com/en/actions/publishing-packages/publishing-docker-images
+
+---
+
+**Edu ja head orkestreerimist!** 

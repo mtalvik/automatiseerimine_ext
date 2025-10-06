@@ -1,18 +1,18 @@
-# 📝 Terraform Kodutöö: Kohalik Infrastruktuur
+#  Terraform Kodutöö: Kohalik Infrastruktuur
 
 **Tähtaeg:** Järgmise nädala alguseks  
 **Eesmärk:** Terraform'i praktiline kasutamine ja Infrastructure as Code mõistmine  
-**Aeg:** 2-3 tundi
+
 
 ---
 
-## 🎯 Ülesande kirjeldus
+##  Ülesande kirjeldus
 
 Fookus on Terraform'i ja Infrastructure as Code'i õppimisel kohalikus keskkonnas! Ehitage lihtne infrastruktuur Terraform'iga.
 
 ---
 
-## 🎯 **Projekt: Kohalik Infrastruktuur Terraform'iga**
+##  **Projekt: Kohalik Infrastruktuur Terraform'iga**
 
 ### Mis on see projekt?
 
@@ -20,7 +20,7 @@ Looge kohalik infrastruktuur Terraform'i abil. See on nagu "digitaalse maja ehit
 
 ### Mida te ehitate?
 
-**💻 Kohalik Infrastruktuur**
+** Kohalik Infrastruktuur**
 - **Failid ja kaustad** - projektifailide struktuur
 - **Konfiguratsioonid** - JSON ja YAML failid
 - **Skriptid** - automatiseerimise skriptid
@@ -34,7 +34,7 @@ Looge kohalik infrastruktuur Terraform'i abil. See on nagu "digitaalse maja ehit
 
 ---
 
-## 📋 **Ülesanne 1: Projekti struktuuri loomine (20 min)**
+##  **Ülesanne 1: Projekti struktuuri loomine (20 min)**
 
 ### Samm 1: Põhifailid
 
@@ -332,7 +332,7 @@ file_count   = 3
 
 ---
 
-## 📋 **Ülesanne 2: Projekti käivitamine (15 min)**
+##  **Ülesanne 2: Projekti käivitamine (15 min)**
 
 ### Samm 1: Terraform'i initsialiseerimine
 
@@ -371,7 +371,7 @@ tree minu-terraform-projekt/  # kui tree on installitud
 
 ---
 
-## 📋 **Ülesanne 3: Eksperimenteerimine (30 min)**
+##  **Ülesanne 3: Eksperimenteerimine (30 min)**
 
 ### Samm 1: Muutujate muutmine
 
@@ -434,7 +434,7 @@ cat minu-uus-projekt/config/environment.json
 
 ---
 
-## 📋 **Ülesanne 4: Puhastamine ja dokumenteerimine (10 min)**
+##  **Ülesanne 4: Puhastamine ja dokumenteerimine (10 min)**
 
 ### Samm 1: Infrastruktuuri kustutamine
 
@@ -453,7 +453,7 @@ terraform destroy
 
 ---
 
-## 🎯 **Boonusülesanded (valikuline)**
+##  **Boonusülesanded (valikuline)**
 
 ### 1. Tingimused ja tsüklid
 
@@ -510,7 +510,7 @@ mkdir -p modules/file-generator
 
 ---
 
-## 📚 **Kokkuvõte**
+##  **Kokkuvõte**
 
 Täna õppisite:
 - **Terraform'i põhitõdesid** - kuidas kirjutada HCL koodi
@@ -524,11 +524,117 @@ Täna õppisite:
 - Uurige Terraform module'eid
 - Rakendage real-world projektides
 
-**Küsimused?** 🤔
+**Küsimused?** 
 
 ---
 
-## 📋 **Failide näited**
+##  Refleksioon (kirjuta README.md lõppu)
+
+Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
+
+### Küsimused (vasta 2-3 lausega igaühele):
+
+1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
+   - Näide: "Kõige raskem oli mõista, kuidas variables ja outputs töötavad koos. Lugesin dokumentatsiooni ja tegin palju teste."
+
+2. **Milline Terraform kontseptsioon oli sulle kõige suurem "ahaa!"-elamus ja miks?**
+   - Näide: "Terraform state oli mulle suur avastus – nüüd saan aru, kuidas Terraform teab, mis on juba loodud!"
+
+3. **Kuidas saaksid Terraform'i kasutada oma teistes projektides või töös?**
+   - Näide: "Võiksin Terraform'iga luua oma projekti struktuur automaatselt, et ei peaks käsitsi kaustu looma."
+
+4. **Kui peaksid oma sõbrale selgitama, mis on Infrastructure as Code (IaC) ja miks see on kasulik, siis mida ütleksid?**
+   - Näide: "IaC on nagu ehitusplaan – kirjutad üles, mida tahad, ja Terraform ehitab selle sulle!"
+
+5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
+   - Näide: "Mulle meeldis `terraform apply` ja vaadata, kuidas failid automaatselt ilmuvad – nagu maagia!"
+
+---
+
+##  Kontrollnimekiri (enne esitamist)
+
+**Kontrolli need asjad:**
+
+- [ ] GitHubis on avalik repositoorium
+- [ ] Terraform failid (`main.tf`, `variables.tf`, `outputs.tf`) on loodud
+- [ ] `terraform init` ja `terraform apply` töötavad ilma vigadeta
+- [ ] Kõik ressursid (failid, kaustad) on loodud
+- [ ] `terraform destroy` kustutab kõik ressursid
+- [ ] README.md sisaldab:
+  - [ ] Projekti kirjeldus (mis see on?)
+  - [ ] Kuidas seadistada (`terraform init`)
+  - [ ] Kuidas käivitada (`terraform apply`)
+  - [ ] Refleksioon (5 küsimuse vastused, 2-3 lauset igaüks)
+- [ ] Kõik muudatused on GitHubi push'itud
+
+---
+
+##  Hindamiskriteeriumid
+
+| Kriteerium | Punktid | Kirjeldus |
+|------------|---------|-----------|
+| **Terraform failid** | 25% | `main.tf`, `variables.tf`, `outputs.tf` korrektsed |
+| **Variables** | 20% | Variables õigesti kasutatud, mitte hardcoded |
+| **Outputs** | 15% | Outputs kuvavad õigeid väärtusi |
+| **Ressursid** | 20% | Failid ja kaustad luuakse õigesti |
+| **README** | 10% | Projekti kirjeldus, käivitamisjuhend, selge |
+| **Refleksioon** | 10% | 5 küsimust vastatud, sisukas, näitab mõistmist |
+
+**Kokku: 100%**
+
+---
+
+##  Abimaterjalid ja lugemine
+
+**Kiirviited:**
+- [Terraform Docs - Get Started](https://developer.hashicorp.com/terraform/tutorials/aws-get-started)
+- [Terraform Docs - Configuration Language](https://developer.hashicorp.com/terraform/language)
+- [Terraform Docs - Local Provider](https://registry.terraform.io/providers/hashicorp/local/latest/docs)
+- [HCL Syntax Guide](https://developer.hashicorp.com/terraform/language/syntax/configuration)
+
+**Kui abi vaja:**
+1. Vaata `lisapraktika.md` faili täiendavate näidete jaoks
+2. Kasuta `terraform console` interaktiivse testimise jaoks
+3. Küsi klassikaaslaselt või õpetajalt
+4. Stack Overflow: search "terraform [sinu probleem]"
+
+---
+
+##  Boonus (valikuline, +10%)
+
+**Kui tahad ekstra punkte, tee üks või mitu neist:**
+
+1. **Multiple environments:** Dev vs Prod workspaces
+   ```bash
+   terraform workspace new dev
+   terraform workspace new prod
+   ```
+
+2. **Data sources:** Loe olemasolevaid faile
+   ```hcl
+   data "local_file" "example" {
+     filename = "./existing-file.txt"
+   }
+   ```
+
+3. **Count meta-argument:** Loo 5 faili korraga
+   ```hcl
+   resource "local_file" "example" {
+     count    = 5
+     filename = "./file-${count.index}.txt"
+   }
+   ```
+
+4. **Conditional expressions:** Ressursid vastavalt environment'ile
+   ```hcl
+   resource "local_file" "example" {
+     content = var.environment == "prod" ? "Production" : "Development"
+   }
+   ```
+
+---
+
+##  **Failide näited**
 
 ### Oodatav terraform output:
 

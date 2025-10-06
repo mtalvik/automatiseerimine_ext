@@ -1,19 +1,19 @@
-# 📝 Terraform Kodutöö: Lihtne Infrastruktuur (Alternatiiv)
+#  Terraform Kodutöö: Lihtne Infrastruktuur (Alternatiiv)
 
 **Tähtaeg:** Järgmise nädala alguseks  
 **Eesmärk:** Terraform'i praktiline kasutamine lihtsama ülesandega  
-**Aeg:** 1-2 tundi  
+
 **Raskusaste:** Lihtne
 
 ---
 
-## 🎯 Ülesande kirjeldus
+##  Ülesande kirjeldus
 
 Lihtsam alternatiiv Terraform kodutööle. Fookus on Terraform'i ja Infrastructure as Code'i õppimisel kohalikus keskkonnas lihtsama ülesandega!
 
 ---
 
-## 🎯 **Projekt: Kohalik Infrastruktuur Terraform'iga**
+##  **Projekt: Kohalik Infrastruktuur Terraform'iga**
 
 ### Mis on see projekt?
 
@@ -21,7 +21,7 @@ Looge kohalik infrastruktuur Terraform'i abil. See on nagu "digitaalse maja ehit
 
 ### Mida te ehitate?
 
-**💻 Kohalik Infrastruktuur**
+** Kohalik Infrastruktuur**
 - **Failid ja kaustad** - projektifailide struktuur
 - **Konfiguratsioonid** - JSON ja YAML failid
 - **Skriptid** - automatiseerimise skriptid
@@ -35,7 +35,7 @@ Looge kohalik infrastruktuur Terraform'i abil. See on nagu "digitaalse maja ehit
 
 ---
 
-## 📋 **Ülesanne 1: Projekti struktuuri loomine (20 min)**
+##  **Ülesanne 1: Projekti struktuuri loomine (20 min)**
 
 ### Samm 1: Põhifailid
 
@@ -333,7 +333,7 @@ file_count   = 3
 
 ---
 
-## 📋 **Ülesanne 2: Projekti käivitamine (15 min)**
+##  **Ülesanne 2: Projekti käivitamine (15 min)**
 
 ### Samm 1: Terraform'i initsialiseerimine
 
@@ -372,7 +372,7 @@ tree minu-terraform-projekt/  # kui tree on installitud
 
 ---
 
-## 📋 **Ülesanne 3: Eksperimenteerimine (30 min)**
+##  **Ülesanne 3: Eksperimenteerimine (30 min)**
 
 ### Samm 1: Muutujate muutmine
 
@@ -435,7 +435,7 @@ cat minu-uus-projekt/config/environment.json
 
 ---
 
-## 📋 **Ülesanne 4: Puhastamine ja dokumenteerimine (10 min)**
+##  **Ülesanne 4: Puhastamine ja dokumenteerimine (10 min)**
 
 ### Samm 1: Infrastruktuuri kustutamine
 
@@ -454,7 +454,7 @@ terraform destroy
 
 ---
 
-## 🎯 **Boonusülesanded (valikuline)**
+##  **Boonusülesanded (valikuline)**
 
 ### 1. Tingimused ja tsüklid
 
@@ -511,7 +511,7 @@ mkdir -p modules/file-generator
 
 ---
 
-## 📚 **Kokkuvõte**
+##  **Kokkuvõte**
 
 Täna õppisite:
 - **Terraform'i põhitõdesid** - kuidas kirjutada HCL koodi
@@ -525,11 +525,11 @@ Täna õppisite:
 - Uurige Terraform module'eid
 - Rakendage real-world projektides
 
-**Küsimused?** 🤔
+**Küsimused?** 
 
 ---
 
-## 📋 **Failide näited**
+##  **Failide näited**
 
 ### Oodatav terraform output:
 

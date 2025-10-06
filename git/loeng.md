@@ -1,11 +1,10 @@
-# 📚 Git: Versioonihaldus ja GitHub
+#  Git: Versioonihaldus ja GitHub
 
-**Kestus:** Max 45 min (loeng) + 3×45 min (labor)  
 **Teemad:** Git põhitõed, branch'id, GitHub koostöö, commit kvaliteet
 
 ---
 
-## 🎯 Õpiväljundid
+##  Õpiväljundid
 
 Pärast seda moodulit oskate:
 - Selgitada, mis probleemi Git lahendab ja kuidas see töötab
@@ -16,7 +15,7 @@ Pärast seda moodulit oskate:
 
 ---
 
-## 📖 Moodul 1: Sissejuhatus Versioonihaldusesse
+##  Moodul 1: Sissejuhatus Versioonihaldusesse
 
 ### Git'i Ajalugu
 
@@ -49,11 +48,11 @@ Või veel hullem:
 
 **Git lahendab need probleemid:**
 
-* ✅ Taasta vanu versioone (ajamasin sinu koodile!)
-* ✅ Väldi töö kadumist (kõik on salvestatud)
-* ✅ Lahenda konflikte meeskonnatöös (Git teab, kes mida muutis)
-* ✅ Eksperimenteeri vabalt (branch'id = paralleeluniversumid)
-* ✅ Näita oma tööd (GitHub = CV programmeerijale)
+*  Taasta vanu versioone (ajamasin sinu koodile!)
+*  Väldi töö kadumist (kõik on salvestatud)
+*  Lahenda konflikte meeskonnatöös (Git teab, kes mida muutis)
+*  Eksperimenteeri vabalt (branch'id = paralleeluniversumid)
+*  Näita oma tööd (GitHub = CV programmeerijale)
 
 ### Git vs teised
 
@@ -78,7 +77,7 @@ graph LR
 
 ---
 
-## 📖 Moodul 2: Git'i Kohalik Kasutamine
+##  Moodul 2: Git'i Kohalik Kasutamine
 
 ### Installimine
 
@@ -181,7 +180,7 @@ git revert <commit>     # Loo uus commit, mis tühistab vana
 
 ---
 
-## 📖 Moodul 3: Kaugrepositooriumid ja GitHub
+##  Moodul 3: Kaugrepositooriumid ja GitHub
 
 ### GitHub – mis see on?
 
@@ -191,10 +190,10 @@ git revert <commit>     # Loo uus commit, mis tühistab vana
 - **GitHub:** Teenus (nagu OneDrive või Dropbox koodile)
 
 **Miks GitHub?**
-- ☁️ **Cloud backup** – kui arvuti põleb ära, kood jääb alles
-- 🤝 **Koostöö** – mitme inimese samaaegselt töötamine
-- 📂 **Portfolio** – näita tööandjale, mida oskad
-- 🌍 **Avalik kood** – jaga maailmaga, avalik lähtekoodiga projektid
+-  **Cloud backup** – kui arvuti põleb ära, kood jääb alles
+-  **Koostöö** – mitme inimese samaaegselt töötamine
+-  **Portfolio** – näita tööandjale, mida oskad
+-  **Avalik kood** – jaga maailmaga, avalik lähtekoodiga projektid
 
 ### Remote'i seadistamine
 
@@ -294,7 +293,7 @@ git clone git@github.com:user/repo.git
 
 ---
 
-## 📖 Moodul 4: Koostöö ja Parimad Tavad
+##  Moodul 4: Koostöö ja Parimad Tavad
 
 ### Pull Request Workflow
 
@@ -348,15 +347,15 @@ Thumbs.db
 
 ### Mida MITTE repos hoida?
 
-❌ **Paroolid ja API võtmed**  
-❌ **Suured meediafailid** (videod, pildid > 1MB)  
-❌ **Build failid** (compiled code, cache)  
-❌ **IDE seaded** (kui ei ole meeskonna standard)  
-❌ **OS failid** (`.DS_Store`, `Thumbs.db`)
+ **Paroolid ja API võtmed**  
+ **Suured meediafailid** (videod, pildid > 1MB)  
+ **Build failid** (compiled code, cache)  
+ **IDE seaded** (kui ei ole meeskonna standard)  
+ **OS failid** (`.DS_Store`, `Thumbs.db`)
 
 ---
 
-## 🔄 Kokkuvõte ja Refleksioon
+##  Kokkuvõte ja Refleksioon
 
 ### Põhiline töövoog
 
@@ -377,14 +376,14 @@ git push origin feature/uus
 # Tee PR GitHub'is
 ```
 
-### 💭 Refleksioonküsimused (mõtle läbi)
+###  Refleksioonküsimused (mõtle läbi)
 
 1. **Kuidas Git lahendab "final_final_v2_REAL.docx" probleemi?**
 2. **Millal on mõistlik teha uus commit?** (iga rida? iga fail? iga feature?)
 3. **Miks on branch'id kasulikud, kui töötad üksi?**
 4. **Kuidas aitab GitHub sul paremaks programmeerijaks saada?**
 
-### 🎯 Järgmised sammud
+###  Järgmised sammud
 
 - **Labor:** Harjuta kõiki neid käske praktikas!
 - **Kodutöö:** Loo oma projekt ja näita Git oskusi
@@ -392,4 +391,4 @@ git push origin feature/uus
 
 ---
 
-**Küsimus enne lab'i alustamist:** Kui Git oleks superjõud, siis milline see oleks ja miks? 🦸‍♂️
+**Küsimus enne lab'i alustamist:** Kui Git oleks superjõud, siis milline see oleks ja miks? ‍

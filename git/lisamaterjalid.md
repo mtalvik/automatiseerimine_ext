@@ -1,17 +1,17 @@
-# 📚 Git Õppematerjalid
+#  Git Õppematerjalid
 
 **Eesmärk:** Git'i sügavamaks õppimiseks ja praktiliste oskuste arendamiseks  
-**Aeg:** 2-3 tundi lugemist
+
 
 ---
 
-## 📖 GitHubi Uued Tööriistad
+##  GitHubi Uued Tööriistad
 
 GitHub ei ole enam lihtsalt koodimajutus. Tänapäeval pakub ta ka tööriistu, mis teevad arenduse, testimise ja keskkondade haldamise palju lihtsamaks. Kolm kõige olulisemat uuendust on **GitHub Actions**, **Dev Containers** ja **Codespaces**.
 
 ---
 
-## ⚡ GitHub Actions – automatiseeritud töövood
+##  GitHub Actions – automatiseeritud töövood
 
 GitHub Actions võimaldab käivitada **CI/CD protsesse** otse GitHubis: testide jooksutamine, lintimine, buildimine ja isegi automaatne deployment. Kõik käivitub, kui teed *push* või *pull requesti*.
 
@@ -32,7 +32,7 @@ jobs:
       - run: npm test
 ```
 
-👉 Lisalugemist:
+ Lisalugemist:
 
 * [FreeCodeCamp – GitHub Actions Step-by-Step](https://www.freecodecamp.org/news/learn-to-use-github-actions-step-by-step-guide/)
 * [GitHub Docs – About Actions](https://docs.github.com/en/actions)
@@ -41,20 +41,20 @@ jobs:
 
 ---
 
-## 📦 Dev Containers – “see töötab minu masinas” probleem lahendatud
+##  Dev Containers – “see töötab minu masinas” probleem lahendatud
 
 Dev Containers lubavad määratleda, milline arenduskeskkond projektile vaja on.
 Näiteks `.devcontainer/devcontainer.json` fail võib öelda: kasuta Node 18, ava port 3000 ja installi sõltuvused.
 
 See tähendab, et iga arendaja saab täpselt sama keskkonna – sõltumata opsüsteemist.
 
-👉 Lisalugemist:
+ Lisalugemist:
 
 * [GitHub Docs – Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers)
 
 ---
 
-## 🌐 GitHub Codespaces – arendus pilves
+##  GitHub Codespaces – arendus pilves
 
 Codespaces viib Dev Containerid **otse pilve**. Ei pea enam midagi oma masinasse seadistama – piisab, kui avad repo GitHubis ja klikid *“Open with Codespaces”*.
 
@@ -62,7 +62,7 @@ Codespaces viib Dev Containerid **otse pilve**. Ei pea enam midagi oma masinasse
 * Keskkond on kohe valmis tööks.
 * Uus arendaja saab projektiga liituda minutitega.
 
-👉 Lisalugemist:
+ Lisalugemist:
 
 * [DataCamp – GitHub Codespaces Tutorial](https://www.datacamp.com/tutorial/github-codespaces)
 * [GitHub Docs – Developing in a Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/developing-in-a-codespace)
@@ -71,7 +71,7 @@ Codespaces viib Dev Containerid **otse pilve**. Ei pea enam midagi oma masinasse
 
 ---
 
-💡 **Kokkuvõte:**
+ **Kokkuvõte:**
 
 * **Actions** = automatiseeritud töövood (CI/CD)
 * **Dev Containers** = ühtne arenduskeskkond Dockeri põhjal

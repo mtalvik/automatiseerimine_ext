@@ -1,11 +1,10 @@
-# 📚 Ansible Rollid ja Puppet: Edasijõudnud Automatiseerimine
+#  Ansible Rollid ja Puppet: Edasijõudnud Automatiseerimine
 
-**Kestus:** 4 tundi  
 **Teemad:** Ansible rollid, Galaxy, Vagrant testimine, Puppet võrdlus
 
 ---
 
-## 🎯 Õpiväljundid
+##  Õpiväljundid
 
 Pärast seda loengut oskate:
 - Mõista Ansible rollide struktuuri ja eeliseid
@@ -16,7 +15,9 @@ Pärast seda loengut oskate:
 
 ---
 
-## Vagrant Testing Environment (30min)
+## Vagrant testimiskeskkond
+
+Selles jaotises loome eraldatud VM‑id rollide ohutuks testimiseks. Vagrant võimaldab kiiresti katsetada ja taastada keskkonda ilma päris servereid mõjutamata.
 
 ### Setup ja kasutamine
 ```bash
@@ -58,7 +59,9 @@ vagrant snapshot save     # salvesta snapshot
 
 ---
 
-## Ansible Roles Architecture (45min)
+## Ansible rollide arhitektuur
+
+Selgitame, kuidas rollid muudavad playbook'i hooldatavaks: struktuur, üks vastutus korraga ja taaskasutus. Näitame, kuidas suur „ühe faili” playbook jagada loogilisteks rollideks.
 
 ### Spagettikood probleem
 **Halb lähenemine:**
@@ -110,11 +113,13 @@ nginx-role/
 
 ---
 
-## Role Best Practices (30min)
+## Rollide parimad tavad
+
+Praktilised soovitused rollide ülesehituseks: selged vaikeseaded, sisendi valideerimine ja modulaarne struktuur. Need põhimõtted hoiavad projektid loetavad ja töökindlad.
 
 ### Single Responsibility Principle
 ```
-✅ Hea:                    ❌ Halb:
+ Hea:                     Halb:
 roles/                     roles/
 ├── nginx/                 └── web-stack/
 ├── mysql/                     (teeb kõike korraga)
@@ -163,7 +168,9 @@ nginx_worker_processes: 2
 
 ---
 
-## Ansible Galaxy (25min)
+## Ansible Galaxy
+
+Ansible Galaxy on kogukonna rollide kataloog. Õpime rolle otsima, paigaldama ja haldama koos fikseeritud versioonidega.
 
 ### Role'ide allalaadimine
 ```bash
@@ -212,7 +219,9 @@ ansible-galaxy install -r requirements.yml
 
 ---
 
-## Puppet vs Ansible (40min)
+## Puppet vs Ansible
+
+Võrdleme agentless push‑mudelit (Ansible) ja agent‑põhist pull‑mudelit (Puppet). Fookus: millal kumb sobib, arvestades meeskonna oskusi, skaleeritavust ja compliance’i.
 
 ### Arhitektuuriline erinevus
 

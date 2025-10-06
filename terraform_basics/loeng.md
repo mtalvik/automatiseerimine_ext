@@ -1,22 +1,21 @@
-# 📚 Terraform: Infrastruktuur Koodina
+#  Terraform: Infrastruktuur Koodina
 
-**Kestus:** 4 tundi  
-**Teemad:** Infrastructure as Code, HCL süntaks, provider'id, state haldamine, moodulid
-
----
-
-## 🎯 Õpiväljundid
-
-Pärast seda loengut oskate:
-- **Mõista Infrastructure as Code mõistet** - miks ja kuidas kasutada
-- **Kirjutada lihtsaid Terraform faile** - HCL süntaks ja põhilised ressursid
-- **Kasutada local provider'eid** - failisüsteemi ja kohalike ressursside haldamine
-- **Hallata Terraform state** - miks oluline ja kuidas kasutada
-- **Rakendada põhilisi parimaid praktikaid** - turvaline ja korrektne kasutamine
+**Teemad:** Infrastructure as Code, HCL süntaks, state haldamine, variables, best practices
 
 ---
 
-## 📖 Infrastruktuur Koodina - Kontseptsioonid
+##  Õpiväljundid
+
+Pärast seda moodulit oskate:
+- Selgitada, mis on Infrastructure as Code ja miks see on vajalik
+- Kirjutada lihtsat Terraform HCL koodi ja kasutada local provider'it
+- Käivitada Terraform workflow'i: `init`, `plan`, `apply`, `destroy`
+- Mõista state faili rolli ja kuidas Terraform jälgib ressursse
+- Rakendada põhilisi best practices'eid (variables, outputs, `.gitignore`)
+
+---
+
+##  Infrastruktuur Koodina - Kontseptsioonid
 
 ### Tere tulemast Infrastructure as Code maailma!
 
@@ -39,18 +38,18 @@ Tere tagasi! Eelmisel nädalal õppisime Docker Compose'i ja orkestreerimist. T�
 
 ```mermaid
 graph TB
-    subgraph "🏗️ Traditsiooniline lähenemine"
-        Manual[👤 Käsitsi konfiguratsioon]
-        Error[❌ Inimeste vead]
-        Slow[🐌 Aeglane]
-        Inconsistent[🔄 Ebakindel]
+    subgraph " Traditsiooniline lähenemine"
+        Manual[ Käsitsi konfiguratsioon]
+        Error[ Inimeste vead]
+        Slow[ Aeglane]
+        Inconsistent[ Ebakindel]
     end
     
-    subgraph "💻 Infrastructure as Code"
-        Code[📝 Kood]
-        Version[📚 Versioneerimine]
-        Test[🧪 Testimine]
-        Automate[⚡ Automatiseerimine]
+    subgraph " Infrastructure as Code"
+        Code[ Kood]
+        Version[ Versioneerimine]
+        Test[ Testimine]
+        Automate[ Automatiseerimine]
     end
     
     Manual --> Error
@@ -78,10 +77,10 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "🌐 Lihtne Web Rakendus"
-        User[👤 Kasutaja]
-        Web[🖥️ Web Server<br/>HTML, CSS, JavaScript]
-        DB[🗄️ Andmebaas<br/>PostgreSQL]
+    subgraph " Lihtne Web Rakendus"
+        User[ Kasutaja]
+        Web[ Web Server<br/>HTML, CSS, JavaScript]
+        DB[ Andmebaas<br/>PostgreSQL]
     end
     
     User --> Web
@@ -117,7 +116,7 @@ graph TB
 
 ---
 
-## 📖 HCL Süntaks ja Provider'id
+##  HCL Süntaks ja Provider'id
 
 ### HashiCorp Configuration Language (HCL)
 
@@ -650,7 +649,7 @@ provider "local" {
 
 ---
 
-## 📖 Ressursid ja Andmeallikad
+##  Ressursid ja Andmeallikad
 
 ### Terraform Resources
 
@@ -847,7 +846,7 @@ resource "local_file" "web_config" {
 
 ---
 
-## 📖 State Haldamine
+##  State Haldamine
 
 ### Mis on Terraform State?
 
@@ -858,9 +857,9 @@ resource "local_file" "web_config" {
 ```mermaid
 graph TB
     subgraph "Terraform Workflow"
-        Code[📝 Terraform Code]
-        State[🗄️ State File]
-        Cloud[☁️ Cloud Infrastructure]
+        Code[ Terraform Code]
+        State[ State File]
+        Cloud[ Cloud Infrastructure]
     end
     
     Code -->|terraform plan| State
@@ -1089,7 +1088,233 @@ terraform state mv local_file.old_name local_file.new_name
 
 ---
 
-## 🎯 Kokkuvõte
+##  Validation ja Testing: Kuidas kontrollida Terraform koodi?
+
+Enne `terraform apply` on oluline kontrollida, kas kood on õige!
+
+### 1. terraform validate - Süntaksi kontroll
+
+```bash
+# Kontrolli süntaksit
+terraform validate
+
+# Väljund kui OK:
+# Success! The configuration is valid.
+
+# Väljund kui ERROR:
+# Error: Invalid resource type
+#   on main.tf line 5:
+#     resource "local_fil" "example" {
+```
+
+**Kontrollib:**
+-  HCL süntaks
+-  Resource tüübid
+-  Argument nimed
+-  EI kontrolli loogikat või väärtusi
+
+### 2. terraform fmt - Code formatting
+
+```bash
+# Formateeri kõik .tf failid
+terraform fmt
+
+# Kontrolli, kas on vaja formateerida (CI/CD's)
+terraform fmt -check
+
+# Rekursiivne (ka alamkaustad)
+terraform fmt -recursive
+```
+
+**Näide:**
+```hcl
+# Enne fmt
+resource  "local_file""example"{
+content="test"
+filename="${path.module}/test.txt"}
+
+# Pärast fmt
+resource "local_file" "example" {
+  content  = "test"
+  filename = "${path.module}/test.txt"
+}
+```
+
+### 3. terraform plan - Dry run
+
+```bash
+# Vaata, mida Terraform teeks (aga ära tee!)
+terraform plan
+
+# Salvesta plan faili
+terraform plan -out=tfplan
+
+# Kasuta salvestatud plan'i
+terraform apply tfplan
+```
+
+**Plan output:**
+```
+Terraform will perform the following actions:
+
+  # local_file.example will be created
+  + resource "local_file" "example" {
+      + content  = "Hello World"
+      + filename = "./hello.txt"
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+```
+
+**Sümbolid:**
+- `+` - uus ressurss (create)
+- `-` - kustutatakse (destroy)
+- `~` - muudetakse (update in-place)
+- `-/+` - kustutatakse ja luuakse uuesti (replace)
+
+### 4. tflint - Advanced linting
+
+**tflint** on rohkem kui `validate` - kontrollib best practices'eid!
+
+```bash
+# Installi tflint
+curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+# Käivita
+tflint
+
+# Init (esimene kord)
+tflint --init
+
+# Rekursiivne
+tflint --recursive
+```
+
+**Näide probleemidest:**
+```
+3 issue(s) found:
+
+Warning: terraform "required_version" attribute is required (terraform_required_version)
+  on main.tf line 1
+
+Warning: Missing version constraint for provider "local" (terraform_required_providers)
+  on main.tf line 5
+
+Notice: local_file "example" is declared but not used (terraform_unused_declarations)
+  on main.tf line 10
+```
+
+### 5. checkov - Security scanning
+
+**checkov** leiab turvalisuse probleemid Terraform koodist!
+
+```bash
+# Installi checkov
+pip3 install checkov
+
+# Skanni kõik .tf failid
+checkov -d .
+
+# Ainult HIGH severity
+checkov -d . --check-level HIGH
+
+# Väljund JSON'ina (CI/CD)
+checkov -d . -o json
+```
+
+**Näide tulemused:**
+```
+Passed checks: 8
+Failed checks: 3
+Skipped checks: 0
+
+Check: CKV_AWS_20: "S3 Bucket has an ACL defined"
+  FAILED for resource: aws_s3_bucket.example
+  File: /main.tf:5-10
+
+Check: CKV_AWS_21: "S3 bucket versioning is enabled"
+  FAILED for resource: aws_s3_bucket.example
+  File: /main.tf:5-10
+```
+
+### 6. CI/CD Pipeline näide
+
+**GitLab CI koos kõigi kontrollidega:**
+
+```yaml
+stages:
+  - validate
+  - plan
+  - apply
+
+terraform_validate:
+  stage: validate
+  script:
+    - terraform init
+    - terraform fmt -check    # Code formatting
+    - terraform validate      # Syntax check
+    - tflint                  # Best practices
+    - checkov -d .            # Security scan
+
+terraform_plan:
+  stage: plan
+  script:
+    - terraform init
+    - terraform plan -out=tfplan
+  artifacts:
+    paths:
+      - tfplan
+
+terraform_apply:
+  stage: apply
+  script:
+    - terraform init
+    - terraform apply tfplan
+  when: manual                # Käsitsi kinnitamine!
+  only:
+    - main
+```
+
+### 7. Testing tööriistad
+
+**Terratest** (Go-based testing):
+```go
+func TestTerraformExample(t *testing.T) {
+    terraformOptions := &terraform.Options{
+        TerraformDir: "../",
+    }
+    
+    defer terraform.Destroy(t, terraformOptions)
+    terraform.InitAndApply(t, terraformOptions)
+    
+    output := terraform.Output(t, terraformOptions, "filename")
+    assert.Equal(t, "./hello.txt", output)
+}
+```
+
+**kitchen-terraform** (Ruby-based testing):
+```ruby
+describe file('/tmp/test.txt') do
+  it { should exist }
+  its('content') { should match /Hello/ }
+end
+```
+
+### 8. Best Practices checklist 
+
+Enne `terraform apply`:
+
+1.  `terraform fmt` - formateeri kood
+2.  `terraform validate` - kontrolli süntaksi
+3.  `terraform plan` - vaata muudatusi
+4.  `tflint` - kontrolli best practices'eid
+5.  `checkov` - kontrolli turvalisust
+6.  Code review - kolleeg vaatab üle
+7.  `terraform apply` - nüüd võid rakendada!
+
+---
+
+##  Kokkuvõte
 
 Täna õppisime:
 
@@ -1103,11 +1328,11 @@ Täna õppisime:
 - Multi-environment infrastruktuur
 - Advanced Terraform features
 
-**Kas teil on küsimusi?** 🤔
+**Kas teil on küsimusi?** 
 
 ---
 
-## 📚 Lisaressursid
+##  Lisaressursid
 
 - **Terraform Documentation:** https://www.terraform.io/docs
 - **HCL Language:** https://www.terraform.io/docs/language

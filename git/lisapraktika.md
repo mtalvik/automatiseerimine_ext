@@ -1,18 +1,17 @@
-# 🚀 Git Lisapraktika
+#  Git Lisapraktika
 
-**Kestus:** 2-3 tundi  
 **Eesmärk:** Süvendada Git oskusi täiendavate praktiliste ülesannetega  
 **Eeltingimused:** Git põhiteadmised, GitHub konto
 
 ---
 
-## 📋 Ülevaade
+##  Ülevaade
 
 See fail sisaldab lisapraktikaid ja boonusülesandeid Git versioonihalduse mooduli jaoks, sealhulgas GitHub Actions tutvustus ja edasijõudnud Git funktsioonid.
 
 ---
 
-## 🎯 Õpiväljundid
+##  Õpiväljundid
 
 Pärast lisapraktikat oskate:
 
@@ -21,7 +20,7 @@ Pärast lisapraktikat oskate:
 - Git hooks ja automatiseerimine
 - Submodules ja monorepo haldamine
 
-## 🔄 GitHub Actions Tutvustus
+##  GitHub Actions Tutvustus
 
 ### Lihtne CI/CD Workflow
 
@@ -89,7 +88,7 @@ jobs:
         # Lisa siia oma deployment skript
 ```
 
-## 🪝 Git Hooks
+##  Git Hooks
 
 ### Pre-commit Hook
 
@@ -149,7 +148,7 @@ fi
 echo "Commit message format is valid!"
 ```
 
-## 📦 Git Submodules
+##  Git Submodules
 
 ### Submodule Lisamine
 
@@ -177,7 +176,7 @@ git rm external/repo
 git commit -m "Remove submodule repo"
 ```
 
-## 🔧 Edasijõudnud Git Käsud
+##  Edasijõudnud Git Käsud
 
 ### Git Reflog
 
@@ -221,7 +220,7 @@ git worktree list
 git worktree remove ../feature-branch
 ```
 
-## 🏗️ Monorepo Struktuur
+##  Monorepo Struktuur
 
 ### Projekti Struktuur
 
@@ -270,7 +269,7 @@ my-monorepo/
 }
 ```
 
-## 🧪 Testimine ja Valideerimine
+##  Testimine ja Valideerimine
 
 ### Git Hook Testimine
 
@@ -294,7 +293,7 @@ act -j test
 act push -W .github/workflows/ci.yml
 ```
 
-## 📝 Lisapraktika Ülesanded
+##  Lisapraktika Ülesanded
 
 ### Ülesanne 1: GitHub Actions Workflow
 
@@ -321,14 +320,14 @@ Loo monorepo struktuur, mis:
 - Keskse CI/CD pipeline'i
 - Jagatud konfiguratsioone
 
-## 🔍 Kasulikud Ressursid
+##  Kasulikud Ressursid
 
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Git Hooks Documentation](https://git-scm.com/docs/githooks)
 - [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 - [Monorepo Best Practices](https://monorepo.tools/)
 
-## 📊 Hindamine
+##  Hindamine
 
 - **GitHub Actions (40%):** Workflow'ide loomine ja konfigureerimine
 - **Git Hooks (30%):** Automatiseeritud kontrollide implementeerimine
@@ -336,4 +335,4 @@ Loo monorepo struktuur, mis:
 
 ---
 
-**🎯 Edu lisapraktika läbimisel!**
+** Edu lisapraktika läbimisel!**

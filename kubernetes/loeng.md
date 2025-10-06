@@ -1,11 +1,10 @@
-# 📚 Kubernetes: Konteinerite Orkestreerimisse
+#  Kubernetes: Konteinerite Orkestreerim ine
 
-**Kestus:** 4 tundi  
 **Teemad:** Kubernetes arhitektuur, klastri haldamine, ressursid, skaleerimine, best practices
 
 ---
 
-## 🎯 Õpiväljundid
+##  Õpiväljundid
 
 Pärast seda loengut oskate:
 - Mõista Kubernetes arhitektuuri ja põhikontsepte
@@ -16,7 +15,7 @@ Pärast seda loengut oskate:
 
 ---
 
-## 📖 1. Mis on Kubernetes ja Miks Me Seda Vajame?
+##  1. Mis on Kubernetes ja Miks Me Seda Vajame?
 [Celebrating 10 years of Kubernetes: the evolution of database operators](https://www.cncf.io/blog/2024/06/28/celebrating-10-years-of-kubernetes-the-evolution-of-database-operators/)
 
 ### 1.1 Kubernetes'i Sünd ja Ajalugu
@@ -92,7 +91,46 @@ Allikas: https://www.redhat.com/en/topics/containers/what-is-kubernetes
 
 ### 2.1 Klaster ja Node'id
 
-![Control Plane of K8s](https://i.ytimg.com/vi/TlHvYWVUZyc/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDeAgmiuxWVD1JAgOjEfppl0cF15g)
+```mermaid
+graph TB
+    subgraph "Control Plane (Master Node)"
+        API[API Server]
+        ETCD[(etcd<br/>config DB)]
+        Sched[Scheduler]
+        Ctrl[Controller<br/>Manager]
+    end
+    
+    subgraph "Worker Node 1"
+        Kubelet1[Kubelet]
+        Proxy1[Kube-proxy]
+        Pod1[Pod 1]
+        Pod2[Pod 2]
+    end
+    
+    subgraph "Worker Node 2"
+        Kubelet2[Kubelet]
+        Proxy2[Kube-proxy]
+        Pod3[Pod 3]
+        Pod4[Pod 4]
+    end
+    
+    API <--> ETCD
+    API <--> Sched
+    API <--> Ctrl
+    API <--> Kubelet1
+    API <--> Kubelet2
+    Kubelet1 --> Pod1
+    Kubelet1 --> Pod2
+    Kubelet2 --> Pod3
+    Kubelet2 --> Pod4
+    
+    style API fill:#326ce5,color:#fff
+    style ETCD fill:#4d4d4d,color:#fff
+    style Pod1 fill:#f0f0f0
+    style Pod2 fill:#f0f0f0
+    style Pod3 fill:#f0f0f0
+    style Pod4 fill:#f0f0f0
+```
 
 Kubernetes klaster koosneb vähemalt ühest Control Plane node'ist (vanem nimetus Master) ja mitmest Worker node'ist. 
 
@@ -144,7 +182,33 @@ Allikas: https://www.geeksforgeeks.org/devops/kubernetes-pods/
 
 ### 2.3 Deployment - Deklaratiivne Rakenduse Haldamine
 
-![Deployment](https://matthewpalmer.net/kubernetes-app-developer/articles/deployment-diagram-kubernetes.gif)
+```mermaid
+graph TD
+    Deploy[Deployment<br/>replicas: 3]
+    RS[ReplicaSet<br/>ensures 3 pods]
+    Pod1[Pod 1<br/>nginx:1.21]
+    Pod2[Pod 2<br/>nginx:1.21]
+    Pod3[Pod 3<br/>nginx:1.21]
+    
+    Deploy -->|manages| RS
+    RS -->|creates & monitors| Pod1
+    RS -->|creates & monitors| Pod2
+    RS -->|creates & monitors| Pod3
+    
+    Pod1X[Pod 1 crashes! ]
+    Pod1New[Pod 1 NEW ]
+    
+    Pod1 -.->|fails| Pod1X
+    RS -.->|recreates| Pod1New
+    
+    style Deploy fill:#326ce5,color:#fff
+    style RS fill:#7aa3e5,color:#fff
+    style Pod1 fill:#a8dadc
+    style Pod2 fill:#a8dadc
+    style Pod3 fill:#a8dadc
+    style Pod1X fill:#ff6b6b,color:#fff
+    style Pod1New fill:#51cf66
+```
 
 Deployment on Kubernetes'i võimas kontseptsioon, mis hoiab teie rakenduse soovitud olekus. 
 
@@ -496,16 +560,16 @@ Loome nüüd päris deployment'i, mis käitab lihtsat veebirakendust.
 
 ```mermaid
 graph LR
-    USER[👤 Kasutaja]
+    USER[ Kasutaja]
     
     subgraph "Kubernetes = Automaatne Juht"
-        DEPLOY[🎯 Deployment<br/>Hoolitseb, et alati 3 pod'i töötab]
+        DEPLOY[ Deployment<br/>Hoolitseb, et alati 3 pod'i töötab]
         
-        POD1[📦 Pod 1<br/>Nginx konteiner]
-        POD2[📦 Pod 2<br/>Nginx konteiner]
-        POD3[📦 Pod 3<br/>Nginx konteiner]
+        POD1[ Pod 1<br/>Nginx konteiner]
+        POD2[ Pod 2<br/>Nginx konteiner]
+        POD3[ Pod 3<br/>Nginx konteiner]
         
-        SERVICE[🚪 Service<br/>Uksehoidja - jagab tööd]
+        SERVICE[ Service<br/>Uksehoidja - jagab tööd]
     end
     
     USER -->|Küsib veebilehte| SERVICE
@@ -588,6 +652,221 @@ kubectl scale deployment minu-veebirakendus --replicas=5
 # Testi teenuse ligipääsu (Minikube'is)
 minikube service veebirakendus-service
 ```
+
+---
+
+##  Troubleshooting: Kuidas debugida Kubernetes'es?
+
+Kui midagi läheb valesti (ja see juhtub PALJU), on oluline osata kiirelt probleemi leida!
+
+### 1. Pod ei käivitu - Mis on viga?
+
+```bash
+# 1. Vaata pod'i staatust
+kubectl get pods
+
+# Väljund:
+# NAME                      READY   STATUS             RESTARTS
+# myapp-xxx                 0/1     ImagePullBackOff   0
+# myapp-yyy                 0/1     CrashLoopBackOff   3
+```
+
+**Levinud STATUS'ed ja tähendused:**
+
+| Status | Tähendus | Kuidas lahendada |
+|--------|----------|------------------|
+| `Pending` | Pod ootab node'i | `kubectl describe pod` - vaata events |
+| `ImagePullBackOff` | Ei saa image't alla laadida | Kontrolli image nime/tagi |
+| `CrashLoopBackOff` | Container crashib kogu aeg | Vaata logisid! |
+| `Error` | Container lõpetas vealise koodiga | Vaata logisid! |
+| `Running` | Töötab  | Kõik OK! |
+
+### 2. Describe - Detailne info
+
+```bash
+# Vaata pod'i detaile
+kubectl describe pod myapp-xxx
+
+# OLULINE OSAS:
+# Events:
+#   Type     Reason     Message
+#   ----     ------     -------
+#   Warning  Failed     Error: ImagePullBackOff
+#   Warning  Failed     Back-off pulling image "myapp:v99"
+```
+
+**Events** sektsioonis on KÕIK probleemid näha!
+
+### 3. Logs - Mida rakendus ütleb?
+
+```bash
+# Vaata pod'i logi
+kubectl logs myapp-xxx
+
+# Vaata mitme konteineri pod'i konkreetset containerit
+kubectl logs myapp-xxx -c container-name
+
+# Vaata logi LIVE (follow)
+kubectl logs -f myapp-xxx
+
+# Vaata viimased 50 rida
+kubectl logs --tail=50 myapp-xxx
+
+# Vaata crashinud pod'i eelmist logi
+kubectl logs myapp-xxx --previous
+```
+
+**Näide log väljund:**
+```
+Traceback (most recent call last):
+  File "app.py", line 10
+    DATABASE_URL = os.environ['DB_URL']
+KeyError: 'DB_URL'
+```
+ **Probleem:** puudub environment variable!
+
+### 4. Exec - Logi pod'i sisse
+
+```bash
+# Logi pod'i sisse (nagu SSH)
+kubectl exec -it myapp-xxx -- /bin/sh
+
+# Kontrolli faile
+ls /app/
+cat /app/config.yaml
+
+# Kontrolli environment variable'id
+env | grep DATABASE
+
+# Kontrolli võrguühendust
+ping database-service
+curl http://api-service:8080/health
+
+# Välja logimine
+exit
+```
+
+### 5. Port Forward - Testi otse
+
+```bash
+# Forward port localhost:8080 -> pod:80
+kubectl port-forward pod/myapp-xxx 8080:80
+
+# Nüüd saad testida:
+curl http://localhost:8080
+```
+
+### 6. Service troubleshooting
+
+```bash
+# Kontrolli service'i
+kubectl get svc
+
+# Detailne info
+kubectl describe svc myapp-service
+
+# Endpoints - millised pod'id on service taga?
+kubectl get endpoints myapp-service
+
+# Kui endpoints on tühi, siis selector ei klapi!
+```
+
+### 7. Levinud probleemid ja lahendused
+
+**Probleem 1: "ImagePullBackOff"**
+```bash
+# Kontrolli:
+kubectl describe pod myapp-xxx | grep -A 5 "Failed"
+
+# Lahendus:
+# - Kas image nimi on õige?
+# - Kas tag eksisteerib?
+# - Kas Docker Hub/registry on kättesaadav?
+# - Kas on vaja autentimist? (imagePullSecrets)
+```
+
+**Probleem 2: "CrashLoopBackOff"**
+```bash
+# Vaata logi:
+kubectl logs myapp-xxx --previous
+
+# Levinud põhjused:
+# - Rakendus crashib startup'il
+# - Puudub vajalik env variable
+# - Database pole kättesaadav
+# - Config fail on vale
+```
+
+**Probleem 3: "Service ei tööta"**
+```bash
+# Kontrolli endpoints:
+kubectl get endpoints myapp-service
+
+# Kui tühi:
+# 1. Kontrolli selector'it
+kubectl get pods --show-labels
+kubectl describe svc myapp-service | grep Selector
+
+# 2. Kas pod'id on READY?
+kubectl get pods
+
+# 3. Kas port on õige?
+kubectl describe svc myapp-service | grep -A 3 "Port"
+```
+
+**Probleem 4: "Ei saa pod'ist logida"**
+```bash
+# Kontrolli, kas pod töötab:
+kubectl get pods
+
+# Kui pod on "Completed" või "Error":
+kubectl logs myapp-xxx --previous
+
+# Kui pod ei eksisteeri:
+kubectl get pods --all-namespaces
+```
+
+### 8. Debug checklist 
+
+Kui midagi ei tööta, mine läbi see järjekord:
+
+1.  `kubectl get pods` - kas pod töötab?
+2.  `kubectl describe pod XXX` - vaata events
+3.  `kubectl logs XXX` - mida rakendus ütleb?
+4.  `kubectl get svc` - kas service eksisteerib?
+5.  `kubectl get endpoints` - kas pod'id on service taga?
+6.  `kubectl exec -it XXX -- /bin/sh` - logi sisse ja uurialg!
+
+### 9. Kasulikud käsud
+
+```bash
+# Kõik ressursid korraga
+kubectl get all
+
+# Vaata kõiki pod'e kõigis namespace'ides
+kubectl get pods --all-namespaces
+
+# Kustuta crashiv pod (restart'itakse automaatselt)
+kubectl delete pod myapp-xxx
+
+# Restart deployment (kõik pod'id)
+kubectl rollout restart deployment myapp
+
+# Vaata deployment'i ajalugu
+kubectl rollout history deployment myapp
+
+# Tagasi eelmisele versioonile
+kubectl rollout undo deployment myapp
+
+# Node'ide info
+kubectl top nodes
+kubectl top pods
+
+# Clusteri info
+kubectl cluster-info
+```
+
+---
 
 ## Kokkuvõte
 

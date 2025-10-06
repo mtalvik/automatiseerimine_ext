@@ -1,18 +1,18 @@
-# 📝 Kubernetes Kodutöö: E-Pood → Tootmine
+#  Kubernetes Kodutöö: E-Pood → Tootmine
 
 **Tähtaeg:** Järgmise nädala alguseks  
 **Eesmärk:** Parandada e-poe arhitektuuri ja juurutada tootmiskeskkonda  
-**Aeg:** 2-3 tundi
+
 
 ---
 
-## 🎯 Ülesande kirjeldus
+##  Ülesande kirjeldus
 
 Laboris tegime e-poe kus kood oli ConfigMap'is. See on halb praktika. Nüüd teeme sama e-poe õigesti - kood Docker image'isse.
 
 ---
 
-## 📋 Mida Me Teeme
+##  Mida Me Teeme
 
 ---
 
@@ -557,3 +557,103 @@ kodutoo/
 ```
 
 **Tähtaeg:** 1 nädal
+
+---
+
+##  Refleksioon (kirjuta README.md lõppu)
+
+Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
+
+### Küsimused (vasta 2-3 lausega igaühele):
+
+1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
+   - Näide: "Kõige raskem oli mõista, kuidas Kubernetes Services töötavad. Lugesin dokumentatsiooni ja kasutasin `kubectl describe` debugging'uks."
+
+2. **Milline Kubernetes kontseptsioon oli sulle kõige suurem "ahaa!"-elamus ja miks?**
+   - Näide: "Deployments ja Pods! Nüüd saan aru, kuidas Kubernetes automaatselt pod'e taastab kui need crashivad."
+
+3. **Kuidas saaksid Kubernetes'i kasutada oma teistes projektides või töös?**
+   - Näide: "Võiksin Kubernetes'iga käivitada oma mikroteenuste projekti ja skaleerida neid automaatselt."
+
+4. **Kui peaksid oma sõbrale selgitama, mis on Kubernetes ja miks see on kasulik, siis mida ütleksid?**
+   - Näide: "Kubernetes on nagu lennujuht – haldab tuhandeid container'eid ja tagab, et kõik töötab!"
+
+5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
+   - Näide: "Mulle meeldis scaling - `kubectl scale --replicas=10` ja BAM, mul on 10 pod'i!"
+
+---
+
+##  Kontrollnimekiri (enne esitamist)
+
+**Kontrolli need asjad:**
+
+- [ ] GitHubis on avalik repositoorium
+- [ ] Kubernetes manifests töötavad (`kubectl apply`)
+- [ ] Kõik pod'id on RUNNING staadiumis
+- [ ] Services suunavad liiklust õigesti
+- [ ] Rakendus on ligipääsetav (browser test)
+- [ ] README.md sisaldab:
+  - [ ] Projekti kirjeldus (mis see on?)
+  - [ ] Kuidas seadistada (minikube/kind)
+  - [ ] Kuidas käivitada (`kubectl apply` käsud)
+  - [ ] Kuidas testida (URL'id, käsud)
+  - [ ] Refleksioon (5 küsimuse vastused)
+- [ ] Screenshots on lisatud (pods, services, browser)
+- [ ] Kõik muudatused on GitHubi push'itud
+
+---
+
+##  Hindamiskriteeriumid
+
+| Kriteerium | Punktid | Kirjeldus |
+|------------|---------|-----------|
+| **Deployments** | 20% | Backend + Frontend deployments korrektsed |
+| **Services** | 15% | Services suunavad liiklust õigesti |
+| **ConfigMaps/Secrets** | 10% | Environment variables korrektsed |
+| **Ingress** | 10% | Ingress seadistatud (kui kasutatud) |
+| **Funktsionaalsus** | 20% | Rakendus töötab browser'is |
+| **README** | 10% | Projekti kirjeldus, käivitamisjuhend, selge |
+| **Refleksioon** | 15% | 5 küsimust vastatud, sisukas, näitab mõistmist |
+
+**Kokku: 100%**
+
+---
+
+##  Abimaterjalid ja lugemine
+
+**Kiirviited:**
+- [Kubernetes Docs - Concepts](https://kubernetes.io/docs/concepts/)
+- [Kubernetes Docs - kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
+- [Play with Kubernetes](https://labs.play-with-k8s.com/) - tasuta online playground
+- [Kubernetes By Example](https://kubernetesbyexample.com/)
+
+**Kui abi vaja:**
+1. Vaata `lisapraktika.md` faili täiendavate näidete jaoks
+2. Kasuta `kubectl describe` debugging'uks
+3. Kasuta `kubectl logs` logide vaatamiseks
+4. Küsi klassikaaslaselt või õpetajalt
+
+---
+
+##  Boonus (valikuline, +10%)
+
+**Kui tahad ekstra punkte, tee üks või mitu neist:**
+
+1. **Horizontal Pod Autoscaler:** Automaatne scaling CPU kasutuse põhjal
+   ```bash
+   kubectl autoscale deployment backend --cpu-percent=50 --min=2 --max=10
+   ```
+
+2. **Helm Chart:** Pakenda rakendus Helm chart'iks
+   ```bash
+   helm create myapp
+   helm install myapp ./myapp
+   ```
+
+3. **Monitoring:** Lisa Prometheus + Grafana monitoring
+4. **Persistent Volumes:** Kasuta PV ja PVC andmete säilitamiseks
+5. **Network Policies:** Lisa network policies turvalisuse jaoks
+
+---
+
+**Edu ja head orkestreerimist!** 

@@ -1,22 +1,74 @@
-# 🧪 Ansible Rollid Labor: Rolli Loomine
+#  Ansible Rollid Labor: Professionaalne struktuur (3×45 min)
 
-**Kestus:** 2 tundi  
-**Eesmärk:** Luua professionaalne Nginx roll Ansible Galaxy standardite järgi
+## Lab'i eesmärk
+Täna õpid Ansible rolle - professionaalset viisi Ansible koodi organiseerimiseks ja jagamiseks! Rollid on nagu LEGO klotsid – saad neid korduvalt kasutada erinevates projektides. 
 
----
-
-## 🎯 Õpiväljundid
-
-Pärast laborit oskate:
-- Luua Ansible rolli õiges struktuuris
-- Kasutada rolli muutujaid ja sõltuvusi
-- Testida rolli Vagrant keskkonnas
-- Kasutada Ansible Galaxy rollide haldamist
-- Rakendada rolli best practices'eid
+##  Õpiväljundid
+Pärast seda lab'i oskad:
+- Luua Ansible rolli Ansible Galaxy standardite järgi
+- Mõista rolli struktuuri (tasks, handlers, templates, vars, defaults)
+- Kasutada rolle playbook'ides
+- Testida rolle isoleeritud keskkonnas
+- Jagada rolle teiste arendajatega (Ansible Galaxy)
 
 ---
 
-## 📋 Ülevaade
+### Blokk 1 (45 min) – Role struktuur ja genereerimine
+- **Eesmärk:** Luua esimene Ansible role ja mõista selle struktuuri
+- **Tegevused:**
+  - `ansible-galaxy init` - rolli genereerimine
+  - Role struktuuri uurimine (tasks/, handlers/, templates/, vars/, defaults/)
+  - `meta/main.yml` - metadata ja sõltuvused
+  - Esimesed tasks rolli jaoks (nginx install)
+- **Kontrollnimekiri:**
+  - [ ] Role on genereeritud (`ansible-galaxy init`)
+  - [ ] Mõistad iga kausta eesmärki
+  - [ ] `meta/main.yml` on täidetud
+  - [ ] Esimene task töötab
+- **Kontrollküsimus:** "Mis vahe on `defaults/` ja `vars/` kaustade vahel?"
+- **Refleksioon (1 min):** "Ansible role on nagu... A) retsept  B) LEGO komplekt  C) moodul Pythonis "
+
+---
+
+### Blokk 2 (45 min) – Templates ja handlers
+- **Eesmärk:** Kasutada Jinja2 template'eid ja handlers konfiguratsioonide jaoks
+- **Tegevused:**
+  - Nginx config template loomine (`templates/nginx.conf.j2`)
+  - Variables kasutamine template'ides (`{{ variable }}`)
+  - Handler'ite seadistamine (nginx restart)
+  - Rolli testimine playbook'iga
+- **Kontrollnimekiri:**
+  - [ ] Template fail on loodud (`templates/nginx.conf.j2`)
+  - [ ] Variables toimivad template'is
+  - [ ] Handler restartib nginx'i ainult muudatuse korral
+  - [ ] Role töötab playbook'is
+- **Kontrollküsimus:** "Miks kasutada template'eid, mitte lihtsalt `copy` moodulit?"
+- **Refleksioon (1 min):** "Jinja2 templates on nagu... A) Mad Libs mäng B) kohandatav vorm C) mõlemad"
+
+---
+
+### Blokk 3 (45 min) – Role dependencies ja testing
+- **Eesmärk:** Lisada role sõltuvused ja testida rolli isoleeritud keskkonnas
+- **Tegevused:**
+  - Role sõltuvuste lisamine (`meta/main.yml` - dependencies)
+  - Multiple roles playbook'is
+  - Role testimine Vagrant VM'is
+  - Ansible Galaxy rollide kasutamine
+- **Kontrollnimekiri:**
+  - [ ] Role sõltuvused on seadistatud
+  - [ ] Playbook kasutab mitut rolli
+  - [ ] Role töötab Vagrant VM'is
+  - [ ] Tead, kuidas otsida rolle Ansible Galaxy'st
+- **Kontrollküsimus:** "Kuidas tagada, et role töötab erinevates keskkondades?"
+- **Refleksioon (1 min):** "Kõige raskem osa oli... A) struktuur B) templates C) dependencies D) actually, ma sain hakkama! "
+
+---
+
+**Valmis? Alustame detailsete sammudega!** ⬇
+
+---
+
+##  Ülevaade
 
 **Loote:**
 - Galaxy standard Nginx role

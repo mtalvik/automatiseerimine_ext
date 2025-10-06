@@ -1,7 +1,6 @@
-# Tunnikava (õpetajale): Git – Põhitõed (4×45 min) + 1.5h kodutöö
+# Tunnikava: Git – Põhitõed (4×45 min) + 1.5h kodutöö
 
-**Sihtgrupp:** 16-20 a. algajad (eelteadmised: ei pea teadma Git'i)  
-**Tase:** Põhitase (beginner-friendly)  
+**Tase:** Põhitase (eelteadmised: ei pea teadma Git'i)  
 **Materjalid:** `loeng.md`, `labor.md`, `kodutoo.md`, `lisapraktika.md`
 
 ---

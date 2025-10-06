@@ -1,11 +1,11 @@
-# 📖 Git Käsud Viitematerjal
+#  Git Käsud Viitematerjal
 
 **Eesmärk:** Kiire viide kõigile Git käsudele  
 **Kasutamine:** Kasutage seda viidet, kui vajate kiiret abi Git käskude kohta
 
 ---
 
-## 📋 Põhilised Käsud
+##  Põhilised Käsud
 
 ### Seadistamine
 ```bash
@@ -29,7 +29,7 @@ git push origin main        # Saada muudatused
 git pull origin main        # Võta uusimad muudatused
 ```
 
-## 📊 Info ja Ajalugu
+##  Info ja Ajalugu
 
 ### Muudatuste Vaatamine
 ```bash
@@ -49,7 +49,7 @@ git log --author="Nimi"    # Konkreetse autori commit'id
 git blame fail.txt         # Kes millise rea muutis
 ```
 
-## 🌿 Harude (Branches) Haldamine
+##  Harude (Branches) Haldamine
 
 ### Harude Loomine ja Vahetamine
 ```bash
@@ -79,7 +79,7 @@ git rebase --abort          # Katkesta rebase
 git rebase --continue       # Jätka pärast konfliktide lahendamist
 ```
 
-## 🌐 Kaugrepositooriumid (Remote)
+##  Kaugrepositooriumid (Remote)
 
 ### Remote'ide Haldamine
 ```bash
@@ -109,7 +109,7 @@ git push origin funktsioon-login  # Uue haru saatmine
 git push origin --delete funktsioon-login  # Haru kustutamine
 ```
 
-## 🔧 Failide Haldamine
+##  Failide Haldamine
 
 ### Failide Lisamine ja Eemaldamine
 ```bash
@@ -128,7 +128,7 @@ git reset HEAD failinimi.txt   # Eemalda fail staging'ust
 git reset HEAD                 # Eemalda kõik failid staging'ust
 ```
 
-## 🔄 Commit'ide Haldamine
+##  Commit'ide Haldamine
 
 ### Commit'ide Muutmine
 ```bash
@@ -157,7 +157,7 @@ git show a1b2c3d            # Lühike hash
 git show v1.0.0             # Tag
 ```
 
-## 📦 Ajutine Salvestamine (Stash)
+##  Ajutine Salvestamine (Stash)
 
 ```bash
 git stash                   # Salvesta muudatused ajutiselt
@@ -168,7 +168,7 @@ git stash drop stash@{0}   # Kustuta stash
 git stash clear            # Kustuta kõik stash'ed
 ```
 
-## 🔍 Otsimine ja Filtreerimine
+##  Otsimine ja Filtreerimine
 
 ```bash
 git log --grep="sõna"      # Otsi commit'ides
@@ -179,7 +179,7 @@ git log --author="Nimi"    # Filtreeri autori järgi
 git log --oneline -10      # Viimased 10 commit'i
 ```
 
-## 🏷️ Tag'id
+##  Tag'id
 
 ```bash
 git tag v1.0.0             # Loo tag
@@ -190,7 +190,7 @@ git push origin v1.0.0     # Saada tag
 git push origin --tags     # Saada kõik tag'id
 ```
 
-## 🔧 Konfliktide Lahendamine
+##  Konfliktide Lahendamine
 
 ```bash
 git status                 # Näitab konfliktilisi faile
@@ -199,7 +199,7 @@ git mergetool              # Avab graafilise lahendaja
 git add konfliktne-fail.txt # Pärast konfliktide lahendamist
 ```
 
-## 📋 Alias'id ja Konfiguratsioon
+##  Alias'id ja Konfiguratsioon
 
 ### Kasulikud Alias'id
 ```bash
@@ -222,7 +222,7 @@ git ci -m "sõnum"        # git commit -m "sõnum"
 git unstage fail.txt     # git reset HEAD -- fail.txt
 ```
 
-## 🚨 Hoiatused ja Nõuanded
+##  Hoiatused ja Nõuanded
 
 ### Ära tee kunagi:
 - `git push --force` shared branch'ides
@@ -236,7 +236,7 @@ git unstage fail.txt     # git reset HEAD -- fail.txt
 - Selgeid commit sõnumeid
 - `.gitignore` faili
 
-## 📚 Lisaressursid
+##  Lisaressursid
 
 - [Git'i ametlik dokumentatsioon](https://git-scm.com/doc)
 - [Git'i visuaalne õpetus](https://git-scm.com/book/en/v2)

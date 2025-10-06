@@ -1,18 +1,18 @@
-# 📝 Ansible vs Puppet Kodutöö: Võrdlev Analüüs
+#  Ansible vs Puppet Kodutöö: Võrdlev Analüüs
 
 **Tähtaeg:** Järgmise nädala alguseks  
 **Eesmärk:** Deploy sama infrastruktuur mõlema tööriistaga ja võrrelda lähenemisi  
-**Aeg:** 2-3 tundi
+
 
 ---
 
-## 🎯 Ülesande kirjeldus
+##  Ülesande kirjeldus
 
 Ehitage sama infrastruktuur nii Ansible kui ka Puppet'iga, et mõista erinevusi ja sarnasusi automatiseerimise tööriistades.
 
 ---
 
-## 📋 Ülevaade
+##  Ülevaade
 
 **Ehitate:**
 - Nginx + SSL + virtual hosts
@@ -281,4 +281,94 @@ curl -vk https://localhost  # detailne SSL handshake
 systemctl status nginx postgresql  # teenuste olek
 journalctl -u nginx -f            # nginx logid reaalajas
 netstat -tlnp | grep :443         # SSL port kontroll
-``
+```
+
+---
+
+##  Refleksioon (kirjuta README.md lõppu)
+
+Lisa oma README.md faili lõppu peatükk **"## Refleksioon ja Võrdlus"** ja vasta järgmistele küsimustele:
+
+### Küsimused (vasta 2-3 lausega igaühele):
+
+1. **Milline tööriist oli sulle mugavam (Ansible või Puppet) ja miks?**
+   - Näide: "Mulle meeldis Ansible rohkem, sest YAML on lihtsam lugeda kui Puppet DSL. Aga Puppet'i agent-based arhitektuur oli huvitav!"
+
+2. **Mis oli kõige suurem erinevus Ansible ja Puppet vahel?**
+   - Näide: "Push-based vs pull-based! Ansible'is ma käsitsi trigger'in, Puppet'is agent küsib ise uuendusi."
+
+3. **Millises olukorras kasutaksid Ansible'i ja millises Puppet'it?**
+   - Näide: "Ansible väikestele projektidele ja kiireks deployment'iks. Puppet suurele infrastruktuurile, kus on vaja pidevat automatiseerimist."
+
+4. **Mis oli selle projekti juures kõige raskem ja kuidas sa selle lahendasid?**
+   - Näide: "SSL sertifikaatide seadistamine oli raske. Otsisin dokumentatsioonist ja kasutasin `openssl` käsku testimiseks."
+
+5. **Mis oli selle projekti juures kõige huvitavam või lõbusam osa?**
+   - Näide: "Mulle meeldis näha, kuidas sama infrastruktuur töötab kahel erineval viisil! Nagu võrrelda kahte erinevat keelt."
+
+---
+
+##  Kontrollnimekiri (enne esitamist)
+
+**Kontrolli need asjad:**
+
+- [ ] GitHubis on avalik repositoorium
+- [ ] Ansible osa töötab (Nginx + SSL + virtual hosts + PostgreSQL + monitoring)
+- [ ] Puppet osa töötab (Nginx + SSL + virtual hosts + PostgreSQL + monitoring)
+- [ ] Comparison.md sisaldab põhjalikku võrdlust
+- [ ] README.md sisaldab:
+  - [ ] Projekti kirjeldus
+  - [ ] Kuidas seadistada (Ansible ja Puppet eraldi)
+  - [ ] Kuidas käivitada
+  - [ ] Refleksioon (5 küsimuse vastused)
+- [ ] Kõik muudatused on GitHubi push'itud
+
+---
+
+##  Hindamiskriteeriumid
+
+| Kriteerium | Punktid | Kirjeldus |
+|------------|---------|-----------|
+| **Ansible osa** | 30% | Nginx + SSL + virtual hosts + PostgreSQL + monitoring töötavad |
+| **Puppet osa** | 30% | Nginx + SSL + virtual hosts + PostgreSQL + monitoring töötavad |
+| **Comparison.md** | 15% | Põhjalik võrdlus, näited, selge argumentatsioon |
+| **Kood kvaliteet** | 10% | Struktuur, nimed, kommentaarid, best practices |
+| **README** | 5% | Projekti kirjeldus, käivitamisjuhend, selge |
+| **Refleksioon** | 10% | 5 küsimust vastatud, sisukas, näitab mõistmist |
+
+**Kokku: 100%**
+
+---
+
+##  Abimaterjalid ja lugemine
+
+**Ansible:**
+- [Ansible Roles Docs](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html)
+- [Ansible Galaxy](https://galaxy.ansible.com/)
+- [Jinja2 Templates](https://docs.ansible.com/ansible/latest/user_guide/playbooks_templating.html)
+
+**Puppet:**
+- [Puppet Language Basics](https://puppet.com/docs/puppet/latest/lang_summary.html)
+- [Puppet Modules](https://puppet.com/docs/puppet/latest/modules_fundamentals.html)
+- [Puppet Forge](https://forge.puppet.com/)
+
+**Kui abi vaja:**
+1. Vaata `lisapraktika.md` faili täiendavate näidete jaoks
+2. Kasuta `ansible-playbook --check` ja `puppet apply --noop` kuivaks käiguks
+3. Küsi klassikaaslaselt või õpetajalt
+
+---
+
+##  Boonus (valikuline, +10%)
+
+**Kui tahad ekstra punkte, tee üks või mitu neist:**
+
+1. **Docker deployment:** Käivita mõlemad lahendused Docker container'ites
+2. **CI/CD pipeline:** Lisa GitHub Actions, mis testib mõlemat lahendust
+3. **Molecule testing:** Lisa Ansible Molecule test suite
+4. **Performance testing:** Võrdle deployment kiirust (time command)
+5. **Multi-environment:** Dev vs Prod konfiguratsioonid mõlemas tööriistas
+
+---
+
+**Edu ja head võrdlemist!** 

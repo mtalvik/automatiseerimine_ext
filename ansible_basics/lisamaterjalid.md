@@ -1,11 +1,11 @@
-# 📚 Ansible Õppematerjalid
+#  Ansible Õppematerjalid
 
 **Eesmärk:** Ansible'i sügavamaks õppimiseks ja praktiliste oskuste arendamiseks  
-**Aeg:** 2-3 tundi lugemist
+
 
 ---
 
-## 📖 Ametlik Dokumentatsioon
+##  Ametlik Dokumentatsioon
 
 ### 1. Ansible Arhitektuur
 **Alusta siit:**

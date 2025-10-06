@@ -1,12 +1,11 @@
-# 🧪 Kubernetes Lisaülesanded
+#  Kubernetes Lisaülesanded
 
-**Kestus:** 2-3 tundi  
 **Eesmärk:** Süvendada Kubernetes oskusi täiendavate praktiliste ülesannetega  
 **Eeltingimused:** Kubernetes põhiteadmised, Minikube seadistatud
 
 ---
 
-## 🎯 Õpiväljundid
+##  Õpiväljundid
 
 Pärast lisaülesandeid oskate:
 - Skaleerida rakendusi ja hallata load balancing'ut
@@ -17,7 +16,7 @@ Pärast lisaülesandeid oskate:
 
 ---
 
-## 📋 Sisukord
+##  Sisukord
 
 1. [Sissejuhatus](#sissejuhatus)
 2. [Ülesanne 1: Skaleerimine ja Load Balancing](#ülesanne-1-skaleerimine-ja-load-balancing)
@@ -31,7 +30,7 @@ Pärast lisaülesandeid oskate:
 
 ---
 
-# 🎯 Sissejuhatus
+#  Sissejuhatus
 
 Need ülesanded täiendavad põhilabi. Iga ülesanne õpetab üht Kubernetes kontseptsiooni põhjalikult.
 
@@ -44,7 +43,7 @@ Need ülesanded täiendavad põhilabi. Iga ülesanne õpetab üht Kubernetes kon
 
 ---
 
-# 📊 Ülesanne 1: Skaleerimine ja Load Balancing
+#  Ülesanne 1: Skaleerimine ja Load Balancing
 
 ## Ülevaade
 
@@ -68,11 +67,11 @@ graph LR
     style G fill:#feca57,color:#000
 ```
 
-💡 Service teeb **round-robin** load balancing: päring 1 → pod 1, päring 2 → pod 2, jne.
+ Service teeb **round-robin** load balancing: päring 1 → pod 1, päring 2 → pod 2, jne.
 
 ## 1. Skaleeri Backend'i
 
-### 📍 VM SEES
+###  VM SEES
 
 ```bash
 # Vaata praegust seisu
@@ -104,9 +103,9 @@ kubectl get pods -l app=backend
 
 ## 2. Vaata Load Balancing'u
 
-💡 Lisa backend koodi juurde pod hostname, et näha kumba pod'i päring läks.
+ Lisa backend koodi juurde pod hostname, et näha kumba pod'i päring läks.
 
-### 📍 VM SEES
+###  VM SEES
 
 ```bash
 # Muuda backend ConfigMap
@@ -170,7 +169,7 @@ done
 kill %1
 ```
 
-💡 Näed, et päringud jaotuvad **ümber kõigi pod'ide** vahel!
+ Näed, et päringud jaotuvad **ümber kõigi pod'ide** vahel!
 
 ## 4. Vaata Service Endpoints
 
@@ -216,7 +215,7 @@ kubectl scale deployment backend-api --replicas=1
 
 ---
 
-# 🔄 Ülesanne 2: Rolling Update ja Rollback
+#  Ülesanne 2: Rolling Update ja Rollback
 
 ## Ülevaade
 
@@ -234,7 +233,7 @@ graph TB
     style F fill:#13aa52,color:#fff
 ```
 
-💡 Rolling update garanteerib, et alati on **vähemalt 1 pod töötamas**.
+ Rolling update garanteerib, et alati on **vähemalt 1 pod töötamas**.
 
 ## 1. Vaata Deployment Ajalugu
 
@@ -249,9 +248,9 @@ kubectl rollout history deployment/frontend
 
 ## 2. Uuenda Frontend (v2.0)
 
-💡 Muudame HTML'i tausavärvi ja versiooni numbrit.
+ Muudame HTML'i tausavärvi ja versiooni numbrit.
 
-### 📍 VM SEES
+###  VM SEES
 
 ```bash
 nano ~/k8s-lab/frontend/1-html.yaml
@@ -288,7 +287,7 @@ kubectl rollout status deployment/frontend
 
 ## 3. Vaata Rolling Update Protsessi
 
-💡 Rolling update loomise järjekord:
+ Rolling update loomise järjekord:
 
 ```bash
 # Vaata pod'ide ajalugu (tee kiiresti!)
@@ -303,7 +302,7 @@ kubectl get pods -l app=frontend -w
 # frontend-old-xxx  1/1     Terminating   0          5m   ← Vana kustub ALLES SIIS
 ```
 
-💡 **Zero downtime:** Vana pod kustub alles kui uus valmis!
+ **Zero downtime:** Vana pod kustub alles kui uus valmis!
 
 ## 4. Kontrolli Brauseris
 
@@ -317,7 +316,7 @@ kubectl get pods -l app=frontend -w
 
 ## 5. Rollback v1.0'le
 
-💡 Midagi läks valesti? Tee rollback!
+ Midagi läks valesti? Tee rollback!
 
 ```bash
 # Vaata ajalugu
@@ -340,7 +339,7 @@ kubectl rollout status deployment/frontend
 
 ## 6. Deployment Strategy
 
-💡 Vaata kuidas rolling update seadistatud:
+ Vaata kuidas rolling update seadistatud:
 
 ```bash
 kubectl describe deployment frontend
@@ -408,17 +407,17 @@ kubectl scale deployment frontend --replicas=1
 
 ---
 
-# 🔧 Ülesanne 3: ConfigMap Muutmine
+#  Ülesanne 3: ConfigMap Muutmine
 
 ## Ülevaade
 
 Õpid muutma ConfigMap'i ja värskendama pod'e **ilma downtime'ita**. Muudame backend API response'i ja vaatame kuidas see mõjutab pod'e.
 
-💡 ConfigMap muutus **EI UUENDA** automaatselt pod'e! Pead pod'id restartima.
+ ConfigMap muutus **EI UUENDA** automaatselt pod'e! Pead pod'id restartima.
 
 ## 1. Lisa Backend'i Uus Endpoint
 
-### 📍 VM SEES
+###  VM SEES
 
 ```bash
 nano ~/k8s-lab/backend/1-configmap.yaml
@@ -460,7 +459,7 @@ curl http://localhost:3000/api/info
 kill %1
 ```
 
-💡 Pod kasutab **vana ConfigMap'i** kuni restart'ini!
+ Pod kasutab **vana ConfigMap'i** kuni restart'ini!
 
 ## 3. Restart Pod'id (Rolling Update)
 
@@ -489,7 +488,7 @@ curl http://localhost:3000/api/info
 kill %1
 ```
 
-💡 Nüüd pod kasutab **uut ConfigMap'i**!
+ Nüüd pod kasutab **uut ConfigMap'i**!
 
 ## 5. Uuenda Frontend'i ConfigMap Samuti
 
@@ -563,7 +562,7 @@ kubectl logs -l app=backend -c npm-install
 
 ---
 
-# 💾 Ülesanne 4: Resource Limits ja Requests
+#  Ülesanne 4: Resource Limits ja Requests
 
 ## Ülevaade
 
@@ -582,8 +581,8 @@ graph LR
     style E fill:#ee5a6f,color:#fff
 ```
 
-💡 **Requests:** Kubernetes reserveerib selle ressursi  
-💡 **Limits:** Kui ületatakse, pod tapetakse (OOMKilled)
+ **Requests:** Kubernetes reserveerib selle ressursi  
+ **Limits:** Kui ületatakse, pod tapetakse (OOMKilled)
 
 ## 1. Vaata Praeguseid Ressursse
 
@@ -603,7 +602,7 @@ kubectl top pods
 
 ## 2. Suurenda Backend Resource Limits
 
-### 📍 VM SEES
+###  VM SEES
 
 ```bash
 nano ~/k8s-lab/backend/2-deployment.yaml
@@ -631,7 +630,7 @@ kubectl get pods -l app=backend -w
 
 ## 3. Test - Loo Memory Leak
 
-💡 Loome test endpoint'i, mis sööb RAM'i.
+ Loome test endpoint'i, mis sööb RAM'i.
 
 ```bash
 nano ~/k8s-lab/backend/1-configmap.yaml
@@ -688,7 +687,7 @@ kubectl get pods -l app=backend -w
 kill %1
 ```
 
-💡 Kui pod kasutab rohkem kui `limits.memory`, Kubernetes tapab selle (OOMKilled - Out Of Memory Killed).
+ Kui pod kasutab rohkem kui `limits.memory`, Kubernetes tapab selle (OOMKilled - Out Of Memory Killed).
 
 ## 5. Vaata Events
 
@@ -736,7 +735,7 @@ kubectl apply -f ~/k8s-lab/backend/2-deployment.yaml
 
 ---
 
-# 🏢 Ülesanne 5: Namespaces
+#  Ülesanne 5: Namespaces
 
 ## Ülevaade
 
@@ -761,7 +760,7 @@ graph TB
     style C fill:#13aa52,color:#fff
 ```
 
-💡 Namespace'id võimaldavad:
+ Namespace'id võimaldavad:
 - Eraldada dev/test/prod keskkondi
 - Erinevad resource quota'd
 - RBAC (Role-Based Access Control)
@@ -793,7 +792,7 @@ kubectl get namespaces
 
 ## 2. Deploy Dev Keskkonda
 
-### 📍 VM SEES
+###  VM SEES
 
 ```bash
 # Deploy kõik dev namespace'i
@@ -876,11 +875,11 @@ kubectl port-forward -n prod service/frontend-service 8082:80 &
 kill %1
 ```
 
-💡 Iga keskkond on **täiesti eraldatud**!
+ Iga keskkond on **täiesti eraldatud**!
 
 ## 7. Namespace DNS
 
-💡 Pod'id erinevates namespace'des saavad omavahel suhelda DNS'iga:
+ Pod'id erinevates namespace'des saavad omavahel suhelda DNS'iga:
 
 ```
 <service-name>.<namespace>.svc.cluster.local
@@ -947,7 +946,7 @@ kubectl config set-context --current --namespace=default
 
 ---
 
-# 🏷️ Ülesanne 6: Labels ja Selectors
+#  Ülesanne 6: Labels ja Selectors
 
 ## Ülevaade
 
@@ -965,8 +964,8 @@ graph LR
     style D fill:#326ce5,color:#fff
 ```
 
-💡 **Labels:** Metadata pod'idel (app, version, env, tier, ...)  
-💡 **Selectors:** Filtrid label'ite järgi
+ **Labels:** Metadata pod'idel (app, version, env, tier, ...)  
+ **Selectors:** Filtrid label'ite järgi
 
 ## 1. Vaata Olemasolevaid Label'eid
 
@@ -1082,7 +1081,7 @@ kubectl get pods -l 'tier in (api,web)'
 
 ## 4. Label'id Käsurealt
 
-💡 Saad lisada label'eid ilma YAML faili muutmata:
+ Saad lisada label'eid ilma YAML faili muutmata:
 
 ```bash
 # Lisa label pod'ile
@@ -1101,7 +1100,7 @@ kubectl label pod postgres-0 backup-
 
 ## 5. Service Selectors
 
-💡 Service kasutab selector'eid pod'ide leidmiseks!
+ Service kasutab selector'eid pod'ide leidmiseks!
 
 ```bash
 # Vaata backend Service selector'it
@@ -1127,7 +1126,7 @@ Lisa selector'isse:
 
 ## 6. Praktiline Näide - Blue-Green Deployment
 
-💡 Kasutame label'eid blue-green deployment'iks:
+ Kasutame label'eid blue-green deployment'iks:
 
 ```bash
 # Muuda backend label'it "green"
@@ -1149,7 +1148,7 @@ Lisa:
     color: green
 ```
 
-💡 Kui green töötab, kustutame blue pod'id. Kui probleem, muudame Service selector'i tagasi blue'le!
+ Kui green töötab, kustutame blue pod'id. Kui probleem, muudame Service selector'i tagasi blue'le!
 
 ## Common Errors
 
@@ -1178,7 +1177,7 @@ kubectl edit service backend-service
 
 ---
 
-# 🏥 Ülesanne 7: Health Checks
+#  Ülesanne 7: Health Checks
 
 ## Ülevaade
 
@@ -1199,8 +1198,8 @@ graph TB
     style C fill:#13aa52,color:#fff
 ```
 
-💡 **ReadinessProbe:** Kas pod valmis päringuteks?  
-💡 **LivenessProbe:** Kas pod töötab korralikult?
+ **ReadinessProbe:** Kas pod valmis päringuteks?  
+ **LivenessProbe:** Kas pod töötab korralikult?
 
 ## 1. Vaata Praeguseid Probe'e
 
@@ -1212,7 +1211,7 @@ kubectl describe pod -l app=backend | grep -A10 "Liveness:"
 
 ## 2. Paranda Backend Probe'd
 
-### 📍 VM SEES
+###  VM SEES
 
 ```bash
 nano ~/k8s-lab/backend/2-deployment.yaml
@@ -1251,7 +1250,7 @@ kubectl rollout restart deployment backend-api
 
 ## 3. Test Liveness Probe
 
-💡 Loome endpoint'i, mis "tapab" pod'i (liveness fail).
+ Loome endpoint'i, mis "tapab" pod'i (liveness fail).
 
 ```bash
 nano ~/k8s-lab/backend/1-configmap.yaml
@@ -1308,7 +1307,7 @@ kubectl get pods -l app=backend -w
 
 ## 4. Test Readiness Probe
 
-💡 Loome endpoint'i, mis "pausib" pod'i (readiness fail, aga liveness OK).
+ Loome endpoint'i, mis "pausib" pod'i (readiness fail, aga liveness OK).
 
 ```bash
 nano ~/k8s-lab/backend/1-configmap.yaml
@@ -1364,11 +1363,11 @@ kubectl get pods -l app=backend -w
 # backend-api-aaa   1/1   Running   0   2m   ← READY tagasi 1/1
 ```
 
-💡 Pod **EI restart'i** (liveness OK), aga Service **ei saada päringuid** (readiness fail)!
+ Pod **EI restart'i** (liveness OK), aga Service **ei saada päringuid** (readiness fail)!
 
 ## 5. TCP Probe
 
-💡 Kasutame PostgreSQL'i jaoks TCP probe'i:
+ Kasutame PostgreSQL'i jaoks TCP probe'i:
 
 ```bash
 nano ~/k8s-lab/postgres/4-statefulset.yaml
@@ -1405,7 +1404,7 @@ kubectl rollout restart statefulset postgres
 
 ## 6. Exec Probe
 
-💡 Exec probe käivitab käsu pod'is:
+ Exec probe käivitab käsu pod'is:
 
 ```yaml
         livenessProbe:
@@ -1460,7 +1459,7 @@ kubectl scale deployment backend-api --replicas=1
 
 ---
 
-# 🚀 Ülesanne 8: Init Containers
+#  Ülesanne 8: Init Containers
 
 ## Ülevaade
 
@@ -1476,11 +1475,11 @@ graph LR
     style C fill:#ff9ff3,color:#000
 ```
 
-💡 Init container käivitub **esimesena**, peab **õnnestuma**, alles siis käivitub põhikonteiner.
+ Init container käivitub **esimesena**, peab **õnnestuma**, alles siis käivitub põhikonteiner.
 
 ## 1. Loo SQL Init ConfigMap
 
-### 📍 VM SEES
+###  VM SEES
 
 ```bash
 nano ~/k8s-lab/postgres/0-init-sql.yaml
@@ -1595,7 +1594,7 @@ Lisa `volumes` sektsiooni alla (kõige lõppu):
 
 ## 3. Probleem: Init Container Vajab Postgres't
 
-💡 Init container vajab, et postgres **juba töötaks**, aga postgres käivitub **pärast** init container'it!
+ Init container vajab, et postgres **juba töötaks**, aga postgres käivitub **pärast** init container'it!
 
 **Lahendus:** Kasutame **sidecar pattern'i** - init container ootab kuni postgres valmis.
 
@@ -1691,11 +1690,11 @@ kubectl exec postgres-0 -- psql -U shopuser -d shopdb -c "SELECT COUNT(*) FROM p
 #      5
 ```
 
-💡 Andmed lisati automaatselt job'iga!
+ Andmed lisati automaatselt job'iga!
 
 ## 6. Init Container Backend'is
 
-💡 Backend juba kasutab init container'it npm install'iks:
+ Backend juba kasutab init container'it npm install'iks:
 
 ```bash
 kubectl describe pod -l app=backend | grep -A10 "Init Containers:"
@@ -1747,14 +1746,14 @@ kubectl delete job postgres-init
 
 ---
 
-**Lisaülesanded Lõppenud! 🎉**
+**Lisaülesanded Lõppenud! **
 
 Õppisid:
-- ✅ Skaleerimist ja load balancing'u
-- ✅ Rolling update'i ja rollback'i
-- ✅ ConfigMap muutmist
-- ✅ Resource limits'e
-- ✅ Namespace'e
-- ✅ Label'eid ja selector'eid
-- ✅ Health checks'e
-- ✅ Init container'eid ja Job'e
+-  Skaleerimist ja load balancing'u
+-  Rolling update'i ja rollback'i
+-  ConfigMap muutmist
+-  Resource limits'e
+-  Namespace'e
+-  Label'eid ja selector'eid
+-  Health checks'e
+-  Init container'eid ja Job'e

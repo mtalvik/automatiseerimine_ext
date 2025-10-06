@@ -1,22 +1,76 @@
-# 🧪 Terraform Edasijõudnud Labor: Pilve Infrastruktuur
+#  Terraform Edasijõudnud Labor: Pilve infrastruktuur (3×45 min)
 
-**Kestus:** 2 tundi  
-**Eesmärk:** Õppida Terraform'i edasijõudnud funktsioone pilve keskkonnas
+## Lab'i eesmärk
+Täna õpid Terraform'i edasijõudnud funktsioone - workspaces, modules, remote state! Nüüd lood päris pilve infrastruktuuri! 
 
----
-
-## 🎯 Õpiväljundid
-
-Pärast laborit oskate:
+##  Õpiväljundid
+Pärast seda lab'i oskad:
 - Seadistada AWS/Azure provider'id Terraform'iga
 - Luua pilve ressursse (EC2, S3, VPC)
-- Kasutada Terraform workspaces'eid
-- Hallata keskkondade-spetsiifilisi konfiguratsioone
-- Rakendada turvalisuse best practices'eid
+- Kasutada Terraform workspaces'eid (dev/prod)
+- Hallata remote state'i (S3, Azure Blob)
+- Luua ja kasutada Terraform modules
 
 ---
 
-## 📋 Ettevalmistus
+### Blokk 1 (45 min) – AWS/Azure provider ja esimene resource
+- **Eesmärk:** Seadistada pilve provider ja luua esimene pilve ressurss
+- **Tegevused:**
+  - AWS/Azure credentials seadistamine
+  - Provider konfiguratsioon `main.tf` failis
+  - Esimene pilve ressurss (S3 bucket või Storage Account)
+  - `terraform apply` pilvesse
+  - Ressursside vaatamine AWS/Azure console's
+- **Kontrollnimekiri:**
+  - [ ] AWS/Azure credentials töötavad
+  - [ ] Provider on seadistatud
+  - [ ] Esimene ressurss on loodud pilvesse
+  - [ ] Näed ressurssi cloud console's
+- **Kontrollküsimus:** "Mis vahe on local provider ja AWS/Azure provider vahel?"
+- **Refleksioon (1 min):** "Esimene pilve ressurss loomise tunne: A) hirmutav  B) põnev  C) võimas "
+
+---
+
+### Blokk 2 (45 min) – Workspaces ja environments
+- **Eesmärk:** Kasutada workspaces erinevate keskkondade (dev/prod) jaoks
+- **Tegevused:**
+  - Workspaces loomine (`terraform workspace new dev/prod`)
+  - Variables erinevate workspace'ide jaoks
+  - Conditional logic (`terraform.workspace == "prod"`)
+  - Dev ja Prod ressursside loomine
+  - Workspaces vahetamine
+- **Kontrollnimekiri:**
+  - [ ] Dev ja Prod workspaces on loodud
+  - [ ] Ressursid on erinevad erinevates workspace'ides
+  - [ ] Saad workspace'ide vahel liikuda
+- **Kontrollküsimus:** "Miks kasutada workspaces, mitte lihtsalt kaks erinevat kausta?"
+- **Refleksioon (1 min):** "Workspaces on nagu... A) Git branch'id  B) eraldi universumid  C) kaupluse erinevad korused "
+
+---
+
+### Blokk 3 (45 min) – Remote state ja modules
+- **Eesmärk:** Hallata state'i remote'is ja luua taaskasutatav module
+- **Tegevused:**
+  - Remote state backend seadistamine (S3 + DynamoDB või Azure Blob)
+  - State locking testimine
+  - Esimese module loomine (`modules/vpc/`)
+  - Module kasutamine `main.tf` failis
+  - Module'i parameetrite passimine
+- **Kontrollnimekiri:**
+  - [ ] Remote state töötab (state on S3/Azure Blob'is)
+  - [ ] State locking toimib
+  - [ ] Module on loodud ja toimib
+  - [ ] Mõistad, miks remote state on oluline
+- **Kontrollküsimus:** "Mis juhtub kui kaks inimest jooksutavad `terraform apply` samaaegselt ilma lockinguta?"
+- **Refleksioon (1 min):** "Kõige keeruline osa täna oli... A) workspaces B) remote state C) modules D) actually, ma sain hakkama! "
+
+---
+
+**Valmis? Alustame detailsete sammudega!** ⬇
+
+---
+
+##  Ettevalmistus
 
 ### Vajalikud tööriistad:
 - Terraform installitud
@@ -34,7 +88,7 @@ az login
 
 ---
 
-## 🛠️ Samm 1: AWS Provider Seadistamine
+##  Samm 1: AWS Provider Seadistamine
 
 ### 1.1 Terraform konfiguratsioon
 
@@ -86,7 +140,7 @@ terraform apply
 
 ---
 
-## 🛠️ Samm 2: EC2 Instance Loomine
+##  Samm 2: EC2 Instance Loomine
 
 ### 2.1 Subnet ja Security Group
 
@@ -183,7 +237,7 @@ resource "aws_instance" "web" {
 
 ---
 
-## 🛠️ Samm 3: S3 Bucket ja Outputs
+##  Samm 3: S3 Bucket ja Outputs
 
 ### 3.1 S3 Bucket
 
@@ -240,7 +294,7 @@ output "website_url" {
 
 ---
 
-## 🛠️ Samm 4: Workspaces Kasutamine
+##  Samm 4: Workspaces Kasutamine
 
 ### 4.1 Loo erinevad keskkonnad
 
@@ -278,7 +332,7 @@ instance_type = "t2.small"
 
 ---
 
-## 🛠️ Samm 5: Käivita ja Testi
+##  Samm 5: Käivita ja Testi
 
 ### 5.1 Deploy
 
@@ -309,7 +363,7 @@ aws s3 ls s3://$(terraform output -raw s3_bucket_name)
 
 ---
 
-## 🧹 Puhastamine
+##  Puhastamine
 
 ```bash
 # Kustuta kõik ressursid
@@ -323,7 +377,7 @@ terraform workspace delete production
 
 ---
 
-## 🎯 Kokkuvõte
+##  Kokkuvõte
 
 Pärast seda laborit oskate:
 - Seadistada AWS provider'it Terraform'iga
@@ -334,4 +388,4 @@ Pärast seda laborit oskate:
 - Hallata erinevaid keskkondi
 - Kasutada outputs'e ja muutujaid
 
-**Järgmine samm:** Terraform Advanced kodutöö! 🚀
+**Järgmine samm:** Terraform Advanced kodutöö! 
