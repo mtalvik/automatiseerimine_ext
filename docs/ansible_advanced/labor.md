@@ -16,7 +16,6 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 1 – Jinja2 templates ja dynamic configs
-- **Eesmärk:** Luua dünaamilisi konfiguratsioone template'idega
 - **Tegevused:**
   - Jinja2 syntax (variables, loops, conditions)
   - Nginx config template loomine
@@ -34,12 +33,10 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 2 – Ansible Vault ja secrets management
-- **Eesmärk:** Õppida krüpteerima ja haldama salajasi
 
 ---
 
 ### Blokk 3 – Advanced project structure ja best practices
-- **Eesmärk:** Luua professionaalset projekti struktuuri
 
 ---
 

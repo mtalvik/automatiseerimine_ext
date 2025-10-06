@@ -16,7 +16,6 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 1 – AWS/Azure provider ja esimene resource
-- **Eesmärk:** Seadistada pilve provider ja luua esimene pilve ressurss
 - **Tegevused:**
   - AWS/Azure credentials seadistamine
   - Provider konfiguratsioon `main.tf` failis
@@ -34,12 +33,10 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 2 – Workspaces ja environments
-- **Eesmärk:** Kasutada workspaces erinevate keskkondade (dev/prod) jaoks
 
 ---
 
 ### Blokk 3 – Remote state ja modules
-- **Eesmärk:** Hallata state'i remote'is ja luua taaskasutatav module
 
 ---
 

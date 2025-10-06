@@ -16,7 +16,6 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 1 – Role struktuur ja genereerimine
-- **Eesmärk:** Luua esimene Ansible role ja mõista selle struktuuri
 - **Tegevused:**
   - `ansible-galaxy init` - rolli genereerimine
   - Role struktuuri uurimine (tasks/, handlers/, templates/, vars/, defaults/)
@@ -33,12 +32,10 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 2 – Templates ja handlers
-- **Eesmärk:** Kasutada Jinja2 template'eid ja handlers konfiguratsioonide jaoks
 
 ---
 
 ### Blokk 3 – Role dependencies ja testing
-- **Eesmärk:** Lisada role sõltuvused ja testida rolli isoleeritud keskkonnas
 
 ---
 

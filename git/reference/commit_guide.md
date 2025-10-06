@@ -1,6 +1,5 @@
 #  WhatTheCommit Viitematerjal
 
-**Eesmärk:** Lõbus viide commit sõnumite loomiseks  
 **Kasutamine:** Kasutage seda viidet, kui vajate inspiratsiooni commit sõnumite jaoks
 
 ---

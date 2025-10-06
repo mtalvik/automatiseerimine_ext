@@ -1,6 +1,5 @@
 # Vagrant Seadistuse Juhend Ansible Laboriks
 
-**Eesmärk:** Seadistada Vagrant keskkond Ansible laborite jaoks  
 **Nõuded:** VirtualBox, Vagrant
 
 ---

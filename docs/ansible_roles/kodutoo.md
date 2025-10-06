@@ -1,7 +1,6 @@
 # Ansible vs Puppet Kodutöö: Võrdlev Analüüs
 
 **Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** Deploy sama infrastruktuur mõlema tööriistaga ja võrrelda lähenemisi  
 
 ---
 

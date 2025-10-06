@@ -1,6 +1,5 @@
 # Ansible Õppematerjalid
 
-**Eesmärk:** Ansible'i sügavamaks õppimiseks ja praktiliste oskuste arendamiseks  
 
 ---
 

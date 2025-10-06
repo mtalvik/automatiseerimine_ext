@@ -1,6 +1,6 @@
-#  Vagrant Seadistuse Juhend Ansible Laboriks
+#  Vagrant seadistusjuhend Ansible laboriks
 
-**Eesmärk:** Seadistada Vagrant keskkond Ansible laborite jaoks  
+See juhend aitab seadistada Vagrant‑põhise labikeskkonna Ansible harjutusteks. Eesmärk on saada kiiresti töökindel juhtmasin ja sihtmasin, millega praktikat teha.
 
 **Nõuded:** VirtualBox, Vagrant
 
@@ -12,7 +12,9 @@ See juhend aitab teil seadistada Vagrant keskkonna, kus saate harjutada Ansible 
 
 ---
 
-##  Windows Setup Guide
+## Windowsi seadistusjuhend
+
+Windowsis paigaldame VirtualBoxi ja Vagranti, loome projektikausta ning käivitame VM‑id. Allpool on sammud.
 
 ### 1. Install Required Software
 

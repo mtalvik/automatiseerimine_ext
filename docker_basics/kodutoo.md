@@ -1,7 +1,6 @@
 #  Docker Kodutöö: Chat Bot Container (1.5h)
 
-**Tähtaeg:** Järgmise nädala algus  
-**Eesmärk:** Näidata, et oskad Docker'i praktikas kasutada  
+**Tähtaeg:** Järgmise nädala algus
 
 
 ---
@@ -565,7 +564,7 @@ docker-chatbot/
 
 ## Testimine
 
-Õpetaja testib:
+Hindaja testib:
 - GitHub repository clone
 - Docker Hub image pull ja run
 - http://localhost:5000 - Flask app

@@ -1,6 +1,5 @@
 #  Git Õppematerjalid
 
-**Eesmärk:** Git'i sügavamaks õppimiseks ja praktiliste oskuste arendamiseks  
 
 
 ---

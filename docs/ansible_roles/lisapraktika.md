@@ -19,7 +19,6 @@ Need ülesanded on valikulised ja mõeldud neile, kes:
 
 ## Väljakutse 1: Multi-OS Role
 
-**Eesmärk:** Loo roll, mis töötab mitmes operatsioonisüsteemis (Ubuntu, CentOS, Debian)
 
 ### Mida õpid?
 - OS-spetsiifilised muutujad (`vars/`)
@@ -81,7 +80,6 @@ Need ülesanded on valikulised ja mõeldud neile, kes:
 
 ## Väljakutse 2: Role Dependencies ja Composition
 
-**Eesmärk:** Loo kompleksne web stack kasutades role dependencies
 
 ### Mida õpid?
 - Role dependencies (`meta/main.yml`)
@@ -149,7 +147,6 @@ Need ülesanded on valikulised ja mõeldud neile, kes:
 
 ## Väljakutse 3: Dynamic Role Behavior
 
-**Eesmärk:** Loo role, mis käitub erinevalt vastavalt environment'ile
 
 ### Mida õpid?
 - Environment-based logic
@@ -222,7 +219,6 @@ Need ülesanded on valikulised ja mõeldud neile, kes:
 
 ## Väljakutse 4: Ansible Galaxy Publication
 
-**Eesmärk:** Avalda oma role Ansible Galaxy'sse ja tee see community-friendly
 
 ### Mida õpid?
 - Ansible Galaxy best practices
@@ -294,7 +290,6 @@ Need ülesanded on valikulised ja mõeldud neile, kes:
 
 ## Väljakutse 5: Ansible Vault Integration
 
-**Eesmärk:** Integreeri Ansible Vault role'idega turvalise secrets management'i jaoks
 
 ### Mida õpid?
 - Vault best practices roles kontekstis
@@ -354,7 +349,6 @@ Need ülesanded on valikulised ja mõeldud neile, kes:
 
 ## Väljakutse 6: Performance Optimization
 
-**Eesmärk:** Optimeeri role performance suurtes infrastructure'ides
 
 ### Mida õpid?
 - Ansible performance tuning

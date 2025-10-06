@@ -1,6 +1,5 @@
 #  Git Käsud Viitematerjal
 
-**Eesmärk:** Kiire viide kõigile Git käsudele  
 **Kasutamine:** Kasutage seda viidet, kui vajate kiiret abi Git käskude kohta
 
 ---

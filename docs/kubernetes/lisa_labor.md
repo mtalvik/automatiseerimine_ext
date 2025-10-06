@@ -1,6 +1,5 @@
 # Kubernetes Lisaülesanded
 
-**Eesmärk:** Süvendada Kubernetes oskusi täiendavate praktiliste ülesannetega  
 **Eeltingimused:** Kubernetes põhiteadmised, Minikube seadistatud
 
 ---

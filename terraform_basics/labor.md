@@ -13,7 +13,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 1 (45 min) – Terraform setup ja esimene ressurss
-- **Eesmärk:** Installeerida Terraform ja luua esimene ressurss
 - **Tegevused:**
   - Terraform'i installimine ja versioon check
   - Esimene `main.tf` fail (local_file ressurss)
@@ -31,7 +30,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 2 (45 min) – Variables ja outputs
-- **Eesmärk:** Kasutada variables parameetriseerimiseks ja outputs tulemuste kuvamiseks
 - **Tegevused:**
   - `variables.tf` loomine
   - Variable kasutamine `main.tf` failis (`var.name`)
@@ -49,7 +47,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 3 (45 min) – State management ja destroy
-- **Eesmärk:** Mõista Terraform state'i ja ressursside eemaldamist
 - **Tegevused:**
   - `terraform.tfstate` faili uurimine
   - Mõista, kuidas Terraform jälgib ressursse

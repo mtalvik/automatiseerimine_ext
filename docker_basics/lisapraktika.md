@@ -1,6 +1,5 @@
 #  Docker Lisapraktika
 
-**Eesmärk:** Süvendada Docker oskusi täiendavate praktiliste ülesannetega  
 **Eeltingimused:** Docker põhiteadmised, Docker Hub konto
 
 ---

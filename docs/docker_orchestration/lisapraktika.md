@@ -19,7 +19,6 @@ Need ülesanded on valikulised ja mõeldud neile, kes:
 
 ## Väljakutse 1: Multi-Stage Builds ja Optimization
 
-**Eesmärk:** Optimeeri Docker image'id ja vähenda nende suurust 50-80%
 
 ### Mida õpid?
 - Multi-stage builds
@@ -96,7 +95,6 @@ CMD ["node", "dist/index.js"]
 
 ## Väljakutse 2: Health Checks ja Self-Healing
 
-**Eesmärk:** Loo self-healing süsteem, mis automaatselt taastab ebaõnnestunud container'eid
 
 ### Mida õpid?
 - Docker health checks
@@ -190,7 +188,6 @@ volumes:
 
 ## Väljakutse 3: Multi-Environment Setup
 
-**Eesmärk:** Loo konfiguratsiooni süsteem Dev, Staging, Production keskkondade jaoks
 
 ### Mida õpid?
 - Environment-specific configs
@@ -294,7 +291,6 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml \
 
 ## Väljakutse 4: Logging ja Monitoring Stack
 
-**Eesmärk:** Loo täielik logging ja monitoring süsteem Docker Compose'iga
 
 ### Mida õpid?
 - Centralized logging
@@ -399,7 +395,6 @@ scrape_configs:
 
 ## Väljakutse 5: Service Mesh Pattern
 
-**Eesmärk:** Implementeeri service mesh pattern Docker Compose'iga (Traefik)
 
 ### Mida õpid?
 - Service mesh concepts
@@ -480,7 +475,6 @@ done
 
 ## Väljakutse 6: CI/CD Integration
 
-**Eesmärk:** Integreeri Docker Compose CI/CD pipeline'iga
 
 ### Mida õpid?
 - GitLab CI/Docker integration

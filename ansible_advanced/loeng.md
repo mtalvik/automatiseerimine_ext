@@ -1,10 +1,12 @@
-#  Ansible: Edasijõudnud Funktsioonid
+#  Ansible: edasijõudnud funktsioonid
 
 **Teemad:** Ansible Vault, Jinja2 templates, optimiseerimine, troubleshooting
 
 ---
 
 ## Sissejuhatus
+
+Selles loengus keskendume Ansible’i võimsamatele töövõtetele: muutujate hierarhia, Jinja2 mallid, handler’id ja Vault. Eesmärk on mõista, kuidas ehitada turvaline ja skaleeritav lahendus, mis töötab eri keskkondades.
 
 Tere, täna räägime Ansible'i edasijõudnutest funktsioonidest. Eelmisel nädalal õppisime Ansible'i põhitõdesid - kuidas kirjutada lihtsaid playbook'e ja hallata servereid. Aga mis juhtub siis, kui teie infrastruktuur kasvab kolmest serverist kolmesajani? Mis juhtub, kui teil on arenduskeskkond, testimiskeskkond ja produktsioon, kõik erinevate konfiguratsioonidega? Täna õpime tööriistu, mis muudavad suure infrastruktuuri haldamise võimalikuks ja turvaliseks.
 

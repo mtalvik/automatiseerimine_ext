@@ -1,6 +1,5 @@
 # Git Diff Näited
 
-**Eesmärk:** Näidata, kuidas lugeda Git diff väljundit praktikas  
 **Kontekst:** Kasutage neid näiteid, kui õpite diff väljundi lugemist
 
 ---

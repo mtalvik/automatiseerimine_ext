@@ -13,7 +13,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 1 (45 min) – Docker põhitõed ja esimesed container'id
-- **Eesmärk:** Käivitada esimesed container'id ja mõista, mis Docker teeb
 - **Tegevused:**
   - Docker'i kiiruse testimine (`hello-world`, `alpine`)
   - Web serveri käivitamine (`nginx`)
@@ -30,7 +29,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 2 (45 min) – Container'ide haldamine ja Dockerfile
-- **Eesmärk:** Hallata container'eid ja kirjutada esimene Dockerfile
 - **Tegevused:**
   - Container'ide haldamine (`ps`, `logs`, `stop`, `rm`)
   - Interaktiivne shell (`docker exec -it`)
@@ -47,7 +45,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 3 (45 min) – Volumes, andmete säilitamine ja best practices
-- **Eesmärk:** Kasutada volume'e andmete säilitamiseks ja rakendada best practices'eid
 - **Tegevused:**
   - Volume'ide loomine ja kasutamine (`-v` flag)
   - Andmete säilimine pärast container'i kustutamist

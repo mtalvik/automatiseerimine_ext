@@ -16,7 +16,6 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 1 – CI pipeline setup (build + test)
-- **Eesmärk:** Seadistada Continuous Integration pipeline
 - **Tegevused:**
   - GitLab CI / GitHub Actions setup
   - `.gitlab-ci.yml` või `.github/workflows/` konfiguratsioon
@@ -34,12 +33,10 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 2 – CD pipeline (deploy to Kubernetes)
-- **Eesmärk:** Automatiseerida deployment Kubernetes'e
 
 ---
 
 ### Blokk 3 – Monitoring, rollback ja best practices
-- **Eesmärk:** Lisa monitooring ja õpi, kuidas rollback teha
 
 ---
 

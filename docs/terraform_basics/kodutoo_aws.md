@@ -1,7 +1,6 @@
 # Terraform Kodutöö: AWS Backup (Alternatiiv)
 
 **Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** AWS ressursside loomine Terraform'iga  
 **Raskusaste:** Keskmine
 
 ---

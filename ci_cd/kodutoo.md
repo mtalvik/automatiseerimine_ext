@@ -1,7 +1,6 @@
 #  CI/CD Edasijõudnud Kodutöö: Projekti Lõpetamine
 
 **Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** Lõpetada automatiseerimise projekt ja dokumenteerida see  
 
 
 ---

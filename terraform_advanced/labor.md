@@ -14,7 +14,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 1 (45 min) – AWS/Azure provider ja esimene resource
-- **Eesmärk:** Seadistada pilve provider ja luua esimene pilve ressurss
 - **Tegevused:**
   - AWS/Azure credentials seadistamine
   - Provider konfiguratsioon `main.tf` failis
@@ -32,7 +31,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 2 (45 min) – Workspaces ja environments
-- **Eesmärk:** Kasutada workspaces erinevate keskkondade (dev/prod) jaoks
 - **Tegevused:**
   - Workspaces loomine (`terraform workspace new dev/prod`)
   - Variables erinevate workspace'ide jaoks
@@ -49,7 +47,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 3 (45 min) – Remote state ja modules
-- **Eesmärk:** Hallata state'i remote'is ja luua taaskasutatav module
 - **Tegevused:**
   - Remote state backend seadistamine (S3 + DynamoDB või Azure Blob)
   - State locking testimine

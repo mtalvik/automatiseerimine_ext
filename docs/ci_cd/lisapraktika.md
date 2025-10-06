@@ -19,7 +19,6 @@ Need ülesanded on valikulised ja mõeldud neile, kes:
 
 ## Väljakutse 1: Multi-Stage Pipeline
 
-**Eesmärk:** Loo täielik CI/CD pipeline mitme stage'iga
 
 ### Mida õpid?
 - Pipeline stage'id ja dependencies
@@ -213,7 +212,6 @@ jobs:
 
 ## Väljakutse 2: Blue-Green Deployment
 
-**Eesmärk:** Implementeeri zero-downtime deployment strategy
 
 ### Mida õpid?
 - Blue-Green deployment pattern
@@ -366,7 +364,6 @@ deploy:blue-green:
 
 ## Väljakutse 3: Canary Deployment
 
-**Eesmärk:** Implementeeri progressive delivery canary pattern'iga
 
 ### Mida õpid?
 - Canary releases
@@ -471,7 +468,6 @@ spec:
 
 ## Väljakutse 4: GitOps with ArgoCD
 
-**Eesmärk:** Implementeeri full GitOps workflow
 
 ### Mida õpid?
 - GitOps principles
@@ -579,7 +575,6 @@ update-manifest:
 
 ## Väljakutse 5: Infrastructure as Code Pipeline
 
-**Eesmärk:** Automatiseeri infrastructure provisioning CI/CD'ga
 
 ### Mida õpid?
 - Terraform in CI/CD
@@ -687,7 +682,6 @@ jobs:
 
 ## Väljakutse 6: Full DevOps Platform (Meister)
 
-**Eesmärk:** Ehita täielik end-to-end DevOps platform
 
 ### Komponendid:
 1. **Source Control:** GitLab/GitHub

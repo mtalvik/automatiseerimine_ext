@@ -1,6 +1,5 @@
 # Ansible Lisapraktika
 
-**Eesmärk:** Süvendada Ansible oskusi täiendavate praktiliste ülesannetega  
 **Eeltingimused:** Ansible põhiteadmised, SSH setup, YAML
 
 ---

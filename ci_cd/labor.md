@@ -14,7 +14,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 1 (45 min) – CI pipeline setup (build + test)
-- **Eesmärk:** Seadistada Continuous Integration pipeline
 - **Tegevused:**
   - GitLab CI / GitHub Actions setup
   - `.gitlab-ci.yml` või `.github/workflows/` konfiguratsioon
@@ -32,7 +31,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 2 (45 min) – CD pipeline (deploy to Kubernetes)
-- **Eesmärk:** Automatiseerida deployment Kubernetes'e
 - **Tegevused:**
   - Deploy stage lisamine
   - `kubectl apply` automatiseerimine
@@ -50,7 +48,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 3 (45 min) – Monitoring, rollback ja best practices
-- **Eesmärk:** Lisa monitooring ja õpi, kuidas rollback teha
 - **Tegevused:**
   - Pipeline monitoring (success/failure notifications)
   - Rollback strategy (manual + automated)

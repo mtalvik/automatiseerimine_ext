@@ -1,6 +1,5 @@
 # Terraform Lisapraktika
 
-**Eesmärk:** Süvendada Terraform oskusi täiendavate praktiliste ülesannetega  
 **Eeltingimused:** Terraform põhiteadmised, HCL süntaks
 
 ---

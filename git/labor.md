@@ -35,7 +35,6 @@
 
 #  Git Labor: GitHub Actions
 
-**Eesmärk:** Praktiliselt harjutada kõiki Git'i peamisi funktsioone
 
 ---
 

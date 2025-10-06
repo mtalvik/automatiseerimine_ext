@@ -1,6 +1,5 @@
 # VS Code Viitematerjal
 
-**Eesmärk:** VS Code seadistamine ja kasutamine Git projektides  
 **Kasutamine:** Kasutage seda viidet VS Code seadistamiseks ja Git integratsiooni jaoks
 
 ---

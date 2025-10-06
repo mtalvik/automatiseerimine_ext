@@ -15,7 +15,6 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 1 – Terraform setup ja esimene ressurss
-- **Eesmärk:** Installeerida Terraform ja luua esimene ressurss
 - **Tegevused:**
   - Terraform'i installimine ja versioon check
   - Esimene `main.tf` fail (local_file ressurss)
@@ -33,12 +32,10 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 2 – Variables ja outputs
-- **Eesmärk:** Kasutada variables parameetriseerimiseks ja outputs tulemuste kuvamiseks
 
 ---
 
 ### Blokk 3 – State management ja destroy
-- **Eesmärk:** Mõista Terraform state'i ja ressursside eemaldamist
 
 ---
 

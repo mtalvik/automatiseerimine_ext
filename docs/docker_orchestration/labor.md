@@ -16,7 +16,6 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 1 – Docker Compose põhitõed
-- **Eesmärk:** Mõista Docker Compose'i ja luua esimene multi-container rakendus
 - **Tegevused:**
   - Docker Compose installimine ja setup
   - Esimene `docker-compose.yml` (web + database)
@@ -34,12 +33,10 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 2 – Networks ja volumes
-- **Eesmärk:** Ühendada container'eid ja säilitada andmeid
 
 ---
 
 ### Blokk 3 – Scaling ja production practices
-- **Eesmärk:** Skaleerida rakendusi ja rakendada parimaid tavasid
 
 ---
 

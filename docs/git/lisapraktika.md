@@ -1,6 +1,5 @@
 # Git Lisapraktika
 
-**Eesmärk:** Süvendada Git oskusi täiendavate praktiliste ülesannetega  
 **Eeltingimused:** Git põhiteadmised, GitHub konto
 
 ---

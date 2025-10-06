@@ -1,6 +1,5 @@
 # Lõpuprojekt Labor: Projekti Alustamine
 
-**Eesmärk:** Alustada lõpuprojekti ja seadistada põhistruktuur
 
 ---
 

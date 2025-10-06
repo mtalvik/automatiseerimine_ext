@@ -1,7 +1,6 @@
 #  Kubernetes: Lisapraktika
 
 
-**Eesmärk:** Süvenda Kubernetes teadmisi ja õpi production-ready patterns
 
 ---
 
@@ -19,7 +18,6 @@ Need ülesanded on **valikulised** ja mõeldud neile, kes:
 
 ##  Väljakutse 1: Horizontal Pod Autoscaler
 
-**Eesmärk:** Loo automaatne scaling süsteem, mis reageerib CPU/RAM kasutusele
 
 ### Mida õpid?
 - Horizontal Pod Autoscaler (HPA)
@@ -124,7 +122,6 @@ Need ülesanded on **valikulised** ja mõeldud neile, kes:
 
 ##  Väljakutse 2: StatefulSets ja Persistent Storage
 
-**Eesmärk:** Deploy database cluster Kubernetes'es kasutades StatefulSets
 
 ### Mida õpid?
 - StatefulSets vs Deployments
@@ -250,7 +247,6 @@ kubectl get pod mysql-0  # Uus pod, sama data!
 
 ##  Väljakutse 3: ConfigMaps, Secrets ja Security
 
-**Eesmärk:** Õpi turvalist configuration management'i
 
 ### Mida õpid?
 - ConfigMaps best practices
@@ -387,7 +383,6 @@ kubectl get pod mysql-0  # Uus pod, sama data!
 
 ##  Väljakutse 4: Helm Charts
 
-**Eesmärk:** Package rakendust Helm chart'ina
 
 ### Mida õpid?
 - Helm chart structure
@@ -496,7 +491,6 @@ kubectl get pod mysql-0  # Uus pod, sama data!
 
 ##  Väljakutse 5: Service Mesh (Istio)
 
-**Eesmärk:** Implementeeri service mesh advanced networking'u jaoks
 
 ### Mida õpid?
 - Service mesh concepts
@@ -596,7 +590,6 @@ kubectl get pod mysql-0  # Uus pod, sama data!
 
 ##  Väljakutse 6: CI/CD GitOps (ArgoCD)
 
-**Eesmärk:** Implementeeri GitOps workflow ArgoCD'ga
 
 ### Mida õpid?
 - GitOps principles

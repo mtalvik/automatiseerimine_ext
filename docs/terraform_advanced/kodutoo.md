@@ -1,7 +1,6 @@
 # Terraform Edasijõudnud Kodutöö: Pilve Infrastruktuur
 
 **Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** Luua täielik pilve infrastruktuur Terraform'iga AWS või Azure'is  
 **Raskusaste:** Keskmine
 
 ---

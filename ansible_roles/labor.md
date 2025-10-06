@@ -1,7 +1,6 @@
-#  Ansible Rollid Labor: Professionaalne struktuur (3×45 min)
+#  Ansible rollid – labor: struktuur
 
-## Lab'i eesmärk
-Täna õpid Ansible rolle - professionaalset viisi Ansible koodi organiseerimiseks ja jagamiseks! Rollid on nagu LEGO klotsid – saad neid korduvalt kasutada erinevates projektides. 
+Tänases laboris õpid rolle kasutama kui professionaalset viisi Ansible koodi organiseerimiseks ja taaskasutamiseks. Rollid aitavad hoida playbook'id lühikesed, struktuurne ja testitavad, et muudatused oleksid ohutud.
 
 ##  Õpiväljundid
 Pärast seda lab'i oskad:
@@ -13,8 +12,8 @@ Pärast seda lab'i oskad:
 
 ---
 
-### Blokk 1 (45 min) – Role struktuur ja genereerimine
-- **Eesmärk:** Luua esimene Ansible role ja mõista selle struktuuri
+### 1. Rolli struktuur ja genereerimine
+Selles blokis loote esimese rolli Galaxy standardi järgi ja uurite selle kaustastruktuuri. Eesmärk on mõista, kuhu milline osa (tasks, handlers, templates, vars, defaults) kuulub.
 - **Tegevused:**
   - `ansible-galaxy init` - rolli genereerimine
   - Role struktuuri uurimine (tasks/, handlers/, templates/, vars/, defaults/)
@@ -25,13 +24,16 @@ Pärast seda lab'i oskad:
   - [ ] Mõistad iga kausta eesmärki
   - [ ] `meta/main.yml` on täidetud
   - [ ] Esimene task töötab
-- **Kontrollküsimus:** "Mis vahe on `defaults/` ja `vars/` kaustade vahel?"
-- **Refleksioon (1 min):** "Ansible role on nagu... A) retsept  B) LEGO komplekt  C) moodul Pythonis "
+#### Kontrollküsimus
+- Mis vahe on `defaults/` ja `vars/` kaustadel?
+
+#### Refleksioon
+- Ansible role on nagu... A) retsept  B) LEGO komplekt  C) moodul Pythonis
 
 ---
 
-### Blokk 2 (45 min) – Templates ja handlers
-- **Eesmärk:** Kasutada Jinja2 template'eid ja handlers konfiguratsioonide jaoks
+### 2. Templated ja handlerid
+Fookus on Jinja2 templatel ja handleritel: kuidas muuta konfiguratsiooni dünaamiliseks ning taaskäivitada teenus ainult vajadusel. Lõpus testite rolli playbook'is.
 - **Tegevused:**
   - Nginx config template loomine (`templates/nginx.conf.j2`)
   - Variables kasutamine template'ides (`{{ variable }}`)
@@ -42,13 +44,16 @@ Pärast seda lab'i oskad:
   - [ ] Variables toimivad template'is
   - [ ] Handler restartib nginx'i ainult muudatuse korral
   - [ ] Role töötab playbook'is
-- **Kontrollküsimus:** "Miks kasutada template'eid, mitte lihtsalt `copy` moodulit?"
-- **Refleksioon (1 min):** "Jinja2 templates on nagu... A) Mad Libs mäng B) kohandatav vorm C) mõlemad"
+#### Kontrollküsimus
+- Miks kasutada template'eid, mitte lihtsalt `copy` moodulit?
+
+#### Refleksioon
+- Jinja2 templated on nagu... A) Mad Libs mäng  B) kohandatav vorm  C) mõlemad
 
 ---
 
-### Blokk 3 (45 min) – Role dependencies ja testing
-- **Eesmärk:** Lisada role sõltuvused ja testida rolli isoleeritud keskkonnas
+### 3. Rollide sõltuvused ja testimine
+Õpite lisama rolli sõltuvusi ja kasutama mitut rolli samas playbook'is. Testimine toimub isoleeritud VM‑is, et käitumine oleks reprodutseeritav.
 - **Tegevused:**
   - Role sõltuvuste lisamine (`meta/main.yml` - dependencies)
   - Multiple roles playbook'is
@@ -59,8 +64,11 @@ Pärast seda lab'i oskad:
   - [ ] Playbook kasutab mitut rolli
   - [ ] Role töötab Vagrant VM'is
   - [ ] Tead, kuidas otsida rolle Ansible Galaxy'st
-- **Kontrollküsimus:** "Kuidas tagada, et role töötab erinevates keskkondades?"
-- **Refleksioon (1 min):** "Kõige raskem osa oli... A) struktuur B) templates C) dependencies D) actually, ma sain hakkama! "
+#### Kontrollküsimus
+- Kuidas tagada, et role töötab erinevates keskkondades?
+
+#### Refleksioon
+- Kõige raskem osa oli... A) struktuur  B) templated  C) sõltuvused  D) sain hakkama!
 
 ---
 
@@ -334,7 +342,9 @@ server {
 
 ---
 
-## Testimine (15min)
+## Testimine
+
+Selles jaotises käivitame rolli lokaalsetes tingimustes ja kontrollime, et nii HTTP kui ka HTTPS töötab. Eesmärk on kinnitada, et templated, handlerid ja muutujad käituvad ootuspäraselt.
 
 ### Test playbook
 **`test-nginx.yml`:**
@@ -358,6 +368,7 @@ server {
 ```
 
 ### Käivitamine ja kontrollimine
+Käivita testplaybook ja kontrolli tulemusi käsurealt. Veendu, et HTTP suunab HTTPS‑ile ja teenus on aktiivne.
 ```bash
 ansible-playbook test-nginx.yml
 
@@ -372,6 +383,8 @@ sudo systemctl status nginx   # teenuse olek
 ---
 
 ## Handlers ja dokumentatsioon
+
+Selles jaotises lisame handlerid muudatuste kontrollitud rakendamiseks ning kirjutame lühikese README, et roll oleks teistele arusaadav. Hästi dokumenteeritud roll vähendab vigu ja kiirendab kasutuselevõttu.
 
 ### Handlers
 **`handlers/main.yml`:**
@@ -391,23 +404,19 @@ sudo systemctl status nginx   # teenuse olek
 **Handlers:** Käivitatakse ainult muudatuste korral. `notify` direktiiv tasks'ides käivitab handler'eid konfiguratsiooni muutmisel.
 
 ### README dokumentatsioon
-```markdown
-# Nginx Webserver Role
+Nimi ja eesmärk, lühike kasutusnäide ning peamised muutujad.
 
-Professional Nginx role with SSL and virtual hosts.
-
-## Quick Start
+Näide kasutusest:
 ```yaml
 - hosts: webservers
   roles:
     - nginx-webserver
 ```
 
-## Variables
-- `nginx_ssl_enabled: false` - Enable SSL
-- `nginx_vhosts: []` - Virtual hosts list
-```
+Olulisemad muutujad:
+- `nginx_ssl_enabled: false` – kasuta SSL‑i
+- `nginx_vhosts: []` – virtuaalhostide nimekiri
 
 **Dokumentatsiooni tähtsus:** Selgitab role kasutamist, muutujaid ja näiteid. Hea dokumentatsioon teeb role'i kasutatavaks teiste poolt.
 
-Role on nüüd valmis professionaalseks kasutamiseks!
+Role on nüüd kasutamiseks valmis.

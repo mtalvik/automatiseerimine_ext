@@ -15,11 +15,11 @@ Pärast seda moodulit oskate:
 
 ---
 
-# BLOKK 1: Miks Docker?
+## 1. Miks Docker?
 
-## Probleem enne Dockerit
+### Probleem enne Dockerit
 
-### "Works on My Machine" sündroom
+#### "Works on My Machine" sündroom
 ```bash
 Arendaja: "Mul töötab!"
 Testija: "Mul crashib..."
@@ -32,16 +32,20 @@ Klient: "Miks ei tööta?!"
 - Server: Python 3.6 + CentOS 7  
 - Tulemus:  Dependency conflict
 
-### Kuidas lahendati varem?
+See probleem tekkis, sest rakendused sõltusid oma ümbritsevast keskkonnast rohkem kui arvasime. Isegi väike erinevus Python versioonis või operatsioonisüsteemi teekides võis põhjustada raskesti jälgitavaid vigu. Arendajad kulutasid tunde keskkondade sünkroniseerimisele, kuid serverid olid ikkagi erinevad.
 
-#### 1. Virtuaalmasinad (2000-2010)
+#### Kuidas lahendati varem?
+
+**1. Virtuaalmasinad (2000-2010)**
 ```
  Aeglased (30s+ käivitus)
  Ressursinõudlikud (GB RAM per VM)
  Keerulised haldada
 ```
 
-#### 2. Configuration Management (2010-2015)
+Virtuaalmasinad lahendas küll keskkonna probleemi, kuid lõi uued väljakutsed. Iga VM sisaldas tervet operatsioonisüsteemi, mis tähendas, et iga rakendus vajas gigabaite ruumi ja mällu. Serverisse mahus ainult 5-10 VM'i, mis piiras skaleeritavust.
+
+**2. Configuration Management (2010-2015)**
 ```bash
 # Puppet/Ansible
 - package: python3.8
@@ -54,9 +58,11 @@ Klient: "Miks ei tööta?!"
  Snowflake serverid
 ```
 
-## Docker'i revolutsioon (2013)
+Configuration management tööriistad automaatsesid serveri seadistamise, kuid ei lahendanud põhiprobleemi. Serverid muutusid ikkagi aja jooksul - keegi käivitas käsu käsitsi, uuendused muutsid süsteemiteeke, või logifailid täitsid ketta. Iga server muutus unikaalseks "lumehelbekeseks" (snowflake), mida oli võimatu täpselt kopeerida.
 
-### Konteinerite idee
+### Docker'i revolutsioon (2013)
+
+#### Konteinerite idee
 
 ```mermaid
 graph TB
@@ -80,13 +86,17 @@ graph TB
     style C4 fill:#f0f0f0
 ```
 
-### Peamised eelised
+Docker tõi revolutsiooni, kasutades Linuxi kernel'i olemasolevaid võimalusi (namespaces, cgroups) uudsel viisil. Erinevalt VM'dest ei sisalda konteinerid tervet operatsioonisüsteemi - nad jagavad host'i kernel'it, kuid on ikkagi isoleeritud. See tähendab, et konteinerid käivituvad sekundite, mitte minutitega, ja nõuavad megabaite, mitte gigabaite.
+
+#### Peamised eelised
 1. **Kiirus:** 1-2 sekundit käivituseks
 2. **Ressursid:** MB mitte GB  
 3. **Portability:** Töötab kõikjal
 4. **Consistency:** Sama käitumine kõikjal
 
-### Numbrites
+Portability tähendab päriselt "kõikjal" - sama container töötab teie arendaja laptopil, CI/CD serveris, test keskkonnas, ja produktsiooni Kubernetes cluster'is. Kui container käivitub ühes kohas, siis ta käivitub igas kohas. See elimineerib "works on my machine" probleemi täielikult.
+
+#### Numbrites
 ```
 Traditional VM    vs    Docker Container
 ├── 30-120s startup    ├── 1-5s startup
@@ -95,16 +105,20 @@ Traditional VM    vs    Docker Container
 └── 10-50GB disk      └── 100MB-1GB disk
 ```
 
-## Kasutusstatistika
+Need numbrid ei ole teoreetilised - need on reaalse maailma statistika. Näiteks tüüpiline Node.js rakendus VM'is võtab 2GB RAM'i ja 45 sekundit käivituseks. Sama rakendus containeris võtab 50MB RAM'i ja 2 sekundit. See erinevus tähendab, et ühte serverisse mahub 50x rohkem containereid kui VM'e.
+
+### Kasutusstatistika
 - **87%** ettevõtetest kasutab konteinereid (2024)
 - **Netflix:** 1 miljardit konteinerit nädalas
 - **Google:** 2 miljardit konteinerit nädalas
 
+Google on tegelikult kasutanud konteinereid (nende sisesüsteemis nimega Borg) juba 2000ndate algusest. Docker populariseeris seda tehnoloogiat massidele. Netflix'i ja Google'i numbrid näitavad reaalset skaala - need ettevõtted ei käivitaks miljardeid konteinereid, kui see ei oleks majanduslikult mõistlik.
+
 ---
 
-# BLOKK 2: Docker Install ja Esimesed Käsud
+## 2. Docker Install ja Esimesed Käsud
 
-## Docker'i arhitektuur
+### Docker'i arhitektuur
 
 ```mermaid
 graph TB
@@ -125,16 +139,18 @@ graph TB
     Daemon <-->|pull/push| Registry
 ```
 
-### Komponendid
+#### Komponendid
 - **Docker CLI:** Kasutaja käsud
 - **Docker Daemon:** Taustaprotsess (dockerd)  
 - **Images:** Template'id rakenduste jaoks
 - **Containers:** Töötavad instantsid
 - **Registry:** Image'ide ladu (Docker Hub)
 
-## Installation
+Docker kasutab client-server arhitektuuri. Kui te kirjutate `docker run`, siis CLI (client) saadab selle käsu daemonile (server) üle UNIX socket'i või HTTP API. Daemon teeb kogu töö - laeb image'd, loob konteineri, haldab võrku. See tähendab, et teoreetiliselt võite juhtida Dockerit remote serveris, käivitades CLI kohalikult - kuigi praktikas tehakse seda harva.
 
-### Ubuntu/Debian
+### Installation
+
+**Ubuntu/Debian:**
 ```bash
 # Automatic install script
 curl -fsSL https://get.docker.com -o get-docker.sh
@@ -149,11 +165,15 @@ docker --version
 docker run hello-world
 ```
 
-### Windows/Mac
+`usermod -aG docker` on oluline samm, mis võimaldab Dockerit kasutada ilma `sudo`ta. Ilma selleta peaksite iga käsu ees kirjutama `sudo docker`, mis on tüütu ja ebaturvaline (liiga palju õigusi). Docker grupp annab teile õiguse rääkida Docker daemoniga, mis jookseb root'ina.
+
+**Windows/Mac:**
 - **Docker Desktop:** https://www.docker.com/products/docker-desktop/
 - GUI + Linux VM taustal
 
-## Põhimõisted
+Windows ja Mac'is on Docker keerulisem, sest Docker vajab Linuxi kernel'it. Docker Desktop loob vaikse Linux VM'i taustal (kasutades WSL2 Windowsis või Hypervisor frameworki Mac'is) ja jooksutab Docker daemoni seal. Teile tundub, et kasutate Dockerit natiivselt, aga tegelikult töötavad konteinerid selles peidetud VM'is.
+
+### Põhimõisted
 
 ```mermaid
 graph LR
@@ -171,24 +191,30 @@ graph LR
     style Container fill:#2496ed,color:#fff
 ```
 
-### 1. Image
+**1. Image**
 - **Read-only template** 
 - Sisaldab: OS + runtime + dependencies + rakendus
 - **Immutable** (ei muutu)
 
-### 2. Container  
+Image on nagu klass objektorienteeritud programmeerimises - see on blueprint, mille põhjal luuakse konteinereid. Kui te laasite `nginx` image, siis te ei saa seda image'i muuta - see on lukus. Kui soovite muudatusi teha, peate looma uue image.
+
+**2. Container**
 - **Running instance** image'ist
 - **Writable layer** image'i peal
 - **Isolated process**
 
-### 3. Registry
+Container on nagu objekti instantsi - image'ist loodud töötav koopia. Iga container saab oma writable layer'i, kuhu ta saab kirjutada faile, kuid see ei mõjuta image'i ennast. Kui kustutate konteineri, kaob ka see writable layer - seega andmed peavad olema volume'ides, kui te tahate neid säilitada.
+
+**3. Registry**
 - **Repository** image'ide jaoks
 - **Docker Hub:** avalik registry
 - **Private registries:** ettevõtte sisesed
 
-## DEMO: Esimesed käsud
+Registry on nagu Git repository, ainult image'ide jaoks. Docker Hub on nagu GitHub - avalik koht, kust igaüks saab image'id alla laadida. Ettevõtted kasutavad sageli private registry'sid (nagu AWS ECR või GitLab Container Registry), et hoida oma image'd turvaliselt ja privaatselt.
 
-### Image operations
+### DEMO: Esimesed käsud
+
+**Image operations:**
 ```bash
 # Search images
 docker search nginx
@@ -207,7 +233,9 @@ docker image inspect nginx
 docker image history nginx  # layer history
 ```
 
-### Container operations
+`docker pull` laeb image'i Docker Hub'ist teie kohalikku masinasse. Tag'id (nagu `alpine`) määravad konkreetse versiooni - kui te ei määra tag'i, siis kasutatakse `latest`. `inspect` näitab image'i metaandmeid JSON formaadis, sealhulgas environment variable'id, exposed porte, ja entry point'i.
+
+**Container operations:**
 ```bash
 # Run container (foreground)
 docker run nginx
@@ -245,7 +273,11 @@ docker rm minu-nginx
 docker rmi nginx
 ```
 
-### Cleanup commands
+`-d` (detached) on kõige sagedamini kasutatav flag - see paneb konteineri käivituma taustal. Ilma selleta jääb terminal kinni konteineri output'i. Port mapping `-p 8080:80` tähendab "suuna host'i port 8080 konteineri port 80 peale" - nüüd saate avada brauseris `http://localhost:8080` ja näete nginx'i.
+
+`docker exec -it` on debug'imise jaoks hädavajalik. `-i` (interactive) hoiab STDIN lahti, `-t` (tty) loob pseudo-terminali. Koos võimaldavad need teil käivitada bash'i konteineris ja uurida, mis seal toimub.
+
+**Cleanup commands:**
 ```bash
 # Remove all stopped containers
 docker container prune
@@ -260,13 +292,15 @@ docker system prune
 docker system df
 ```
 
+Docker kogub prügi kiiresti - peatatud konteinereid, kasutamata image'id, orphaned volume'id. `prune` käsud kustutavad kõik, mis ei ole aktiivselt kasutuses. Hea tava on käivitada `docker system prune` regulaarselt, et vabastada kettaruumi. `docker system df` näitab, kui palju ruumi erinevad Docker objektid võtavad.
+
 ---
 
-# BLOKK 3: Dockerfile ja Image'ide Loomine
+## 3. Dockerfile ja Image'ide Loomine
 
-## Dockerfile põhitõed
+### Dockerfile põhitõed
 
-### Mis on Dockerfile?
+**Mis on Dockerfile?**
 - **Text file** mis kirjeldab kuidas image ehitada
 - **Layer-based:** iga käsk = uus layer
 - **Cached:** korduvad layerid kasutatakse uuesti
@@ -297,28 +331,34 @@ graph TD
     style Image fill:#384d54,color:#fff
 ```
 
-### Dockerfile süntaks
+Layer-based süsteem on Docker'i geniaalsus. Iga käsk Dockerfile'is loob uue layer'i, mis on read-only. Kui ehitate image'i uuesti ja mõni layer ei ole muutunud, siis Docker kasutab cache'ist vana layer'i. See tähendab, et teine build võtab sekundeid, mitte minuteid - Docker ei pea tegema tööd, mida ta juba on teinud.
+
+**Dockerfile süntaks:**
 ```dockerfile
 # Comment
 INSTRUCTION arguments
 ```
 
-## Dockerfile instruction'id
+Dockerfile kasutab lihtsat süntaksit - iga rida on instruction (suur tähtedega) ja selle argumendid. Instruction'id käivitatakse ülalt alla järjekorras. Kui üks instruction ebaõnnestub, siis build peatub ja te näete viga.
 
-### FROM - alus image
+### Dockerfile instruction'id
+
+**FROM - alus image:**
 ```dockerfile
 FROM ubuntu:20.04          # specific version
 FROM python:3.9-alpine     # smaller base  
 FROM scratch               # empty base
 ```
 
-### WORKDIR - töökaust
+`FROM` peab alati olema esimene instruction. See määrab, milliselt base image'ilt te alustate. Alpine image'd on palju väiksemad (5MB vs 100MB Ubuntu puhul), aga neil on vähem tööriistu installitud - valige sõltuvalt vajadusest.
+
+**WORKDIR - töökaust:**
 ```dockerfile
 WORKDIR /app
 # Equivalent to: mkdir -p /app && cd /app
 ```
 
-### COPY vs ADD
+**COPY vs ADD:**
 ```dockerfile
 # COPY - lihtne faili kopeerimine
 COPY src/ /app/src/
@@ -329,7 +369,9 @@ ADD https://example.com/file.tar.gz /app/  # downloads
 ADD archive.tar.gz /app/                   # auto-extracts
 ```
 
-### RUN - käsu käivitamine
+Kasutage alati `COPY`, mitte `ADD`. `ADD` teeb liiga palju "maagilist" - ta ekstraktib automaatselt archive'e ja saab laadida URL'e. See teeb Dockerfile'i raskemini ennustatavaks. `COPY` teeb täpselt seda, mida te eeldate.
+
+**RUN - käsu käivitamine:**
 ```dockerfile
 # Separate commands (bad)
 RUN apt-get update
@@ -342,20 +384,24 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 ```
 
-### ENV - environment variables
+Iga `RUN` loob uue layer'i. Kolm eraldi `RUN` käsku = kolm layer'it = suurem image. Kombineerige käsud `&&` ja `\` abil ühte `RUN` käsku. Kustutage ka apt cache (`rm -rf /var/lib/apt/lists/*`), et vähendada image suurust.
+
+**ENV - environment variables:**
 ```dockerfile
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV DATABASE_URL=postgresql://user:pass@db:5432/mydb
 ```
 
-### EXPOSE - dokumentatsioon
+**EXPOSE - dokumentatsioon:**
 ```dockerfile
 EXPOSE 8080
 # Doesn't actually publish port - just documentation
 ```
 
-### USER - security
+`EXPOSE` ei avalikusta tegelikult porti - see on ainult dokumentatsioon. Portide avaldamiseks kasutage `docker run -p`. Aga `EXPOSE` on ikkagi kasulik, sest see ütleb teistele, milliseid porte rakendus kasutab.
+
+**USER - security:**
 ```dockerfile
 # Create non-root user
 RUN addgroup -g 1001 -S appuser && \
@@ -364,7 +410,9 @@ RUN addgroup -g 1001 -S appuser && \
 USER appuser
 ```
 
-### CMD vs ENTRYPOINT
+Vaikimisi jooksevad konteinerid root kasutajana, mis on turvarisk. Looge spetsiaalne kasutaja ja lülituge sellele enne `CMD`. Kui keegi suudab teie containerisse sisse murda, siis tal ei ole root õigusi.
+
+**CMD vs ENTRYPOINT:**
 ```dockerfile
 # CMD - default command (can be overridden)
 CMD ["python", "app.py"]
@@ -377,9 +425,11 @@ ENTRYPOINT ["python", "app.py"]
 CMD ["--port", "8080"]
 ```
 
-## DEMO: Dockerfile loomine
+`CMD` saab kasutaja `docker run` käsuga üle kirjutada. `ENTRYPOINT` käivitub alati. Kasutage neid koos: `ENTRYPOINT` põhikäsule, `CMD` default argumentidele.
 
-### Lihtne Python app
+### DEMO: Dockerfile loomine
+
+**Lihtne Python app:**
 
 **app.py:**
 ```python
@@ -399,7 +449,7 @@ if __name__ == '__main__':
 Flask==2.3.3
 ```
 
-### Algaja Dockerfile (kehv)
+**Algaja Dockerfile (kehv):**
 ```dockerfile
 FROM python:3.9
 COPY . /app
@@ -415,7 +465,7 @@ CMD python app.py
 -  Runs as root
 -  No health check
 
-### Optimeeritud Dockerfile (hea)
+**Optimeeritud Dockerfile (hea):**
 ```dockerfile
 FROM python:3.9-alpine
 
@@ -444,7 +494,9 @@ EXPOSE 5000
 CMD ["python", "app.py"]
 ```
 
-### Build ja käivitamine
+Optimeeritud versioon kasutab Alpine'd (väiksem), loob non-root kasutaja, kopeerib `requirements.txt` enne koodi (parem cache), ja lisab health check'i. `requirements.txt` kopeeritakse esimesena, sest see muutub harvemini kui kood - nii Docker saab cache'ida pip install sammu.
+
+**Build ja käivitamine:**
 ```bash
 # Build image
 docker build -t minu-python-app .
@@ -482,13 +534,15 @@ CMD ["nginx", "-g", "daemon off;"]
 -  Turvalisem (no build tools)
 -  Kiirem deployment
 
+Multi-stage build võimaldab eraldada build keskkonda runtime'ist. Esimeses stage'is on kõik build tools (kompileerid, webpack, jne), teises stage'is ainult runtime (nginx). Final image sisaldab ainult teise stage'i, seega on palju väiksem ja turvalisem.
+
 ---
 
-# BLOKK 4: Volumes, Networks ja Docker Compose
+## 4. Volumes, Networks ja Docker Compose
 
-## Volumes - andmete säilitamine
+### Volumes - andmete säilitamine
 
-### Probleem
+**Probleem:**
 ```bash
 docker run -d --name db postgres
 docker exec db createdb myapp
@@ -498,15 +552,17 @@ docker rm db
 #  Kõik andmed kadunud!
 ```
 
-### Volume tüübid
+Vaikimisi kaovad konteineri andmed, kui container kustutatakse. Container'i writable layer on ajutine - see on disainitud nii. Püsivate andmete jaoks vajate volume'id.
 
-#### 1. Anonymous volumes
+**Volume tüübid:**
+
+**1. Anonymous volumes:**
 ```bash
 docker run -d -v /var/lib/postgresql/data postgres
 # Docker loob automaatselt volume'i
 ```
 
-#### 2. Named volumes  
+**2. Named volumes:**
 ```bash
 # Create volume
 docker volume create postgres_data
@@ -521,7 +577,9 @@ docker volume ls
 docker volume inspect postgres_data
 ```
 
-#### 3. Bind mounts
+Named volumes on soovitatud tootmiseks. Docker haldab neid ja te saate neid kergesti varundada. Volume'i andmed jäävad alles ka pärast konteineri kustutamist - peate selle käsitsi kustutama `docker volume rm`.
+
+**3. Bind mounts:**
 ```bash
 # Mount host directory
 docker run -d -v /host/path:/container/path nginx
@@ -530,7 +588,9 @@ docker run -d -v /host/path:/container/path nginx
 docker run -d -v $(pwd):/app -p 3000:3000 node:16-alpine
 ```
 
-#### 4. tmpfs mounts (memory)
+Bind mount'id on ideaalsed arenduseks. Muudate faili host'is, muudatus on kohe containeris nähtav - ei pea image'i uuesti ehitama. Aga produktsioonis kasutage named volume'id, sest bind mount'id on host'i failisüsteemist sõltuvad.
+
+**4. tmpfs mounts (memory):**
 ```bash
 docker run -d --tmpfs /tmp nginx
 # Data stored in RAM, lost on container stop
@@ -544,9 +604,9 @@ docker run -d --tmpfs /tmp nginx
 | **Bind Mount** | ⭐⭐ | ⭐ | Development |  
 | **tmpfs** | ⭐⭐⭐ | ⭐⭐⭐ | Temporary cache |
 
-## Networks - konteinerite suhtlus
+### Networks - konteinerite suhtlus
 
-### Default behavior
+**Default behavior:**
 ```bash
 # Containers can't communicate by default
 docker run -d --name web nginx
@@ -555,7 +615,9 @@ docker run -d --name app python:3.9-alpine
 docker exec app ping web  #  Fails!
 ```
 
-### Custom networks
+Vaikimisi on konteinerid isoleeritud ega näe üksteist. See on turvalisuse mõttes hea, aga te peate lubama suhtlust custom network'i abil.
+
+**Custom networks:**
 ```bash
 # Create network
 docker network create myapp-network
@@ -569,27 +631,31 @@ docker exec app ping web  #  Works!
 docker exec app nslookup web  # DNS resolution
 ```
 
-### Network types
+Custom network annab konteineritele automaatse DNS resolution'i. Container'i `web` on kättesaadav hostname'iga `web` - Docker loob selle DNS entry automaatselt. Te ei pea IP aadresse teadma.
 
-#### 1. Bridge (default)
+**Network types:**
+
+**1. Bridge (default):**
 ```bash
 docker network create --driver bridge mybridge
 # Isolated network with internet access
 ```
 
-#### 2. Host  
+**2. Host:**
 ```bash
 docker run --network host nginx
 # Uses host networking directly
 ```
 
-#### 3. None
+Host network eemaldab võrgu isolatsiooni täielikult - container kasutab host'i võrku otse. See on kõige kiirem, aga vähim turvaline. Kasutage ainult kui peate.
+
+**3. None:**
 ```bash
 docker run --network none alpine
 # No networking
 ```
 
-### Port publishing vs network
+**Port publishing vs network:**
 ```bash
 # Port publishing (external access)
 docker run -p 8080:80 nginx
@@ -601,14 +667,16 @@ docker run --network app-net --name app alpine
 # app can reach web:80 directly
 ```
 
-## DEMO: Multi-container rakendus
+Port publishing (`-p`) on **välise** ligipääsu jaoks - brauserid, API kliendid. Internal communication vajab ainult custom network'i - konteinerid saavad otse üksteisega rääkida ilma porte publishimata.
 
-### Architecture
+### DEMO: Multi-container rakendus
+
+**Architecture:**
 ```
 Frontend (nginx) → Backend (Flask) → Database (PostgreSQL)
 ```
 
-### Manual setup
+**Manual setup:**
 ```bash
 # 1. Create network
 docker network create webapp-net
@@ -640,14 +708,16 @@ docker run -d \
 
 **Probleem:** Palju käske, keeruline hallata!
 
-## Docker Compose
+### Docker Compose
 
-### Mis on Docker Compose?
+**Mis on Docker Compose?**
 - **Tool** mitme konteineri haldamiseks
 - **YAML file** konfiguratsiooniks
 - **Single command** kogu stack'i haldamiseks
 
-### docker-compose.yml
+Docker Compose võtab need kümme `docker run` käsku ja paneb need ühte YAML faili. Seejärel käivitate kogu stack'i ühe käsuga: `docker-compose up`.
+
+**docker-compose.yml:**
 ```yaml
 version: '3.8'
 
@@ -697,7 +767,9 @@ volumes:
   postgres_data:
 ```
 
-### Compose käsud
+`depends_on` ütleb Docker Compose'ile, millises järjekorras konteinereid käivitada. Aga tähtis detail: see ei oota, kuni teenus on **valmis**, ainult et container on **käivitatud**. Andmebaas võib võtta mõne sekundi enne valmis olemist.
+
+**Compose käsud:**
 ```bash
 # Start all services
 docker-compose up -d
@@ -719,7 +791,10 @@ docker-compose down
 docker-compose down -v
 ```
 
-### Environment files
+`docker-compose down -v` on ohtlik - see kustutab ka volume'd ehk **kõik andmed**. Kasutage ainult arenduses, mitte produktsioonis.
+
+**Environment files:**
+
 **.env:**
 ```bash
 POSTGRES_PASSWORD=supersecret
@@ -735,13 +810,15 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 ```
 
+`.env` fail hoiab tundlikku infot väljaspool docker-compose.yml. Lisage `.env` faili `.gitignore` - ei tohi kunagi commitida paroole Git'i.
+
 ---
 
-# BLOKK 5: Produktsiooni Parimad Praktikad
+## 5. Produktsiooni Parimad Praktikad
 
-## Security Best Practices
+### Security Best Practices
 
-### 1. Non-root user
+**1. Non-root user:**
 ```dockerfile
 # BAD
 USER root
@@ -753,7 +830,7 @@ USER appuser
 CMD ["python", "app.py"]
 ```
 
-### 2. Minimal base images
+**2. Minimal base images:**
 ```dockerfile
 # BAD - 1GB
 FROM ubuntu:latest
@@ -768,7 +845,7 @@ FROM alpine:latest
 COPY --from=builder /app /app
 ```
 
-### 3. No secrets in images
+**3. No secrets in images:**
 ```dockerfile
 # BAD
 ENV API_KEY=secret123
@@ -777,7 +854,9 @@ ENV API_KEY=secret123
 ENV API_KEY_FILE=/run/secrets/api_key
 ```
 
-### 4. Specific versions
+Secrets kuuluvad Docker secrets või vault'i, mitte image'sse. Kui panete secrets ENV'i, siis need salvestatakse image'sse igaveseks - isegi kui kustutate selle rea hiljem, on see image history'st leitav.
+
+**4. Specific versions:**
 ```dockerfile
 # BAD
 FROM python:latest
@@ -786,12 +865,13 @@ FROM python:latest
 FROM python:3.9.18-alpine3.18
 ```
 
-### 5. Security Scanning (Trivy)
+`latest` tag on nebulous - see võib tähendada erinevat versiooni järgmisel kuul. Kasutage konkreetseid versioone, et vältida üllatusi.
 
-**Security scanning** leiab haavatavused (vulnerabilities) image'itest.
+**5. Security Scanning (Trivy):**
 
-**Trivy** on populaarne, tasuta security scanner Docker image'itele:
+Security scanning leiab haavatavused (vulnerabilities) image'itest. Trivy on populaarne, tasuta security scanner Docker image'itele.
 
+**Trivy installimine ja kasutamine:**
 ```bash
 # Installi Trivy
 sudo apt install wget
@@ -825,23 +905,23 @@ Total: 45 (HIGH: 8, CRITICAL: 2)
 
 **Mida teha tulemustega?**
 
-1. **Update base image:**
-   ```dockerfile
-   FROM python:3.9.18-alpine3.18  # vanem versioon, haavatavused
-   ↓
-   FROM python:3.11.7-alpine3.19  # uuem, turvalisem
-   ```
+**1. Update base image:**
+```dockerfile
+FROM python:3.9.18-alpine3.18  # vanem versioon, haavatavused
+↓
+FROM python:3.11.7-alpine3.19  # uuem, turvalisem
+```
 
-2. **Update dependencies:**
-   ```dockerfile
-   RUN pip install requests==2.28.0  # vanem, haavatav
-   ↓
-   RUN pip install requests==2.31.0  # uuem, parandatud
-   ```
+**2. Update dependencies:**
+```dockerfile
+RUN pip install requests==2.28.0  # vanem, haavatav
+↓
+RUN pip install requests==2.31.0  # uuem, parandatud
+```
 
-3. **Accept risk** (kui ei saa parandada):
-   - Dokumenteeri, miks ei saa uuendada
-   - Lisa `.trivyignore` fail
+**3. Accept risk** (kui ei saa parandada):
+- Dokumenteeri, miks ei saa uuendada
+- Lisa `.trivyignore` fail
 
 **CI/CD integration:**
 ```yaml
@@ -859,9 +939,9 @@ security_scan:
 -  Blokeeri CRITICAL vulnerabilities
 -  Fix regulaarselt (mitte ainult release'i ajal)
 
-## Performance Optimization
+### Performance Optimization
 
-### 1. Layer caching
+**1. Layer caching:**
 ```dockerfile
 # BAD - cache miss on code change
 COPY . /app
@@ -873,7 +953,7 @@ RUN pip install -r requirements.txt
 COPY . /app
 ```
 
-### 2. .dockerignore
+**2. .dockerignore:**
 ```
 # .dockerignore
 node_modules/
@@ -882,34 +962,28 @@ node_modules/
 .DS_Store
 ```
 
-### 3. Multi-stage builds
+`.dockerignore` töötab nagu `.gitignore` - see väldib tarbetute failide kopeerimist image'sse. `.git` kaust võib olla gigabaite suurune ja on image'is täiesti kasutu.
+
+**3. Multi-stage builds:**
 
 Multi-stage build võimaldab:
 - Ehitada rakendust ühes stage'is (build tools)
 - Käivitada teises stage'is (ainult runtime)
 - Väiksemad image'id (100MB+ → 10MB)
 
-**Praktiline näide:**
- Vaata [labor.md - Samm 6: Multi-stage build](labor.md#-samm-6-multi-stage-build)
+See on juba käsitletud jaotises 3 - vaadake "Multi-stage build näide" seal.
 
-**Kontseptsioon:**
-```dockerfile
-FROM builder-image AS build  # 1. stage
-# ... compile, build ...
+### Monitoring ja Logging
 
-FROM runtime-image           # 2. stage
-COPY --from=build /app/dist  # Kopeeri ainult build result
-```
-
-## Monitoring ja Logging
-
-### Health checks
+**Health checks:**
 ```dockerfile
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 ```
 
-### Structured logging
+Health check ütleb Docker'ile, kas rakendus tegelikult töötab. Container võib olla käivitatud, aga rakendus crashinud - health check avastab selle. Docker märgib konteineri "unhealthy" ja orchestraatorid (Docker Swarm, Kubernetes) saavad selle automaatselt restartida.
+
+**Structured logging:**
 ```python
 import logging
 import json
@@ -924,7 +998,9 @@ def json_log(message, level="info", **kwargs):
     print(json.dumps(log_entry))
 ```
 
-### Resource limits
+JSON logid on masinloetavad - log aggregaatorid (nagu ELK stack) saavad neid kergelt parsida ja indekseerida. Plain text logid on inimestele loetavad, aga masinatele keerulised.
+
+**Resource limits:**
 ```yaml
 # docker-compose.yml
 services:
@@ -939,9 +1015,11 @@ services:
           memory: 256M
 ```
 
-## Production deployment patterns
+Resource limit'id kaitsevad teisi konteinereid. Kui üks container läheb luupima ja proovib kogu CPU või RAM'i võtta, siis Docker piirab seda. Ilma limit'ideta võib üks halvasti kirjutatud rakendus kogu serveri maha võtta.
 
-### 1. Blue-Green deployment
+### Production deployment patterns
+
+**1. Blue-Green deployment:**
 ```bash
 # Current: myapp-blue (v1.0)
 # Deploy: myapp-green (v2.0)
@@ -953,7 +1031,9 @@ docker run -d --name myapp-green -p 8081:8080 myapp:v2.0
 # Remove blue: docker stop myapp-blue
 ```
 
-### 2. Rolling updates
+Blue-green deployment võimaldab zero-downtime deploy'e. Käivitate uue versiooni paralleelselt vanaga, testite seda, seejärel lülitate load balanceri üle. Kui midagi läheb valesti, rollback on kiire - lülitate lihtsalt tagasi vanale versioonile.
+
+**2. Rolling updates:**
 ```yaml
 # docker-compose.yml
 services:
@@ -967,7 +1047,7 @@ services:
         order: start-first
 ```
 
-### 3. Configuration management
+**3. Configuration management:**
 ```yaml
 # docker-compose.prod.yml
 services:
@@ -988,9 +1068,11 @@ secrets:
     external: true
 ```
 
-## Container orchestration tutvustus
+Docker secrets on produktsiooni standard tundliku info jaoks. Need salvestatakse krüpteeritult ja mountitakse konteinerisse faili kujul - ei jää ENV'i ega image history'sse.
 
-### Docker Swarm
+### Container orchestration tutvustus
+
+**Docker Swarm:**
 ```bash
 # Initialize swarm
 docker swarm init
@@ -1002,7 +1084,9 @@ docker stack deploy -c docker-compose.yml myapp
 docker service scale myapp_web=5
 ```
 
-### Kubernetes alternative
+Docker Swarm on Docker'i sisseehitatud orchestrator. See haldab mitut hosti, load balancing'ut, rolling update'sid. Lihtsam kui Kubernetes, aga vähem võimalusi.
+
+**Kubernetes alternative:**
 ```bash
 # Generate Kubernetes YAML from Compose
 kompose convert docker-compose.yml
@@ -1012,23 +1096,7 @@ podman generate kube mycontainer > pod.yaml
 kubectl apply -f pod.yaml
 ```
 
-## Kokkuvõte
-
-### Mis me õppisime?
-
-1. **Docker basics:** Images, containers, registry
-2. **Dockerfile:** Optimized image building
-3. **Storage:** Volumes for data persistence
-4. **Networking:** Container communication
-5. **Compose:** Multi-container applications
-6. **Production:** Security, performance, deployment
-
-### Järgmised sammud
-
-1. **Praktiline projekt:** Tee 3-tier web app
-2. **CI/CD integratsioon:** GitHub Actions + Docker
-3. **Orchestration:** Kubernetes või Docker Swarm
-4. **Monitoring:** Prometheus + Grafana + logs
+Kubernetes on industry standard produktsioonis. Keerulisem kui Swarm, aga palju võimsam - self-healing, auto-scaling, complex networking. Kui teil on üle 10 serveri ja keeruline infrastruktuur, siis Kubernetes on investeeringu väärt.
 
 ---
 
@@ -1052,7 +1120,7 @@ docker stop container-nimi      # peata
 # 5. Korda 2-4
 ```
 
-###  Refleksioonküsimused (mõtle läbi)
+### Refleksioonküsimused
 
 1. **Kuidas Docker lahendab "Works on My Machine" probleemi?**
 2. **Millal kasutada volume'e ja millal mitte?**
@@ -1060,24 +1128,16 @@ docker stop container-nimi      # peata
 4. **Kuidas container erineb VM'ist? Mis on peamised eelised?**
 5. **Mida MITTE panna Dockerfile'i või image'isse?** (paroolid, logid, cache)
 
-###  Järgmised sammud
+### Järgmised sammud
 
-- **Labor:** Harjuta kõiki neid käske praktikas!
+- **Labor:** Harjuta kõiki neid käske praktikas
 - **Kodutöö:** Loo oma rakendus Docker container'is
 - **Edasijõudnud:** Docker Compose, Docker Swarm, Kubernetes
 
-###  Ressursid ja lugemine
+### Ressursid ja lugemine
 
 - **Docker dokumentatsioon:** https://docs.docker.com/
 - **Docker Hub:** https://hub.docker.com/
 - **Best practices guide:** https://docs.docker.com/develop/dev-best-practices/
 - **Play with Docker** (brauseris): https://labs.play-with-docker.com/
 - **Docker Cheat Sheet:** https://docs.docker.com/get-started/docker_cheatsheet.pdf
-
----
-
-**Küsimus enne lab'i alustamist:** Kui Docker oleks superjõud, siis milline see oleks ja miks? ‍
-
----
-
-*"Container technology is not the future - it's the present of software development!"* 

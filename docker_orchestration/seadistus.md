@@ -1,6 +1,5 @@
 #  Docker Seadistus
 
-**Eesmärk:** Seadistada Docker keskkond kodu arvutis  
 
 **Nõuded:** Windows/Mac/Linux arvuti
 

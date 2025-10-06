@@ -14,7 +14,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 1 (45 min) – Docker Compose põhitõed
-- **Eesmärk:** Mõista Docker Compose'i ja luua esimene multi-container rakendus
 - **Tegevused:**
   - Docker Compose installimine ja setup
   - Esimene `docker-compose.yml` (web + database)
@@ -32,7 +31,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 2 (45 min) – Networks ja volumes
-- **Eesmärk:** Ühendada container'eid ja säilitada andmeid
 - **Tegevused:**
   - Networks seadistamine (`docker-compose.yml` - networks)
   - Volumes andmete säilitamiseks
@@ -48,7 +46,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 3 (45 min) – Scaling ja production practices
-- **Eesmärk:** Skaleerida rakendusi ja rakendada parimaid tavasid
 - **Tegevused:**
   - `docker-compose up --scale` - teenuste skaleerimine
   - Health checks lisamine

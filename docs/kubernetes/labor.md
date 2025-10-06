@@ -16,7 +16,6 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 1 – Kubernetes setup ja esimene pod
-- **Eesmärk:** Seadistada Kubernetes klaster ja käivitada esimene rakendus
 - **Tegevused:**
   - Minikube/Kind installimine
   - Klastri käivitamine (`minikube start`)
@@ -34,12 +33,10 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 2 – Multi-tier rakendus (database + backend + frontend)
-- **Eesmärk:** Ehitada täielik rakendus mitme teenusega
 
 ---
 
 ### Blokk 3 – Scaling ja troubleshooting
-- **Eesmärk:** Skaleerida rakendusi ja lahendada probleeme
 
 ---
 

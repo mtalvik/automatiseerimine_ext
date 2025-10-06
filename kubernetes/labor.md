@@ -14,7 +14,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 1 (45 min) – Kubernetes setup ja esimene pod
-- **Eesmärk:** Seadistada Kubernetes klaster ja käivitada esimene rakendus
 - **Tegevused:**
   - Minikube/Kind installimine
   - Klastri käivitamine (`minikube start`)
@@ -32,7 +31,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 2 (45 min) – Multi-tier rakendus (database + backend + frontend)
-- **Eesmärk:** Ehitada täielik rakendus mitme teenusega
 - **Tegevused:**
   - PostgreSQL deployment + service
   - Backend API deployment + service
@@ -50,7 +48,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 3 (45 min) – Scaling ja troubleshooting
-- **Eesmärk:** Skaleerida rakendusi ja lahendada probleeme
 - **Tegevused:**
   - `kubectl scale` - replicate pod'e
   - `kubectl logs` - logide vaatamine

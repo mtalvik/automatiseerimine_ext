@@ -21,7 +21,6 @@ Need ülesanded on valikulised ja mõeldud neile, kes:
 
 ## Väljakutse 1: Terraform Modules Library
 
-**Eesmärk:** Loo taaskasutatavate modules library
 
 ### Mida õpid?
 - Module design patterns
@@ -150,7 +149,6 @@ output "vpc_id" {
 
 ## Väljakutse 2: Remote State Management
 
-**Eesmärk:** Õpi managing Terraform state production'is
 
 ### Mida õpid?
 - Remote backends (S3, Azure Blob)
@@ -248,7 +246,6 @@ terraform state push terraform.tfstate
 
 ## Väljakutse 3: Dynamic Infrastructure
 
-**Eesmärk:** Loo dynamic, self-configuring infrastructure
 
 ### Mida õpid?
 - `for_each` vs `count`
@@ -360,7 +357,6 @@ resource "aws_cloudwatch_dashboard" "main" {
 
 ## Väljakutse 4: Testing ja Validation
 
-**Eesmärk:** Implementeeri automated testing Terraform koodile
 
 ### Mida õpid?
 - Terratest
@@ -461,7 +457,6 @@ cost_estimate:
 
 ## Väljakutse 5: Multi-Cloud Deployment
 
-**Eesmärk:** Deploy sama infrastruktuuri AWS ja Azure'is
 
 ### Mida õpid?
 - Multi-cloud strategies
@@ -551,7 +546,6 @@ resource "azurerm_linux_virtual_machine" "app" {
 
 ## Väljakutse 6: Terraform Cloud/Enterprise
 
-**Eesmärk:** Kasuta Terraform Cloud production workflows jaoks
 
 ### Mida õpid?
 - Terraform Cloud workspaces

@@ -14,7 +14,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 1 (45 min) – Jinja2 templates ja dynamic configs
-- **Eesmärk:** Luua dünaamilisi konfiguratsioone template'idega
 - **Tegevused:**
   - Jinja2 syntax (variables, loops, conditions)
   - Nginx config template loomine
@@ -32,7 +31,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 2 (45 min) – Ansible Vault ja secrets management
-- **Eesmärk:** Õppida krüpteerima ja haldama salajasi
 - **Tegevused:**
   - Ansible Vault seadistamine
   - Vault faili loomine (`group_vars/all/vault.yml`)
@@ -50,7 +48,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 3 (45 min) – Advanced project structure ja best practices
-- **Eesmärk:** Luua professionaalset projekti struktuuri
 - **Tegevused:**
   - Full project structure (inventory, group_vars, host_vars, roles, playbooks)
   - Environment-specific configs (dev/staging/prod)

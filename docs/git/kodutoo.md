@@ -1,7 +1,6 @@
 # Git Kodutöö: Minu Git Portfolio
 
 **Tähtaeg:** Järgmise nädala algus  
-**Eesmärk:** Näidata, et oskad Git'i põhitõdesid praktikas kasutada  
 
 ---
 

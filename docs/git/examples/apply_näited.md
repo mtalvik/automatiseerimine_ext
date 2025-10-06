@@ -1,6 +1,5 @@
 # Git Apply Näited
 
-**Eesmärk:** Näidata, kuidas kasutada Git apply käsku praktikas  
 **Kontekst:** Kasutage neid näiteid, kui õpite patch failide rakendamist
 
 ---

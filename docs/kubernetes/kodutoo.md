@@ -1,7 +1,6 @@
 # Kubernetes Kodutöö: E-Pood → Tootmine
 
 **Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** Parandada e-poe arhitektuuri ja juurutada tootmiskeskkonda  
 
 ---
 

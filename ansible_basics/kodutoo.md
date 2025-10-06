@@ -1,7 +1,6 @@
 #  Ansible Kodutöö: LAMP Stack
 
 **Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** Automatiseerida LAMP stack'i paigaldus Ansible'iga  
 
 
 ---

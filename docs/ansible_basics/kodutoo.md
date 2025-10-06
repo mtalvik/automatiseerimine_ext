@@ -1,7 +1,6 @@
 # Ansible Kodutöö: LAMP Stack
 
-**Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** Automatiseerida LAMP stack'i paigaldus Ansible'iga  
+**Tähtaeg:** Järgmise nädala alguseks
 
 ---
 
@@ -18,9 +17,9 @@ Looge Ansible lahendus, mis paigaldab täieliku LAMP stack'i (Linux, Apache, MyS
 - SSH võtmepõhine autentimine
 - ** OLULINE: Lahendus PEAB olema konfigureeritav!**
 
-**Teie lahendus peab töötama kui õpetaja testib:**
+**Lahendus peab töötama kui hindaja testib:**
 ```bash
-# Õpetaja muudab ainult neid faile:
+# Hindaja muudab ainult neid faile:
 # 1. inventory.ini - oma IP-d
 # 2. group_vars/all/main.yml - oma kasutajanimi
 
@@ -37,8 +36,8 @@ server1 ansible_host=MUUDETAV_IP ansible_user=MUUDETAV_KASUTAJA
 **Näide group_vars/all/main.yml:**
 ```yaml
 # Muudetavad muutujad
-student_username: "jaan.tamm"  # Õpetaja muudab oma nimeks
-server_ip: "192.168.1.100"     # Õpetaja muudab oma IP-ks
+student_username: "jaan.tamm"  # Hindaja muudab testimiseks
+server_ip: "192.168.1.100"     # Hindaja muudab testimiseks
 domain_name: "lamp.local"
 ```
 

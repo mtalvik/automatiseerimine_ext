@@ -15,7 +15,6 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 1 – Docker põhitõed ja esimesed container'id
-- **Eesmärk:** Käivitada esimesed container'id ja mõista, mis Docker teeb
 - **Tegevused:**
   - Docker'i kiiruse testimine (`hello-world`, `alpine`)
   - Web serveri käivitamine (`nginx`)
@@ -32,12 +31,10 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 2 – Container'ide haldamine ja Dockerfile
-- **Eesmärk:** Hallata container'eid ja kirjutada esimene Dockerfile
 
 ---
 
 ### Blokk 3 – Volumes, andmete säilitamine ja best practices
-- **Eesmärk:** Kasutada volume'e andmete säilitamiseks ja rakendada best practices'eid
 
 ---
 

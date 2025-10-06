@@ -19,7 +19,6 @@ Need ülesanded on valikulised ja mõeldud neile, kes:
 
 ## Väljakutse 1: Complex Template Logic
 
-**Eesmärk:** Master Jinja2 template advanced features
 
 ### Mida õpid?
 - Jinja2 filters ja tests
@@ -127,7 +126,6 @@ server_name: "{{ inventory_hostname }}.example.com"
 
 ## Väljakutse 2: Dynamic Inventory
 
-**Eesmärk:** Loo dynamic inventory AWS/Azure/DigitalOcean jaoks
 
 ### Mida õpid?
 - Dynamic inventory scripts
@@ -247,7 +245,6 @@ ansible-playbook -i aws_ec2.yml site.yml \
 
 ## Väljakutse 3: Ansible Tower/AWX Automation
 
-**Eesmärk:** Automatiseeri Ansible runs AWX/Tower kaudu
 
 ### Mida õpid?
 - AWX installation
@@ -389,7 +386,6 @@ def create_workflow():
 
 ## Väljakutse 4: Testing with Molecule
 
-**Eesmärk:** Implementeeri automated testing Ansible rollidele
 
 ### Mida õpid?
 - Molecule framework
@@ -506,7 +502,6 @@ test:molecule:
 
 ## Väljakutse 5: Custom Modules
 
-**Eesmärk:** Kirjuta oma Ansible module Python'is
 
 ### Mida õpid?
 - Module development
@@ -636,7 +631,6 @@ if __name__ == '__main__':
 
 ## Väljakutse 6: Zero-Downtime Deployment
 
-**Eesmärk:** Implementeeri rolling deployment strategy
 
 ### Mida õpid?
 - Serial execution

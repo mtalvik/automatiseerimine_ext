@@ -15,7 +15,6 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 1 – SSH setup ja esimene ad-hoc käsk
-- **Eesmärk:** Seadistada SSH ühendused ja testida Ansible'i
 - **Tegevused:**
   - SSH võtmete genereerimine ja kopeerimine
   - Inventory faili loomine
@@ -31,12 +30,10 @@ Pärast seda labori oskad:
 ---
 
 ### Blokk 2 – Esimene playbook ja YAML
-- **Eesmärk:** Kirjutada esimene playbook ja mõista YAML süntaksit
 
 ---
 
 ### Blokk 3 – Variables ja handlers
-- **Eesmärk:** Kasutada variables parameetriseerimiseks ja handlers teenuste jaoks
 
 ---
 

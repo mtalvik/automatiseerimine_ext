@@ -1,7 +1,6 @@
 # Terraform Kodutöö: Kohalik Infrastruktuur
 
 **Tähtaeg:** Järgmise nädala alguseks  
-**Eesmärk:** Terraform'i praktiline kasutamine ja Infrastructure as Code mõistmine  
 
 ---
 

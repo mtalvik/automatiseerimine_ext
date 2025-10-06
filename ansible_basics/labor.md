@@ -13,7 +13,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 1 (45 min) – SSH setup ja esimene ad-hoc käsk
-- **Eesmärk:** Seadistada SSH ühendused ja testida Ansible'i
 - **Tegevused:**
   - SSH võtmete genereerimine ja kopeerimine
   - Inventory faili loomine
@@ -29,7 +28,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 2 (45 min) – Esimene playbook ja YAML
-- **Eesmärk:** Kirjutada esimene playbook ja mõista YAML süntaksit
 - **Tegevused:**
   - YAML süntaksi tutvustus (indentation!)
   - Esimene playbook (nginx installimine)
@@ -45,7 +43,6 @@ Pärast seda lab'i oskad:
 ---
 
 ### Blokk 3 (45 min) – Variables ja handlers
-- **Eesmärk:** Kasutada variables parameetriseerimiseks ja handlers teenuste jaoks
 - **Tegevused:**
   - Variables deklareerimine (`vars:`)
   - `{{ variable }}` kasutamine
