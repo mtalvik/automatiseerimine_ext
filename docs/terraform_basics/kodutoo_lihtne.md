@@ -1,12 +1,10 @@
 # Terraform Kodutöö: Kohalik Infrastruktuur
 
-Loo kohalik infrastruktuur Terraform'iga. Õpid Infrastructure as Code põhimõtteid praktiliselt - kirjutad koodi mis loob faile, kaustu ja konfiguratsioone automaatselt.
-
-**Ajakulg:** ~90 minutit
+Loo kohalik infrastruktuur Terraform'iga. Õpid Infrastructure as Code põhimõtteid praktiliselt - kirjutad koodi mis loob faile, kaustu ja konfiguratsioone automaatselt. Kodutöö võtab umbes 90 minutit.
 
 **Eeldused:** Terraform basics labor tehtud, HCL süntaks tuttav  
-**Esitamine:** GitHub link Moodle'sse  
-**Tähtaeg:** Järgmise nädala esmaspäev 23:59
+**Esitamine:** GitHub link Google Classroom'i  
+**Tähtaeg:** Kokkulepitud tähtajaks
 
 ---
 
@@ -320,9 +318,9 @@ Lisa ka README.md mis selgitab:
 - Kuidas käivitada
 - Mis faile see loob
 
-### Esitamine Moodle'sse
+### Esitamine Google Classroom'i
 
-Esita GitHub repository link.
+Esita oma GitHub repository link Google Classroom'i ülesande alla. Veendu, et repository on avalik (public) või anna õpetajale ligipääs. Link peaks viima otse sinu projekti põhilehele kus on näha README.md ja kõik Terraform failid.
 
 ---
 
