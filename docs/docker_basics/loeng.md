@@ -11,11 +11,16 @@ Loeng tutvustab konteinerite tehnoloogiat, Docker'i arhitektuuri ja kasutusvõim
 
 Pärast seda loengut mõistad:
 
-- **Miks konteinerite tehnoloogia on vajalik** - millist probleemi see lahendab
-- **Kuidas Docker erineb VM'idest** - arhitektuurilised erinevused ja mõju jõudlusele
-- **Mis on image ja container** - nende suhe ja elutsükkel
-- **Kuidas Dockerfile töötab** - image'ide loomine ja optimeerimise põhimõtted
-- **Millal kasutada volume'e** - andmete püsivus ja jagamine
+- **Miks konteinerite tehnoloogia on vajalik**
+- millist probleemi see lahendab
+- **Kuidas Docker erineb VM'idest**
+- arhitektuurilised erinevused ja mõju jõudlusele
+- **Mis on image ja container**
+- nende suhe ja elutsükkel
+- **Kuidas Dockerfile töötab**
+- image'ide loomine ja optimeerimise põhimõtted
+- **Millal kasutada volume'e**
+- andmete püsivus ja jagamine
 
 ---
 
@@ -39,7 +44,8 @@ Docker kasutas 2013. aastal Linux'i kernel'i olemasolevaid võimeid (namespaces,
 
 - **Käivitusaeg:** 1-3 sekundit
 - **Mälukasutus:** 10-100 MB per container
-- **Kettaruum:** 100 MB - 1 GB
+- **Kettaruum:** 100 MB
+- 1 GB
 - **Server mahutab:** 100-1000 container'it
 
 Võrdluseks: VM käivitub 30-60 sekundiga, vajab 1-8 GB RAM'i, serverisse mahub 10-50 VM'i.

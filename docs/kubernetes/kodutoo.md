@@ -554,7 +554,8 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
    - Näide: "Kubernetes on nagu lennujuht – haldab tuhandeid container'eid ja tagab, et kõik töötab!"
 
 5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
-   - Näide: "Mulle meeldis scaling - `kubectl scale --replicas=10` ja BAM, mul on 10 pod'i!"
+   - Näide: "Mulle meeldis scaling
+   - `kubectl scale --replicas=10` ja BAM, mul on 10 pod'i!"
 
 ---
 

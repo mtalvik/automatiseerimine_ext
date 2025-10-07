@@ -73,7 +73,9 @@ fi
 - [ ] Testi mõlemat - veendu, et halvad commit'id blokeeritakse
 
 **Näpunäiteid:**
-- Hook'id ei liigu clone'iga - production'is kasuta framework'e
+
+- Hook'id ei liigu clone'iga
+- Production'is kasuta framework'e
 - Ajutine vahele jätmine: `git commit --no-verify`
 - Kontrolli ainult staged faile: `git diff --cached --name-only`
 
@@ -278,9 +280,11 @@ git log --oneline  # 1 commit
 ```
 
 **Boonus:**
-- Õpi `git reflog` - leia "kaotatud" commit'e
+- Õpi `git reflog`
+- leia "kaotatud" commit'e
 - Proovi `git rebase --autosquash`
-- `git cherry-pick` - võta commit teisest branch'ist
+- `git cherry-pick`
+- võta commit teisest branch'ist
 
 ---
 
@@ -292,9 +296,12 @@ git log --oneline  # 1 commit
 - [Git Rebase](https://git-scm.com/book/en/v2/Git-Branching-Rebasing)
 
 **Tööriistad:**
-- **pre-commit** - Hook'ide framework: `pip install pre-commit`
-- **act** - GitHub Actions lokaalselt: `brew install act`
-- **git-filter-repo** - Ajaloo puhastamine: `pip install git-filter-repo`
+- **pre-commit**
+- Hook'ide framework: `pip install pre-commit`
+- **act**
+- GitHub Actions lokaalselt: `brew install act`
+- **git-filter-repo**
+- Ajaloo puhastamine: `pip install git-filter-repo`
 
 **Näited:**
 - [GitHub Actions starter workflows](https://github.com/actions/starter-workflows)

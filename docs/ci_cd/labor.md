@@ -530,8 +530,10 @@ Pipeline koosneb neljast stage'ist:
 Rakendus pakub kolme endpoint'i:
 
 - GET / - API info
-- GET /health - Health check
-- GET /products - Products list
+- GET /health
+- Health check
+- GET /products
+- Products list
 
 ## Käivitamine
 ```

@@ -267,11 +267,16 @@ CMD ["python", "app.py"]
 ```
 
 Dockerfile selgitus:
-- `python:3.11-alpine` - väike base image
-- `COPY requirements.txt` - dependencies enne koodi (cache)
-- `pip install --no-cache-dir` - ei salvesta cache'i
-- `adduser` - non-root kasutaja turvalisuseks
-- `USER appuser` - lülitub non-root kasutajale
+- `python:3.11-alpine`
+- väike base image
+- `COPY requirements.txt`
+- dependencies enne koodi (cache)
+- `pip install --no-cache-dir`
+- ei salvesta cache'i
+- `adduser`
+- non-root kasutaja turvalisuseks
+- `USER appuser`
+- lülitub non-root kasutajale
 
 ---
 
@@ -452,9 +457,12 @@ Avage: http://localhost
 
 ## API Endpoints
 
-- `GET /` - HTML interface
-- `POST /api/chat` - Chat API
-- `GET /api/stats` - Container statistika
+- `GET /`
+- HTML interface
+- `POST /api/chat`
+- Chat API
+- `GET /api/stats`
+- Container statistika
 
 ## Tehnoloogiad
 

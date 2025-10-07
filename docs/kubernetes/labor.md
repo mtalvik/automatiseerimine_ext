@@ -67,10 +67,14 @@ Pärast seda lab'i õpilane:
 
 **Tegevused:**
 
-- `kubectl scale` - replicate pod'e
-- `kubectl logs` - logide vaatamine
-- `kubectl exec` - container'i sisenemine
-- `kubectl describe` - detailne info
+- `kubectl scale`
+- replicate pod'e
+- `kubectl logs`
+- logide vaatamine
+- `kubectl exec`
+- container'i sisenemine
+- `kubectl describe`
+- detailne info
 - Rolling updates testimine
 
 **Kontrollnimekiri:**
@@ -182,7 +186,8 @@ graph TB
 - Iga komponent saab iseseisvalt uueneda
 - Kui frontend kukub, backend ja DB töötavad edasi
 - Saame skaleerida (backend 1→10 pod'i)
-- Self-healing - kui pod kukub, Kubernetes loob uue
+- Self-healing
+- kui pod kukub, Kubernetes loob uue
 
 ## Failide Struktuur
 ```
@@ -512,7 +517,8 @@ spec:
       
       # Volumes - kust võtame salvestuse
       volumes:
-      - name: postgres-storage    # Nimi - volumeMounts kasutab seda
+      - name: postgres-storage    # Nimi
+      - volumeMounts kasutab seda
         persistentVolumeClaim:
           claimName: postgres-pvc # Fail 3 nimi (PVC)
 ```
@@ -1296,11 +1302,16 @@ http://192.168.64.2:8080
 - Pod'i hostname
 - "Ühendatud" staatus
 - 5 toodet:
-  - Dell XPS 13 - €1299.99 - Laos: 5 tk
-  - Logitech Hiir - €89.99 - Laos: 15 tk
-  - Klaviatuur - €119.99 - Laos: 8 tk
-  - Monitor LG - €449.99 - Laos: 3 tk
-  - Kõrvaklapid - €279.99 - Laos: 12 tk
+  - Dell XPS 13
+  - €1299.99 - Laos: 5 tk
+  - Logitech Hiir
+  - €89.99 - Laos: 15 tk
+  - Klaviatuur
+  - €119.99 - Laos: 8 tk
+  - Monitor LG
+  - €449.99 - Laos: 3 tk
+  - Kõrvaklapid
+  - €279.99 - Laos: 12 tk
 
 ---
 

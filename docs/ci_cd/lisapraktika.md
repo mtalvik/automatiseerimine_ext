@@ -98,7 +98,8 @@ Image tagging strateegia on oluline. Feature branch'idel ei builda image'i ülds
 - Alusta lihtsamatest if condition'itest, testi iga branch'i käitumist
 - GitHub environment settings asub Settings → Environments, seal saad seadistada approval'eid
 - Branch protection asub Settings → Branches, seal nõua pull request review'd
-- Kasuta github.ref võrdlemiseks - see on branch'i täielik nimi nagu refs/heads/main
+- Kasuta github.ref võrdlemiseks
+- see on branch'i täielik nimi nagu refs/heads/main
 - Tag'ide jaoks kasuta ternary operator'it workflow'des
 
 **Testimine:**
@@ -243,11 +244,14 @@ deploy:
 - [ ] Dokumenteeri README.md'sse kõik optimeerimised ja nende mõju
 
 **Näpunäiteid:**
-- Alusta profiling'ust - vaata GitHub Actions UI'st kus kulub kõige rohkem aega
-- Dependency caching on quickest win - implementeeri see esimesena
+- Alusta profiling'ust
+- vaata GitHub Actions UI'st kus kulub kõige rohkem aega
+- Dependency caching on quickest win
+- implementeeri see esimesena
 - Multi-stage Docker build'i näide on Docker dokumentatsioonis
 - actions/cache documentation näitab kõiki võimalusi
-- Paralleelsed job'id on lihtsad - lihtsalt eemalda needs kui sõltuvust pole
+- Paralleelsed job'id on lihtsad
+- lihtsalt eemalda needs kui sõltuvust pole
 
 **Testimine:**
 ```bash
@@ -452,7 +456,8 @@ Notifications hoiavad meeskonda kursis. Slack webhook on lihtne seadistada.
 - [ ] RUNBOOK.md dokumentatsioon - kuidas süsteem töötab ja kuidas troubleshoot'ida
 
 **Näpunäiteid:**
-- Alusta security scanning'ust - Trivy action on kõige lihtsam
+- Alusta security scanning'ust
+- Trivy action on kõige lihtsam
 - Health check script kirjuta ja testi lokaalses enne kui lisad pipeline'i
 - Slack webhook saad tasuta Discord või Slack workspace'iga
 - Rollback workflow kasuta workflow_dispatch trigger'it
@@ -478,10 +483,13 @@ git push origin main
 ```
 
 **Boonus:**
-- Implementeeri canary deployment - 10% traffic uuele versioonile, siis 100%
-- Lisa metrics collection - logi deployment'e Prometheus või JSON faili
+- Implementeeri canary deployment
+- 10% traffic uuele versioonile, siis 100%
+- Lisa metrics collection
+- logi deployment'e Prometheus või JSON faili
 - Automatic rollback kui health check ebaõnnestub 3 korda järjest
-- Multi-environment support - erinevad health check URL'id staging vs production
+- Multi-environment support
+- erinevad health check URL'id staging vs production
 
 ---
 
@@ -494,10 +502,14 @@ git push origin main
 - [Trivy Security Scanner](https://github.com/aquasecurity/trivy)
 
 **Tööriistad:**
-- **Trivy** - vulnerability scanning: `aquasecurity/trivy-action@master`
-- **actions/cache** - dependency caching: `actions/cache@v3`
-- **docker/build-push-action** - optimized Docker builds: `docker/build-push-action@v4`
-- **8398a7/action-slack** - Slack notifications: `8398a7/action-slack@v3`
+- **Trivy**
+- vulnerability scanning: `aquasecurity/trivy-action@master`
+- **actions/cache**
+- dependency caching: `actions/cache@v3`
+- **docker/build-push-action**
+- optimized Docker builds: `docker/build-push-action@v4`
+- **8398a7/action-slack**
+- Slack notifications: `8398a7/action-slack@v3`
 
 **Näited:**
 - [GitHub Actions Examples](https://github.com/actions/starter-workflows)

@@ -85,8 +85,10 @@ docker run -d --name api --network app-network \
 Looge 3 network'i:
 
 **Nõuded:**
-- `frontend-net` - nginx ↔ api
-- `backend-net` - api ↔ db
+- `frontend-net`
+- nginx ↔ api
+- `backend-net`
+- api ↔ db
 - `api` container on mõlemas network'is (bridge)
 
 **Validatsioon:**
@@ -459,16 +461,24 @@ Internet
 - [Compose Specification](https://compose-spec.io/)
 
 **Tööriistad:**
-- Trivy - security scanning
-- Dive - image layer analysis
-- Hadolint - Dockerfile linter
-- Container Structure Tests - Google'i test framework
+- Trivy
+- security scanning
+- Dive
+- image layer analysis
+- Hadolint
+- Dockerfile linter
+- Container Structure Tests
+- Google'i test framework
 
 **Platvormid:**
-- Docker Hub - public registry
-- GitHub Container Registry - private images
-- AWS ECR - enterprise registry
-- Harbor - self-hosted registry
+- Docker Hub
+- public registry
+- GitHub Container Registry
+- private images
+- AWS ECR
+- enterprise registry
+- Harbor
+- self-hosted registry
 
 ---
 

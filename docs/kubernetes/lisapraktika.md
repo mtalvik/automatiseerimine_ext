@@ -27,8 +27,10 @@ HPA vajab Metrics Server'it, mis kogub ressursi kasutust kõigist node'idest. Mi
 - Kui koormus langeb alla 50% → HPA kustutab pod'e (5 min pärast)
 
 **Loe veel:**
-- loeng.md - pole veel selles loengus, aga deployment'i ja resource limits't leiad seal
-- labor.md - "## 2. Multi-tier rakendus" näitab deployment'i struktuuri
+- loeng.md
+- pole veel selles loengus, aga deployment'i ja resource limits't leiad seal
+- labor.md
+- "## 2. Multi-tier rakendus" näitab deployment'i struktuuri
 - [Kubernetes HPA dokumentatsioon](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
 - [Metrics Server](https://github.com/kubernetes-sigs/metrics-server)
 
@@ -130,8 +132,10 @@ StatefulSet kasutab Headless Service'i (`clusterIP: None`), mis annab igale pod'
 | Kasutus | Stateless apps | Andmebaasid, queue'id |
 
 **Loe veel:**
-- loeng.md - "## 5. Storage ja ConfigMaps" - PVC ja volume'id
-- labor.md - "## 4. PostgreSQL Andmebaas" - näide StatefulSet'ist
+- loeng.md
+- "## 5. Storage ja ConfigMaps" - PVC ja volume'id
+- labor.md
+- "## 4. PostgreSQL Andmebaas" - näide StatefulSet'ist
 - [Kubernetes StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
 - [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 
@@ -288,8 +292,10 @@ myapp/
 ```
 
 **Loe veel:**
-- loeng.md - YAML struktuurid (deployment, service)
-- labor.md - näed kuidas Deployment ja Service töötavad
+- loeng.md
+- YAML struktuurid (deployment, service)
+- labor.md
+- näed kuidas Deployment ja Service töötavad
 - [Helm dokumentatsioon](https://helm.sh/docs/)
 - [Helm Best Practices](https://helm.sh/docs/chart_best_practices/)
 
@@ -363,7 +369,8 @@ helm uninstall myrelease
 - [ ] Rollback: `helm rollback myshop-dev 1`
 
 **Näpunäiteid:**
-- `helm create` genereerib valmis template'id - ära kirjuta üle, kasuta neid!
+- `helm create` genereerib valmis template'id
+- ära kirjuta üle, kasuta neid!
 - Dry-run testimiseks: `helm install --dry-run --debug myshop ./myshop`
 - Template rendering vaatamiseks: `helm template myshop ./myshop`
 - Kui muudad template faile, pead tegema `helm upgrade`
@@ -468,10 +475,14 @@ helm uninstall myshop-prod
 - [Helm Chart Best Practices](https://helm.sh/docs/chart_best_practices/)
 
 **Tööriistad:**
-- **k9s** - Terminal UI Kubernetes'ile: `brew install k9s` või `snap install k9s`
-- **kubectx/kubens** - Kiire context/namespace switching: `brew install kubectx`
-- **stern** - Multi-pod log tailing: `brew install stern`
-- **Lens** - Desktop GUI Kubernetes'ile: https://k8slens.dev/
+- **k9s**
+- Terminal UI Kubernetes'ile: `brew install k9s` või `snap install k9s`
+- **kubectx/kubens**
+- Kiire context/namespace switching: `brew install kubectx`
+- **stern**
+- Multi-pod log tailing: `brew install stern`
+- **Lens**
+- Desktop GUI Kubernetes'ile: https://k8slens.dev/
 
 **Näited:**
 - [Kubernetes Examples](https://github.com/kubernetes/examples)

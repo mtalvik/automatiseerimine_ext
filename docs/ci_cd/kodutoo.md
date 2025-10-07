@@ -500,8 +500,10 @@ Täispunktide saamiseks:
 
 Ei sobi:
 
-- "Nii oli lab'is" - see ei ole põhjendus
-- "Õppisin CI/CD'd" - liiga üldine
+- "Nii oli lab'is"
+- see ei ole põhjendus
+- "Õppisin CI/CD'd"
+- liiga üldine
 - Pipeline töötab, aga ei vasta PIPELINE.md disainile
 
 ---
@@ -546,9 +548,12 @@ Näita README's: Mõõda image size enne ja pärast optimeerimist.
 
 Kontrolli järgmist:
 
-- YAML syntax - kasuta https://www.yamllint.com/
-- Test käsud - kas töötavad lokaalses?
-- GitHub Actions tab - loe error message'it
+- YAML syntax
+- kasuta https://www.yamllint.com/
+- Test käsud
+- kas töötavad lokaalses?
+- GitHub Actions tab
+- loe error message'it
 
 ### Test Stage Failib
 

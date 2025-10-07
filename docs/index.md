@@ -16,12 +16,18 @@
 Git → Ansible → Docker → Terraform → Kubernetes → CI/CD → Lõpuprojekt
 ```
 
-- **Git & GitHub** - versioonihaldus ja meeskonnatöö
-- **Docker** - konteinerite loomine ja orkestratsioon
-- **Ansible** - serverite automatiseerimine ja konfiguratsioonihaldus
-- **Terraform** - infrastruktuur koodina (IaC)
-- **Kubernetes** - konteinerite orkestratsioon suuremas mahus
-- **CI/CD** - automaatne testimine ja deployment
+- **Git & GitHub**
+- versioonihaldus ja meeskonnatöö
+- **Docker**
+- konteinerite loomine ja orkestratsioon
+- **Ansible**
+- serverite automatiseerimine ja konfiguratsioonihaldus
+- **Terraform**
+- infrastruktuur koodina (IaC)
+- **Kubernetes**
+- konteinerite orkestratsioon suuremas mahus
+- **CI/CD**
+- automaatne testimine ja deployment
 
 ### Kursuse lõpuks oskad:
 

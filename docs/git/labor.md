@@ -731,9 +731,11 @@ if __name__ == "__main__":
 ```
 
 Konfliktimärgid:
-- `<<<<<<< HEAD` - sinu praegune versioon (main)
+- `<<<<<<< HEAD`
+- sinu praegune versioon (main)
 - `=======` - eraldaja
-- `>>>>>>> fix/greeting-estonian` - merge'itav versioon
+- `>>>>>>> fix/greeting-estonian`
+- merge'itav versioon
 
 Redigeeri faili ja vali või kombineeri versioone:
 ```bash

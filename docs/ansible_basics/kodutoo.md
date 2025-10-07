@@ -85,9 +85,12 @@ Looge playbook mis:
 - Seadistab ajavööndi
 
 Uurige järgmisi mooduleid:
-- `apt` või `yum` - pakettide haldus
-- `ufw` või `firewalld` - firewall
-- `timezone` - ajavööndi seadistus
+- `apt` või `yum`
+- pakettide haldus
+- `ufw` või `firewalld`
+- firewall
+- `timezone`
+- ajavööndi seadistus
 
 ---
 
@@ -153,9 +156,12 @@ vars_prompt:
 ```
 
 Uurige järgmisi mooduleid:
-- `mysql_db` - andmebaasi haldus
-- `mysql_user` - kasutajate haldus
-- `apt` - pymysql paketi installimine
+- `mysql_db`
+- andmebaasi haldus
+- `mysql_user`
+- kasutajate haldus
+- `apt`
+- pymysql paketi installimine
 
 ---
 
@@ -284,10 +290,14 @@ Tagage, et playbook on idempotentne - teine käivitamine ei tohi midagi muuta. L
 - Veebileht on kättesaadav ja näitab õiget sisu?
 
 Kasutage järgmisi mooduleid:
-- `uri` - veebilehe kättesaadavuse test
-- `wait_for` - pordi kuulamise test
-- `service_facts` - teenuste seisundi kontroll
-- `stat` - failide olemasolu kontroll
+- `uri`
+- veebilehe kättesaadavuse test
+- `wait_for`
+- pordi kuulamise test
+- `service_facts`
+- teenuste seisundi kontroll
+- `stat`
+- failide olemasolu kontroll
 
 Testimise näide:
 ```yaml
@@ -446,11 +456,16 @@ Enne kodutöö alustamist lugege läbi:
 - [Templates](https://docs.ansible.com/ansible/latest/user_guide/playbooks_templating.html)
 
 **Moodulite dokumentatsioon:**
-- `ansible-doc apt` - pakettide installimine
-- `ansible-doc service` - teenuste haldamine
-- `ansible-doc template` - template'ide kasutamine
-- `ansible-doc mysql_db` - MySQL andmebaasid
-- `ansible-doc mysql_user` - MySQL kasutajad
+- `ansible-doc apt`
+- pakettide installimine
+- `ansible-doc service`
+- teenuste haldamine
+- `ansible-doc template`
+- template'ide kasutamine
+- `ansible-doc mysql_db`
+- MySQL andmebaasid
+- `ansible-doc mysql_user`
+- MySQL kasutajad
 
 **Kui abi vaja:**
 1. Kasutage `ansible-doc <module>` dokumentatsiooni vaatamiseks

@@ -271,8 +271,10 @@ Loo volume, mount andmebaasi, kontrolli andmete säilimist
 ### Pedagoogilised Alused
 
 **National Research Council (2000).** *How People Learn: Brain, Mind, Experience, and School.* Washington, DC: The National Academies Press.
-- Peatükk 1: "Learning: From Speculation to Science" - eelteadmised, arusaamine, metakognitsioon
-- Peatükk 2: "How Experts Differ from Novices" - miks arusaamine > meeldejätmine
+- Peatükk 1: "Learning: From Speculation to Science"
+- eelteadmised, arusaamine, metakognitsioon
+- Peatükk 2: "How Experts Differ from Novices"
+- miks arusaamine > meeldejätmine
 
 **Bransford, J., & Schwartz, D. (1999).** "Rethinking Transfer: A Simple Proposal with Multiple Implications." *Review of Research in Education, 24*, 61-100.
 - Transfer = õpilased kannavad teadmisi üle uutesse olukordadesse (refleksioon aitab)

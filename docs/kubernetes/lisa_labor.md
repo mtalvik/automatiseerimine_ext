@@ -314,9 +314,12 @@ curl http://localhost:3000/api/health
 - [Health Checks](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
 
 **Tööriistad:**
-- **k9s** - Terminal UI Kubernetes'ele: `brew install k9s`
-- **kubectl plugins** - Laiendused: `kubectl krew install neat`
-- **Lens** - Desktop IDE: https://k8slens.dev/
+- **k9s**
+- Terminal UI Kubernetes'ele: `brew install k9s`
+- **kubectl plugins**
+- Laiendused: `kubectl krew install neat`
+- **Lens**
+- Desktop IDE: https://k8slens.dev/
 
 **Näited:**
 - [Kubernetes Examples Repository](https://github.com/kubernetes/examples)

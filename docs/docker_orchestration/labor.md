@@ -44,7 +44,8 @@ docker ps
 
 Host masinas (Windows/Mac):
 - Lae alla: https://code.visualstudio.com/
-- Installi "Remote - SSH" extension
+- Installi "Remote
+- SSH" extension
 
 Või kasuta VM-is:
 ```bash

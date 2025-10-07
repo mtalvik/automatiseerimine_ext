@@ -243,7 +243,8 @@ Seadistage remote state ja testige locking'ut.
 - Salvestage bucket nimi ja DynamoDB tabeli nimi
 - Lisage backend konfiguratsioon põhiprojekti
 - Käivitage `terraform init -migrate-state`
-- Lokaalne state fail jääb alles backup'ina - ärge kustutage kohe
+- Lokaalne state fail jääb alles backup'ina
+- ärge kustutage kohe
 
 **Testimine:**
 ```bash
@@ -481,9 +482,12 @@ terraform apply
 - [Terraform Modules](https://developer.hashicorp.com/terraform/language/modules)
 
 **Tööriistad:**
-- **terraform-docs** - Generate module documentation: `brew install terraform-docs`
-- **tflint** - Linter for Terraform: `brew install tflint`
-- **tfsec** - Security scanner: `brew install tfsec`
+- **terraform-docs**
+- Generate module documentation: `brew install terraform-docs`
+- **tflint**
+- Linter for Terraform: `brew install tflint`
+- **tfsec**
+- Security scanner: `brew install tfsec`
 
 **Näited:**
 - [AWS VPC Terraform Module](https://github.com/terraform-aws-modules/terraform-aws-vpc)

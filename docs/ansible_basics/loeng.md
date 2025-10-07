@@ -27,10 +27,14 @@ Selles jaotises selgitame, millist probleemi Ansible lahendab ja miks on mõistl
 
 Reaalsetes IT keskkondades on tavaliselt kümneid, sageli sadu servereid. Kui peate igasse serverisse käsitsi sisse logima ja konfiguratsioone tegema, kulub sellele tohutult aega. Veelgi hullem - käsitsi töö tähendab vigu. Unustate ühest serverist paketi paigaldamise, teise serverisse panete vale konfiguratsiooni. Ansible lahendab need probleemid:
 
-- **Aeg säästub** - ei pea iga serverisse eraldi sisse logima
-- **Vead vähenevad** - automatiseerimine vähendab käsitsi tehtavaid vigu  
-- **Järjepidevus** - kõik serverid saavad sama konfiguratsiooni
-- **Skaleeritavus** - hõlpsalt lisada uusi servereid
+- **Aeg säästub**
+- ei pea iga serverisse eraldi sisse logima
+- **Vead vähenevad**
+- automatiseerimine vähendab käsitsi tehtavaid vigu
+- **Järjepidevus**
+- kõik serverid saavad sama konfiguratsiooni
+- **Skaleeritavus**
+- hõlpsalt lisada uusi servereid
 
 Ansible ei ole ainuke automatiseerimistööriist turul. Puppet, Chef ja SaltStack teevad sarnaseid asju. Kuid Ansible eristub oma lihtsuse poolest - te ei pea õppima uut programmeerimiskeelt ega paigaldama serveritesse agente.
 
@@ -166,10 +170,14 @@ ansible <sihtmärk> -i <inventory> -m <moodul> -a "<argumendid>" [lisaoptsioonid
 
 Komponentide selgitus:
 
-- `<sihtmärk>` - millised serverid (all, webservers, konkreetne server)
-- `-i <inventory>` - inventory faili asukoht
-- `-m <moodul>` - millist moodulit kasutada
-- `-a "<argumendid>"` - mooduli parameetrid
+- `<sihtmärk>`
+- millised serverid (all, webservers, konkreetne server)
+- `-i <inventory>`
+- inventory faili asukoht
+- `-m <moodul>`
+- millist moodulit kasutada
+- `-a "<argumendid>"`
+- mooduli parameetrid
 - `[lisaoptsioonid]` - täiendavad seadistused
 
 ### 4.2. Kiired ühekordsed käsud (ad-hoc)
@@ -267,7 +275,8 @@ Märkused:
 
 - `--become` kasutage siis, kui vajate admin õigusi (sudo)
 - `-i inventory` määrab, millist inventory faili kasutada
-- `command` vs `shell` - command on turvalisem, shell lubab pipe'e ja redirection'i
+- `command` vs `shell`
+- command on turvalisem, shell lubab pipe'e ja redirection'i
 
 ### 4.4. Kasulikud moodulid algajatele
 
@@ -345,9 +354,12 @@ ansible-playbook -i inventory webserver.yml
 
 Väljund näitab iga taski tulemust:
 
-- `ok` - task käivitati, kuid midagi ei muutunud
-- `changed` - task tegi muudatuse
-- `failed` - task ebaõnnestus
+- `ok`
+- task käivitati, kuid midagi ei muutunud
+- `changed`
+- task tegi muudatuse
+- `failed`
+- task ebaõnnestus
 
 ### 5.2. YAML süntaksi põhitõed
 
@@ -530,12 +542,18 @@ ansible all -m setup -a "filter=ansible_processor*"
 
 ### 9.1. Kasulikumad faktid
 
-- `ansible_hostname` - serveri nimi
-- `ansible_default_ipv4.address` - IP aadress
-- `ansible_distribution` - OS (Ubuntu, CentOS, Debian)
-- `ansible_distribution_version` - OS versioon (20.04, 7, jne)
-- `ansible_memtotal_mb` - kogu RAM megabaitides
-- `ansible_processor_cores` - CPU tuumade arv
+- `ansible_hostname`
+- serveri nimi
+- `ansible_default_ipv4.address`
+- IP aadress
+- `ansible_distribution`
+- OS (Ubuntu, CentOS, Debian)
+- `ansible_distribution_version`
+- OS versioon (20.04, 7, jne)
+- `ansible_memtotal_mb`
+- kogu RAM megabaitides
+- `ansible_processor_cores`
+- CPU tuumade arv
 
 ### 9.2. Faktide kasutamine playbook'is
 ```yaml
@@ -544,7 +562,8 @@ tasks:
     debug:
       msg: "Seadistan {{ ansible_distribution }} {{ ansible_distribution_version }} serverit IP-ga {{ ansible_default_ipv4.address }}"
   
-  - name: Suur mälu - paigaldan vahemälu
+  - name: Suur mälu
+  - paigaldan vahemälu
     package:
       name: memcached
       state: present

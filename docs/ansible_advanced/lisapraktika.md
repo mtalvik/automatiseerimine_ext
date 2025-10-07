@@ -550,10 +550,14 @@ backend webservers
 
 **Tööriistad:**
 
-- **ansible-lint** - Playbook'ide linter ja best practices checker: `pip install ansible-lint`
-- **ansible-doctor** - Automaatne dokumentatsiooni genereerimine: `pip install ansible-doctor`
-- **ara** - Ansible run analysis ja visualiseerimine: `pip install ara`
-- **mitogen** - Ansible performance parandamine (kuni 7x kiirem): `pip install mitogen`
+- **ansible-lint**
+- Playbook'ide linter ja best practices checker: `pip install ansible-lint`
+- **ansible-doctor**
+- Automaatne dokumentatsiooni genereerimine: `pip install ansible-doctor`
+- **ara**
+- Ansible run analysis ja visualiseerimine: `pip install ara`
+- **mitogen**
+- Ansible performance parandamine (kuni 7x kiirem): `pip install mitogen`
 
 **Näited:**
 - [Ansible Examples Repository](https://github.com/ansible/ansible-examples)

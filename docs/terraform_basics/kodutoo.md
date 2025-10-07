@@ -33,10 +33,14 @@ cd terraform-homework
 ```
 
 Looge 4 faili:
-- `main.tf` - ressursside definitsioonid
-- `variables.tf` - sisendmuutujad
-- `outputs.tf` - väljundid
-- `terraform.tfvars` - muutujate väärtused
+- `main.tf`
+- ressursside definitsioonid
+- `variables.tf`
+- sisendmuutujad
+- `outputs.tf`
+- väljundid
+- `terraform.tfvars`
+- muutujate väärtused
 
 ### 2.2 main.tf
 

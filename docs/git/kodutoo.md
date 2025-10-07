@@ -399,7 +399,7 @@ Kontrollige, et olete kõik teinud:
 
 ### Esitamise Formaat
 
-Esitage Google Classroom'is:
+upEsitage Google Classroom'is:
 
 **Repository link:** `https://github.com/teie-kasutajanimi/git-homework`
 
@@ -455,9 +455,12 @@ Vaata: https://shields.io/
 - [Markdown Guide](https://www.markdownguide.org/basic-syntax/)
 
 **Kursuseomane:**
-- `loeng.md` - Git põhitõed
-- `labor.md` - Käed-külge harjutused
-- `lisapraktika.md` - Edasijõudnud tehnikad
+- `loeng.md`
+- Git põhitõed
+- `labor.md`
+- Käed-külge harjutused
+- `lisapraktika.md`
+- Edasijõudnud tehnikad
 
 **Troubleshooting:**
 

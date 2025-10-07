@@ -104,7 +104,8 @@ Pidev tagasiside läbi Kontrollküsimuste ja praktiliste ülesannete. Õpetaja n
 - Näita lihtsat docker-compose.yml faili
 - Võrdle: 5 docker run käsku vs 1 docker-compose up
 - Seleta deklaratiivne vs imperatiivne lähenemisviis
-- Analoogia: "Compose on nagu retsept - kirjeldad MIDA tahad, mitte KUIDAS teha"
+- Analoogia: "Compose on nagu retsept
+- kirjeldad MIDA tahad, mitte KUIDAS teha"
 
 **25-35 min: YAML põhitõed**
 - Näita YAML struktuuri (taanded, lists, dictionaries)
@@ -142,7 +143,8 @@ Küsi 2-3 õppurilt:
 
 Küsi õppuritelt (1 min, suuline tagasiside):
 - "Kellel on nüüd selge MIKS me vajame Compose'i?"
-- "Kes tunneb end kindlalt YAML süntaksiga?" (kui alla 50% - võta järgmises tunnis rohkem aega)
+- "Kes tunneb end kindlalt YAML süntaksiga?" (kui alla 50%
+- võta järgmises tunnis rohkem aega)
 
 ### Kohandus
 
@@ -256,12 +258,16 @@ Think-Pair-Share (2 min):
 - Õppurid järgivad labor.md juhiseid
 - Õpetaja käib ringi ja aitab
 - **Peer instruction:** Kui keegi saab valmis, palun aidake naabrit
-- Jälgi kes on takerdunud - need vajavad rohkem abi
+- Jälgi kes on takerdunud
+- need vajavad rohkem abi
 
 **Levinud probleemid (valmistud ette):**
-- npm install võtab kaua - seleta et see on normaalne
-- Port conflict - õpeta kuidas muuta porti
-- Frontend ei näe API'd - kontrolli nginx konfiguratsiooni
+- npm install võtab kaua
+- seleta et see on normaalne
+- Port conflict
+- õpeta kuidas muuta porti
+- Frontend ei näe API'd
+- kontrolli nginx konfiguratsiooni
 
 **35-40 min: Demo ja arutelu**
 - Palun 1-2 õppurit näidata oma töötavat rakendust
@@ -298,7 +304,8 @@ Kirjalik (2 min, paned Moodle'sse):
 - Näita scaling (`docker-compose up --scale`)
 
 **Kui aeglane:**
-- Loo grupid - üks arvuti grupi kohta
+- Loo grupid
+- üks arvuti grupi kohta
 - Võta rohkem aega troubleshooting'uks
 
 ---
@@ -317,10 +324,13 @@ Kirjalik (2 min, paned Moodle'sse):
 
 ### Õpetajale
 
-- "How People Learn" (NRC, 2000) - pedagoogiline raamistik
-- "Make It Stick" (Brown, Roediger, McDaniel) - õppimise teadus
+- "How People Learn" (NRC, 2000)
+- pedagoogiline raamistik
+- "Make It Stick" (Brown, Roediger, McDaniel)
+- õppimise teadus
 - Docker Compose dokumentatsioon: https://docs.docker.com/compose/
-- "Teaching Tech Together" (Greg Wilson) - IT õpetamise parimad praktikad
+- "Teaching Tech Together" (Greg Wilson)
+- IT õpetamise parimad praktikad
 
 ### Õppuritele
 
@@ -345,11 +355,14 @@ Kirjalik (2 min, paned Moodle'sse):
 
 **MITTE tegema:**
 - Liiga kiiresti edasi minna (YAML süntaks vajab aega!)
-- Ainult loengut pidama - praktika on kriitilise tähtsusega
+- Ainult loengut pidama
+- praktika on kriitilise tähtsusega
 - Eeldama et kõik õppurid on samas tempos
-- Ignoreerima tehnilisi probleeme - need on õppimise võimalused
+- Ignoreerima tehnilisi probleeme
+- need on õppimise võimalused
 - Andma valmis koodi ilma selgituseta
-- Unustama tunnist lõbus teha - motivatsioon on oluline!
+- Unustama tunnist lõbus teha
+- motivatsioon on oluline!
 
 ### Õppurite õnnestumise märgid:
 

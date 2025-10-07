@@ -545,7 +545,8 @@ Looge COMPARISON.md fail, mis dokumenteerib põhjaliku võrdluse. See on projekt
 
 ### Ansible (Push-based)
 - Control node SSH'ib target'itele
-- Agentless - ainult Python vajalik target'il
+- Agentless
+- ainult Python vajalik target'il
 - Sequential execution (default)
 - Immediate changes
 

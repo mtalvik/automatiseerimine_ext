@@ -923,6 +923,8 @@ Alustage Minikube'iga, õppige kubectl'i põhikäske ja ehitage järk-järgult k
 ---
 
 **Soovitatav kirjandus:**
-- "Kubernetes: Up and Running" - Kelsey Hightower, Brendan Burns, Joe Beda https://github.com/rohitg00/DevOps_Books/blob/main/O'Reilly%20Kubernetes%20Up%20and%20Running.pdf
-- "The Kubernetes Book" - Alan Hohn https://www.raatti.net/~raatti/books/unsorted/new/Alan%20Hohn%20-%20The%20Book%20of%20Kubernetes_%20A%20Complete%20Guide%20to%20Container%20Orchestration-No%20Starch%20Press%20(2022).pdf
+- "Kubernetes: Up and Running"
+- Kelsey Hightower, Brendan Burns, Joe Beda https://github.com/rohitg00/DevOps_Books/blob/main/O'Reilly%20Kubernetes%20Up%20and%20Running.pdf
+- "The Kubernetes Book"
+- Alan Hohn https://www.raatti.net/~raatti/books/unsorted/new/Alan%20Hohn%20-%20The%20Book%20of%20Kubernetes_%20A%20Complete%20Guide%20to%20Container%20Orchestration-No%20Starch%20Press%20(2022).pdf
 - Ametlik dokumentatsioon: https://kubernetes.io/docs/

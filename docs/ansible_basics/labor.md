@@ -363,9 +363,12 @@ ansible-playbook -i inventory.ini playbooks/01_info.yml
 
 Väljundi selgitus:
 
-- `ok` - ülesanne õnnestus, midagi ei muutunud
-- `changed` - ülesanne õnnestus ja midagi muudeti
-- `failed` - ülesanne ebaõnnestus
+- `ok`
+- ülesanne õnnestus, midagi ei muutunud
+- `changed`
+- ülesanne õnnestus ja midagi muudeti
+- `failed`
+- ülesanne ebaõnnestus
 
 ### 5.4. Idempotentsuse testimine
 ```bash

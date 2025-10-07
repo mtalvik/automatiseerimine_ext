@@ -103,8 +103,10 @@ Tuleb hiljem...
 
 ## Mis tööriistu kasutan?
 
-- Git - versioonihaldus
-- Docker - rakenduse käivitamine
+- Git
+- versioonihaldus
+- Docker
+- rakenduse käivitamine
 
 ## TODO
 

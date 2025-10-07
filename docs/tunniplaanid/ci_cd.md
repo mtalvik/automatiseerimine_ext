@@ -189,9 +189,12 @@ jobs:
 5. Ava job logs → näita output
 
 **Rõhuta:**
-- `.github/workflows/` - täpne path
-- YAML süntaks - indentation oluline
-- Actions tab - kus näed pipeline'e
+- `.github/workflows/`
+- täpne path
+- YAML süntaks
+- indentation oluline
+- Actions tab
+- kus näed pipeline'e
 
 **25-45 min: Juhendatud praktika**
 
@@ -256,9 +259,12 @@ jobs:
 ```
 
 **Selgita iga rida:**
-- `actions/checkout` - clone repo
-- `actions/setup-python` - install Python
-- `run:` - käivita käsud
+- `actions/checkout`
+- clone repo
+- `actions/setup-python`
+- install Python
+- `run:`
+- käivita käsud
 
 **Näita kui see faili'b:**
 - Loo tahtlikult failing test
@@ -344,9 +350,12 @@ build:
 ```
 
 **Selgita:**
-- `needs: test` - jookseb alles kui test õnnestub
-- `secrets.*` - turvaline viis paroole kasutada
-- `github.sha` - unikaalne commit hash
+- `needs: test`
+- jookseb alles kui test õnnestub
+- `secrets.*`
+- turvaline viis paroole kasutada
+- `github.sha`
+- unikaalne commit hash
 
 **15-40 min: Lab praktika**
 
@@ -477,11 +486,15 @@ Detailid failis `kodutoo.md`.
 4. Dokumenteeri (`README.md` - refleksioon)
 
 **Hindamine:**
-- 20% - Pipeline disain (põhjendused)
-- 35% - Implementation (töötab, järgib disaini)
+- 20%
+- Pipeline disain (põhjendused)
+- 35%
+- Implementation (töötab, järgib disaini)
 - 15% - Testid
-- 15% - Dokumentatsioon
-- 15% - Refleksioon (konkreetsed vastused)
+- 15%
+- Dokumentatsioon
+- 15%
+- Refleksioon (konkreetsed vastused)
 
 ---
 

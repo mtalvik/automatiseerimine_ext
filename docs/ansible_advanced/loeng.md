@@ -60,7 +60,8 @@ See on fundamentaalne skaleeritavuse probleem. Ansible põhifunktsioonid aitavad
 Teie rakendus peab töötama erinevates kontekstides:
 - Arenduses port 3000, tootmises port 80
 - Arenduses debug sisse, tootmises välja
-- Serveritel erinev RAM, CPU - konfiguratsioon peab kohanema
+- Serveritel erinev RAM, CPU
+- konfiguratsioon peab kohanema
 - Test server vajab täiesti erinevat seadistust
 
 Kuidas kirjutada ÜKS playbook, mis töötab kõigis nendes kontekstides?
@@ -292,10 +293,14 @@ sequenceDiagram
 
 **Miks see on parem?**
 
-- **Efektiivsus** - üks restart, mitte viis
-- **Vähem downtime** - kasutajad näevad viga ainult üks kord
-- **Intelligentsus** - kui midagi ei muutu, ei restart'i
-- **Idempotentsus** - saate playbook'i käivitada mitu korda turvaliselt
+- **Efektiivsus**
+- üks restart, mitte viis
+- **Vähem downtime**
+- kasutajad näevad viga ainult üks kord
+- **Intelligentsus**
+- kui midagi ei muutu, ei restart'i
+- **Idempotentsus**
+- saate playbook'i käivitada mitu korda turvaliselt
 
 ### Restart vs Reload
 
@@ -427,9 +432,12 @@ Nimetamiskonventsioon `vault_` prefiksiga muudab kohe selgeks, mis on krüpteeri
 - Saate kontrollida, kes millal ligi pääses
 
 **Turvatsoon:**
-- Repo võib lekkida - paroolid on turvalised
-- Endised töötajad võivad säilitada ligipääsu repo'le - paroolid on turvalised
-- Vahetate vault parooli - kõik senised ligipääsud kehtetuks
+- Repo võib lekkida
+- paroolid on turvalised
+- Endised töötajad võivad säilitada ligipääsu repo'le
+- paroolid on turvalised
+- Vahetate vault parooli
+- kõik senised ligipääsud kehtetuks
 
 Vault lahendab configuration management'i turvaprobleemi - kuidas hoida saladusi versioonikontrollis ilma neid paljastamata.
 
@@ -456,9 +464,12 @@ graph TD
 **Stsenaarium:** WordPress hosting platvorm 3 keskkonnas.
 
 **Muutujate hierarhia** määrab:
-- `group_vars/all/` - ühised seaded (WordPress versioon, timezone)
-- `group_vars/production/` - tootmise seaded (SSL sisse, debug välja)
-- `group_vars/development/` - arenduse seaded (SSL välja, debug sisse)
+- `group_vars/all/`
+- ühised seaded (WordPress versioon, timezone)
+- `group_vars/production/`
+- tootmise seaded (SSL sisse, debug välja)
+- `group_vars/development/`
+- arenduse seaded (SSL välja, debug sisse)
 
 **Template'id** genereerivad:
 - Nginx konfiguratsioon kohandub keskkonnale
@@ -580,9 +591,12 @@ Ei piisa teadmisest, mis on template - peate kirjutama template'eid. Ei piisa m�
 ### Edasi
 
 **Järgmisel nädalal:**
-- Ansible Roles - kuidas teha korduvkasutatavad komponendid
-- Galaxy - kuidas kasutada teiste rollee
-- Testing - kuidas testida playbook'e enne production'i
+- Ansible Roles
+- kuidas teha korduvkasutatavad komponendid
+- Galaxy
+- kuidas kasutada teiste rollee
+- Testing
+- kuidas testida playbook'e enne production'i
 
 **Pikemas perspektiivis:**
 - Need on fundamentaalsed oskused DevOps töös

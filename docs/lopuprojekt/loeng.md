@@ -445,8 +445,10 @@ Iga suurem komponent vajab kirjeldust:
 **Deployment:** Nginx container Kubernetes'es
 
 **Environment Variables:**
-- `API_URL` - Backend API endpoint
-- `AUTH_DOMAIN` - Autentimise provider
+- `API_URL`
+- Backend API endpoint
+- `AUTH_DOMAIN`
+- Autentimise provider
 
 **Ressursinõuded:**
 - CPU: 100m request, 500m limit

@@ -59,9 +59,12 @@ docker run -d --name web -p 8080:80 nginx
 ```
 
 Käsu selgitus:
-- `-d` - detached mode (taustal)
-- `--name web` - annab container'ile nime
-- `-p 8080:80` - port mapping (host:container)
+- `-d`
+- detached mode (taustal)
+- `--name web`
+- annab container'ile nime
+- `-p 8080:80`
+- port mapping (host:container)
 - `nginx` - image nimi
 
 **Validation:** Avage brauseris `http://localhost:8080` - peaksite nägema Nginx tervituslehte.
@@ -183,10 +186,14 @@ CMD ["nginx", "-g", "daemon off;"]
 ```
 
 Käskude selgitus:
-- `FROM` - base image (nginx alpine versioon, 23MB)
-- `COPY` - kopeeri HTML fail container'isse
-- `EXPOSE` - dokumentatsioon portide kohta
-- `CMD` - vaikimisi käsk
+- `FROM`
+- base image (nginx alpine versioon, 23MB)
+- `COPY`
+- kopeeri HTML fail container'isse
+- `EXPOSE`
+- dokumentatsioon portide kohta
+- `CMD`
+- vaikimisi käsk
 
 ### 3.3 Image'i Ehitamine
 ```bash
@@ -588,7 +595,8 @@ Kontrollige, et oskate:
 Labor andis praktilised oskused Docker'i kasutamiseks. Kodutöös rakendage neid teadmisi reaalse rakenduse containeriseerimiseks.
 
 **Näpunäited kodutööks:**
-- Alustage lihtsast - esmalt käivitage rakendus, siis optimeeri
+- Alustage lihtsast
+- esmalt käivitage rakendus, siis optimeeri
 - Kasutage `.dockerignore` faili
 - Testize image'i enne esitamist
 - Dokumenteerige README.md'

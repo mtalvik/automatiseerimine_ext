@@ -51,8 +51,10 @@
 
 **Õpetaja roll:**
 
-- **Guide on the side, not sage on the stage** - õpilased loovad, õpetaja juhib
-- Live demo'des näita ka VIGU - see on oluline õppimiseks
+- **Guide on the side, not sage on the stage**
+- õpilased loovad, õpetaja juhib
+- Live demo'des näita ka VIGU
+- see on oluline õppimiseks
 - Vagrant VM'i troubleshooting on osa õppimisest
 - Rõhuta et Galaxy'st leitavad rollid on õppimise allikas
 
@@ -73,8 +75,10 @@
 - **Galaxy struktuur on range:** `tasks/main.yml`, `handlers/main.yml` jne – rõhuta konventsiooni ja selle eesmärki!
 - **Defaults vs vars segadus:** See on #1 küsimus! Demo precedence hierarchy graafikuga
 - **Handlers vs tasks:** Õpilased ei mõista miks handler käivitub alles play lõpus
-- **Idempotence:** Käivita role KAKS KORDA iga demo ajal - näita "ok" vs "changed"
-- **Template validation:** `validate: 'nginx -t -c %s'` on life-saver - rõhuta!
+- **Idempotence:** Käivita role KAKS KORDA iga demo ajal
+- näita "ok" vs "changed"
+- **Template validation:** `validate: 'nginx -t -c %s'` on life-saver
+- rõhuta!
 - **No_log flag:** Näita kuidas secrets ei lokaalu (security!)
 - **Include_tasks conditionals:** `when` töötab include_tasks'iga, mitte import_tasks'iga
 
@@ -84,10 +88,12 @@
 - **"Handler not triggered":**
   - `notify` nimi ei ühti handlers/main.yml nimega (case-sensitive!)
   - Task ei muutnud midagi (pole "changed")
-  - Handler syntax error - testida `--syntax-check`
+  - Handler syntax error
+  - testida `--syntax-check`
 - **"Template error":**
   - Jinja2 süntaks vale (unustatud `%}`)
-  - Undefined muutuja - kasuta `| default('value')`
+  - Undefined muutuja
+  - kasuta `| default('value')`
   - Wrong filter syntax
 - **"Nginx config test failed":**
   - Missing includes (sites-enabled/* path vale)
@@ -107,7 +113,8 @@
 
 - **Eesmärk:** Mõista miks modulariseerimine on kriitiline, tutvuda Galaxy standardiga
 - **Minutiplaan:**
-  - 0–5: Hook: "500-realine playbook probleem - kas see on tuttav?"
+  - 0–5: Hook: "500-realine playbook probleem
+  - kas see on tuttav?"
   - 5–15: Loeng: Playbook'ide evolutsioon, rollide arhitektuur
   - 15–25: Demo: Galaxy standard struktuur (`ansible-galaxy init nginx-webserver`)
   - 25–40: Lab Osa 1: Vagrant keskkond üles, role struktuur loomine
@@ -124,7 +131,8 @@
   - 10–20: Demo: OS-spetsiifiline variables mapping (_nginx_packages_map)
   - 20–40: Lab Osa 2: defaults/main.yml ja vars/main.yml loomine
   - 40–45: Kontrollküsimus: "Millal kasuta defaults, millal vars?"
-- **Näpunäide:** Õpilased segivad tihti defaults ja vars - rõhuta prioriteete!
+- **Näpunäide:** Õpilased segivad tihti defaults ja vars
+- rõhuta prioriteete!
 - **Materjalid:** loeng.md, labor.md
 
 ---
@@ -137,7 +145,8 @@
   - 10–25: Demo: Modular tasks structure (install.yml, configure.yml, ssl.yml)
   - 25–40: Lab Osa 3: Tasks'ide implementeerimine (validation, install, configure)
   - 40–45: Testimine: käivita role kaks korda, vaata "changed" vs "ok"
-- **Troubleshooting:** "Role not found" - kontrolli ANSIBLE_ROLES_PATH
+- **Troubleshooting:** "Role not found"
+- kontrolli ANSIBLE_ROLES_PATH
 - **Materjalid:** loeng.md, labor.md
 
 ---
@@ -157,7 +166,8 @@
 
 ## Kodutöö (4-6h)
 
-- **Ülesanne:** Ansible vs Puppet võrdlusprojekt - ehita sama veebiserveri infrastruktuur mõlemal viisil
+- **Ülesanne:** Ansible vs Puppet võrdlusprojekt
+- ehita sama veebiserveri infrastruktuur mõlemal viisil
 - **Komponendid:**
   - Nginx veebiserver SSL'iga
   - Kaks virtual host'i (test.local, demo.local)
@@ -199,7 +209,8 @@
 **Pedagoogika:**
 
 - NRC (2000) *How People Learn*
-- Constructivist learning theory - "õpi tehes"
+- Constructivist learning theory
+- "õpi tehes"
 
 ---
 
@@ -221,8 +232,10 @@
 
 - ❌ Galaxy publish esimesel tunnil (liiga advanced)
 - ❌ Molecule testing framework (lisapraktika teema)
-- ❌ Complex role dependencies (meta/dependencies) - maini ainult
-- ❌ Multiple vault passwords - basic vault piisab
+- ❌ Complex role dependencies (meta/dependencies)
+- maini ainult
+- ❌ Multiple vault passwords
+- basic vault piisab
 
 **Lisapraktika õpilastele kes kiiresti valmis:**
 

@@ -15,10 +15,13 @@ Kohalikus arvutis olev `terraform.tfstate` fail on risk. Kui fail kaob või korr
 Real-world stsenaarium: kolmeliikmeline meeskond haldab AWS infrastruktuuri. State fail on Git'is, mis põhjustab pidevaid konflikte. Eile kustutati kogemata production database, sest kaks inimest käivitasid `terraform apply` samaaegselt ja nende state failid olid erinevad. Üks nägi database'i olemasolevana, teine mitte. Tulemus: andmekadu ja mitu tundi downtime'i.
 
 Põhiprobleemid kohaliku state'iga:
-- Ühel masinal olev fail - teised ei näe muudatusi
+- Ühel masinal olev fail
+- teised ei näe muudatusi
 - Git'is hoidmine põhjustab merge konflikte
-- Pole lukustust - kaks inimest võivad samaaegu muuta
-- Backup puudub - kui disk crashib, kaob kõik
+- Pole lukustust
+- kaks inimest võivad samaaegu muuta
+- Backup puudub
+- kui disk crashib, kaob kõik
 - Sisaldab tundlikku infot (paroolid, API võtmed)
 
 ### 1.2 Lahendus
@@ -156,7 +159,8 @@ Päris projektides ei loo te alati kõike nullist. Tihti peate kasutama olemasol
 Real-world stsenaarium: teie ettevõttel on olemasolev võrk, mida haldab infrastruktuuri meeskond. Teil on vaja luua EC2 instance'e nende võrku, aga te ei tohi võrku ise muuta ega selle Terraform koodi omaneda. Teie kood peab leidma olemasoleva VPC ja subnet'id, kasutama neid, aga mitte neid haldama.
 
 Probleemid hard-code'imisega:
-- AMI ID erinevad regiooniti - kood pole portable
+- AMI ID erinevad regiooniti
+- kood pole portable
 - VPC ja subnet ID'd muutuvad keskkonniti
 - Security group'id on erinevad
 - Ei saa kasutada uusimaid AMI versioone automaatselt
@@ -372,7 +376,8 @@ Launch template määrab, kuidas instance'd luuakse. Create before destroy tagab
 - [ ] Verifitseeri, et load balancer IP jääb samaks
 
 **Näpunäiteid:**
-- Alusta 2 instance'iga - lihtsam jälgida
+- Alusta 2 instance'iga
+- lihtsam jälgida
 - Health check path peaks vastama 200 OK
 - Instance warmup määrab, kui kaua oodatakse enne healthy märkimist
 - Vaata AWS konsoolist Auto Scaling Activity History
@@ -408,9 +413,12 @@ terraform apply
 - [AWS Auto Scaling Groups](https://docs.aws.amazon.com/autoscaling/ec2/userguide/)
 
 **Tööriistad:**
-- **terraform console** - interaktiivne REPL testimiseks: `terraform console`
-- **aws-vault** - AWS credentials turvaliseks haldamiseks: `aws-vault exec profile -- terraform apply`
-- **tflint** - Terraform koodi linter: `tflint --init && tflint`
+- **terraform console**
+- interaktiivne REPL testimiseks: `terraform console`
+- **aws-vault**
+- AWS credentials turvaliseks haldamiseks: `aws-vault exec profile -- terraform apply`
+- **tflint**
+- Terraform koodi linter: `tflint --init && tflint`
 
 **Näited:**
 - [Terraform Best Practices](https://github.com/antonbabenko/terraform-best-practices)

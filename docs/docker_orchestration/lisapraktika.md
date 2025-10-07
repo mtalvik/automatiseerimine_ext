@@ -243,7 +243,8 @@ curl http://localhost:3000/health
 - `-f` flag laseb override'ida config'e
 - `--env-file` valib õige environment
 - Production'is ALATI sea memory limits
-- Ära pane saladusi git'i - kasuta `.env.example` placeholder'itega
+- Ära pane saladusi git'i
+- kasuta `.env.example` placeholder'itega
 
 **Boonus:**
 - Lisage staging environment (docker-compose.staging.yml)
@@ -261,9 +262,12 @@ curl http://localhost:3000/health
 - [Compose Override](https://docs.docker.com/compose/extends/)
 
 **Tööriistad:**
-- **Dive** - image layer analüüs: `docker run --rm -it wagoodman/dive:latest <image>`
-- **Trivy** - security scanning: `trivy image <image>`
-- **Hadolint** - Dockerfile linter: https://github.com/hadolint/hadolint
+- **Dive**
+- image layer analüüs: `docker run --rm -it wagoodman/dive:latest <image>`
+- **Trivy**
+- security scanning: `trivy image <image>`
+- **Hadolint**
+- Dockerfile linter: https://github.com/hadolint/hadolint
 
 **Näited:**
 - Awesome Compose: https://github.com/docker/awesome-compose

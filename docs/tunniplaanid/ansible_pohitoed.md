@@ -77,8 +77,10 @@ Kontrollige järgmist enne tunni algust:
 - Soovitus: näidake ette õige ja vale näide kõrvuti
 
 **SSH ühenduse vead**
-- "Permission denied" - kontrollige `~/.ssh/authorized_keys` õigusi (600)
-- "Host unreachable" - kontrollige IP aadresse inventory failis
+- "Permission denied"
+- kontrollige `~/.ssh/authorized_keys` õigusi (600)
+- "Host unreachable"
+- kontrollige IP aadresse inventory failis
 - Alati testige esmalt: `ansible all -m ping`
 
 **Idempotentsuse mõistmine**
@@ -191,11 +193,16 @@ Viimased 1-2 minutit:
 **0-10 min: Ad-hoc käskude demo**
 - Mis on ad-hoc käsud ja millal neid kasutada
 - Demo järgmiste moodulitega:
-  - `ping` - ühenduse test
-  - `command` - käsu käivitamine
-  - `shell` - shell käsud (pipes, redirects)
-  - `copy` - failide kopeerimine
-  - `apt/yum` - pakettide installimine
+  - `ping`
+  - ühenduse test
+  - `command`
+  - käsu käivitamine
+  - `shell`
+  - shell käsud (pipes, redirects)
+  - `copy`
+  - failide kopeerimine
+  - `apt/yum`
+  - pakettide installimine
 - Rõhutage: ad-hoc = quick one-off tasks
 
 **10-35 min: Juhendatud praktika**

@@ -589,10 +589,14 @@ Esitage GitHub repo link õppejõule. Repo peab sisaldama:
 
 ### Hindamisskaala
 
-- **90-100%:** Suurepärane - kõik töötab, dokumentatsioon professionaalne
-- **75-89%:** Hea - töötab, väiksed puudused dokumentatsioonis
-- **60-74%:** Rahuldav - põhifunktsionaalsus töötab
-- **< 60%:** Mitterahuldav - olulised osad puudu või ei tööta
+- **90-100%:** Suurepärane
+- kõik töötab, dokumentatsioon professionaalne
+- **75-89%:** Hea
+- töötab, väiksed puudused dokumentatsioonis
+- **60-74%:** Rahuldav
+- põhifunktsionaalsus töötab
+- **< 60%:** Mitterahuldav
+- olulised osad puudu või ei tööta
 
 ---
 

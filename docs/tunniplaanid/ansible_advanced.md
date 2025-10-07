@@ -48,22 +48,30 @@ Iga tunni lõpus reflekteeritakse: "Mis oli kõige raskem?" "Kuidas kasutaksid s
 ## Näpunäited Algajale Õpetajale
 
 **Enne tundi:**
-- Testi kõik labor'i sammud läbi - vault paroolid peavad töötama
+- Testi kõik labor'i sammud läbi
+- vault paroolid peavad töötama
 - Valmista ette backup vault fail juhuks, kui õpilane unustab parooli
 - Kontrolli, et kõigil on Ansible 2.9+ installitud
 - Valmista ette "cheat sheet" Jinja2 süntaksiga
 
 **Tunni ajal:**
-- Vault parooli unustamine on KATASTROOF - rõhuta seda mitmel korral
-- Kui õpilane küsib "miks mitte lihtsalt...?" - see on hea küsimus, arutle
-- Template'id on keerulised - lase aega, ära kiirusta
+- Vault parooli unustamine on KATASTROOF
+- rõhuta seda mitmel korral
+- Kui õpilane küsib "miks mitte lihtsalt...?"
+- see on hea küsimus, arutle
+- Template'id on keerulised
+- lase aega, ära kiirusta
 - Kui keegi on kiire valmis, suuna lisapraktika juurde
 
 **Levinud vead:**
-- Õpilased panevad vault_pass faili Git'i - kontrolli .gitignore't
-- Unustavad `{{ }}` template'ides - näita error message't
-- Handler'id ei käivitu - selgita, et ainult kui midagi MUUTUB
-- Muutujate hierarhia segane - joonista skeem tahvlile
+- Õpilased panevad vault_pass faili Git'i
+- kontrolli .gitignore't
+- Unustavad `{{ }}` template'ides
+- näita error message't
+- Handler'id ei käivitu
+- selgita, et ainult kui midagi MUUTUB
+- Muutujate hierarhia segane
+- joonista skeem tahvlile
 
 **Kui midagi läheb valesti:**
 - Labor'i server ei tööta? Kasuta localhost'i

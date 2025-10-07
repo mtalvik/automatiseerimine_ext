@@ -29,11 +29,16 @@
 **VS Code on hübriid** - Code Editor, mida saab laienduste abil IDE-ks muuta!
 
 ### Miks VS Code DevOps-ile?
-- **Kerge ja kiire** - käivitub sekundiga
-- **Laiendatav** - lisa ainult see, mida vajad
-- **Multi-language** - Python, YAML, JSON, Bash, Dockerfile
-- **Remote-first** - loodud serveritega töötamiseks
-- **Git-centered** - versioonihaldus on süvuti integreeritud
+- **Kerge ja kiire**
+- käivitub sekundiga
+- **Laiendatav**
+- lisa ainult see, mida vajad
+- **Multi-language**
+- Python, YAML, JSON, Bash, Dockerfile
+- **Remote-first**
+- loodud serveritega töötamiseks
+- **Git-centered**
+- versioonihaldus on süvuti integreeritud
 
 ## 1. VS Code Installimine
 
@@ -56,9 +61,12 @@ sudo snap install code --classic
 ## 2. Vajalikud Laiendused
 
 ### Laienduste Allikad
-- **VS Code sisene**: `Ctrl+Shift+X` - põhiline viis
-- **VS Marketplace**: https://marketplace.visualstudio.com/ - brauseris sirvimine
-- **Teemade galerii**: https://vscodethemes.com/ - visuaalsete teemade sirvimine
+- **VS Code sisene**: `Ctrl+Shift+X`
+- põhiline viis
+- **VS Marketplace**: https://marketplace.visualstudio.com/
+- brauseris sirvimine
+- **Teemade galerii**: https://vscodethemes.com/
+- visuaalsete teemade sirvimine
 - **Command line**: `code --install-extension publisher.name`
 
 ### Installimisvõimalused
@@ -183,7 +191,8 @@ Remote masinas on **eraldi extension store**:
 - Paigalda vajalikud extensions remote masinas
 
 **Soovitatud remote extensions**:
-- Python, Docker, YAML - kui vaja remote masinas
+- Python, Docker, YAML
+- kui vaja remote masinas
 
 ## 6. Mitme Terminali Kasutamine
 

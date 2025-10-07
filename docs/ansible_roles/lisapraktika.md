@@ -90,9 +90,12 @@ Kohandage oma laboris loodud nginx rolli töötama nii Ubuntu kui CentOS süstee
 
 **Näpunäiteid:**
 
-- Kasutage `ansible_os_family` fakti, mitte `ansible_distribution` - see on üldisem
-- RedHat süsteemides pole sites-available/sites-enabled struktuuri - kasuta conf.d
-- SELinux võib CentOS'is blokeerida nginx'i - lisa tasks SELinux konteksti seadistamiseks
+- Kasutage `ansible_os_family` fakti, mitte `ansible_distribution`
+- see on üldisem
+- RedHat süsteemides pole sites-available/sites-enabled struktuuri
+- kasuta conf.d
+- SELinux võib CentOS'is blokeerida nginx'i
+- lisa tasks SELinux konteksti seadistamiseks
 - Molecule võimaldab testida mitut platvormi Docker container'ites
 
 **Testimine:**
@@ -359,10 +362,14 @@ Implementeerige multiple vault passwords (vault-id feature). Erinev password dev
 
 **Tööriistad:**
 
-- **Molecule** - Role testing framework: `pip install molecule molecule-docker`
-- **Ansible Lint** - Code quality checker: `pip install ansible-lint`
-- **Yamllint** - YAML syntax validator: `pip install yamllint`
-- **pre-commit** - Git hooks automated testing'uks: `pip install pre-commit`
+- **Molecule**
+- Role testing framework: `pip install molecule molecule-docker`
+- **Ansible Lint**
+- Code quality checker: `pip install ansible-lint`
+- **Yamllint**
+- YAML syntax validator: `pip install yamllint`
+- **pre-commit**
+- Git hooks automated testing'uks: `pip install pre-commit`
 
 **Näited:**
 

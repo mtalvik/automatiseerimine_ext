@@ -878,8 +878,11 @@ Veenduge, et olete lõpetanud kõik osad ja mõistnud põhimõtteid:
 Kasutage siin õpitud mustreid oma projektides - need on industry standard praktikad, mida kasutatakse päris ettevõtetes. Alustage väiksest projektist ja lisage keerukust järk-järgult. Harjutage vault'i kasutamist kõigi paroolidega - see harjumus säästab teid tulevikus.
 
 **Järgmine nädal:**
-- Ansible Roles ja Galaxy - kuidas jagada ja taaskasutada koodi
-- Automated testing strategies - molecule ja ansible-lint
-- Enterprise deployment patterns - blue-green deployment, rolling updates
+- Ansible Roles ja Galaxy
+- kuidas jagada ja taaskasutada koodi
+- Automated testing strategies
+- molecule ja ansible-lint
+- Enterprise deployment patterns
+- blue-green deployment, rolling updates
 
 Hästi tehtud! Te oskate nüüd luua production-ready Ansible projekte, mis on turvalised, skaleeruvad ja hooldatavad. Need oskused on väärtuslikud igas DevOps meeskonnas ja aitavad teil automatiseerida keerukaid infrastruktuure. Jätkake harjutamist ja eksperimenteerimist!

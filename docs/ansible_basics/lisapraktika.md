@@ -140,10 +140,14 @@ server {
 
 Kuidas see töötab:
 
-- `{% for app in backend_apps %}` - tsükkel üle kõigi rakenduste
-- `{{ replica.weight | default(1) }}` - filter mis annab vaikeväärtuse kui weight puudub
-- `{% if enable_ssl and environment == 'production' %}` - tingimus ainult production'i jaoks
-- `{{ 'warn' if environment == 'production' else 'debug' }}` - inline conditional
+- `{% for app in backend_apps %}`
+- tsükkel üle kõigi rakenduste
+- `{{ replica.weight | default(1) }}`
+- filter mis annab vaikeväärtuse kui weight puudub
+- `{% if enable_ssl and environment == 'production' %}`
+- tingimus ainult production'i jaoks
+- `{{ 'warn' if environment == 'production' else 'debug' }}`
+- inline conditional
 
 ### 1.3 Harjutus: Multi-tier rakenduse konfiguratsioon
 
@@ -199,9 +203,12 @@ Käsitsi muutmine 50 serveris on aeganõudev ja vigadele kalduv. Kui unustate ü
 
 Ansible pakub kolm võimsat moodulit failide täpseks muutmiseks:
 
-- `lineinfile` - täpselt ühe rea muutmine/lisamine
-- `blockinfile` - mitme rea ploki lisamine
-- `replace` - regex-põhine asendamine kogu failis
+- `lineinfile`
+- täpselt ühe rea muutmine/lisamine
+- `blockinfile`
+- mitme rea ploki lisamine
+- `replace`
+- regex-põhine asendamine kogu failis
 
 Kuid kuidas kasutada neid turvaliselt? Kuidas tagada, et muudatused ei riku konfiguratsiooni? Kuidas teha backup enne muutmist?
 
@@ -316,7 +323,8 @@ Looge playbook, mis migrееrib Apache konfiguratsiooni vanast formaadist (Apach
 
 - Testige esmalt ühe faili peal, seejärel laiendage kõigile
 - Kasutage `--check` režiimi et näha muudatusi enne rakendamist
-- `validate` parameeter võib salvestada elu - kasutage seda alati
+- `validate` parameeter võib salvestada elu
+- kasutage seda alati
 - Backup failid võite kustutada pärast edukast migratsiooni (eraldi task)
 
 **Testimine:**
@@ -453,7 +461,8 @@ Kasutame `block/rescue/always` struktuuri koos retry loogikaga ja health check'i
           register: smoke_tests
       
       rescue:
-        - name: "Deployment failed - starting rollback"
+        - name: "Deployment failed
+        - starting rollback"
           debug:
             msg: "ERROR: Deployment failed. Rolling back to previous version..."
         
@@ -517,11 +526,16 @@ Kasutame `block/rescue/always` struktuuri koos retry loogikaga ja health check'i
 
 Kuidas see töötab:
 
-- `block` - kõik deployment sammud
-- `rescue` - käivitub kui mõni block'i task ebaõnnestub
-- `always` - käivitub alati (cleanup, logging)
-- `until/retries/delay` - retry loogika health check'ide jaoks
-- `failed_when: false` - ei faili kohe, proovi edasi
+- `block`
+- kõik deployment sammud
+- `rescue`
+- käivitub kui mõni block'i task ebaõnnestub
+- `always`
+- käivitub alati (cleanup, logging)
+- `until/retries/delay`
+- retry loogika health check'ide jaoks
+- `failed_when: false`
+- ei faili kohe, proovi edasi
 
 ### 3.3 Harjutus: Database migration rollback
 
@@ -578,10 +592,14 @@ ansible dbservers -m shell -a "ls -lh /var/backups/postgres/"
 
 **Tööriistad:**
 
-- **ansible-lint** - playbook'ide kvaliteedi kontroll: `pip install ansible-lint`
-- **yamllint** - YAML süntaksi kontroll: `pip install yamllint`
-- **Ansible Tower** - GUI Ansible'i haldamiseks (kommertsiline)
-- **AWX** - Ansible Tower tasuta versioon
+- **ansible-lint**
+- playbook'ide kvaliteedi kontroll: `pip install ansible-lint`
+- **yamllint**
+- YAML süntaksi kontroll: `pip install yamllint`
+- **Ansible Tower**
+- GUI Ansible'i haldamiseks (kommertsiline)
+- **AWX**
+- Ansible Tower tasuta versioon
 
 **Näited:**
 
