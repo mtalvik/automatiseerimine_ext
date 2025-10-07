@@ -7,6 +7,7 @@
 ## Õpiväljundid
 
 Pärast seda moodulit õpilane:
+
 - Selgitab Infrastructure as Code kontseptsiooni ja selle eeliseid traditsioonilistele meetoditele
 - Mõistab Terraform'i arhitektuuri, state haldamist ja provider süsteemi
 - Kirjutab HCL süntaksit kasutades ressursse, muutujaid ja väljundeid

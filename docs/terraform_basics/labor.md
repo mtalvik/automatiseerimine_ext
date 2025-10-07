@@ -7,6 +7,7 @@
 ## Õpiväljundid
 
 Pärast seda labori õpilane:
+
 - Käivitab Terraform workflow'i: init, plan, apply, destroy
 - Loob kohalikke ressursse kasutades local provider'it
 - Rakendab variables ja outputs dünaamiliseks konfiguratsiooniks

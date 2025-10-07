@@ -8,6 +8,7 @@
 ## Õpiväljundid
 
 Pärast seda loengut:
+
 - **Selgitad** miks CI/CD on vajalik ja millist probleemi see lahendab
 - **Eristab** Continuous Integration ja Continuous Deployment kontseptsioone
 - **Võrdleb** erinevaid CI/CD platvorme (GitHub Actions, GitLab CI, Jenkins)

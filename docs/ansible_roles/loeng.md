@@ -6,6 +6,7 @@
 ## Õpiväljundid
 
 Pärast seda teemat õppija:
+
 - Mõistab rollide eesmärki ja nende kohta infrastruktuuri automatiseerimisel
 - Selgitab Galaxy standardi rolli struktuuri komponente ja nende vastutusalasid
 - Eristab muutujate prioriteete (defaults, vars, inventory) ja oskab neid strateegiliselt kasutada

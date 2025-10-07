@@ -234,18 +234,6 @@ Loo [GitHub Issue](https://github.com/mtalvik/automatiseerimine-2025/issues) võ
 
 ---
 
-## Projekti näited
-
-Vaata eelmiste õpilaste lõpuprojekte inspiratsiooni saamiseks:
-
-- [E-pood Kubernetes'es](https://github.com/example/eshop-k8s) - Full-stack app K8s'is
-- [Terraform AWS Infrastructure](https://github.com/example/aws-terraform) - Production-ready AWS
-- [CI/CD Pipeline](https://github.com/example/cicd-demo) - GitHub Actions demo
-
-*(Lisa siia päris õpilaste projekte kui on)*
-
----
-
 ## 🚀 Alusta õppimist!
 
 [Git Versioonihaldus →](git/loeng.md){ .md-button .md-button--primary }

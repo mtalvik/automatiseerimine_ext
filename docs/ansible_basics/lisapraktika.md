@@ -13,6 +13,7 @@ Need täiendavad harjutused on mõeldud neile, kes soovivad süvendada oma Ansib
 Labori käigus õppisite looma lihtsaid Jinja2 template'eid, kus asendati mõned muutujad. Aga kui teil on keeruline nginx konfiguratsioon mitme rakendusega, erinevatele keskkondadele, ning vajate tingimuslikku loogikat ja tsükleid? Lihtne muutujate asendamine ei ole piisav.
 
 Reaalses maailmas võib teil olla:
+
 - 5-10 erinevat rakendust (backend services)
 - Igal rakendusel 2-5 koopiat (replicas) erinevatele IP-dele
 - Erinevad seadistused dev vs production keskkondades
@@ -140,6 +141,7 @@ server {
 ```
 
 Kuidas see töötab:
+
 - `{% for app in backend_apps %}` - tsükkel üle kõigi rakenduste
 - `{{ replica.weight | default(1) }}` - filter mis annab vaikeväärtuse kui weight puudub
 - `{% if enable_ssl and environment == 'production' %}` - tingimus ainult production'i jaoks
@@ -191,6 +193,7 @@ ansible webservers -m shell -a "nginx -t" --become
 ### 2.1 Probleem
 
 Tarkvara uuenduste käigus muutuvad sageli konfiguratsioonifailide formaadid. Näiteks:
+
 - Vana parameeter nimetatakse ümber või muutub deprecated
 - Uus versioon nõuab uusi kohustuslikke parameetreid
 - Vanad vaikeväärtused ei sobi enam
@@ -198,6 +201,7 @@ Tarkvara uuenduste käigus muutuvad sageli konfiguratsioonifailide formaadid. N�
 Käsitsi muutmine 50 serveris on aeganõudev ja vigadele kalduv. Kui unustate ühe serveri või teete vea, võib rakendus kokku kukkuda.
 
 Ansible pakub kolm võimsat moodulit failide täpseks muutmiseks:
+
 - `lineinfile` - täpselt ühe rea muutmine/lisamine
 - `blockinfile` - mitme rea ploki lisamine
 - `replace` - regex-põhine asendamine kogu failis
@@ -290,6 +294,7 @@ Kasutame kombinatsiooni `lineinfile`, `blockinfile` ja `replace` moodulitest koo
 ```
 
 Olulised punktid:
+
 - `validate` parameeter testib konfiguratsiooni enne salvestamist
 - `backup: yes` loob automaatse varukoopia
 - `regexp` võimaldab leida õige rea isegi kui see on kommenteeritud
@@ -345,12 +350,14 @@ ansible webservers -m shell -a "ls -la /etc/apache2/*.backup*"
 ### 3.1 Probleem
 
 Labori käigus käivitasite playbook'e, mis enamasti õnnestusid. Aga produktsioonis läheb asjad valesti:
+
 - Võrk katkeb deployment'i ajal
 - Uus versioon ei käivitu
 - Database migration ebaõnnestub
 - Kettal pole ruumi
 
 Kui deployment ebaõnnestub poolel teel, on teie rakendus katki. Kasutajad ei saa teenust kasutada. Vajate viisi, kuidas:
+
 - Tuvastada vigu kohe
 - Automaatselt tagasi rullida eelmisele versioonile
 - Säilitada teenuse kättesaadavus
@@ -513,6 +520,7 @@ Kasutame `block/rescue/always` struktuuri koos retry loogikaga ja health check'i
 ```
 
 Kuidas see töötab:
+
 - `block` - kõik deployment sammud
 - `rescue` - käivitub kui mõni block'i task ebaõnnestub
 - `always` - käivitub alati (cleanup, logging)
@@ -567,18 +575,21 @@ ansible dbservers -m shell -a "ls -lh /var/backups/postgres/"
 ## Kasulikud Ressursid
 
 **Dokumentatsioon:**
+
 - [Ansible Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
 - [Jinja2 Template Designer](https://jinja.palletsprojects.com/en/3.0.x/templates/)
 - [Ansible Error Handling](https://docs.ansible.com/ansible/latest/user_guide/playbooks_error_handling.html)
 - [Ansible Modules Index](https://docs.ansible.com/ansible/latest/collections/index_module.html)
 
 **Tööriistad:**
+
 - **ansible-lint** - playbook'ide kvaliteedi kontroll: `pip install ansible-lint`
 - **yamllint** - YAML süntaksi kontroll: `pip install yamllint`
 - **Ansible Tower** - GUI Ansible'i haldamiseks (kommertsiline)
 - **AWX** - Ansible Tower tasuta versioon
 
 **Näited:**
+
 - [Ansible Examples GitHub](https://github.com/ansible/ansible-examples)
 - [Ansible Galaxy Roles](https://galaxy.ansible.com/)
 

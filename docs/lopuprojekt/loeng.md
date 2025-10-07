@@ -8,6 +8,7 @@
 ## Õpivälјundid
 
 Pärast seda loengut oskate:
+
 - Mõistab DevOps projektide arhitektuurseid põhimõtteid ja komponente
 - Võrdleb erinevate tööriistakomplektide sobivust projektitüüpide jaoks
 - Selgitab tehniliste otsuste tegemise protsessi ja dokumenteerimist
@@ -249,6 +250,7 @@ Planeerimise käigus defineeritakse projekti ulatus (scope), arhitektuur ja tehn
 Arhitektuuridiagramm visualiseerib süsteemi komponente ja nende vahelisi suhteid. See ei pea olema professionaalne diagramm - lihtne kastide-ja-nooltega visand on piisav kui see kommunikeerib struktuuri.
 
 Komponentide kirjeldus peaks sisaldama:
+
 - Komponendi eesmärk ja vastutus
 - Kasutatavad tehnoloogiad ja versioonid
 - Sõltuvused teistest komponentidest
@@ -297,6 +299,7 @@ Esimene iteratsioon loob minimaalse toimiva süsteemi (MVP - Minimum Viable Prod
 **Versioonikontrolli Praktikad:**
 
 Git workflow peaks olema struktureeritud:
+
 - `main` branch on alati deploy'itav
 - `develop` branch on aktiivse arenduse baas
 - Feature branch'id arendatakse `develop`'ist
@@ -338,6 +341,7 @@ Viimistlemine hõlmab testimist, dokumentatsiooni täiendamist ja demo ettevalmi
 **Dokumentatsiooni Viimistlemine:**
 
 README.md peaks vastama kolmele põhiküsimusele:
+
 1. Mis see projekt on? (kirjeldus, eesmärk)
 2. Kuidas seda käivitada? (sammud nullist töötava süsteemini)
 3. Kuidas seda kasutada? (API dokumentatsioon, UI juhend)
@@ -347,6 +351,7 @@ Deployment guide peaks olema reprodutseeritav - keegi teine peaks seda järgides
 **Demo Ettevalmistus:**
 
 Efektiivne demo järgib struktuuri:
+
 1. Kontekst (mis probleem lahendatakse)
 2. Arhitektuuri ülevaade (slide'id või diagramm)
 3. Live demo (töötav süsteem)
@@ -354,6 +359,7 @@ Efektiivne demo järgib struktuuri:
 5. Lessons learned (mida õppisite, mis oli keeruline)
 
 Demo ajal võib tekkida tehnilisi probleeme. Varuplaan:
+
 - Salvestatud video backup kui live demo failib
 - Screenshot'id kriitilisest funktionaalsusest
 - Kohalik versioon kui cloud access failib
@@ -376,6 +382,7 @@ README on projekti esimene kontaktpunkt. Selle kvaliteet mõjutab kogu projekti 
 ## Ülevaade
 
 2-3 lõiku, mis kirjeldab:
+
 - Mis probleem see lahendab
 - Kes on sihtkasutajad
 - Millised on põhilised featured
@@ -477,6 +484,7 @@ User Request
 ```
 
 Iga noole juurde peaks kirjeldama:
+
 - Protokoll (HTTP, gRPC, SQL)
 - Autentimine (JWT, API key, cert)
 - Error handling (retry, fallback, circuit breaker)
@@ -522,6 +530,7 @@ terraform apply
 \`\`\`
 
 Oodatav tulemus:
+
 - EKS cluster 3 node'iga
 - VPC koos subnet'idega
 - Security group'id
@@ -549,6 +558,7 @@ Koodi kvaliteet ei ole subjektiivne tunne - seda saab mõõta konkreetsete krite
 Test coverage näitab, kui palju koodist on testidega kaetud. Industry standard on minimaalselt 80% statement coverage, aga see ei garanteeri kvaliteeti - saab kirjutada kasutuid teste mis lihtsalt käivitavad koodi.
 
 Tähtsam on test coverage kvaliteet:
+
 - Critical path'id on kaetud (happy path ja error case'id)
 - Edge case'id on testitud (null, empty, max values)
 - Integration point'id on kaetud (API calls, database queries)

@@ -6,6 +6,7 @@
 ## Õpiväljundid
 
 Pärast seda loengut oskate:
+
 - Kirjutada ja käivitada Docker Compose faile
 - Ehitada multi-container rakendusi
 - Mõista teenuste vahelist suhtlust ja võrgustikku

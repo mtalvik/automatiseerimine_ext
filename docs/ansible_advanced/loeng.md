@@ -6,6 +6,7 @@
 ## Õpiväljundid
 
 Pärast seda loengut õpilane:
+
 - Mõistab muutujate hierarhia põhimõtteid ja nende praktilist väärtust
 - Selgitab template'ide eeliseid staatiliste failide ees
 - Eristab handler'ite ja tavalist task'ide kasutusviise

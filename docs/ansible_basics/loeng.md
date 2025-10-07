@@ -8,6 +8,7 @@
 ## Õpiväljundid
 
 Pärast seda moodulit oskate:
+
 - Selgitada, mis probleemi Ansible lahendab ja miks see on parem kui shell skriptid
 - Seadistada SSH ühendusi ja inventory faile mitme serveri jaoks
 - Kirjutada YAML süntaksiga playbook'e ja kasutada põhilisi mooduleid
@@ -62,6 +63,7 @@ graph LR
 ```
 
 Põhiprintsiibid:
+
 - **Agentless:** Ei pea serveritesse midagi installima (ainult SSH)
 - **Push model:** Control node lükkab konfiguratsiooni serveritesse
 - **Idempotent:** Sama käsk võib jooksutada mitu korda, tulemus on alati sama
@@ -149,6 +151,7 @@ web1.example.com | SUCCESS => {
 ```
 
 Kui näete "UNREACHABLE" või "FAILED", kontrollige:
+
 - Kas SSH võti on õigesti kopeeritud
 - Kas serveri IP aadress on õige
 - Kas SSH teenus töötab sihtserveris
@@ -165,6 +168,7 @@ ansible <sihtmärk> -i <inventory> -m <moodul> -a "<argumendid>" [lisaoptsioonid
 ```
 
 Komponentide selgitus:
+
 - `<sihtmärk>` - millised serverid (all, webservers, konkreetne server)
 - `-i <inventory>` - inventory faili asukoht
 - `-m <moodul>` - millist moodulit kasutada
@@ -263,6 +267,7 @@ Muutujate edastamine:
 ```
 
 Märkused:
+
 - `--become` kasutage siis, kui vajate admin õigusi (sudo)
 - `-i inventory` määrab, millist inventory faili kasutada
 - `command` vs `shell` - command on turvalisem, shell lubab pipe'e ja redirection'i
@@ -344,6 +349,7 @@ ansible-playbook -i inventory webserver.yml
 ```
 
 Väljund näitab iga taski tulemust:
+
 - `ok` - task käivitati, kuid midagi ei muutunud
 - `changed` - task tegi muudatuse
 - `failed` - task ebaõnnestus
@@ -353,6 +359,7 @@ Väljund näitab iga taski tulemust:
 YAML (YAML Ain't Markup Language) on inimloetav andmete serialiseerimise formaat. Ansible kasutab YAML-i, sest see on lihtsam lugeda kui JSON või XML.
 
 Olulised reeglid:
+
 - Taandrid on olulised (kasutage tühikuid, mitte tab'e)
 - Loendid algavad `-` märgiga
 - Võti-väärtus paarid eraldatakse `:` märgiga
@@ -368,6 +375,7 @@ objekt:
 ```
 
 Tüüpilised vead:
+
 - Tab'ide kasutamine (kasutage alati 2 tühikut)
 - Vale taanduse tase
 - Puuduvad koolonid
@@ -477,6 +485,7 @@ tasks:
 ```
 
 Tingimused võivad kasutada:
+
 - Võrdlusoperaatoreid: `==`, `!=`, `<`, `>`
 - Loogilisi operaatoreid: `and`, `or`, `not`
 - Muutujate olemasolu: `when: variable is defined`
@@ -605,6 +614,7 @@ retries = 3
 ```
 
 Konfiguratsiooni otsingu järjekord:
+
 1. `ANSIBLE_CONFIG` keskkonna muutuja
 2. `ansible.cfg` praeguses kaustas (soovitatud)
 3. `~/.ansible.cfg` teie kodukaustas
@@ -674,6 +684,7 @@ Kui olete põhitõed selgeks saanud, järgmised teemad:
 4. **Templates** - konfiguratsioonifailide dünaamiliseks genereerimiseks
 
 Kasulikud ressursid:
+
 - Ansible ametlik dokumentatsioon: https://docs.ansible.com/
 - Ansible Galaxy: valmis rollide kogumik
 - Ansible lint: playbook'ide kvaliteedi kontrollimiseks

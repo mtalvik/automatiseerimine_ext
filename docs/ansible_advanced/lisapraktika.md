@@ -11,6 +11,7 @@ Süvendavad harjutused Ansible edasijõudnud funktsioonidega. Need harjutused on
 ### 1.1 Probleem
 
 Põhi Jinja2 template'id kasutavad lihtsaid muutujaid ja `{% if %}` tingimusi, kuid production keskkonnas on vaja keerulisemat loogikat. Kuidas luua template, mis:
+
 - Arvutab dünaamiliselt väärtusi mitme muutuja põhjal
 - Itereerib komplekssete andmestruktuuride üle
 - Kasutab makrosid korduvate koodiplokkide jaoks
@@ -194,6 +195,7 @@ server_name: "{{ inventory_hostname }}.example.com"
 ### 2.1 Probleem
 
 Static inventory failid ei skaleeru cloud keskkonnas, kus servereid luuakse ja kustutatakse dünaamiliselt. Kui AWS-is on 50 EC2 instance't ja need muutuvad iga päev, on käsitsi inventory uuendamine võimatu. Kuidas:
+
 - Automaatselt avastada servereid AWS-ist
 - Grupeerida neid tagide järgi
 - Uuendada inventory't real-time
@@ -239,6 +241,7 @@ compose:
 ```
 
 See konfiguratsioon:
+
 - Otsib instance'id US-East-1 ja EU-West-1 regioonidest
 - Filtreerib ainult running instance'id Environment tagiga
 - Loob gruppe tagide ja availability zone'ide järgi
@@ -373,6 +376,7 @@ ansible-playbook -i aws_ec2.yml site.yml \
 ### 3.1 Probleem
 
 Tavaline deployment peatab rakenduse, uuendab koodi ja käivitab uuesti. See tekitab downtime - kasutajad näevad vigu deployment'i ajal. Production keskkonnas pole downtime vastuvõetav. Kuidas:
+
 - Deployida uus versioon ilma teenust peatamata
 - Eemaldada servereid load balancer'ist enne uuendamist
 - Kontrollida deployment'i õnnestumist enne järgmise serveri uuendamist
@@ -553,12 +557,14 @@ backend webservers
 ## Kasulikud Ressursid
 
 **Dokumentatsioon:**
+
 - [Ansible Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
 - [Jinja2 Template Designer](https://jinja.palletsprojects.com/en/3.0.x/templates/)
 - [AWS EC2 Inventory Plugin](https://docs.ansible.com/ansible/latest/collections/amazon/aws/aws_ec2_inventory.html)
 - [Rolling Updates](https://docs.ansible.com/ansible/latest/user_guide/playbooks_delegation.html)
 
 **Tööriistad:**
+
 - **ansible-lint** - Playbook'ide linter ja best practices checker: `pip install ansible-lint`
 - **ansible-doctor** - Automaatne dokumentatsiooni genereerimine: `pip install ansible-doctor`
 - **ara** - Ansible run analysis ja visualiseerimine: `pip install ara`

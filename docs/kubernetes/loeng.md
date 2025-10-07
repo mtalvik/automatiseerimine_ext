@@ -8,6 +8,7 @@
 ## Õpiväljundid
 
 Pärast seda loengut õpilane:
+
 - Mõistab Kubernetes arhitektuuri ja põhikontsepte
 - Haldab kohalikku klastrit (Minikube/Kind)
 - Loob ja haldab Kubernetes ressursse (Pods, Deployments, Services)

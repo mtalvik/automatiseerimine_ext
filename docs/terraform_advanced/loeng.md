@@ -7,6 +7,7 @@
 ## Õpiväljundid
 
 Pärast seda moodulit õpilane:
+
 - Selgitab pilve provider'ite (AWS/Azure) tööpõhimõtteid ja eripära
 - Loob VPC/Virtual Network infrastruktuuri võrgu isolatsiooniga
 - Kasutab Terraform workspaces'eid keskkonnahalduseks (dev/prod)

@@ -313,6 +313,7 @@ Näide halvast vastusest: "Test on esimene." (miks?) või "Nii oli lab'is." (ei 
 Küsimus: Kas deploy käivitub automaatselt või manuaalselt?
 
 Vali üks:
+
 - Automaatselt (kui test ja build õnnestuvad)
 - Manuaalselt (nupuvajutusega)
 
@@ -325,6 +326,7 @@ Mõtle: Mis on erinevus? Millal kasutada kumbagi?
 Küsimus: Kuidas tagid Docker image'id?
 
 Vali üks:
+
 - Ainult latest
 - Latest ja commit SHA
 - Muu strateegia
@@ -479,6 +481,7 @@ Küsimus: Mis oli kõige suurem erinevus selle pipeline'i ja lab'i pipeline'i va
 ### Kontroll Enne Esitamist
 
 Kohustuslik kontrollnimekiri:
+
 - Repository on public GitHub'is
 - PIPELINE.md olemas (kolm küsimust vastatud)
 - Rakendus töötab kohalikult
@@ -508,11 +511,13 @@ Läbimiseks: 50%
 ### Hindamise Reeglid
 
 Täispunktide saamiseks:
+
 - Põhjendused on konkreetsed (näiteks "test → build, sest testid võtavad kakskümmend sekundit versus build kaks minutit")
 - Refleksioon näitab mõistmist (kirjeldad debugging'u protsessi)
 - Pipeline järgib sinu disaini (mitte lihtsalt kopeeritud lab'ist)
 
 Ei sobi:
+
 - "Nii oli lab'is" - see ei ole põhjendus
 - "Õppisin CI/CD'd" - liiga üldine
 - Pipeline töötab, aga ei vasta PIPELINE.md disainile
@@ -523,9 +528,11 @@ Ei sobi:
 
 Vali üks variant boonuspunktide saamiseks (pluss kümme protsenti):
 
+
 ### Variant 1: Caching
 
 Lisa dependency caching pipeline'i:
+
 
 ```yaml
 - name: Cache dependencies
@@ -544,6 +551,7 @@ Lisa README.md algusesse pipeline status badge. See peab päriselt töötama ja 
 ### Variant 3: Multi-Stage Dockerfile
 
 Optimeeri Dockerfile kasutades multi-stage build'i:
+
 - Builder stage
 - Runtime stage
 - Väiksem image size
@@ -557,6 +565,7 @@ Näita README's: Mõõda image size enne ja pärast optimeerimist.
 ### Pipeline Failib Kohe
 
 Kontrolli järgmist:
+
 - YAML syntax - kasuta https://www.yamllint.com/
 - Test käsud - kas töötavad lokaalses?
 - GitHub Actions tab - loe error message'it
@@ -564,6 +573,7 @@ Kontrolli järgmist:
 ### Test Stage Failib
 
 Debug järgmiselt:
+
 
 ```bash
 # Testi lokaalses samas image'is
@@ -574,6 +584,7 @@ docker run -it [IMAGE] bash
 ### Build Stage Failib
 
 Kontrolli järgmist:
+
 - Kas Dockerfile töötab lokaalses?
 - Kas kõik failid on commit'itud?
 - Kas on permissions GitHub Container Registry'sse? (Settings → Actions → General → Workflow permissions → Read and write)
@@ -581,10 +592,12 @@ Kontrolli järgmist:
 ### Deploy ei Käivitu
 
 Kui manual deploy:
+
 - GitHub'is Settings → Environments → Create environment "production"
 - Seal saad seadistada manual approval
 
 Kui automatic deploy:
+
 - Kontrolli if ja needs tingimusi workflow failis
 
 ---
@@ -592,6 +605,7 @@ Kui automatic deploy:
 ## Õppematerjalid
 
 Kasulikud ressursid:
+
 - Lab materjalid
 - GitHub Actions dokumentatsioon: https://docs.github.com/actions
 - Docker dokumentatsioon: https://docs.docker.com/

@@ -7,6 +7,7 @@
 ## Õpiväljundid
 
 Pärast seda labor'it õpilane:
+
 - Seadistab AWS provider autentimise turvaliselt
 - Loob VPC infrastruktuuri subnet'ide ja gatewayga
 - Käivitab EC2 instance'i user data'ga

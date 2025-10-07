@@ -8,6 +8,7 @@
 ## Õpiväljundid
 
 Pärast seda labori oskate:
+
 - Seadistada SSH võtmepõhist autentimist Ansible serverite jaoks
 - Luua ja konfigureerida inventory faile serverite haldamiseks
 - Kirjutada YAML süntaksiga playbook'e ja kasutada põhilisi mooduleid
@@ -147,6 +148,7 @@ exit        # Tagasi VM1-sse
 - [ ] `ssh ansible@192.168.56.11` töötab kohe
 
 Troubleshooting: Kui palub parooli, kontrolli:
+
 - Kas oled ansible kasutajana mõlemas VM-is
 - Kas ssh-copy-id käsk õnnestus
 - Kas võtmed on õiges kaustas: `ls ~/.ssh/`
@@ -308,6 +310,7 @@ ansible -i inventory.ini webservers -m setup -a "filter=ansible_default_ipv4"
 - [ ] Testkasutaja on loodud
 
 Troubleshooting:
+
 - Kui "Permission denied": kasutage `--become --ask-become-pass`
 - Kui "Host unreachable": kontrollige inventory IP aadresse
 - Kui "Module not found": kontrollige mooduli nime kirjaviisi
@@ -378,6 +381,7 @@ ansible-playbook -i inventory.ini playbooks/01_info.yml
 ```
 
 Väljundi selgitus:
+
 - `ok` - ülesanne õnnestus, midagi ei muutunud
 - `changed` - ülesanne õnnestus ja midagi muudeti
 - `failed` - ülesanne ebaõnnestus
@@ -486,6 +490,7 @@ curl http://192.168.56.11
 ### 6.4. Handlerite mõistmine
 
 Handlers on spetsiaalsed taskid mis:
+
 - Käivitatakse ainult kui mõni task tegi muudatuse (changed=true)
 - Käivitatakse playbook'i lõpus
 - Käivitatakse ainult üks kord isegi kui mitu notify
@@ -1000,6 +1005,7 @@ Kui olete selle laboriga valmis, järgmised teemad:
 4. CI/CD integratsioon - Ansible GitLab/GitHub pipeline'ides
 
 Kasulikud ressursid:
+
 - Ansible dokumentatsioon: https://docs.ansible.com/
 - Ansible Galaxy: https://galaxy.ansible.com/
 - YAML süntaks: https://yaml.org/

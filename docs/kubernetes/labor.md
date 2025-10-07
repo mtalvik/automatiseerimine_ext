@@ -8,6 +8,7 @@
 ## Õpiväljundid
 
 Pärast seda lab'i õpilane:
+
 - Seadistab Kubernetes klastri (minikube/kind)
 - Loob Deployment'e, Service'eid, ConfigMap'e
 - Skaleerib rakendusi (`kubectl scale`)

@@ -10,6 +10,7 @@ Loeng tutvustab konteinerite tehnoloogiat, Docker'i arhitektuuri ja kasutusvõim
 ## Õpiväljundid
 
 Pärast seda loengut mõistad:
+
 - **Miks konteinerite tehnoloogia on vajalik** - millist probleemi see lahendab
 - **Kuidas Docker erineb VM'idest** - arhitektuurilised erinevused ja mõju jõudlusele
 - **Mis on image ja container** - nende suhe ja elutsükkel
