@@ -975,14 +975,13 @@ python3 string_utils.py
 5. Tee Pull Request GitHub'is
 
 ## Paigaldamine
+
 ```bash
 git clone git@github.com:KASUTAJANIMI/git-labor.git
 cd git-labor
 python3 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt  # kui on dependency'sid
-```
-EOF
 ```
 
 Commit ja push:
@@ -1134,5 +1133,3 @@ Oled nüüd läbinud Git'i põhitõed! Edasi:
 3. **Praktiline:** Alusta oma projekti Git'iga, tee commit'e iga päev
 
 Edu!
-
-```
