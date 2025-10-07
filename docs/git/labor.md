@@ -1130,4 +1130,6 @@ Oled nüüd läbinud Git'i põhitõed! Edasi:
 2. **Lisapraktika:** Tutvu `lisapraktika.md` - CI/CD, hooks, advanced Git
 3. **Praktiline:** Alusta oma projekti Git'iga, tee commit'e iga päev
 
-Edu!```
+Edu!
+
+```

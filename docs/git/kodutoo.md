@@ -399,23 +399,14 @@ Kontrollige, et olete kõik teinud:
 
 ### Esitamise Formaat
 
-Esitage järgmine informatsioon:
+Esitage Google Classroom'is:
 
-**E-mail teema:** Git Kodutöö - [Teie Nimi]
+**Repository link:** `https://github.com/teie-kasutajanimi/git-homework`
 
-**E-mail sisu:**
-```
-Tere,
-
-Esitan Git kodutöö:
-
-Repository URL: https://github.com/teie-kasutajanimi/git-homework
-Projekti tüüp: [Python kalkulaator / HTML leht / Bash skriptid]
-Commit'ide arv: [number]
-
-Parimate soovidega,
-[Teie Nimi]
-```
+Veenduge, et:
+- Repository on **public** (avalik)
+- README.md sisaldab projekti kirjeldust
+- Kõik failid on commit'itud ja push'itud
 
 ---
 
