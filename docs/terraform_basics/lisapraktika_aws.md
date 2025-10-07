@@ -23,8 +23,7 @@ Põhiprobleemid kohaliku state'iga:
 
 ### 1.2 Lahendus
 
-Remote backend kasutab S3 bucketi state'i salvestamiseks ja DynamoDB tabelit lukustamiseks. S3 versioning võimaldab taastada vanu versioone, kui midagi läheb valesti. DynamoDB hoiab lukku - ainult üks operatsioon saab korraga state'i muuta.
-```hcl
+Remote backend kasutab S3 bucketi state'i salvestamiseks ja DynamoDB tabelit lukustamiseks. S3 versioning võimaldab taastada vanu versioone, kui midagi läheb valesti. DynamoDB hoiab lukku - ainult üks operatsioon saab korraga state'i muuta.```hcl
 terraform {
   required_providers {
     aws = {
@@ -100,8 +99,7 @@ output "s3_bucket_name" {
 output "dynamodb_table_name" {
   value       = aws_dynamodb_table.terraform_locks.name
   description = "DynamoDB tabeli nimi"
-}
-```
+}```
 
 S3 bucket salvestab state faili krüpteeritult. Versioning hoiab kõiki varasemaid versioone, seega saab taastada, kui keegi teeb vea. Public access block tagab, et keegi ei pääse bucketi sisu vaatama. DynamoDB tabel kasutab LockID võtit lukustuse hoidmiseks. Billing mode PAY_PER_REQUEST tähendab, et maksate ainult kasutuse eest, mitte fikseeritud summat.
 
@@ -121,8 +119,7 @@ S3 bucket salvestab state faili krüpteeritult. Versioning hoiab kõiki varasema
 - Kontrolli S3 konsoolist, et state fail on bucketi's
 - Kui lukustus jääb kinni, kasuta `terraform force-unlock <LOCK_ID>`
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # Loo backend ressursid
 terraform init
 terraform apply
@@ -138,8 +135,7 @@ aws s3 ls s3://terraform-state-ACCOUNT_ID/
 # Terminal 1
 terraform apply
 # Terminal 2 peaks failima
-terraform apply
-```
+terraform apply```
 
 **Boonus:**
 - Lisa S3 lifecycle policy, mis kustutab state'i vanemad versioonid pärast 90 päeva
@@ -164,8 +160,7 @@ Probleemid hard-code'imisega:
 
 ### 2.2 Lahendus
 
-Data source'd pärivad infot olemasolevate ressursside kohta runtime'il. Need ei loo uusi ressursse, vaid otsivad ja loevad olemasolevaid. Saate filtreerida tag'ide, nimede või muude atribuutide järgi.
-```hcl
+Data source'd pärivad infot olemasolevate ressursside kohta runtime'il. Need ei loo uusi ressursse, vaid otsivad ja loevad olemasolevaid. Saate filtreerida tag'ide, nimede või muude atribuutide järgi.```hcl
 data "aws_vpc" "existing" {
   filter {
     name   = "tag:Name"
@@ -218,8 +213,7 @@ resource "aws_instance" "app" {
   tags = {
     Name = "app-server"
   }
-}
-```
+}```
 
 VPC data source otsib tag'i järgi VPC'd nimega "company-main-vpc". Subnets data source leiab kõik selle VPC subnet'id, millel on tag Type=public. AMI data source võtab uusima Amazon Linux 2 AMI. Security group data source leiab olemasoleva web-sg grupi. Instance kasutab kõiki neid leitud ressursse, aga ei loo ega muuda neid.
 
@@ -240,8 +234,7 @@ VPC data source otsib tag'i järgi VPC'd nimega "company-main-vpc". Subnets data
 - `tolist()` funktsioon konverteerib set'i listiks indekseerimiseks
 - Filtreeri AMI'd nime pattern'i järgi: `ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*`
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # Testi data source'e console'is
 terraform console
 > data.aws_vpc.existing.id
@@ -254,8 +247,7 @@ terraform apply
 # Kontrolli, et instance on õiges subnet's
 aws ec2 describe-instances \
   --instance-ids $(terraform output -raw instance_id) \
-  --query 'Reservations[0].Instances[0].SubnetId'
-```
+  --query 'Reservations[0].Instances[0].SubnetId'```
 
 **Boonus:**
 - Kasuta `data "aws_availability_zones"` leidmaks kõik AZ'd ja loo instance igasse
@@ -282,8 +274,7 @@ Probleemid default käitumisega:
 
 ### 3.2 Lahendus
 
-Lifecycle rule `create_before_destroy` muudab järjekorda - loob uue enne vana kustutamist. See võimaldab zero-downtime uuendusi. Kombineerides Auto Scaling Group'iga ja instance refresh'iga saab uuendada servereid järk-järgult.
-```hcl
+Lifecycle rule `create_before_destroy` muudab järjekorda - loob uue enne vana kustutamist. See võimaldab zero-downtime uuendusi. Kombineerides Auto Scaling Group'iga ja instance refresh'iga saab uuendada servereid järk-järgult.```hcl
 resource "aws_launch_template" "web" {
   name_prefix   = "web-"
   image_id      = data.aws_ami.ubuntu.id
@@ -356,8 +347,7 @@ resource "aws_lb_target_group" "web" {
     timeout             = 5
     unhealthy_threshold = 2
   }
-}
-```
+}```
 
 Launch template määrab, kuidas instance'd luuakse. Create before destroy tagab, et uus template luuakse enne vana kustutamist. Auto Scaling Group haldab instance'ite arvu. Instance refresh strateegia Rolling tähendab järkjärgulist uuendamist. Min healthy percentage 50 tähendab, et alati vähemalt pool servereid töötab. Load balancer suunab liiklust ainult healthy instance'itele.
 
@@ -378,8 +368,7 @@ Launch template määrab, kuidas instance'd luuakse. Create before destroy tagab
 - Vaata AWS konsoolist Auto Scaling Activity History
 - Kasuta `curl` loopis load balancer'i testimiseks uuenduse ajal
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # Loo infrastruktuur
 terraform apply
 
@@ -391,8 +380,7 @@ while true; do curl -s http://$(terraform output -raw lb_dns_name) | grep Versio
 terraform apply
 
 # Jälgi, et curl jätkab töötamist ilma errorita
-# Peaks nägema versioonide muutumist järk-järgult
-```
+# Peaks nägema versioonide muutumist järk-järgult```
 
 **Boonus:**
 - Lisa lifecycle ignore_changes user_data'le, et väiksed skripti muudatused ei tekita instance'ite uuendamist

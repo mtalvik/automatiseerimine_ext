@@ -12,8 +12,7 @@ See fail sisaldab lisaharjutusi ja edasijõudnud teemasid Docker mooduli jaoks. 
 
 Build dependencies suurendavad image'i mahtu. Node.js rakenduse image võib olla 1.2GB, kuigi runtime vajab ainult 150MB.
 
-### 1.2 Lahendus: Multi-Stage Build
-```dockerfile
+### 1.2 Lahendus: Multi-Stage Build```dockerfile
 # Build stage
 FROM node:18 AS builder
 WORKDIR /app
@@ -28,8 +27,7 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 3000
-CMD ["node", "dist/index.js"]
-```
+CMD ["node", "dist/index.js"]```
 
 Image väheneb 1.2GB → 150MB.
 
@@ -52,8 +50,7 @@ Looge multi-stage Dockerfile Python Flask rakendusele:
 
 ## 2. Docker Networking Süvitsi
 
-### 2.1 Custom Networks
-```bash
+### 2.1 Custom Networks```bash
 # Loo bridge network
 docker network create --driver bridge my-network
 
@@ -65,20 +62,17 @@ docker network create \
   app-network
 
 # Vaata detaile
-docker network inspect app-network
-```
+docker network inspect app-network```
 
 ### 2.2 Container-to-Container DNS
 
-Network'is container'id näevad teineteist DNS'i kaudu:
-```bash
+Network'is container'id näevad teineteist DNS'i kaudu:```bash
 docker run -d --name db --network app-network postgres
 docker run -d --name api --network app-network \
   -e DB_HOST=db \
   my-api:latest
 
-# API saab ühenduda: postgresql://db:5432
-```
+# API saab ühenduda: postgresql://db:5432```
 
 ### 2.3 Harjutus: 3-Tier Network Setup
 
@@ -98,8 +92,7 @@ Looge 3 network'i:
 
 ## 3. Image Optimeerimise Tehnikad
 
-### 3.1 .dockerignore Kasutamine
-```
+### 3.1 .dockerignore Kasutamine```
 node_modules/
 .git/
 *.log
@@ -107,55 +100,44 @@ node_modules/
 .env
 coverage/
 .pytest_cache/
-__pycache__/
-```
+__pycache__/```
 
 ### 3.2 RUN Käskude Kombineerimine
 
-**Halb:**
-```dockerfile
+**Halb:**```dockerfile
 RUN apt-get update
 RUN apt-get install -y curl
-RUN apt-get clean
-```
+RUN apt-get clean```
 
 Kolm layer'it, apt cache jääb.
 
-**Hea:**
-```dockerfile
+**Hea:**```dockerfile
 RUN apt-get update && \
     apt-get install -y curl && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-```
+    rm -rf /var/lib/apt/lists/*```
 
 Üks layer, cache kustutatud.
 
-### 3.3 Layer Order Matters
-```dockerfile
+### 3.3 Layer Order Matters```dockerfile
 # Dependencies enne koodi (cache friendly)
 COPY package.json package-lock.json ./
 RUN npm ci
-COPY . .
-```
+COPY . .```
 
-### 3.4 Kasutage Slim/Alpine Image'e
-```dockerfile
-FROM python:3.11-slim  # 50MB vs python:3.11 (900MB)
-```
+### 3.4 Kasutage Slim/Alpine Image'e```dockerfile
+FROM python:3.11-slim  # 50MB vs python:3.11 (900MB)```
 
 ### 3.5 Harjutus: Optimize Bloated Image
 
-Antud image on 800MB. Optimeerige alla 100MB:
-```dockerfile
+Antud image on 800MB. Optimeerige alla 100MB:```dockerfile
 FROM ubuntu:22.04
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip git curl wget vim
 COPY . /app
 WORKDIR /app
 RUN pip3 install flask requests beautifulsoup4
-CMD ["python3", "app.py"]
-```
+CMD ["python3", "app.py"]```
 
 **Näpunäiteid:**
 - Kasutage alpine base'd
@@ -167,8 +149,7 @@ CMD ["python3", "app.py"]
 
 ## 4. Docker Compose Edasijõudnud
 
-### 4.1 Health Checks
-```yaml
+### 4.1 Health Checks```yaml
 version: '3.8'
 
 services:
@@ -189,11 +170,9 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-```
+      retries: 3```
 
-### 4.2 Profiles (Erinevad Keskkonnad)
-```yaml
+### 4.2 Profiles (Erinevad Keskkonnad)```yaml
 services:
   app:
     image: my-app:latest
@@ -204,14 +183,11 @@ services:
     
   test-db:
     image: postgres:15-alpine
-    profiles: ["testing"]
-```
+    profiles: ["testing"]```
 
-Käivitamine:
-```bash
+Käivitamine:```bash
 docker-compose up  # ainult app
-docker-compose --profile debug up  # app + debug
-```
+docker-compose --profile debug up  # app + debug```
 
 ### 4.3 Harjutus: Production-Ready Compose
 
@@ -228,8 +204,7 @@ Looge `docker-compose.yml` koos:
 
 ## 5. Container Turvalisus
 
-### 5.1 Non-Root User
-```dockerfile
+### 5.1 Non-Root User```dockerfile
 FROM python:3.11-alpine
 
 RUN adduser -D -s /bin/sh appuser
@@ -239,18 +214,14 @@ COPY --chown=appuser:appuser . .
 
 USER appuser
 
-CMD ["python", "app.py"]
-```
+CMD ["python", "app.py"]```
 
-### 5.2 Read-Only Filesystem
-```bash
+### 5.2 Read-Only Filesystem```bash
 docker run --read-only \
   --tmpfs /tmp:rw,noexec,nosuid \
-  my-app:latest
-```
+  my-app:latest```
 
-### 5.3 Security Scanning
-```bash
+### 5.3 Security Scanning```bash
 # Docker scan
 docker scan my-app:latest
 
@@ -258,8 +229,7 @@ docker scan my-app:latest
 trivy image my-app:latest
 
 # Filtreeri ainult HIGH ja CRITICAL
-trivy image --severity HIGH,CRITICAL my-app:latest
-```
+trivy image --severity HIGH,CRITICAL my-app:latest```
 
 ### 5.4 Harjutus: Secure Container
 
@@ -276,8 +246,7 @@ Võtke olemasolev Dockerfile ja:
 
 ## 6. Advanced Scenarios
 
-### 6.1 Zero-Downtime Deployment (Blue-Green)
-```bash
+### 6.1 Zero-Downtime Deployment (Blue-Green)```bash
 # Blue (current)
 docker run -d --name app-blue -p 8080:80 my-app:v1
 
@@ -289,11 +258,9 @@ curl http://localhost:8081/health
 
 # Switch traffic (update load balancer)
 # Remove blue
-docker stop app-blue && docker rm app-blue
-```
+docker stop app-blue && docker rm app-blue```
 
-### 6.2 Multi-Architecture Build
-```bash
+### 6.2 Multi-Architecture Build```bash
 # Setup buildx
 docker buildx create --use
 
@@ -301,11 +268,9 @@ docker buildx create --use
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -t my-app:multiarch \
-  --push .
-```
+  --push .```
 
-### 6.3 Docker-in-Docker (CI/CD)
-```yaml
+### 6.3 Docker-in-Docker (CI/CD)```yaml
 # .github/workflows/docker.yml
 jobs:
   build:
@@ -315,24 +280,20 @@ jobs:
       - name: Build image
         run: docker build -t my-app:${{ github.sha }} .
       - name: Test
-        run: docker run my-app:${{ github.sha }} npm test
-```
+        run: docker run my-app:${{ github.sha }} npm test```
 
 ---
 
 ## 7. Monitoring ja Logging
 
-### 7.1 Container Stats
-```bash
+### 7.1 Container Stats```bash
 # Real-time stats
 docker stats
 
 # Export metrics
-docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
-```
+docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"```
 
-### 7.2 Centralized Logging
-```yaml
+### 7.2 Centralized Logging```yaml
 version: '3.8'
 
 services:
@@ -349,24 +310,19 @@ services:
     logging:
       driver: "syslog"
       options:
-        syslog-address: "tcp://192.168.1.100:514"
-```
+        syslog-address: "tcp://192.168.1.100:514"```
 
-### 7.3 Prometheus Metrics
-```dockerfile
+### 7.3 Prometheus Metrics```dockerfile
 FROM prom/prometheus
 
 COPY prometheus.yml /etc/prometheus/
 
-CMD ["--config.file=/etc/prometheus/prometheus.yml"]
-```
-```yaml
+CMD ["--config.file=/etc/prometheus/prometheus.yml"]``````yaml
 # prometheus.yml
 scrape_configs:
   - job_name: 'docker'
     static_configs:
-      - targets: ['cadvisor:8080']
-```
+      - targets: ['cadvisor:8080']```
 
 ---
 
@@ -416,8 +372,7 @@ Looge production-ready fullstack rakendus Docker'iga.
 - [ ] Secrets management
 - [ ] Network isolation
 
-### 8.2 Arhitektuur
-```
+### 8.2 Arhitektuur```
 Internet
     ↓
 [Nginx Reverse Proxy] :80/:443
@@ -426,8 +381,7 @@ Internet
                          ↓
                     [Redis] :6379
                          ↓
-                    [PostgreSQL] :5432
-```
+                    [PostgreSQL] :5432```
 
 ### 8.3 Hindamine
 
@@ -474,8 +428,7 @@ Internet
 
 ## 10. Troubleshooting Guide
 
-### 10.1 Build Ebaõnnestub
-```bash
+### 10.1 Build Ebaõnnestub```bash
 # Vaata build cache'i
 docker builder prune
 
@@ -483,11 +436,9 @@ docker builder prune
 docker build --no-cache -t myapp .
 
 # Vaata layer'eid
-docker history myapp
-```
+docker history myapp```
 
-### 10.2 Container Crashib
-```bash
+### 10.2 Container Crashib```bash
 # Vaata exit code
 docker ps -a
 
@@ -495,11 +446,9 @@ docker ps -a
 docker logs container-name
 
 # Käivita interaktiivselt
-docker run -it --entrypoint sh myapp
-```
+docker run -it --entrypoint sh myapp```
 
-### 10.3 Networking Probleemid
-```bash
+### 10.3 Networking Probleemid```bash
 # Vaata network'e
 docker network ls
 docker network inspect network-name
@@ -508,11 +457,9 @@ docker network inspect network-name
 docker run --rm --network mynet alpine ping -c 2 service-name
 
 # DNS debug
-docker run --rm --network mynet alpine nslookup service-name
-```
+docker run --rm --network mynet alpine nslookup service-name```
 
-### 10.4 Volume Probleemid
-```bash
+### 10.4 Volume Probleemid```bash
 # Vaata volume'eid
 docker volume ls
 docker volume inspect volume-name
@@ -521,8 +468,7 @@ docker volume inspect volume-name
 docker run --rm -v volume-name:/data alpine ls -la /data
 
 # Backup
-docker run --rm -v volume-name:/data -v $(pwd):/backup alpine tar czf /backup/backup.tar.gz /data
-```
+docker run --rm -v volume-name:/data -v $(pwd):/backup alpine tar czf /backup/backup.tar.gz /data```
 
 ---
 

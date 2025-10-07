@@ -8,8 +8,7 @@
 
 Automatiseeritud töövood - testid, build, deployment käivituvad automaatselt.
 
-**Näide:** Test käivitub iga push'i peale
-```yaml
+**Näide:** Test käivitub iga push'i peale```yaml
 name: CI
 on: [push]
 jobs:
@@ -17,8 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: npm test
-```
+      - run: npm test```
 
 **Rohkem:** Vaata `lisapraktika.md` GitHub Actions harjutust
 

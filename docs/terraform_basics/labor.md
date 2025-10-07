@@ -22,73 +22,53 @@ Alustame Terraform'i installimisega teie operatsioonisüsteemi. Terraform on kom
 
 ### macOS installimine
 
-macOS'is on lihtsaim viis kasutada Homebrew pakettide haldurit. Kui teil Homebrew veel paigaldatud ei ole, installige see esmalt järgides juhiseid aadressil brew.sh. Seejärel saate Terraform'i installida ühe käsuga.
-```bash
+macOS'is on lihtsaim viis kasutada Homebrew pakettide haldurit. Kui teil Homebrew veel paigaldatud ei ole, installige see esmalt järgides juhiseid aadressil brew.sh. Seejärel saate Terraform'i installida ühe käsuga.```bash
 brew tap hashicorp/tap
-brew install hashicorp/tap/terraform
-```
+brew install hashicorp/tap/terraform```
 
-Kontrollige installatsiooni õnnestumist versiooni kontrollimisega:
-```bash
-terraform --version
-```
+Kontrollige installatsiooni õnnestumist versiooni kontrollimisega:```bash
+terraform --version```
 
 Peaksite nägema väljundit sarnaselt: `Terraform v1.6.0`. Kui saate veateate "command not found", kontrollige PATH muutujat või proovige terminali uuesti käivitada.
 
 ### Linux installimine
 
-Linux süsteemidele on Terraform saadaval läbi ametliku HashiCorp repository. Debian/Ubuntu perede puhul lisame esmalt HashiCorp GPG võtme ja repository, seejärel installime paketi.
-```bash
+Linux süsteemidele on Terraform saadaval läbi ametliku HashiCorp repository. Debian/Ubuntu perede puhul lisame esmalt HashiCorp GPG võtme ja repository, seejärel installime paketi.```bash
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
-sudo apt update && sudo apt install terraform
-```
+sudo apt update && sudo apt install terraform```
 
-RHEL/CentOS/Fedora süsteemides kasutatakse yum või dnf:
-```bash
+RHEL/CentOS/Fedora süsteemides kasutatakse yum või dnf:```bash
 sudo yum install -y yum-utils
 sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
-sudo yum install terraform
-```
+sudo yum install terraform```
 
-Kontrollige installatsiooni:
-```bash
-terraform --version
-```
+Kontrollige installatsiooni:```bash
+terraform --version```
 
 ### Windows installimine
 
 Windows puhul on kaks peamist võimalust: Chocolatey paketihaldur või manuaalne installimine. Chocolatey kasutamine on lihtsam ja võimaldab automaatselt uuendusi.
 
-Chocolatey kasutamiseks avage PowerShell administraatori õigustega ja käivitage:
-```powershell
-choco install terraform
-```
+Chocolatey kasutamiseks avage PowerShell administraatori õigustega ja käivitage:```powershell
+choco install terraform```
 
-Manuaalseks installimiseks laadige binaarfail alla HashiCorp veebilehelt, ekstraktige see ja lisage PATH muutujasse. Seejärel avage uus terminal ning kontrollige:
-```powershell
-terraform --version
-```
+Manuaalseks installimiseks laadige binaarfail alla HashiCorp veebilehelt, ekstraktige see ja lisage PATH muutujasse. Seejärel avage uus terminal ning kontrollige:```powershell
+terraform --version```
 
 ### Projekti kataloogi ettevalmistamine
 
-Pärast Terraform'i installimist loome töökataloogi meie esimese projekti jaoks. See kaust hoiab kõiki Terraform'i konfiguratsioonifaile ning state'd.
-```bash
+Pärast Terraform'i installimist loome töökataloogi meie esimese projekti jaoks. See kaust hoiab kõiki Terraform'i konfiguratsioonifaile ning state'd.```bash
 mkdir ~/terraform-basics-lab
-cd ~/terraform-basics-lab
-```
+cd ~/terraform-basics-lab```
 
-Loome ka mõned alamkaustad organisatsiooni jaoks, kuigi need ei ole kohustuslikud:
-```bash
-mkdir -p configs scripts
-```
+Loome ka mõned alamkaustad organisatsiooni jaoks, kuigi need ei ole kohustuslikud:```bash
+mkdir -p configs scripts```
 
-Kontrollime, et Terraform töötab ja näeme saadaolevaid käske:
-```bash
-terraform --help
-```
+Kontrollime, et Terraform töötab ja näeme saadaolevaid käske:```bash
+terraform --help```
 
 Väljund näitab kõiki Terraform'i põhikäske koos lühikese kirjeldusega. Põhilised käsud, mida kasutame, on `init`, `plan`, `apply` ja `destroy`.
 
@@ -105,13 +85,10 @@ Nüüd loome oma esimese Terraform'i konfiguratsiooni. Alustame võimalikult lih
 
 ### Provider konfiguratsiooni loomine
 
-Loome faili `main.tf`, mis sisaldab meie Terraform'i koodi. Esimene asi, mida vajame, on provider konfiguratsioon. Provider ütleb Terraform'ile, milliseid teenuseid kavatseme kasutada.
-```bash
-nano main.tf
-```
+Loome faili `main.tf`, mis sisaldab meie Terraform'i koodi. Esimene asi, mida vajame, on provider konfiguratsioon. Provider ütleb Terraform'ile, milliseid teenuseid kavatseme kasutada.```bash
+nano main.tf```
 
-Sisestage järgmine kood:
-```hcl
+Sisestage järgmine kood:```hcl
 terraform {
   required_version = ">= 1.0"
   
@@ -121,20 +98,17 @@ terraform {
       version = "~> 2.0"
     }
   }
-}
-```
+}```
 
 See plokk määrab kaks olulist asja. Esiteks, millist Terraform'i versiooni me vajame (1.0 või uuem). Teiseks, millist provider'it kasutame. Local provider võimaldab meil luua faile ja katalooge kohalikus failisüsteemis, mis on ideaalne õppimiseks.
 
 ### Esimese ressursi loomine
 
-Nüüd lisame lihtsa ressursi - tekstifaili loomise. Lisage `main.tf` faili juurde:
-```hcl
+Nüüd lisame lihtsa ressursi - tekstifaili loomise. Lisage `main.tf` faili juurde:```hcl
 resource "local_file" "hello" {
   content  = "Tere! See fail on loodud Terraform'i abil."
   filename = "${path.module}/hello.txt"
-}
-```
+}```
 
 Resource plokk koosneb neljast osast. Võtmesõna `resource` ütleb Terraform'ile, et soovime midagi luua. `local_file` on ressursi tüüp, mis määrab, et loome kohaliku faili. `hello` on meie valitud nimi, mida saame kasutada selle ressurssi viitamiseks. Ploki sisu kirjeldab, milline see fail peaks olema.
 
@@ -144,10 +118,8 @@ Salvestage fail (Ctrl+O, Enter, Ctrl+X nano's).
 
 ### Terraform'i initsialiseerimine
 
-Enne kui saame oma konfiguratsiooni kasutada, peame Terraform'i initsialiseerima. See laeb alla vajaliku local provider'i ja valmistab töökataloogi ette.
-```bash
-terraform init
-```
+Enne kui saame oma konfiguratsiooni kasutada, peame Terraform'i initsialiseerima. See laeb alla vajaliku local provider'i ja valmistab töökataloogi ette.```bash
+terraform init```
 
 Näete väljundit, mis kirjeldab, mida Terraform teeb. See loob `.terraform` kausta ja laeb sinna local provider'i plugina. Selle kausta sisu on masinloetav ja seda pole vaja versioonihaldusesse panna.
 
@@ -160,13 +132,10 @@ Initsialisatsioon lõpeb sõnumiga "Terraform has been successfully initialized!
 
 ### Planeerimine enne rakendamist
 
-Järgmine samm on planeerimis faas. See näitab meile, mida Terraform kavatseb teha, ilma midagi tegelikult muutmata. Planeerimine on oluline turvaline mehhanism.
-```bash
-terraform plan
-```
+Järgmine samm on planeerimis faas. See näitab meile, mida Terraform kavatseb teha, ilma midagi tegelikult muutmata. Planeerimine on oluline turvaline mehhanism.```bash
+terraform plan```
 
-Väljund peaks näitama midagi sellist:
-```
+Väljund peaks näitama midagi sellist:```
 Terraform will perform the following actions:
 
   # local_file.hello will be created
@@ -176,33 +145,26 @@ Terraform will perform the following actions:
       + id                   = (known after apply)
     }
 
-Plan: 1 to add, 0 to change, 0 to destroy.
-```
+Plan: 1 to add, 0 to change, 0 to destroy.```
 
 Plussmärk ressursi ees tähendab, et see luuakse. Veel pole midagi juhtunud - see on ainult plaan. Terraform ütleb meile, et kavatseb luua ühe faili. Mõned atribuudid nagu `id` on märgitud "known after apply", sest neid ei saa ette teada enne kui ressurss tõesti luuakse.
 
 ### Muudatuste rakendamine
 
-Nüüd oleme valmis oma plaani teostama. Käsk `apply` viib muudatused ellu.
-```bash
-terraform apply
-```
+Nüüd oleme valmis oma plaani teostama. Käsk `apply` viib muudatused ellu.```bash
+terraform apply```
 
 Terraform näitab uuesti plaani ja küsib kinnitust. See on viimane kontrollpunkt enne muudatuste tegemist. Tippige `yes` ja vajutage Enter.
 
-Peaksite nägema:
-```
+Peaksite nägema:```
 local_file.hello: Creating...
 local_file.hello: Creation complete after 0s
 
-Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
-```
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.```
 
-Kontrollige, kas fail loodi:
-```bash
+Kontrollige, kas fail loodi:```bash
 ls -la hello.txt
-cat hello.txt
-```
+cat hello.txt```
 
 Peaksite nägema faili sisuga "Tere! See fail on loodud Terraform'i abil."
 
@@ -220,37 +182,29 @@ Märkasite tõenäoliselt, et apply käsu järel loodi fail nimega `terraform.tf
 
 ### State faili uurimine
 
-Vaatame state faili sisu:
-```bash
-cat terraform.tfstate
-```
+Vaatame state faili sisu:```bash
+cat terraform.tfstate```
 
 See on JSON vormingus fail, mis sisaldab teavet kõigi Terraform'i poolt hallatud ressursside kohta. Näete seal meie `local_file.hello` ressursi koos kõigi tema atribuutidega.
 
 State fail on Terraform'i "mälu". Ilma selleta ei teaks Terraform, mis on juba olemas. Iga kord kui käivitate `terraform plan` või `apply`, loeb Terraform state faili, et kindlaks teha, mis on muutunud ja mida on vaja teha.
 
-Proovime näha state'd inimloetaval kujul:
-```bash
-terraform show
-```
+Proovime näha state'd inimloetaval kujul:```bash
+terraform show```
 
 See kuvab sama info, aga vormindatult ja loetavamalt. Näete ressursi tüüpi, nime ja kõiki atribuute.
 
 ### Ressursside loend
 
-State failist saame küsida, milliseid ressursse Terraform haldab:
-```bash
-terraform state list
-```
+State failist saame küsida, milliseid ressursse Terraform haldab:```bash
+terraform state list```
 
 Väljund on lihtne nimekiri: `local_file.hello`. Kui meil oleks rohkem ressursse, näeksime neid kõiki siin.
 
 ### State'i värskendamine
 
-Kujutage ette, et keegi muudab fail käsitsi väljaspool Terraform'i. Terraform ei tea sellest midagi, sest ta loeb ainult state faili. Saame state'i värskendada:
-```bash
-terraform refresh
-```
+Kujutage ette, et keegi muudab fail käsitsi väljaspool Terraform'i. Terraform ei tea sellest midagi, sest ta loeb ainult state faili. Saame state'i värskendada:```bash
+terraform refresh```
 
 See käsk loeb reaalsed ressursid ja uuendab state faili, kui leiab erinevusi. Praktikas see käsk on harva vajalik, sest `plan` ja `apply` teevad seda automaatselt.
 
@@ -267,13 +221,10 @@ Siiani olid kõik väärtused kõvakodeeritud `main.tf` failis. See ei ole paind
 
 ### Variables faili loomine
 
-Loome uue faili variables muutujate jaoks:
-```bash
-nano variables.tf
-```
+Loome uue faili variables muutujate jaoks:```bash
+nano variables.tf```
 
-Lisame mõned kasulikud muutujad:
-```hcl
+Lisame mõned kasulikud muutujad:```hcl
 variable "project_name" {
   description = "Projekti nimi, kasutatakse failide nimetamisel"
   type        = string
@@ -305,31 +256,25 @@ variable "file_count" {
     condition     = var.file_count > 0 && var.file_count <= 10
     error_message = "Failide arv peab olema vahemikus 1-10."
   }
-}
-```
+}```
 
 Iga muutuja plokk sisaldab kirjeldust, tüüpi ja vaikeväärtust. Validatsioon kontrollib, et antud väärtus vastab meie reeglitele. Kui keegi proovib kasutada keelatud väärtust, annab Terraform veateate juba planeerimise faasis.
 
 ### Main faili uuendamine
 
-Nüüd muudame `main.tf` faili kasutama neid muutujaid:
-```hcl
+Nüüd muudame `main.tf` faili kasutama neid muutujaid:```hcl
 resource "local_file" "example" {
   count    = var.file_count
   content  = "See on fail number ${count.index + 1} projektile ${var.project_name} (${var.environment})"
   filename = "${path.module}/${var.project_name}_${count.index + 1}.txt"
-}
-```
+}```
 
 Siin kasutame `count` meta-argumenti, et luua mitu sarnast ressurssi. `count.index` annab praeguse iteratsiooni numbri (alates nullist). `var.project_name` ja `var.environment` viitavad meie muutujatele.
 
 ### Outputs faili loomine
 
-Outputs võimaldavad meil näha olulist teavet pärast `apply` käsku. Loome `outputs.tf` faili:
-```bash
-nano outputs.tf
-```
-```hcl
+Outputs võimaldavad meil näha olulist teavet pärast `apply` käsku. Loome `outputs.tf` faili:```bash
+nano outputs.tf``````hcl
 output "created_files" {
   description = "Loodud failide nimed"
   value       = local_file.example[*].filename
@@ -342,25 +287,20 @@ output "project_info" {
     environment = var.environment
     file_count  = var.file_count
   }
-}
-```
+}```
 
 Esimene output kasutab splat operaatorit `[*]`, et koguda kõigi failide nimed. Teine output tagastab objekti projekti info kohta.
 
 ### Rakendamine
 
-Kustutame vana ressursi ja loome uued:
-```bash
-terraform apply
-```
+Kustutame vana ressursi ja loome uued:```bash
+terraform apply```
 
 Terraform märkab, et `local_file.hello` on kadunud koodist ja selle asemel on uued failid. See kustutab vana ja loob uued. Kinnitage `yes`.
 
-Pärast apply lõppu näete outputs'e automaatselt. Võite ka hiljem küsida:
-```bash
+Pärast apply lõppu näete outputs'e automaatselt. Võite ka hiljem küsida:```bash
 terraform output
-terraform output created_files
-```
+terraform output created_files```
 
 **Validation:**
 - [ ] Kolm faili on loodud
@@ -374,36 +314,26 @@ terraform output created_files
 
 Vaikeväärtused on head, aga sageli tahame neid muuta ilma variables.tf faili muutmata. Selleks kasutatakse `terraform.tfvars` faili.
 
-### Tfvars faili loomine
-```bash
-nano terraform.tfvars
-```
-```hcl
+### Tfvars faili loomine```bash
+nano terraform.tfvars``````hcl
 project_name = "minu-projekt"
 environment  = "production"
-file_count   = 5
-```
+file_count   = 5```
 
 Terraform loeb seda faili automaatselt ja kasutab seal olevaid väärtusi. Need override'ivad vaikeväärtused `variables.tf` failist.
 
-### Muudatuste rakendamine
-```bash
-terraform plan
-```
+### Muudatuste rakendamine```bash
+terraform plan```
 
-Terraform näitab, et failide nimed muutuvad (sest `project_name` muutus) ja lisandub kaks uut faili (sest `file_count` kasvas 3-lt 5-le). Rakendame:
-```bash
-terraform apply
-```
+Terraform näitab, et failide nimed muutuvad (sest `project_name` muutus) ja lisandub kaks uut faili (sest `file_count` kasvas 3-lt 5-le). Rakendame:```bash
+terraform apply```
 
 Vanad failid kustutatakse ja luuakse viis uut faili uute nimedega.
 
 ### Käsurea kaudu väärtuste seadmine
 
-Saate ka määrata väärtusi otse käsurealt:
-```bash
-terraform plan -var="file_count=2"
-```
+Saate ka määrata väärtusi otse käsurealt:```bash
+terraform plan -var="file_count=2"```
 
 See on kasulik testimiseks või CI/CD pipeline'ides. Käsureal antud väärtused võtavad prioriteedi üle `.tfvars` faili ja vaikeväärtuste.
 
@@ -421,21 +351,18 @@ Lihtsamad failid on head alguseks, aga Terraform võimaldab ka keerukamaid struk
 
 ### Kataloogide loomine
 
-Lisame `main.tf` faili kataloogi loomise:
-```hcl
+Lisame `main.tf` faili kataloogi loomise:```hcl
 resource "local_directory" "config" {
   path = "${path.module}/${var.project_name}_config"
 }
 
 resource "local_directory" "scripts" {
   path = "${path.module}/${var.project_name}_scripts"
-}
-```
+}```
 
 ### Konfiguratsioonifailide loomine
 
-Loome JSON konfiguratsioonifaili:
-```hcl
+Loome JSON konfiguratsioonifaili:```hcl
 resource "local_file" "config_json" {
   content = jsonencode({
     project_name = var.project_name
@@ -450,15 +377,13 @@ resource "local_file" "config_json" {
   filename = "${local_directory.config.path}/config.json"
   
   depends_on = [local_directory.config]
-}
-```
+}```
 
 `jsonencode` funktsioon konverteerib Terraform'i objekti JSON stringiks. `timestamp()` annab praeguse aja. `depends_on` ütleb Terraform'ile, et see ressurss vajab kataloogi olemasolu.
 
 ### Skriptifaili loomine
 
-Lisame veel Bash skripti:
-```hcl
+Lisame veel Bash skripti:```hcl
 resource "local_file" "startup_script" {
   content = <<-EOF
     #!/bin/bash
@@ -473,22 +398,17 @@ resource "local_file" "startup_script" {
   file_permission = "0755"
   
   depends_on = [local_directory.scripts]
-}
-```
+}```
 
 `file_permission = "0755"` muudab faili käivitatavaks. Heredoc süntaks `<<-EOF ... EOF` võimaldab kirjutada mitmerealine tekst.
 
-### Rakendamine
-```bash
-terraform apply
-```
+### Rakendamine```bash
+terraform apply```
 
 Terraform loob kaustad ja seejärel failid nendes kaustades, austades sõltuvusi.
 
-Testige skripti:
-```bash
-bash minu-projekt_scripts/startup.sh
-```
+Testige skripti:```bash
+bash minu-projekt_scripts/startup.sh```
 
 **Validation:**
 - [ ] Kaks kataloogi on loodud
@@ -504,8 +424,7 @@ Count on hea, kui vajate kindlat arvu sarnaseid ressursse. For_each on võimsam,
 
 ### Map-põhise for_each
 
-Lisame `variables.tf` faili uue muutuja:
-```hcl
+Lisame `variables.tf` faili uue muutuja:```hcl
 variable "config_files" {
   description = "Konfiguratsioonifailid luua"
   type = map(string)
@@ -514,11 +433,9 @@ variable "config_files" {
     "cache"    = "Redis configuration"
     "queue"    = "RabbitMQ configuration"
   }
-}
-```
+}```
 
-Ja `main.tf` faili:
-```hcl
+Ja `main.tf` faili:```hcl
 resource "local_file" "service_configs" {
   for_each = var.config_files
   
@@ -526,30 +443,23 @@ resource "local_file" "service_configs" {
   filename = "${local_directory.config.path}/${each.key}.conf"
   
   depends_on = [local_directory.config]
-}
-```
+}```
 
 `each.key` annab map'i võtme (nt "database"), `each.value` annab väärtuse (nt "PostgreSQL configuration"). Iga element map'is loob ühe faili.
 
-### Rakendamine
-```bash
-terraform apply
-```
+### Rakendamine```bash
+terraform apply```
 
 Kolm konfiguratsioonifaili luuakse: `database.conf`, `cache.conf` ja `queue.conf`.
 
-For_each eelis count'i ees tuleb esile, kui eemaldame ühe elemendi. Lisage `terraform.tfvars` faili:
-```hcl
+For_each eelis count'i ees tuleb esile, kui eemaldame ühe elemendi. Lisage `terraform.tfvars` faili:```hcl
 config_files = {
   "database" = "PostgreSQL configuration"
   "queue"    = "RabbitMQ configuration"
-}
-```
+}```
 
-Nüüd kui rakendame:
-```bash
-terraform apply
-```
+Nüüd kui rakendame:```bash
+terraform apply```
 
 Terraform kustutab ainult `cache.conf` faili. Count'i puhul oleks ta uuesti loonud kõik failid uutes positsioonides.
 
@@ -564,26 +474,20 @@ Terraform kustutab ainult `cache.conf` faili. Count'i puhul oleks ta uuesti loon
 
 Infrastruktuur, mida ei kasutata, tuleks eemaldada. Terraform teeb selle lihtsaks.
 
-### Terve infrastruktuuri kustutamine
-```bash
-terraform destroy
-```
+### Terve infrastruktuuri kustutamine```bash
+terraform destroy```
 
 Terraform näitab, milliseid ressursse kavatseb kustutada. Vaadake nimekiri üle ja kinnitage `yes`. Terraform kustutab ressursid vastupidises järjekorras võrreldes nende loomisega, austades sõltuvusi.
 
-Kontrollige:
-```bash
-ls
-```
+Kontrollige:```bash
+ls```
 
 Kõik Terraform'i loodud failid ja kaustad on läinud. State fail on veel olemas, aga tühi.
 
 ### Osalise kustutamise
 
-Kui soovite kustutada ainult kindlaid ressursse, saate kasutada `-target` lippu:
-```bash
-terraform destroy -target=local_file.example[0]
-```
+Kui soovite kustutada ainult kindlaid ressursse, saate kasutada `-target` lippu:```bash
+terraform destroy -target=local_file.example[0]```
 
 See kustutab ainult esimese `example` faili, jättes teised alles. `-target` on kasulik arenduses, aga tootmises tuleks vältida, kuna võib tekitada sõltuvusprobleeme.
 
@@ -598,27 +502,19 @@ See kustutab ainult esimese `example` faili, jättes teised alles. `-target` on 
 
 Üks IaC peamisi põhimõtteid on idempotentsus - sama käsu korduvad käivitamised annavad sama tulemuse.
 
-Loome infrastruktuuri uuesti:
-```bash
-terraform apply
-```
+Loome infrastruktuuri uuesti:```bash
+terraform apply```
 
-Nüüd käivitame uuesti:
-```bash
-terraform apply
-```
+Nüüd käivitame uuesti:```bash
+terraform apply```
 
 Terraform teeb plani ja ütleb: "No changes. Your infrastructure matches the configuration." Midagi ei muudeta, sest kõik on juba õiges olekus.
 
-Muudame käsitsi ühe faili sisu:
-```bash
-echo "Modified manually" > minu-projekt_1.txt
-```
+Muudame käsitsi ühe faili sisu:```bash
+echo "Modified manually" > minu-projekt_1.txt```
 
-Käivitage plan:
-```bash
-terraform plan
-```
+Käivitage plan:```bash
+terraform plan```
 
 Terraform märkab erinevust ja soovib faili sisu taastada. Rakendades `apply` tagastatakse algne sisu. See on idempotentsus töös - Terraform tagab, et infrastruktuur vastab alati koodile.
 
@@ -635,19 +531,15 @@ Terraform'i kasutamisel võivad tekkida erinevad probleemid. Vaatame levinumaid 
 
 ### Provider not found
 
-Kui näete veateadet "provider not found", pole provider installitud. Lahendus:
-```bash
-terraform init
-```
+Kui näete veateadet "provider not found", pole provider installitud. Lahendus:```bash
+terraform init```
 
 Init käsk laeb alla kõik vajalikud provider'id. Kui olete lisanud uue provider'i, käivitage init uuesti.
 
 ### State file locked
 
-Kui keegi teine kasutab samaagselt sama state faili, näete lock veateadet. Oodake, kuni teine protsess lõpeb. Kui lock jääb kinni (näiteks kui protsess katkestati), saate selle käsitsi eemaldada:
-```bash
-terraform force-unlock <lock-id>
-```
+Kui keegi teine kasutab samaagselt sama state faili, näete lock veateadet. Oodake, kuni teine protsess lõpeb. Kui lock jääb kinni (näiteks kui protsess katkestati), saate selle käsitsi eemaldada:```bash
+terraform force-unlock <lock-id>```
 
 Lock ID on veateates näidatud. Olge ettevaatlik - eemaldage lock ainult siis, kui olete kindel, et ükski teine protsess ei kasuta state'd.
 
@@ -655,21 +547,17 @@ Lock ID on veateates näidatud. Olge ettevaatlik - eemaldage lock ainult siis, k
 
 Kui ressurss eksisteerib juba väljaspool Terraform'i, ei saa Terraform seda uuesti luua. Lahendused:
 
-1. Importige olemasolev ressurss:
-```bash
-terraform import local_file.example ./existing-file.txt
-```
+1. Importige olemasolev ressurss:```bash
+terraform import local_file.example ./existing-file.txt```
 
 2. Või kustutage käsitsi ja laske Terraform'il uuesti luua.
 
 ### Validation errors
 
-Kui muutuja validatsioon ebaõnnestub, kontrollige `terraform.tfvars` faili väärtusi. Veateade ütleb täpselt, mis on valesti:
-```
+Kui muutuja validatsioon ebaõnnestub, kontrollige `terraform.tfvars` faili väärtusi. Veateade ütleb täpselt, mis on valesti:```
 Error: Invalid value for variable
 
-Environment must be one of: development, staging, production.
-```
+Environment must be one of: development, staging, production.```
 
 Parandage väärtus ja proovige uuesti.
 

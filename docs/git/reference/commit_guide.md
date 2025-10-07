@@ -4,10 +4,8 @@
 
 ---
 
-## Conventional Commits Formaat
-```
-type(scope): description
-```
+## Conventional Commits Formaat```
+type(scope): description```
 
 ### Type'id
 
@@ -27,23 +25,20 @@ Mis osa projektist: `(auth)`, `(api)`, `(ui)`, `(db)`
 
 ---
 
-## Head Näited
-```bash
+## Head Näited```bash
 feat(auth): add login endpoint
 fix(api): handle null response in user query
 docs(readme): add installation instructions
 refactor(db): simplify query logic
 test(calculator): add division by zero test
 chore(deps): update Python to 3.11
-style(app): fix indentation in main.py
-```
+style(app): fix indentation in main.py```
 
 ---
 
 ## Halvad Näited
 
-❌ **ÄRA tee nii:**
-```
+❌ **ÄRA tee nii:**```
 fix
 update
 asdf
@@ -51,15 +46,12 @@ changes
 wip
 final version
 stuff
-idk
-```
+idk```
 
-✅ **Tee nii:**
-```
+✅ **Tee nii:**```
 fix(login): prevent empty username submission
 feat(api): add user profile endpoint
-docs: update README with usage examples
-```
+docs: update README with usage examples```
 
 ---
 
@@ -75,15 +67,13 @@ docs: update README with usage examples
 
 ## Body (valikuline)
 
-Kui vajad rohkem selgitust:
-```
+Kui vajad rohkem selgitust:```
 feat(auth): add JWT token authentication
 
 Implemented JWT-based auth to replace session cookies.
 Tokens expire after 1 hour, refresh tokens valid 30 days.
 
-Closes #123
-```
+Closes #123```
 
 **Reeglid:**
 - Tühi rida pärast first line'i

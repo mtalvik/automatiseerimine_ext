@@ -33,13 +33,11 @@ Git'i disain lähtub mitmest põhimõttest. Esiteks on see **snapshot-based** s�
 
 Git'i mõistmiseks ei piisa käskude pähe õppimisest - on vaja mõista selle sisemist struktuuri. Git ei ole lihtsalt failide salvestamise süsteem, vaid content-addressable filesystem, mille peale on ehitatud versioonihalduse kiht.
 
-Git'i töövoog visualiseerituna:
-```mermaid
+Git'i töövoog visualiseerituna:```mermaid
 graph LR
     A[Working Directory] --> B[Staging Area]
     B --> C[Local Repository]
-    C --> D[Remote Repository]
-```
+    C --> D[Remote Repository]```
 
 Git'i südames on neli objekti tüüpi. **Blob** (binary large object) on faili sisu - lihtsalt baidid ilma metaandmeteta. Kaks identsete sisulistega faili salvestatakse Git'is ühe blob'ina. **Tree** on kataloogistruktuuri esitus, mis sisaldab viiteid blob'idele ja teistele tree'dele koos failinimedega. **Commit** on snapshot hetkel koos metaandmetega: autor, kuupäev, sõnum ja viide parent commit'idele. **Tag** on nimega viide kindlale commit'ile, mida kasutatakse versioonide märgistamiseks.
 
@@ -110,14 +108,12 @@ Code review on oluline kvaliteedikontroll. Hea code review ei ole lihtsalt vigad
 
 ## 6. Konfliktide Lahendamine ja Ajaloo Manipuleerimine
 
-Merge konfliktid on paratamatu osa koostööst. Git märgib konflikti siis, kui sama faili sama osa on muudetud kahes erinevas branch'is paralleelselt. Konflikti marker'id näevad välja nii:
-```
+Merge konfliktid on paratamatu osa koostööst. Git märgib konflikti siis, kui sama faili sama osa on muudetud kahes erinevas branch'is paralleelselt. Konflikti marker'id näevad välja nii:```
 <<<<<<< HEAD
 Sinu versioon
 =======
 Teise versioon
->>>>>>> feature-branch
-```
+>>>>>>> feature-branch```
 
 Konfliktide lahendamine nõuab inimese otsustust: kas hoida üks versioon, teine versioon, mõlemad, kumbki ega kombinatsioon? Pärast marker'ite eemaldamist ja faili salvestamist tuleb `git add` teha ja merge lõpetada `git commit`.
 
@@ -139,8 +135,7 @@ Mida peaks versioonihaldusesse panema ja mida mitte? See ei ole triviaalne küsi
 
 Tüüpilised .gitignore mustrid keele kaupa:
 
-**Python:**
-```gitignore
+**Python:**```gitignore
 __pycache__/
 *.py[cod]
 *$py.class
@@ -149,25 +144,20 @@ venv/
 ENV/
 .env
 *.so
-.pytest_cache/
-```
+.pytest_cache/```
 
-**Node.js:**
-```gitignore
+**Node.js:**```gitignore
 node_modules/
 npm-debug.log
 .env
 dist/
-build/
-```
+build/```
 
-**Java:**
-```gitignore
+**Java:**```gitignore
 *.class
 target/
 .gradle/
-build/
-```
+build/```
 
 IDE ja OS spetsiifilised failid peaks samuti ignoreerima: `.vscode/`, `.idea/`, `.DS_Store`, `Thumbs.db`. Mõned meeskonnad includivad IDE seaded versioonihalduses, et jagada konfiguratsioone, kuid see on kontroversialne - eelistused erinevad.
 
@@ -205,8 +195,7 @@ Commit'ide kvaliteet eristab professionaalseid arendajaid algajatest. Hea commit
 
 **Commit sõnumid** järgivad konventsiooni. Esimene rida (subject line) on imperatiivne lühikokkuvõte (50 tähemärki): "Add user authentication", mitte "Added" ega "Adds". Tühi rida. Body selgitab **miks**, mitte **mis** (mis on nähtav diff'ist): miks oli see muudatus vajalik? Mis probleemi see lahendab? Kas on kasulikke kontekste või trade-off'e?
 
-Näide professionaalsest commit sõnumist:
-```
+Näide professionaalsest commit sõnumist:```
 Add rate limiting to API endpoints
 
 Implemented token bucket algorithm to prevent API abuse.
@@ -218,8 +207,7 @@ overloading the database. Alternative considered was
 leaky bucket, but token bucket provides better burst
 handling for legitimate mobile clients.
 
-Closes #234
-```
+Closes #234```
 
 **Branching nimede konventsioonid** aitavad organiseerida tööd: `feature/user-auth`, `bugfix/null-pointer-fix`, `hotfix/security-patch`, `refactor/database-layer`. Mõned meeskonnad kaasavad issue numbrid: `feature/123-user-auth`.
 

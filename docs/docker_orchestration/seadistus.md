@@ -12,48 +12,36 @@ See juhend aitab teil seadistada Docker keskkonna kodu arvutis, et saaksite harj
 
 ## 1. Operatsioonisüsteemi valik
 
-### Windows - WSL2
-```bash
+### Windows - WSL2```bash
 # PowerShell (Admin)
 wsl --install -d Ubuntu-22.04
-# Restart PC
-```
+# Restart PC```
 
-### macOS - Multipass
-```bash
+### macOS - Multipass```bash
 brew install --cask multipass
 multipass launch --name docker-vm --memory 4G --disk 20G 22.04
-multipass shell docker-vm
-```
+multipass shell docker-vm```
 
-### Linux - Native
-```bash
-# You're already there!
-```
+### Linux - Native```bash
+# You're already there!```
 
-## 2. Docker installeerimine
-```bash
+## 2. Docker installeerimine```bash
 # One command install
 curl -fsSL https://get.docker.com | sudo sh
 sudo usermod -aG docker $USER
 exit
-# Log back in
-```
+# Log back in```
 
-## 3. Installatsiooni testimine
-```bash
+## 3. Installatsiooni testimine```bash
 docker --version
-docker run hello-world
-```
+docker run hello-world```
 
-## 4. Docker Compose
-```bash
+## 4. Docker Compose```bash
 # Install compose plugin
 sudo apt update && sudo apt install docker-compose-plugin -y
 
 # Test
-docker compose version
-```
+docker compose version```
 
 ## 5. VSCode Setup
 
@@ -63,8 +51,7 @@ Install extensions:
 - `ms-azuretools.vscode-docker`
 - `redhat.vscode-yaml`
 
-## 6. Test projekti loomine
-```bash
+## 6. Test projekti loomine```bash
 mkdir ~/docker-test && cd ~/docker-test
 
 cat > docker-compose.yml << EOF
@@ -77,11 +64,9 @@ EOF
 
 docker compose up -d
 # Open http://localhost:8080
-docker compose down
-```
+docker compose down```
 
-## 7. Docker Hub
-```bash
+## 7. Docker Hub```bash
 # Create account at hub.docker.com
 docker login
 
@@ -90,21 +75,17 @@ docker tag myapp username/myapp
 docker push username/myapp
 
 # Pull anywhere
-docker pull username/myapp
-```
+docker pull username/myapp```
 
 ## 8. Kasulikud aliased
 
-Lisa faili `~/.bashrc`:
-```bash
+Lisa faili `~/.bashrc`:```bash
 alias dc='docker compose'
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
 alias dlog='docker logs -f'
-alias dex='docker exec -it'
-```
+alias dex='docker exec -it'```
 
-## 9. Põhilised käsud
-```bash
+## 9. Põhilised käsud```bash
 # List everything
 docker ps -a          # containers
 docker images         # images  
@@ -121,33 +102,24 @@ docker exec -it container_name bash
 docker logs -f container_name
 
 # Stop all
-docker stop $(docker ps -q)
-```
+docker stop $(docker ps -q)```
 
 ## 10. Levinud probleemid
 
-**"Cannot connect to Docker daemon"**
-```bash
-sudo service docker start    # Linux/WSL
-```
+**"Cannot connect to Docker daemon"**```bash
+sudo service docker start    # Linux/WSL```
 
-**"Permission denied"**
-```bash
-newgrp docker    # or logout/login
-```
+**"Permission denied"**```bash
+newgrp docker    # or logout/login```
 
-**Port already in use**
-```bash
-lsof -i :8080    # find what's using port
-```
+**Port already in use**```bash
+lsof -i :8080    # find what's using port```
 
 **WSL2 specific - aeglane performance**
 - Hoia failid Linux'is (`~/`), mitte Windows'is (`/mnt/c/`)
 
-**Multipass specific - file sharing**
-```bash
-multipass mount ~/projects docker-vm:/home/ubuntu/projects
-```
+**Multipass specific - file sharing**```bash
+multipass mount ~/projects docker-vm:/home/ubuntu/projects```
 
 ## Registry valikud
 
@@ -157,8 +129,7 @@ multipass mount ~/projects docker-vm:/home/ubuntu/projects
 | GitHub | Jah | Unlimited | 1GB/month |
 | GitLab | Jah | Unlimited | 5GB/project |
 
-## Projekti struktuuri näide
-```
+## Projekti struktuuri näide```
 myapp/
 ├── docker-compose.yml
 ├── .env
@@ -170,13 +141,11 @@ myapp/
 │   ├── Dockerfile
 │   └── src/
 └── nginx/
-    └── default.conf
-```
+    └── default.conf```
 
 ## Cloud registries (edasijõudnutele)
 
-### Google Cloud
-```bash
+### Google Cloud```bash
 # Vaja: Google account + card (free $300 credit)
 gcloud auth login
 gcloud config set project PROJECT_ID
@@ -188,11 +157,9 @@ docker push gcr.io/PROJECT_ID/myapp
 # Or Artifact Registry (newer)
 gcloud auth configure-docker europe-north1-docker.pkg.dev
 docker tag myapp europe-north1-docker.pkg.dev/PROJECT/REPO/myapp
-docker push europe-north1-docker.pkg.dev/PROJECT/REPO/myapp
-```
+docker push europe-north1-docker.pkg.dev/PROJECT/REPO/myapp```
 
-### AWS ECR
-```bash
+### AWS ECR```bash
 # Vaja: AWS account (free tier: 500MB/month)
 aws configure  # enter credentials
 
@@ -200,13 +167,11 @@ aws configure  # enter credentials
 aws ecr create-repository --repository-name myapp
 aws ecr get-login-password | docker login --username AWS --password-stdin 123456789.dkr.ecr.region.amazonaws.com
 docker tag myapp 123456789.dkr.ecr.region.amazonaws.com/myapp
-docker push 123456789.dkr.ecr.region.amazonaws.com/myapp
-```
+docker push 123456789.dkr.ecr.region.amazonaws.com/myapp```
 
 ## Turvalisus ja tulemüür
 
-### Portide avamine
-```bash
+### Portide avamine```bash
 # Windows PowerShell (Admin)
 New-NetFirewallRule -DisplayName "Docker" -Direction Inbound -Protocol TCP -LocalPort 80,443,8080,3000,5000 -Action Allow
 
@@ -218,11 +183,9 @@ sudo ufw status
 
 # Kontrolli mis kuulab
 netstat -tuln | grep LISTEN
-lsof -i -P -n | grep LISTEN
-```
+lsof -i -P -n | grep LISTEN```
 
-### Turvalisuse skaneerimine
-```bash
+### Turvalisuse skaneerimine```bash
 # Skaneeri image'id haavatavuste suhtes
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image myapp:latest
 
@@ -231,13 +194,11 @@ docker scout cves myapp:latest
 
 # Snyk (free tier available)
 npm install -g snyk
-snyk test --docker myapp:latest
-```
+snyk test --docker myapp:latest```
 
 ## Võrgustik ja DNS
 
-### Custom võrgud
-```bash
+### Custom võrgud```bash
 # Loo võrk (konteinerid saavad rääkida nime järgi)
 docker network create app-net
 
@@ -246,13 +207,11 @@ docker run -d --name db --network app-net postgres
 docker run -d --name api --network app-net -e DB_HOST=db myapp
 
 # Lokaalne DNS
-echo "127.0.0.1 myapp.local api.local" | sudo tee -a /etc/hosts
-```
+echo "127.0.0.1 myapp.local api.local" | sudo tee -a /etc/hosts```
 
 ## Volumes ja varundamine
 
-### Andmete püsimine
-```bash
+### Andmete püsimine```bash
 # Named volume
 docker volume create mydata
 docker run -v mydata:/data myapp
@@ -261,24 +220,20 @@ docker run -v mydata:/data myapp
 docker run --rm -v mydata:/source -v $(pwd):/backup alpine tar czf /backup/mydata-$(date +%Y%m%d).tar.gz /source
 
 # Taasta
-docker run --rm -v mydata:/target -v $(pwd):/backup alpine tar xzf /backup/mydata-20240315.tar.gz -C /target
-```
+docker run --rm -v mydata:/target -v $(pwd):/backup alpine tar xzf /backup/mydata-20240315.tar.gz -C /target```
 
 ## Jõudluse optimeerimine
 
-### WSL2 mälu
-```bash
+### WSL2 mälu```bash
 # Loo: C:\Users\YOU\.wslconfig
 [wsl2]
 memory=4GB
 processors=2
 swap=2GB
 
-# Siis: wsl --shutdown
-```
+# Siis: wsl --shutdown```
 
-### Docker piirangud
-```bash
+### Docker piirangud```bash
 # Piira konteineri ressursse
 docker run -m 512m --cpus="1.0" myapp
 
@@ -289,13 +244,11 @@ docker run -m 512m --cpus="1.0" myapp
     "max-size": "10m",
     "max-file": "3"
   }
-}
-```
+}```
 
 ## Monitoring
 
-### Lihtne monitoring
-```bash
+### Lihtne monitoring```bash
 # Real-time stats
 docker stats
 
@@ -307,11 +260,9 @@ docker run -d -p 19999:19999 \
   -v /proc:/host/proc:ro \
   -v /sys:/host/sys:ro \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  netdata/netdata
-```
+  netdata/netdata```
 
-## Git integratsioon
-```bash
+## Git integratsioon```bash
 # Seadista Git
 git config --global user.name "Your Name"
 git config --global user.email "you@email.com"
@@ -327,11 +278,9 @@ cat > .gitignore << EOF
 *_data/
 node_modules/
 __pycache__/
-EOF
-```
+EOF```
 
-## Kasulikud tööriistad
-```bash
+## Kasulikud tööriistad```bash
 # Installi productivity tools
 sudo apt install -y htop tree jq curl wget nano tmux
 
@@ -342,11 +291,9 @@ docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock lazyteam/lazydo
 # dive - analyze image layers
 wget https://github.com/wagoodman/dive/releases/download/v0.11.0/dive_0.11.0_linux_amd64.deb
 sudo dpkg -i dive_0.11.0_linux_amd64.deb
-dive myapp:latest
-```
+dive myapp:latest```
 
-## Ketta puhastamine
-```bash
+## Ketta puhastamine```bash
 # Manual cleanup
 docker system prune -af --volumes  # HOIATUS: kustutab kõik!
 
@@ -356,11 +303,9 @@ crontab -e
 
 # WSL2 shrink disk
 wsl --shutdown
-# Siis kasuta diskpart Windows'is et compactida vhdx
-```
+# Siis kasuta diskpart Windows'is et compactida vhdx```
 
-## Keskkonna haldamine
-```bash
+## Keskkonna haldamine```bash
 # .env fail
 DB_HOST=localhost
 DB_PORT=5432
@@ -377,8 +322,7 @@ services:
 
 # Mitu keskkonda
 docker compose --env-file .env.dev up
-docker compose --env-file .env.prod up
-```
+docker compose --env-file .env.prod up```
 
 ## Järgmised sammud
 

@@ -24,8 +24,7 @@ See ei ole toy project - see on päris minimaalne architecture, mis sarnaneb rea
 
 ## 1. Projekti Struktuur
 
-Looge selline failide struktuur:
-```
+Looge selline failide struktuur:```
 terraform-aws-homework/
 ├── main.tf
 ├── variables.tf
@@ -35,8 +34,7 @@ terraform-aws-homework/
 │   ├── server.js
 │   ├── package.json
 │   └── Dockerfile
-└── README.md
-```
+└── README.md```
 
 ---
 
@@ -44,8 +42,7 @@ terraform-aws-homework/
 
 Esmalt looge rakendus, mida deploy'ida.
 
-### app/package.json
-```json
+### app/package.json```json
 {
   "name": "todo-api",
   "version": "1.0.0",
@@ -56,11 +53,9 @@ Esmalt looge rakendus, mida deploy'ida.
   "scripts": {
     "start": "node server.js"
   }
-}
-```
+}```
 
-### app/server.js
-```javascript
+### app/server.js```javascript
 const express = require('express');
 const app = express();
 const PORT = 3000;
@@ -102,11 +97,9 @@ app.get('/health', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Todo API running on port ${PORT}`);
-});
-```
+});```
 
-### app/Dockerfile
-```dockerfile
+### app/Dockerfile```dockerfile
 FROM node:18-alpine
 
 WORKDIR /app
@@ -118,15 +111,13 @@ COPY server.js .
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
-```
+CMD ["npm", "start"]```
 
 ---
 
 ## 3. Terraform Konfiguratsioon
 
-### variables.tf
-```hcl
+### variables.tf```hcl
 variable "aws_region" {
   description = "AWS region"
   type        = string
@@ -147,17 +138,13 @@ variable "docker_image" {
   description = "Docker image name"
   type        = string
   default     = "todo-api"
-}
-```
+}```
 
-### terraform.tfvars
-```hcl
+### terraform.tfvars```hcl
 project_name = "nimi-projekti"  # MUUTKE OMA NIMEKS!
-my_ip        = "0.0.0.0/0"      # MUUTKE OMA IP'KS! (curl ifconfig.me)
-```
+my_ip        = "0.0.0.0/0"      # MUUTKE OMA IP'KS! (curl ifconfig.me)```
 
-### main.tf - VPC ja Võrk
-```hcl
+### main.tf - VPC ja Võrk```hcl
 terraform {
   required_version = ">= 1.0"
   
@@ -223,11 +210,9 @@ resource "aws_route_table" "public" {
 resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
-}
-```
+}```
 
-### main.tf - Security Group
-```hcl
+### main.tf - Security Group```hcl
 # Security Group
 resource "aws_security_group" "app" {
   name_prefix = "${var.project_name}-app-"
@@ -268,11 +253,9 @@ resource "aws_security_group" "app" {
   lifecycle {
     create_before_destroy = true
   }
-}
-```
+}```
 
-### main.tf - EC2 Instance
-```hcl
+### main.tf - EC2 Instance```hcl
 # SSH Key
 resource "aws_key_pair" "deployer" {
   key_name   = "${var.project_name}-key"
@@ -321,11 +304,9 @@ resource "aws_instance" "app" {
   tags = {
     Name = "${var.project_name}-app-server"
   }
-}
-```
+}```
 
-### outputs.tf
-```hcl
+### outputs.tf```hcl
 output "instance_public_ip" {
   description = "EC2 public IP"
   value       = aws_instance.app.public_ip
@@ -344,8 +325,7 @@ output "health_check" {
 output "ssh_command" {
   description = "SSH connection command"
   value       = "ssh -i ~/.ssh/id_rsa ec2-user@${aws_instance.app.public_ip}"
-}
-```
+}```
 
 ---
 
@@ -353,8 +333,7 @@ output "ssh_command" {
 
 ### 4.1 Lokaalne Testimine
 
-Enne AWS'i deploy'imist teste lokaalselt:
-```bash
+Enne AWS'i deploy'imist teste lokaalselt:```bash
 cd app/
 
 # Build Docker image
@@ -368,11 +347,9 @@ curl http://localhost:3000/health
 curl http://localhost:3000/todos
 
 # Stop konteiner
-docker stop $(docker ps -q --filter ancestor=todo-api)
-```
+docker stop $(docker ps -q --filter ancestor=todo-api)```
 
-### 4.2 Terraform Deploy
-```bash
+### 4.2 Terraform Deploy```bash
 # Initsialiseerige
 terraform init
 
@@ -380,15 +357,13 @@ terraform init
 terraform plan
 
 # Deploy
-terraform apply
-```
+terraform apply```
 
 ### 4.3 App Deploy Serverisse
 
 Terraform on loonud serveri, aga app pole veel seal. Teil on 3 võimalust:
 
-**Variant A: Manual Deploy (kõige lihtsam õppimiseks)**
-```bash
+**Variant A: Manual Deploy (kõige lihtsam õppimiseks)**```bash
 # SSH serverisse
 ssh -i ~/.ssh/id_rsa ec2-user@<PUBLIC_IP>
 
@@ -417,13 +392,11 @@ sudo docker run -d -p 3000:3000 --name todo-api --restart unless-stopped todo-ap
 
 # Kontrolli
 sudo docker ps
-curl localhost:3000/health
-```
+curl localhost:3000/health```
 
 **Variant B: GitHub Deploy (professionaalne)**
 
-Pange app kaust GitHubi ja muutke user_data:
-```bash
+Pange app kaust GitHubi ja muutke user_data:```bash
 #!/bin/bash
 # ...docker install...
 
@@ -431,8 +404,7 @@ cd /home/ec2-user
 git clone https://github.com/TEIE-USERNAME/terraform-aws-homework.git
 cd terraform-aws-homework/app
 docker build -t todo-api .
-docker run -d -p 3000:3000 --name todo-api --restart unless-stopped todo-api
-```
+docker run -d -p 3000:3000 --name todo-api --restart unless-stopped todo-api```
 
 **Variant C: S3 Deploy**
 
@@ -442,8 +414,7 @@ Upload app failid S3'i ja download user_data's.
 
 ## 5. Testimine
 
-Kui app jookseb, teste:
-```bash
+Kui app jookseb, teste:```bash
 # Health check
 curl http://<PUBLIC_IP>:3000/health
 
@@ -462,15 +433,13 @@ curl http://<PUBLIC_IP>:3000/todos
 curl -X DELETE http://<PUBLIC_IP>:3000/todos/3
 
 # Brauseris
-http://<PUBLIC_IP>:3000/todos
-```
+http://<PUBLIC_IP>:3000/todos```
 
 ---
 
 ## 6. README.md
 
-Kirjutage projekti dokumentatsioon. README.md peab sisaldama:
-```markdown
+Kirjutage projekti dokumentatsioon. README.md peab sisaldama:```markdown
 # Terraform AWS Docker Deployment
 
 ## Projekti Kirjeldus
@@ -491,43 +460,33 @@ Kirjutage projekti dokumentatsioon. README.md peab sisaldama:
 
 ## Seadistamine
 
-1. Clone repo:
-```bash
+1. Clone repo:```bash
 git clone <repo-url>
-cd terraform-aws-homework
-```
+cd terraform-aws-homework```
 
-2. Muuda `terraform.tfvars`:
-```hcl
+2. Muuda `terraform.tfvars`:```hcl
 project_name = "minu-nimi"
-my_ip        = "xxx.xxx.xxx.xxx/32"  # curl ifconfig.me
-```
+my_ip        = "xxx.xxx.xxx.xxx/32"  # curl ifconfig.me```
 
-3. Deploy:
-```bash
+3. Deploy:```bash
 terraform init
-terraform apply
-```
+terraform apply```
 
 4. Deploy app (vaata juhendit allpool)
 
 ## App Deployment
 [Täpsed sammud, kuidas te app'i deploy'isite]
 
-## Kasutamine
-```bash
+## Kasutamine```bash
 # API endpoint
 curl http://<IP>:3000/todos
 
 # Health check
-curl http://<IP>:3000/health
-```
+curl http://<IP>:3000/health```
 
 ## Cleanup
-**OLULINE!** Kustuta ressursid kulude vältimiseks:
-```bash
-terraform destroy
-```
+**OLULINE!** Kustuta ressursid kulude vältimiseks:```bash
+terraform destroy```
 
 ## Refleksioon
 
@@ -544,8 +503,7 @@ terraform destroy
 [Teie vastus 2-3 lauset]
 
 ### 5. Mis oli kõige huvitavam osa?
-[Teie vastus 2-3 lauset]
-```
+[Teie vastus 2-3 lauset]```
 
 ---
 
@@ -642,8 +600,7 @@ Lisa:
 
 ## Troubleshooting
 
-### App ei vasta port 3000'l
-```bash
+### App ei vasta port 3000'l```bash
 # SSH serverisse
 ssh -i ~/.ssh/id_rsa ec2-user@<IP>
 
@@ -657,25 +614,20 @@ sudo docker logs todo-api
 sudo netstat -tulpn | grep 3000
 
 # Restart container
-sudo docker restart todo-api
-```
+sudo docker restart todo-api```
 
-### Security Group blokeerib
-```bash
+### Security Group blokeerib```bash
 # Kontrolli security group rules AWS konsoolist
 # EC2 → Security Groups → terraform-...-app-sg
-# Peaks lubama port 3000 from 0.0.0.0/0
-```
+# Peaks lubama port 3000 from 0.0.0.0/0```
 
-### User Data skript ei käivitunud
-```bash
+### User Data skript ei käivitunud```bash
 # Vaata user data logi
 ssh ...
 sudo cat /var/log/cloud-init-output.log
 
 # Käivita käsitsi
-sudo bash /var/lib/cloud/instance/user-data.txt
-```
+sudo bash /var/lib/cloud/instance/user-data.txt```
 
 ---
 

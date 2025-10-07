@@ -24,8 +24,7 @@ Siin on kolm varianti. Vali üks, mida lab'is ei kasutanud.
 
 **Variant A: Go API**
 
-Loo töökaust ja failid. Main.go fail sisaldab lihtsaid HTTP endpoint'e:
-```go
+Loo töökaust ja failid. Main.go fail sisaldab lihtsaid HTTP endpoint'e:```go
 // main.go
 package main
 
@@ -52,19 +51,15 @@ func main() {
     http.HandleFunc("/hello", hello)
     // LISA VEEL 1 ENDPOINT (nt /info)
     http.ListenAndServe(":8080", nil)
-}
-```
+}```
 
-Go.mod fail defineerib mooduli:
-```go
+Go.mod fail defineerib mooduli:```go
 // go.mod
 module myapp
 
-go 1.21
-```
+go 1.21```
 
-Main_test.go fail sisaldab teste:
-```go
+Main_test.go fail sisaldab teste:```go
 // main_test.go
 package main
 
@@ -84,11 +79,9 @@ func TestHealth(t *testing.T) {
     }
 }
 
-// LISA TEST HELLO ENDPOINT'ILE
-```
+// LISA TEST HELLO ENDPOINT'ILE```
 
-Dockerfile multi-stage build'iga:
-```dockerfile
+Dockerfile multi-stage build'iga:```dockerfile
 # Dockerfile
 FROM golang:1.21-alpine AS builder
 WORKDIR /app
@@ -99,13 +92,11 @@ RUN go build -o main .
 FROM alpine:latest
 COPY --from=builder /app/main /main
 EXPOSE 8080
-CMD ["/main"]
-```
+CMD ["/main"]```
 
 **Variant B: Node.js API**
 
-App.js fail Express rakendusega:
-```javascript
+App.js fail Express rakendusega:```javascript
 // app.js
 const express = require('express');
 const app = express();
@@ -125,11 +116,9 @@ app.listen(PORT, () => {
     console.log(`Server running on ${PORT}`);
 });
 
-module.exports = app;
-```
+module.exports = app;```
 
-Package.json fail dependencies'ga:
-```json
+Package.json fail dependencies'ga:```json
 {
   "name": "myapp",
   "version": "1.0.0",
@@ -145,11 +134,9 @@ Package.json fail dependencies'ga:
     "jest": "^29.0.0",
     "supertest": "^6.3.0"
   }
-}
-```
+}```
 
-App.test.js fail testidega:
-```javascript
+App.test.js fail testidega:```javascript
 // app.test.js
 const request = require('supertest');
 const app = require('./app');
@@ -160,11 +147,9 @@ test('GET /health returns healthy', async () => {
     expect(res.body.status).toBe('healthy');
 });
 
-// LISA TEST HELLO ENDPOINT'ILE
-```
+// LISA TEST HELLO ENDPOINT'ILE```
 
-Dockerfile:
-```dockerfile
+Dockerfile:```dockerfile
 # Dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -173,13 +158,11 @@ RUN npm ci
 COPY . .
 RUN npm test
 EXPOSE 3000
-CMD ["npm", "start"]
-```
+CMD ["npm", "start"]```
 
 **Variant C: Python FastAPI**
 
-Main.py fail FastAPI rakendusega:
-```python
+Main.py fail FastAPI rakendusega:```python
 # main.py
 from fastapi import FastAPI
 
@@ -193,19 +176,15 @@ def health():
 def hello():
     return {"message": "Hello from FastAPI"}
 
-# LISA VEEL 1 ENDPOINT
-```
+# LISA VEEL 1 ENDPOINT```
 
-Requirements.txt fail:
-```
+Requirements.txt fail:```
 fastapi==0.104.0
 uvicorn==0.24.0
 httpx==0.25.0
-pytest==7.4.0
-```
+pytest==7.4.0```
 
-Test_main.py fail:
-```python
+Test_main.py fail:```python
 # test_main.py
 from fastapi.testclient import TestClient
 from main import app
@@ -217,11 +196,9 @@ def test_health():
     assert response.status_code == 200
     assert response.json() == {"status": "healthy"}
 
-# LISA TEST HELLO ENDPOINT'ILE
-```
+# LISA TEST HELLO ENDPOINT'ILE```
 
-Dockerfile:
-```dockerfile
+Dockerfile:```dockerfile
 # Dockerfile
 FROM python:3.11-slim
 WORKDIR /app
@@ -230,43 +207,34 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN pytest test_main.py
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]```
 
 ### Testimine Lokaalselt
 
-Go rakenduse testimine:
-```bash
+Go rakenduse testimine:```bash
 go run main.go
 # Teises terminalis:
 curl http://localhost:8080/health
-go test ./...
-```
+go test ./...```
 
-Node.js rakenduse testimine:
-```bash
+Node.js rakenduse testimine:```bash
 npm install
 npm start
 # Teises terminalis:
 curl http://localhost:3000/health
-npm test
-```
+npm test```
 
-Python rakenduse testimine:
-```bash
+Python rakenduse testimine:```bash
 pip install -r requirements.txt
 uvicorn main:app --reload
 # Teises terminalis:
 curl http://localhost:8000/health
-pytest
-```
+pytest```
 
-Docker testimine kõigi variantide jaoks:
-```bash
+Docker testimine kõigi variantide jaoks:```bash
 docker build -t myapp .
 docker run -p 8080:8080 myapp
-curl http://localhost:8080/health
-```
+curl http://localhost:8080/health```
 
 Kontrolli et rakendus töötab kohalikult, kõik testid läbivad ja Docker image ehitub ning töötab korrektselt.
 
@@ -321,8 +289,7 @@ Põhjendus (üks kuni kaks lauset): Kuidas see aitab rollback'i teha?
 
 ## 3. Pipeline'i Implementeerimine
 
-Loo fail .github/workflows/ci.yml:
-```yaml
+Loo fail .github/workflows/ci.yml:```yaml
 name: CI/CD Pipeline
 
 on:
@@ -380,8 +347,7 @@ jobs:
         run: |
           echo "Deploying $IMAGE_NAME"
           echo "SIMULATED DEPLOY - would run: docker pull $IMAGE_NAME"
-          echo "Deploy complete"
-```
+          echo "Deploy complete"```
 
 Oluline on asendada test käsud õigega vastavalt tehnoloogiale. Pipeline peab vastama sinu PIPELINE.md disainile. Kui valisid manual deploy, siis GitHub manual approve vajab environment protection rule'i Settings'is.
 
@@ -389,8 +355,7 @@ Oluline on asendada test käsud õigega vastavalt tehnoloogiale. Pipeline peab v
 
 ## 4. Dokumentatsioon
 
-Loo README.md fail:
-```markdown
+Loo README.md fail:```markdown
 # [Projekti Nimi]
 
 [![CI/CD](https://github.com/USERNAME/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/USERNAME/REPO/actions/workflows/ci.yml)
@@ -453,8 +418,7 @@ Lahendus: [Kuidas fiksisid]
 ### 3. Erinevused Lab'ist
 Küsimus: Mis oli kõige suurem erinevus selle pipeline'i ja lab'i pipeline'i vahel?
 
-[SINU VASTUS - tehnoloogia, konfiguratsioon, või muu? Põhjenda]
-```
+[SINU VASTUS - tehnoloogia, konfiguratsioon, või muu? Põhjenda]```
 
 ---
 
@@ -513,15 +477,12 @@ Vali üks variant boonuspunktide saamiseks (pluss kümme protsenti):
 
 ### Variant 1: Caching
 
-Lisa dependency caching pipeline'i:
-
-```yaml
+Lisa dependency caching pipeline'i:```yaml
 - name: Cache dependencies
   uses: actions/cache@v3
   with:
     path: # oleneb tehnoloogiast
-    key: ${{ runner.os }}-deps-${{ hashFiles('**/lockfile') }}
-```
+    key: ${{ runner.os }}-deps-${{ hashFiles('**/lockfile') }}```
 
 Põhjenda README's: Mida caching teeb ja miks aitab? Näita enne ja pärast aegasid.
 
@@ -553,13 +514,10 @@ Kontrolli järgmist:
 
 ### Test Stage Failib
 
-Debug järgmiselt:
-
-```bash
+Debug järgmiselt:```bash
 # Testi lokaalses samas image'is
 docker run -it [IMAGE] bash
-# Käivita samad käsud mis pipeline'is
-```
+# Käivita samad käsud mis pipeline'is```
 
 ### Build Stage Failib
 

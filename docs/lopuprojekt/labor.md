@@ -40,11 +40,9 @@ Vali 2 tööriista mida kasutad:
 - Terraform + Ansible
 - Kubernetes + Monitoring
 
-**Kirjuta üles:**
-```
+**Kirjuta üles:**```
 Minu valik: Git + Docker
-Miks: Tean neid juba ja saan kiiresti alustada
-```
+Miks: Tean neid juba ja saan kiiresti alustada```
 
 ---
 
@@ -67,16 +65,13 @@ Vali lihtne projekt:
 - Mis sind huvitab
 - Aga peab olema LIHTNE!
 
-**Kirjuta üles:**
-```
+**Kirjuta üles:**```
 Minu projekt: TODO list veebirakendus
-Mis see teeb: Kasutaja saab lisada ja kustutada ülesandeid
-```
+Mis see teeb: Kasutaja saab lisada ja kustutada ülesandeid```
 
 ---
 
-## 4. Loo GitHub Repository
-```bash
+## 4. Loo GitHub Repository```bash
 # Loo kaust
 mkdir lopuprojekt
 cd lopuprojekt
@@ -86,11 +81,9 @@ git init
 git branch -M main
 
 # Loo README
-nano README.md
-```
+nano README.md```
 
-Kirjuta README'sse:
-```markdown
+Kirjuta README'sse:```markdown
 # [Projekti Nimi]
 
 ## Mis see on?
@@ -110,19 +103,16 @@ Tuleb hiljem...
 
 - [ ] Kirjuta kood
 - [ ] Tee Dockerfile
-- [ ] Testa
-```
+- [ ] Testa```
 
-Salvesta: `Ctrl+O`, `Enter`, `Ctrl+X`
-```bash
+Salvesta: `Ctrl+O`, `Enter`, `Ctrl+X````bash
 # Tee esimene commit
 git add README.md
 git commit -m "Initial commit"
 
 # Loo GitHub'is uus repository ja siis:
 git remote add origin https://github.com/[sinu-nimi]/lopuprojekt.git
-git push -u origin main
-```
+git push -u origin main```
 
 **Kontrolli:**
 - [ ] Repository on GitHub'is
@@ -132,8 +122,7 @@ git push -u origin main
 
 ## 5. Tee Plaan
 
-Loo `PLAAN.md` fail:
-```markdown
+Loo `PLAAN.md` fail:```markdown
 # Projekti Plaan
 
 ## Nädal 1
@@ -161,13 +150,10 @@ Loo `PLAAN.md` fail:
 - [ ] Valmista ette esitlust
 
 ### Reede
-- [ ] Esitlus!
-```
-```bash
+- [ ] Esitlus!``````bash
 git add PLAAN.md
 git commit -m "Add project plan"
-git push
-```
+git push```
 
 ---
 
@@ -175,24 +161,19 @@ git push
 
 Nüüd on aeg alustada tööd:
 
-### Kui teed veebirakendust:
-```bash
+### Kui teed veebirakendust:```bash
 # Loo failid
 touch index.html
 touch style.css
-mkdir app
-```
+mkdir app```
 
-### Kui teed API't:
-```bash
+### Kui teed API't:```bash
 # Loo failid
 mkdir app
 touch app/server.js  # või app.py
-touch requirements.txt  # või package.json
-```
+touch requirements.txt  # või package.json```
 
-### Alusta lihtsalt!
-```html
+### Alusta lihtsalt!```html
 <!-- index.html näide -->
 <!DOCTYPE html>
 <html>
@@ -203,16 +184,13 @@ touch requirements.txt  # või package.json
     <h1>Tere!</h1>
     <p>See töötab!</p>
 </body>
-</html>
-```
+</html>```
 
-Testi: ava brauser ja ava `index.html`
-```bash
+Testi: ava brauser ja ava `index.html````bash
 # Commit
 git add .
 git commit -m "Add basic HTML"
-git push
-```
+git push```
 
 ---
 

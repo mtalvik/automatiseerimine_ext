@@ -43,8 +43,7 @@ Kujutage ette, et teil on veebirakendus, mis töötab Docker'i konteineris. Algu
 
 Kuid mis juhtub, kui teil on 100 serverit ja 1000 konteinerit? Kuidas tagada, et kui üks server kukub, teie rakendus jätkab tööd? Kuidas uuendada rakendust ilma katkestusteta? Praktikas tähendaks käsitsi haldamine, et te peaksite SSH'ga sisse logima igasse serverisse, kontrolli tegema millised konteinerid töötavad, käsitsi tasakaalustama koormat - see on võimatu ülesanne.
 
-Just neid probleeme lahendab Kubernetes automaatselt - see on nagu intelligentne orkestrijuht, kes tagab, et kõik konteinerid mängivad õiget meloodiat õigel ajal õiges kohas. Kui konteiner kukub, Kubernetes käivitab automaatselt uue. Kui server kukub, Kubernetes liigutab kõik konteinerid teistesse serveritesse.
-```mermaid
+Just neid probleeme lahendab Kubernetes automaatselt - see on nagu intelligentne orkestrijuht, kes tagab, et kõik konteinerid mängivad õiget meloodiat õigel ajal õiges kohas. Kui konteiner kukub, Kubernetes käivitab automaatselt uue. Kui server kukub, Kubernetes liigutab kõik konteinerid teistesse serveritesse.```mermaid
 graph LR
     subgraph "Enne: Käsitsi Haldamine"
         D1[Docker Server 1]
@@ -64,8 +63,7 @@ graph LR
         K -->|Automaatne| N1
         K -->|Automaatne| N2
         K -->|Automaatne| N3
-    end
-```
+    end```
 
 ### Kubernetes vs Docker
 
@@ -97,8 +95,7 @@ Allikas: https://www.redhat.com/en/topics/containers/what-is-kubernetes
 
 ## 2. Kubernetes'i Põhikontseptsioonid
 
-### Klaster ja Node'id
-```mermaid
+### Klaster ja Node'id```mermaid
 graph TB
     subgraph "Control Plane (Master Node)"
         API[API Server]
@@ -136,8 +133,7 @@ graph TB
     style Pod1 fill:#f0f0f0
     style Pod2 fill:#f0f0f0
     style Pod3 fill:#f0f0f0
-    style Pod4 fill:#f0f0f0
-```
+    style Pod4 fill:#f0f0f0```
 
 Kubernetes **klaster** koosneb vähemalt ühest Control Plane node'ist (vanem nimetus Master) ja mitmest Worker node'ist. 
 
@@ -145,8 +141,7 @@ Control Plane on nagu ajurakk - seal toimub kogu otsustamine, planeerimine ja j�
 
 Iga node on füüsiline või virtuaalne server, millel töötab Kubernetes'i tarkvara. Node võib olla väike 2-core virtuaalmasin või 128-core füüsiline server - Kubernetes ei hooli, kuni node'il on piisavalt ressursse.
 
-Minimaalne produktsiooni klaster vajab vähemalt 3 Control Plane node'i (kõrge käideldavuse jaoks) ja 2+ Worker node'i. Kolm Control Plane node'i tagab, et kui üks kukub, on alati kahe node'i konsensus otsuste tegemiseks - see on distributed systems'i tavaline pattern (quorum).
-```yaml
+Minimaalne produktsiooni klaster vajab vähemalt 3 Control Plane node'i (kõrge käideldavuse jaoks) ja 2+ Worker node'i. Kolm Control Plane node'i tagab, et kui üks kukub, on alati kahe node'i konsensus otsuste tegemiseks - see on distributed systems'i tavaline pattern (quorum).```yaml
 # Lihtne näide: kuidas vaadata oma klasteri node'e
 kubectl get nodes
 
@@ -154,8 +149,7 @@ kubectl get nodes
 NAME                STATUS   ROLES           AGE   VERSION
 master-node-1       Ready    control-plane   30d   v1.28.0
 worker-node-1       Ready    <none>          30d   v1.28.0
-worker-node-2       Ready    <none>          30d   v1.28.0
-```
+worker-node-2       Ready    <none>          30d   v1.28.0```
 
 ### Pod - Väikseim Üksus Kubernetes'is
 
@@ -167,8 +161,7 @@ Pod võib sisaldada ühte või mitut konteinerit, kuid praktikas on tavaliselt �
 
 Miks mitte lihtsalt kasutada konteinereid otse? Pod annab meile abstraktsiooni kihi - Kubernetes ei pea teadma, kas kasutate Docker'it, containerd'i või midagi muud. Pod on Kubernetes'i "keel", mitte Docker või containerd.
 
-Samuti võimaldab pod lisada kõrvalmahuteid (sidecar containers) logimiseks või monitoorimiseks. Näiteks võib teil olla rakenduse konteiner ja teine konteiner mis kogub logisid ning saadab need Elasticsearch'i - mõlemad pod'is, kuid erinevad kohustused.
-```yaml
+Samuti võimaldab pod lisada kõrvalmahuteid (sidecar containers) logimiseks või monitoorimiseks. Näiteks võib teil olla rakenduse konteiner ja teine konteiner mis kogub logisid ning saadab need Elasticsearch'i - mõlemad pod'is, kuid erinevad kohustused.```yaml
 # Lihtne Pod definitsioon
 apiVersion: v1
 kind: Pod
@@ -181,13 +174,11 @@ spec:
   - name: nginx
     image: nginx:latest
     ports:
-    - containerPort: 80
-```
+    - containerPort: 80```
 
 Allikas: https://www.geeksforgeeks.org/devops/kubernetes-pods/
 
-### Deployment - Deklaratiivne Rakenduse Haldamine
-```mermaid
+### Deployment - Deklaratiivne Rakenduse Haldamine```mermaid
 graph TD
     Deploy[Deployment<br/>replicas: 3]
     RS[ReplicaSet<br/>ensures 3 pods]
@@ -212,8 +203,7 @@ graph TD
     style Pod2 fill:#a8dadc
     style Pod3 fill:#a8dadc
     style Pod1X fill:#ff6b6b,color:#fff
-    style Pod1New fill:#51cf66
-```
+    style Pod1New fill:#51cf66```
 
 **Deployment** on Kubernetes'i võimas kontseptsioon, mis hoiab teie rakenduse soovitud olekus. 
 
@@ -221,8 +211,7 @@ Te ütlete "ma tahan 3 koopiat oma rakendusest" ja Kubernetes tagab, et need 3 k
 
 Kui uuendate rakendust, teeb Deployment seda järk-järgult (rolling update), tagades null downtime'i. Näiteks kui teil on 10 pod'i ja uuendate versiooni, siis Kubernetes kustutab 2 vana pod'i, loob 2 uut, ootab et need valmis saaksid, siis kustutab järgmised 2 - kunagi ei ole kõik pod'id maas.
 
-See on nagu autopiloot lennukis - te määrate sihtkoha, Kubernetes viib teid sinna. Ja kui midagi läheb valesti (näiteks uus versioon crashib), saate rollback'i teha ühe käsuga.
-```yaml
+See on nagu autopiloot lennukis - te määrate sihtkoha, Kubernetes viib teid sinna. Ja kui midagi läheb valesti (näiteks uus versioon crashib), saate rollback'i teha ühe käsuga.```yaml
 # Deployment näide - hoiab alati 3 pod'i töös
 apiVersion: apps/v1
 kind: Deployment
@@ -249,8 +238,7 @@ spec:
             cpu: "250m"
           limits:
             memory: "128Mi"
-            cpu: "500m"
-```
+            cpu: "500m"```
 
 ---
 
@@ -268,8 +256,7 @@ Control Plane koosneb viiest põhikomponendist, millest igaüks täidab spetsiif
 
 **etcd** on hajutatud võti-väärtus andmebaas, kus hoitakse kogu klasteri konfiguratsiooni. Iga Deployment, Service, ConfigMap - kõik on etcd's. etcd kasutab Raft consensus algoritmi, et tagada andmete järjepidevus mitme node'i vahel - kui üks etcd kukub, töötavad teised edasi.
 
-**Cloud Controller Manager** suhtleb pilveteenuse pakkujaga (AWS, Azure, GCP). Näiteks kui loote Load Balancer tüüpi Service, siis Cloud Controller Manager räägib AWS'iga, et luua päris AWS Load Balancer.
-```mermaid
+**Cloud Controller Manager** suhtleb pilveteenuse pakkujaga (AWS, Azure, GCP). Näiteks kui loote Load Balancer tüüpi Service, siis Cloud Controller Manager räägib AWS'iga, et luua päris AWS Load Balancer.```mermaid
 graph TB
     subgraph "Control Plane"
         API[API Server]
@@ -292,8 +279,7 @@ graph TB
     API --> CCM
     API <--> KUBELET
     KUBELET --> CONTAINER
-    PROXY --> CONTAINER
-```
+    PROXY --> CONTAINER```
 
 | Komponent | Ülesanne | Töötab |
 |-----------|----------|--------|
@@ -337,8 +323,7 @@ Scheduler märkab uusi pod'e, millel pole määratud node'i, ja otsustab, kuhu n
 
 Kubelet vastaval node'il saab teate uuest pod'ist ja käivitab konteinerid. Kubelet räägib container runtime'iga: "tõmba nginx:1.21 image ja käivita see". Runtime tõmbab image (kui seda veel ei ole), loob konteineri ja käivitab.
 
-Kogu see protsess võtab tavaliselt paar sekundit ja on täielikult automatiseeritud. Kõik see juhtub ilma et te peaks käsitsi midagi SSH'ga tegema.
-```bash
+Kogu see protsess võtab tavaliselt paar sekundit ja on täielikult automatiseeritud. Kõik see juhtub ilma et te peaks käsitsi midagi SSH'ga tegema.```bash
 # Praktiline näide: deployment'i loomine
 kubectl apply -f deployment.yaml
 
@@ -349,8 +334,7 @@ kubectl get pods -w
 kubectl describe deployment veebileht-deployment
 
 # Vaata logisid
-kubectl logs -f deployment/veebileht-deployment
-```
+kubectl logs -f deployment/veebileht-deployment```
 
 ---
 
@@ -366,8 +350,7 @@ Pod'idel on dünaamilised IP aadressid - iga kord kui pod taaskäivitub, saab ta
 
 Kubernetes'is on neli service tüüpi:
 - ClusterIP (vaikimisi, ainult klasteri sees), NodePort (avab pordi igal node'il), LoadBalancer (loob välise koormusjaoturi pilves) ja ExternalName (DNS alias välisele teenusele). ClusterIP on kõige levinum
-- see loob sisemise IP aadressi, mis on kättesaadav ainult klastri seest.
-```yaml
+- see loob sisemise IP aadressi, mis on kättesaadav ainult klastri seest.```yaml
 # Service näide
 apiVersion: v1
 kind: Service
@@ -379,8 +362,7 @@ spec:
   ports:
   - port: 80        # Service port
     targetPort: 80  # Pod'i port
-  type: ClusterIP   # Ainult klasteri sees
-```
+  type: ClusterIP   # Ainult klasteri sees```
 
 | Service Tüüp | Kasutus | Ligipääs |
 |--------------|---------|----------|
@@ -415,8 +397,7 @@ Service'id on head klasteri sees, kuid kuidas pääseda ligi väljast?
 
 See on nagu intelligentne väravavaht - vaatab, mida külaline küsib, ja suunab ta õigesse kohta. Näiteks `api.example.com` võib suunata backend Service'ile ja `www.example.com` frontend Service'ile - kõik ühe Ingress'i kaudu.
 
-Ingress võimaldab ka SSL/TLS terminatsiooni, virtuaalhostide tuge ja URL-põhist marsruutimist. SSL sertifikaadid hoitakse Secret'ites ja Ingress Controller kasutab neid HTTPS ühenduste jaoks.
-```yaml
+Ingress võimaldab ka SSL/TLS terminatsiooni, virtuaalhostide tuge ja URL-põhist marsruutimist. SSL sertifikaadid hoitakse Secret'ites ja Ingress Controller kasutab neid HTTPS ühenduste jaoks.```yaml
 # Ingress näide
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -433,8 +414,7 @@ spec:
           service:
             name: veebileht-service
             port:
-              number: 80
-```
+              number: 80```
 
 Allikas: https://kubernetes.io/docs/concepts/services-networking/ingress/
 
@@ -450,8 +430,7 @@ Allikas: https://kubernetes.io/docs/concepts/services-networking/ingress/
 
 **Secrets** on sarnased ConfigMap'idega, kuid mõeldud tundlike andmete jaoks nagu paroolid või API võtmed. Kubernetes salvestab Secret'id base64 kodeeritult ja piirab neile ligipääsu. Oluline: base64 EI OLE krüpteerimine - see on lihtsalt kodeerimine. Reaalse turvalisuse jaoks peaksite kasutama external secrets manageri nagu HashiCorp Vault.
 
-Mõlemad saab mount'ida pod'i kas keskkonna muutujatena või failidena. Keskkonnamuutujad on head lühikeste stringide jaoks, failid on paremad konfiguratsioonifailide jaoks (näiteks nginx.conf).
-```yaml
+Mõlemad saab mount'ida pod'i kas keskkonna muutujatena või failidena. Keskkonnamuutujad on head lühikeste stringide jaoks, failid on paremad konfiguratsioonifailide jaoks (näiteks nginx.conf).```yaml
 # ConfigMap näide
 apiVersion: v1
 kind: ConfigMap
@@ -491,8 +470,7 @@ spec:
       valueFrom:
         secretKeyRef:
           name: app-secret
-          key: password
-```
+          key: password```
 
 | Ressurss | Kasutus | Turvalisus | Mount Meetod |
 |----------|---------|------------|--------------|
@@ -509,8 +487,7 @@ Konteinerid on loomult ajutised - kui konteiner taaskäivitub, kaob kogu data.
 
 Kubernetes leiab sobiva PV ja seob need kokku. Dynamic provisioning'uga loob Kubernetes isegi PV automaatselt kui PVC luuakse - näiteks pilves võib see automaatselt luua AWS EBS volume.
 
-See on nagu üürikorteri otsimine - te esitate nõuded (PVC), ja Kubernetes leiab sobiva korteri (PV). StorageClass määrab millist tüüpi salvestust luua (SSD, HDD, network storage).
-```yaml
+See on nagu üürikorteri otsimine - te esitate nõuded (PVC), ja Kubernetes leiab sobiva korteri (PV). StorageClass määrab millist tüüpi salvestust luua (SSD, HDD, network storage).```yaml
 # PersistentVolumeClaim näide
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -522,8 +499,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: fast-ssd
-```
+  storageClassName: fast-ssd```
 
 | Access Mode | Tähendus | Kasutus |
 |-------------|----------|---------|
@@ -547,8 +523,7 @@ See loob ühe-node'i klasteri virtuaalmasinas või Docker'is, võimaldades teil 
 
 Installimine on lihtne ja töötab Windows'il, macOS'il ja Linux'il. Minikube toetab erinevaid driver'eid: VirtualBox, Docker, Hyperkit, KVM - valige see, mis teie süsteemile sobib.
 
-Minikube on ideaalne õppimiseks ja arenduseks, kuid mitte produktsiooniks. See on disainitud ühele masindele ja ei toeta high availability't või real clustering'ut.
-```bash
+Minikube on ideaalne õppimiseks ja arenduseks, kuid mitte produktsiooniks. See on disainitud ühele masindele ja ei toeta high availability't või real clustering'ut.```bash
 # Minikube installimine (Linux)
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 sudo install minikube-linux-amd64 /usr/local/bin/minikube
@@ -563,8 +538,7 @@ minikube status
 minikube dashboard
 
 # Lisa ingress
-minikube addons enable ingress
-```
+minikube addons enable ingress```
 
 Allikas: https://minikube.sigs.k8s.io/docs/start/
 
@@ -578,8 +552,7 @@ See on nagu kaugjuhtimispult teie klasteri jaoks - saate luua, muuta, kustutada 
 
 Kõige kasulikumad käsud on `get` (näita ressursse), `describe` (detailne info), `logs` (vaata logisid), `exec` (käivita käsk pod'is) ja `apply` (rakenda muudatusi). Need viis käsku moodustavad 90% igapäevasest kubectl kasutusest.
 
-kubectl'i õppimine on Kubernetes'i kasutamise alus. kubectl config hoitakse failis `~/.kube/config` ja see sisaldab infot kuidas ühenduda klastriga - API serveri aadress, sertifikaadid, kasutaja credentials.
-```bash
+kubectl'i õppimine on Kubernetes'i kasutamise alus. kubectl config hoitakse failis `~/.kube/config` ja see sisaldab infot kuidas ühenduda klastriga - API serveri aadress, sertifikaadid, kasutaja credentials.```bash
 # Põhilised kubectl käsud
 kubectl get pods                    # Näita kõiki pod'e
 kubectl get pods -o wide            # Detailne vaade
@@ -587,15 +560,13 @@ kubectl describe pod nginx-pod      # Täielik info pod'i kohta
 kubectl logs nginx-pod              # Vaata pod'i logisid
 kubectl exec -it nginx-pod -- bash  # Mine pod'i sisse
 kubectl apply -f deployment.yaml    # Rakenda konfiguratsioon
-kubectl delete pod nginx-pod        # Kustuta pod
-```
+kubectl delete pod nginx-pod        # Kustuta pod```
 
 Allikas: https://www.geeksforgeeks.org/devops/kubernetes-kubectl/
 
 ### Esimene Deployment
 
-Loome nüüd päris deployment'i, mis käitab lihtsat veebirakendust.
-```mermaid
+Loome nüüd päris deployment'i, mis käitab lihtsat veebirakendust.```mermaid
 graph LR
     USER[ Kasutaja]
     
@@ -623,15 +594,13 @@ graph LR
     style SERVICE fill:#ff6b6b,color:#fff
     style POD1 fill:#13aa52,color:#fff
     style POD2 fill:#13aa52,color:#fff
-    style POD3 fill:#13aa52,color:#fff
-```
+    style POD3 fill:#13aa52,color:#fff```
 
 See deployment loob 3 pod'i, igaüks nginx konteineriga, ja tagab, et nad alati töötavad. Kui kustutate pod'i, loob Kubernetes automaatselt uue. Resource requests ja limits tagavad, et pod ei võta liiga palju või liiga vähe ressursse - scheduler kasutab neid otsustamaks kuhu pod paigutada.
 
 See on Kubernetes'i võlu - deklaratiivne lähenemine, kus te ütlete, mida tahate, mitte kuidas seda teha. Service type LoadBalancer Minikube'is ei loo päris load balancer'it (nagu AWS's), vaid Minikube emuleerib seda.
 
-Proovige muuta replicate arvu või container image'i versiooni ja vaadake, kuidas Kubernetes teeb rolling update'i. Rolling update käivitab uued pod'id enne kui vanad kustutatakse - zero downtime.
-```yaml
+Proovige muuta replicate arvu või container image'i versiooni ja vaadake, kuidas Kubernetes teeb rolling update'i. Rolling update käivitab uued pod'id enne kui vanad kustutatakse - zero downtime.```yaml
 # deployment.yaml - salvestage see fail
 apiVersion: apps/v1
 kind: Deployment
@@ -671,9 +640,7 @@ spec:
   ports:
   - port: 80
     targetPort: 80
-  type: LoadBalancer
-```
-```bash
+  type: LoadBalancer``````bash
 # Rakenda deployment
 kubectl apply -f deployment.yaml
 
@@ -684,8 +651,7 @@ kubectl get pods -w
 kubectl scale deployment minu-veebirakendus --replicas=5
 
 # Testi teenuse ligipääsu (Minikube'is)
-minikube service veebirakendus-service
-```
+minikube service veebirakendus-service```
 
 ---
 
@@ -693,16 +659,14 @@ minikube service veebirakendus-service
 
 Kui midagi läheb valesti (ja see juhtub PALJU), on oluline osata kiirelt probleemi leida!
 
-### Pod ei käivitu - Mis on viga?
-```bash
+### Pod ei käivitu - Mis on viga?```bash
 # 1. Vaata pod'i staatust
 kubectl get pods
 
 # Väljund:
 # NAME                      READY   STATUS             RESTARTS
 # myapp-xxx                 0/1     ImagePullBackOff   0
-# myapp-yyy                 0/1     CrashLoopBackOff   3
-```
+# myapp-yyy                 0/1     CrashLoopBackOff   3```
 
 **Levinud STATUS'ed ja tähendused:**
 
@@ -716,8 +680,7 @@ kubectl get pods
 
 `Pending` võib tähendada, et ükski node ei vasta pod'i nõudmistele - võib-olla pole piisavalt ressursse või node selector ei klapi. `ImagePullBackOff` on tavaliselt typo image nimes või puuduv imagePullSecret. `CrashLoopBackOff` tähendab et Kubernetes proovib restart'ida, aga konteiner crashib iga kord - see on restart'i backoff algoritm.
 
-### Describe - Detailne info
-```bash
+### Describe - Detailne info```bash
 # Vaata pod'i detaile
 kubectl describe pod myapp-xxx
 
@@ -726,13 +689,11 @@ kubectl describe pod myapp-xxx
 #   Type     Reason     Message
 #   ----     ------     -------
 #   Warning  Failed     Error: ImagePullBackOff
-#   Warning  Failed     Back-off pulling image "myapp:v99"
-```
+#   Warning  Failed     Back-off pulling image "myapp:v99"```
 
 **Events** sektsioonis on KÕIK probleemid näha! Events on ajalises järjekorras ja näitavad täpselt mis juhtus. Kui näete "Back-off restarting failed container", siis vaadake eelmisi event'e mis selle põhjustas.
 
-### Logs - Mida rakendus ütleb?
-```bash
+### Logs - Mida rakendus ütleb?```bash
 # Vaata pod'i logi
 kubectl logs myapp-xxx
 
@@ -746,21 +707,17 @@ kubectl logs -f myapp-xxx
 kubectl logs --tail=50 myapp-xxx
 
 # Vaata crashinud pod'i eelmist logi
-kubectl logs myapp-xxx --previous
-```
+kubectl logs myapp-xxx --previous```
 
-**Näide log väljund:**
-```
+**Näide log väljund:**```
 Traceback (most recent call last):
   File "app.py", line 10
     DATABASE_URL = os.environ['DB_URL']
-KeyError: 'DB_URL'
-```
+KeyError: 'DB_URL'```
 
 **Probleem:** puudub environment variable! `--previous` on hädavajalik kui pod crashib kohe startup'il - enne kui jõuate logisid vaadata, on pod juba restart'inud ja vanad logid on kadunud.
 
-### Exec - Logi pod'i sisse
-```bash
+### Exec - Logi pod'i sisse```bash
 # Logi pod'i sisse (nagu SSH)
 kubectl exec -it myapp-xxx -- /bin/sh
 
@@ -776,24 +733,20 @@ ping database-service
 curl http://api-service:8080/health
 
 # Välja logimine
-exit
-```
+exit```
 
 Exec on võimas debugging tool - te saate vaadata täpselt mida konteiner näeb. Kas failid on õiges kohas? Kas DNS töötab? Kas environment variable'id on õiged?
 
-### Port Forward - Testi otse
-```bash
+### Port Forward - Testi otse```bash
 # Forward port localhost:8080 -> pod:80
 kubectl port-forward pod/myapp-xxx 8080:80
 
 # Nüüd saad testida:
-curl http://localhost:8080
-```
+curl http://localhost:8080```
 
 Port forward on ideaalne kui Service ei tööta - te saate testida pod'i otse, mööda minnes Service'ist ja Ingress'ist. Kui port forward töötab aga Service mitte, siis probleem on Service'is.
 
-### Service troubleshooting
-```bash
+### Service troubleshooting```bash
 # Kontrolli service'i
 kubectl get svc
 
@@ -803,15 +756,13 @@ kubectl describe svc myapp-service
 # Endpoints - millised pod'id on service taga?
 kubectl get endpoints myapp-service
 
-# Kui endpoints on tühi, siis selector ei klapi!
-```
+# Kui endpoints on tühi, siis selector ei klapi!```
 
 Endpoints on seos Service ja Pod'ide vahel. Kui endpoints on tühi, tähendab see et Service ei leia ühtegi pod'i, mis vastab selector'ile - kontrollige kas label'id klapivad.
 
 ### Levinud probleemid ja lahendused
 
-**Probleem 1: "ImagePullBackOff"**
-```bash
+**Probleem 1: "ImagePullBackOff"**```bash
 # Kontrolli:
 kubectl describe pod myapp-xxx | grep -A 5 "Failed"
 
@@ -819,11 +770,9 @@ kubectl describe pod myapp-xxx | grep -A 5 "Failed"
 # - Kas image nimi on õige?
 # - Kas tag eksisteerib?
 # - Kas Docker Hub/registry on kättesaadav?
-# - Kas on vaja autentimist? (imagePullSecrets)
-```
+# - Kas on vaja autentimist? (imagePullSecrets)```
 
-**Probleem 2: "CrashLoopBackOff"**
-```bash
+**Probleem 2: "CrashLoopBackOff"**```bash
 # Vaata logi:
 kubectl logs myapp-xxx --previous
 
@@ -831,11 +780,9 @@ kubectl logs myapp-xxx --previous
 # - Rakendus crashib startup'il
 # - Puudub vajalik env variable
 # - Database pole kättesaadav
-# - Config fail on vale
-```
+# - Config fail on vale```
 
-**Probleem 3: "Service ei tööta"**
-```bash
+**Probleem 3: "Service ei tööta"**```bash
 # Kontrolli endpoints:
 kubectl get endpoints myapp-service
 
@@ -848,13 +795,11 @@ kubectl describe svc myapp-service | grep Selector
 kubectl get pods
 
 # 3. Kas port on õige?
-kubectl describe svc myapp-service | grep -A 3 "Port"
-```
+kubectl describe svc myapp-service | grep -A 3 "Port"```
 
 Label mismatch on üks kõige levinumaid vigu - Service selector on `app: myapp`, aga pod'il on `app: my-app` (sidekriipsuga). Kubernetes on case-sensitive ja täpne.
 
-**Probleem 4: "Ei saa pod'ist logida"**
-```bash
+**Probleem 4: "Ei saa pod'ist logida"**```bash
 # Kontrolli, kas pod töötab:
 kubectl get pods
 
@@ -862,8 +807,7 @@ kubectl get pods
 kubectl logs myapp-xxx --previous
 
 # Kui pod ei eksisteeri:
-kubectl get pods --all-namespaces
-```
+kubectl get pods --all-namespaces```
 
 ### Debug checklist
 
@@ -878,8 +822,7 @@ Kui midagi ei tööta, mine läbi see järjekord:
 
 See checklist katab 95% probleemidest. Kui nende sammudega ei leia lahendust, siis võib probleem olla keerulisem - võrgu policies, RBAC õigused, node probleemid.
 
-### Kasulikud käsud
-```bash
+### Kasulikud käsud```bash
 # Kõik ressursid korraga
 kubectl get all
 
@@ -903,8 +846,7 @@ kubectl top nodes
 kubectl top pods
 
 # Clusteri info
-kubectl cluster-info
-```
+kubectl cluster-info```
 
 `kubectl top` vajab metrics-server'it - Minikube'is saate selle lubada `minikube addons enable metrics-server`. Rollout history näitab kõiki eelmisi revisione - saate valida täpselt millisele versioonile tagasi minna.
 

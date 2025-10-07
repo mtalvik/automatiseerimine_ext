@@ -172,16 +172,14 @@ Traditsiooniline veebirakendus koosneb kolmest põhikihist: frontend (kasutajali
 - CI/CD pipeline testib ja deploy'ib automaatselt
 - Monitoring jälgib latency't ja error rate'e
 
-**Näide Arhitektuurist:**
-```
+**Näide Arhitektuurist:**```
 [Kasutaja] → [Load Balancer] → [Frontend Pod'id]
                                       ↓
                             [Backend API Pod'id]
                                       ↓
                             [Database Service]
                                       ↓
-                            [Persistent Volume]
-```
+                            [Persistent Volume]```
 
 Frontend pod'id serveerivad staatilist sisu, backend pod'id töötlevad API päringuid, database service pakub püsivat salvestust läbi persistent volume'i.
 
@@ -259,8 +257,7 @@ Komponentide kirjeldus peaks sisaldama:
 
 **Tehniliste Otsuste Dokumenteerimine:**
 
-Iga oluline tehniline valik vajab dokumenteerimist Architecture Decision Record (ADR) formaadis:
-```
+Iga oluline tehniline valik vajab dokumenteerimist Architecture Decision Record (ADR) formaadis:```
 ## Otsus: PostgreSQL kui Primaarset Andmebaas
 
 **Kontekst:**
@@ -284,8 +281,7 @@ Valime PostgreSQL'i.
 **Tagajärjed:**
 - Vajame PostgreSQL ekspertiisi meeskonnas
 - Backup strateegia peab arvestama WAL'iga
-- Replication seadistamine on keerulisem kui MongoDB'l
-```
+- Replication seadistamine on keerulisem kui MongoDB'l```
 
 ### Arenduse Faas
 
@@ -305,8 +301,7 @@ Git workflow peaks olema struktureeritud:
 - Pull request'id läbivad code review'
 - Merge toimub alles peale testide läbimist
 
-Commit messages peaksid olema kirjeldavad:
-```
+Commit messages peaksid olema kirjeldavad:```
 feat: Lisa Prometheus monitoring support
 
 - Configura /metrics endpoint
@@ -314,21 +309,18 @@ feat: Lisa Prometheus monitoring support
 - Lisab custom business metrics
 - Dokumenteerib saadaolevad metrics README's
 
-Closes #42
-```
+Closes #42```
 
 **Testimise Strateegiad:**
 
-Testide püramiid näitab, kui palju milliseid teste peaks olema:
-```
+Testide püramiid näitab, kui palju milliseid teste peaks olema:```
         /\
        /E2E\          Vähe - aeglased, haaravad
       /------\
      /Integr.\       Mõõdukalt - komponendid koos
     /----------\
    /Unit Tests \     Palju - kiired, isoleeritud
-  /--------------\
-```
+  /--------------\```
 
 Unit testid kontrollivad üksikuid funktsioone, integration testid kontrollivad komponentide koostööd, end-to-end testid kontrollivad tervet süsteemi kasutaja perspektiivist.
 
@@ -370,8 +362,7 @@ Demo ajal võib tekkida tehnilisi probleeme. Varuplaan:
 
 README on projekti esimene kontaktpunkt. Selle kvaliteet mõjutab kogu projekti tajutavat professionaalsust.
 
-**Minimaalselt Vajalik Sisu:**
-```markdown
+**Minimaalselt Vajalik Sisu:**```markdown
 # Projekti Nimi
 
 Ühe lause kirjeldus, mis selgitab projekti eesmärki.
@@ -426,8 +417,7 @@ npm test
 \`\`\`
 
 ## License
-[License info]
-```
+[License info]```
 
 ### Arhitektuuri Dokumentatsiooni Standard
 
@@ -435,8 +425,7 @@ Arhitektuuridokument selgitab süsteemi struktuuri ja põhjendab disainiotsuseid
 
 **Komponendid Üksikasjad:**
 
-Iga suurem komponent vajab kirjeldust:
-```markdown
+Iga suurem komponent vajab kirjeldust:```markdown
 ### Frontend Service
 
 **Tehnoloogiad:** React 18, TypeScript, Vite
@@ -454,13 +443,11 @@ Iga suurem komponent vajab kirjeldust:
 
 **Health Check:**
 - Readiness: `GET /health`
-- Liveness: `GET /`
-```
+- Liveness: `GET /````
 
 **Andmevoo Dokumenteerimine:**
 
-Andmevoo diagramm näitab kuidas info liigub läbi süsteemi:
-```
+Andmevoo diagramm näitab kuidas info liigub läbi süsteemi:```
 User Request
     ↓
 [Load Balancer]
@@ -475,8 +462,7 @@ User Request
     ↓ (Query)
 [Database Master]
     ↓ (Replication)
-[Database Replica]
-```
+[Database Replica]```
 
 Iga noole juurde peaks kirjeldama:
 
@@ -488,8 +474,7 @@ Iga noole juurde peaks kirjeldama:
 
 Deployment guide peab võimaldama reprodutseeritavat deployment'i nullist working state'ini.
 
-**Keskkonna Ettevalmistus:**
-```markdown
+**Keskkonna Ettevalmistus:**```markdown
 ## Keskkonna Seadistamine
 
 ### 1. Cloud Provider Setup
@@ -536,8 +521,7 @@ aws eks update-kubeconfig --name production-cluster
 kubectl get nodes
 \`\`\`
 
-Peaks näitama 3 node'i Ready state'is.
-```
+Peaks näitama 3 node'i Ready state'is.```
 
 ---
 
@@ -559,29 +543,24 @@ Tähtsam on test coverage kvaliteet:
 
 **Linting ja Code Style:**
 
-Automaatne linting tagab ühtse code style'i:
-```yaml
+Automaatne linting tagab ühtse code style'i:```yaml
 # .eslintrc.yml näide
 rules:
   indent: [error, 2]
   quotes: [error, single]
   semi: [error, always]
   no-unused-vars: error
-  no-console: warn
-```
+  no-console: warn```
 
-Pre-commit hook'id jõustavad neid reegleid:
-```bash
+Pre-commit hook'id jõustavad neid reegleid:```bash
 # .git/hooks/pre-commit
 #!/bin/sh
 npm run lint
-npm run test
-```
+npm run test```
 
 **Dependency Management:**
 
-Dependency vulnerabilities on tõsine turvaoht. Automaatne skaneerimine:
-```yaml
+Dependency vulnerabilities on tõsine turvaoht. Automaatne skaneerimine:```yaml
 # Dependabot config
 version: 2
 updates:
@@ -589,15 +568,13 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 10
-```
+    open-pull-requests-limit: 10```
 
 ### Infrastruktuuri Kvaliteedi Mõõtmine
 
 **Terraform Kvaliteedikontroll:**
 
-Terraform kood peaks järgima best practices:
-```hcl
+Terraform kood peaks järgima best practices:```hcl
 # Hea: Kasuta module'eid reusability jaoks
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -611,19 +588,15 @@ module "vpc" {
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
   # ... 50 rida konfiguratsioon
-}
-```
+}```
 
-Terraform validation:
-```bash
+Terraform validation:```bash
 terraform fmt -check     # Kontrolli formatting
 terraform validate       # Kontrolli syntax
 tflint                   # Linting
-tfsec                    # Security scanning
-```
+tfsec                    # Security scanning```
 
-**Kubernetes Manifest'ide Kvaliteet:**
-```yaml
+**Kubernetes Manifest'ide Kvaliteet:**```yaml
 # Hea: Resource limits määratud
 apiVersion: v1
 kind: Pod
@@ -638,15 +611,12 @@ spec:
         memory: "512Mi"
         cpu: "500m"
 
-# Halb: Limitid puuduvad (võib consumeerida kogu node)
-```
+# Halb: Limitid puuduvad (võib consumeerida kogu node)```
 
-Kubernetes manifest validation:
-```bash
+Kubernetes manifest validation:```bash
 kubectl apply --dry-run=client -f manifest.yaml
 kubeval manifest.yaml
-kube-score manifest.yaml
-```
+kube-score manifest.yaml```
 
 ### Dokumentatsiooni Kvaliteedi Mõõtmine
 
@@ -662,8 +632,7 @@ Checklist hea README jaoks:
 
 **API Dokumentatsiooni Standard:**
 
-OpenAPI/Swagger spetsifikatsioon peaks olema genereeritud koodist, mitte käsitsi kirjutatud:
-```javascript
+OpenAPI/Swagger spetsifikatsioon peaks olema genereeritud koodist, mitte käsitsi kirjutatud:```javascript
 // Code comment becomes API documentation
 /**
  * @swagger
@@ -680,8 +649,7 @@ OpenAPI/Swagger spetsifikatsioon peaks olema genereeritud koodist, mitte käsits
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-app.get('/users', getUsers);
-```
+app.get('/users', getUsers);```
 
 ---
 
@@ -713,8 +681,7 @@ Komponentide integreerimine on sage pain point. Lokaalselt töötab kõik, aga k
 
 **API Contract Testing:**
 
-Consumer-driven contract testing tagab, et provider ja consumer on sync'is:
-```javascript
+Consumer-driven contract testing tagab, et provider ja consumer on sync'is:```javascript
 // Consumer defineerib mida ta ootab
 describe('User API contract', () => {
   it('returns user with expected fields', async () => {
@@ -723,15 +690,13 @@ describe('User API contract', () => {
     expect(response).toHaveProperty('email');
     expect(response).toHaveProperty('name');
   });
-});
-```
+});```
 
 Provider käivitab need testid oma koodis veendumaks, et ta täidab contract'i.
 
 **Service Mesh'id:**
 
-Service mesh (nt Istio, Linkerd) abstraheerib networking'u service-to-service communication jaoks:
-```yaml
+Service mesh (nt Istio, Linkerd) abstraheerib networking'u service-to-service communication jaoks:```yaml
 # Istio VirtualService - traffic routing
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
@@ -752,8 +717,7 @@ spec:
   - route:
     - destination:
         host: reviews
-        subset: v1  # Teised näevad v1
-```
+        subset: v1  # Teised näevad v1```
 
 ### State Management Issues
 
@@ -761,8 +725,7 @@ Terraform state on critiline - selle kaotamine või corruption tähendab, et Ter
 
 **Remote State Backend:**
 
-Kasuta remote state backend'i alati:
-```hcl
+Kasuta remote state backend'i alati:```hcl
 terraform {
   backend "s3" {
     bucket         = "my-terraform-state"
@@ -771,11 +734,9 @@ terraform {
     dynamodb_table = "terraform-locks"  # State locking
     encrypt        = true
   }
-}
-```
+}```
 
-DynamoDB table state locking jaoks ennetab concurrent modifications:
-```hcl
+DynamoDB table state locking jaoks ennetab concurrent modifications:```hcl
 resource "aws_dynamodb_table" "terraform_locks" {
   name         = "terraform-locks"
   billing_mode = "PAY_PER_REQUEST"
@@ -785,20 +746,17 @@ resource "aws_dynamodb_table" "terraform_locks" {
     name = "LockID"
     type = "S"
   }
-}
-```
+}```
 
 **State Backup:**
 
-Automatiseeri state backup:
-```bash
+Automatiseeri state backup:```bash
 #!/bin/bash
 # backup-terraform-state.sh
 DATE=$(date +%Y%m%d-%H%M%S)
 aws s3 cp \
   s3://my-terraform-state/production/terraform.tfstate \
-  s3://my-terraform-state-backups/production/terraform.tfstate.$DATE
-```
+  s3://my-terraform-state-backups/production/terraform.tfstate.$DATE```
 
 ### Monitoring Blind Spots
 
@@ -813,8 +771,7 @@ Google SRE raamat defineerib 4 golden signals:
 3. **Errors** - Kui palju request'e failib?
 4. **Saturation** - Kui täis on süsteemi ressursid?
 
-Prometheus queries nende jaoks:
-```promql
+Prometheus queries nende jaoks:```promql
 # Latency (95th percentile)
 histogram_quantile(0.95, 
   rate(http_request_duration_seconds_bucket[5m]))
@@ -827,8 +784,7 @@ rate(http_requests_total{status=~"5.."}[5m]) /
 rate(http_requests_total[5m])
 
 # Saturation (CPU usage)
-100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
-```
+100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)```
 
 **Alert Fatigue:**
 
@@ -837,8 +793,7 @@ Liiga palju alert'e on sama halb kui mitte ühtegi - inimesed hakkavad ignoreeri
 Alert'ide põhimõtted:
 - Alert ainult actionable problems korral
 - Alert severity järgi urgency't (critical, warning, info)
-- Dokumenteeri iga alert'i runbook'is "mida teha?"
-```yaml
+- Dokumenteeri iga alert'i runbook'is "mida teha?"```yaml
 # Prometheus AlertManager rule
 groups:
 - name: example
@@ -849,8 +804,7 @@ groups:
     annotations:
       summary: "High error rate detected"
       description: "Error rate is {{ $value }}%"
-      runbook: "https://wiki.company.com/runbooks/high-error-rate"
-```
+      runbook: "https://wiki.company.com/runbooks/high-error-rate"```
 
 ---
 

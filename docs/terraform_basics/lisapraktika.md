@@ -24,8 +24,7 @@ Pärast lisapraktikat oskate:
 
 ##  Count ja For_Each
 
-### Count - Lihtne Loop
-```hcl
+### Count - Lihtne Loop```hcl
 # Loo 5 faili
 resource "local_file" "logs" {
   count    = 5
@@ -33,11 +32,9 @@ resource "local_file" "logs" {
   content  = "Log file #${count.index}"
 }
 
-# Access: local_file.logs[0], local_file.logs[1], ...
-```
+# Access: local_file.logs[0], local_file.logs[1], ...```
 
-### For_Each - Map-Based
-```hcl
+### For_Each - Map-Based```hcl
 variable "users" {
   type = map(object({
     role  = string
@@ -57,8 +54,7 @@ resource "local_file" "user_configs" {
     role     = each.value.role
     email    = each.value.email
   })
-}
-```
+}```
 
 ### Ülesanne 1: Dünaamiline Infrastructure
 
@@ -71,8 +67,7 @@ Loo Terraform kood, mis genereerib:
 
 ##  Data Sources
 
-### Existing Resources
-```hcl
+### Existing Resources```hcl
 # Leia olemasolev fail
 data "local_file" "existing" {
   filename = "path/to/existing.txt"
@@ -82,11 +77,9 @@ data "local_file" "existing" {
 resource "local_file" "derived" {
   filename = "derived.txt"
   content  = "Based on: ${data.local_file.existing.content}"
-}
-```
+}```
 
-### External Data
-```hcl
+### External Data```hcl
 data "external" "git_info" {
   program = ["bash", "-c", <<-EOT
     echo "{\"commit\":\"$(git rev-parse HEAD)\",\"branch\":\"$(git branch --show-current)\"}"
@@ -101,24 +94,20 @@ resource "local_file" "build_info" {
     branch = data.external.git_info.result.branch
     time   = timestamp()
   })
-}
-```
+}```
 
 ---
 
 ##  Terraform Functions
 
-### String Functions
-```hcl
+### String Functions```hcl
 locals {
   upper_env = upper(var.environment)     # "PROD"
   formatted = format("app-%s-%03d", var.env, var.instance)  # "app-dev-001"
   joined    = join("-", ["web", "server", var.region])      # "web-server-eu"
-}
-```
+}```
 
-### Collection Functions
-```hcl
+### Collection Functions```hcl
 variable "ports" {
   default = [80, 443, 8080]
 }
@@ -132,11 +121,9 @@ locals {
   
   # Transform
   port_strings = [for p in var.ports : tostring(p)]
-}
-```
+}```
 
-### Map/Object Functions
-```hcl
+### Map/Object Functions```hcl
 locals {
   defaults = {
     region = "eu-west-1"
@@ -153,8 +140,7 @@ locals {
   
   # Lookup with default
   timeout = lookup(var.settings, "timeout", 30)
-}
-```
+}```
 
 ### Ülesanne 2: Dynamic Configuration Generator
 
@@ -167,8 +153,7 @@ Loo Terraform kood, mis:
 
 ##  Conditional Logic
 
-### Count Tricks
-```hcl
+### Count Tricks```hcl
 variable "create_backup" {
   type    = bool
   default = false
@@ -178,11 +163,9 @@ resource "local_file" "backup" {
   count    = var.create_backup ? 1 : 0
   filename = "backup.txt"
   content  = "Backup enabled"
-}
-```
+}```
 
-### Conditional Expressions
-```hcl
+### Conditional Expressions```hcl
 locals {
   environment = var.env == "prod" ? "production" : "development"
   
@@ -191,11 +174,9 @@ locals {
     var.env == "prod" ? "ERROR" :
     "INFO"
   )
-}
-```
+}```
 
-### Dynamic Blocks
-```hcl
+### Dynamic Blocks```hcl
 variable "enable_https" {
   type = bool
 }
@@ -210,13 +191,11 @@ resource "something" "example" {
       key_path  = "/path/to/key"
     }
   }
-}
-```
+}```
 
 ---
 
-##  Real-World Scenario: Web Stack
-```hcl
+##  Real-World Scenario: Web Stack```hcl
 # variables.tf
 variable "environments" {
   type = map(object({
@@ -264,8 +243,7 @@ output "upstreams" {
       "server-${env}-${i}"
     ]
   }
-}
-```
+}```
 
 ### Ülesanne 3: Multi-Environment Setup
 
@@ -277,8 +255,7 @@ Loo terraform projekt, mis genereerib:
 
 ---
 
-##  Lifecycle Rules
-```hcl
+##  Lifecycle Rules```hcl
 resource "local_file" "important" {
   filename = "important.txt"
   content  = var.content
@@ -293,15 +270,13 @@ resource "local_file" "important" {
     # Loo uus enne vana kustutamist
     create_before_destroy = true
   }
-}
-```
+}```
 
 ---
 
 ##  Modules Advanced
 
-### Module with Conditional Resources
-```hcl
+### Module with Conditional Resources```hcl
 # modules/webserver/main.tf
 variable "enable_monitoring" {
   type    = bool
@@ -328,11 +303,9 @@ module "web_dev" {
 module "web_prod" {
   source            = "./modules/webserver"
   enable_monitoring = true
-}
-```
+}```
 
-### Module Outputs as Inputs
-```hcl
+### Module Outputs as Inputs```hcl
 module "network" {
   source = "./modules/network"
 }
@@ -340,8 +313,7 @@ module "network" {
 module "servers" {
   source     = "./modules/servers"
   network_id = module.network.network_id  # Chaining!
-}
-```
+}```
 
 ---
 
@@ -349,8 +321,7 @@ module "servers" {
 
 **Ülesanne:** Loo "Infrastructure as Data" generaator
 
-**Input** (`infrastructure.yaml`):
-```yaml
+**Input** (`infrastructure.yaml`):```yaml
 projects:
   - name: web-app
     environments:
@@ -369,8 +340,7 @@ projects:
             replicas: 3
           - name: db
             port: 5432
-            replicas: 2
-```
+            replicas: 2```
 
 **Output:** Terraform genereerib:
 - Directory structure

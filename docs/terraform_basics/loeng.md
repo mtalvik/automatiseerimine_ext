@@ -86,13 +86,11 @@ HashiCorp Configuration Language (HCL) on Terraform'i konfiguratsioonikeel, mis 
 
 HCL koosneb blokkidest, argumentidest ja avaldistest. Plokk algab võtmesõnaga, millele järgnevad sildid ja looksulud. Ploki sees on argumendid, mis määravad selle ploki omadused. Näiteks ressursi plokk kirjeldab infrastruktuuri komponenti, mida soovite luua.
 
-Ressursi definitsioon algab võtmesõnaga `resource`, millele järgnevad kaks stringi: ressursi tüüp ja kohalik nimi. Ressursi tüüp määrab, mis liiki ressursiga on tegemist (näiteks `local_file`), ja kohalik nimi on teie valitud identifikaator, mida saate kasutada viitamiseks teistes kohtades. Ploki sees määrate argumendid, mis konfigureerivad seda konkreetset ressurssi.
-```hcl
+Ressursi definitsioon algab võtmesõnaga `resource`, millele järgnevad kaks stringi: ressursi tüüp ja kohalik nimi. Ressursi tüüp määrab, mis liiki ressursiga on tegemist (näiteks `local_file`), ja kohalik nimi on teie valitud identifikaator, mida saate kasutada viitamiseks teistes kohtades. Ploki sees määrate argumendid, mis konfigureerivad seda konkreetset ressurssi.```hcl
 resource "local_file" "example" {
   content  = "Hello, Terraform!"
   filename = "${path.module}/example.txt"
-}
-```
+}```
 
 Selles näites loome kohaliku faili. Argument `content` määrab faili sisu ja `filename` määrab kuhu see salvestada. `path.module` on sisseehitatud muutuja, mis viitab praeguse mooduli asukohale.
 
@@ -100,8 +98,7 @@ Selles näites loome kohaliku faili. Argument `content` määrab faili sisu ja `
 
 Muutujad võimaldavad teha konfiguratsioonist dünaamilise. Selle asemel et kirjutada väärtusi otse koodi, saate need defineerida muutujatena ja anda väärtused eraldi failist või käsurea kaudu. See võimaldab sama koodi kasutada erinevates keskkondades, muutes ainult muutujate väärtusi.
 
-Muutuja definitsioon sisaldab tüüpi, vaikeväärtust ja kirjeldust. Tüüp võib olla lihtne (string, number, bool) või keerukas (list, map, object). Vaikeväärtus on oluline, kui te ei anna muutujale väärtust teisest allikast. Kirjeldus aitab teistel mõista, mida see muutuja teeb.
-```hcl
+Muutuja definitsioon sisaldab tüüpi, vaikeväärtust ja kirjeldust. Tüüp võib olla lihtne (string, number, bool) või keerukas (list, map, object). Vaikeväärtus on oluline, kui te ei anna muutujale väärtust teisest allikast. Kirjeldus aitab teistel mõista, mida see muutuja teeb.```hcl
 variable "environment" {
   description = "Deployment environment (development, staging, production)"
   type        = string
@@ -111,28 +108,23 @@ variable "environment" {
     condition     = contains(["development", "staging", "production"], var.environment)
     error_message = "Environment must be one of: development, staging, production."
   }
-}
-```
+}```
 
 Validatsioon võimaldab kontrollida, et muutuja väärtus vastab teie nõuetele. Selles näites lubame ainult kolme spetsiifilist väärtust. Kui keegi proovib kasutada mõnda muud väärtust, annab Terraform veateate juba planeerimise faasis.
 
-Väljundid on viis jagada informatsiooni pärast infrastruktuuri loomist. Näiteks kui loote serveri, tahate tõenäoliselt teada selle IP aadressi. Väljund võimaldab selle väärtuse kuvada pärast `terraform apply` või kasutada seda teistes moodulites.
-```hcl
+Väljundid on viis jagada informatsiooni pärast infrastruktuuri loomist. Näiteks kui loote serveri, tahate tõenäoliselt teada selle IP aadressi. Väljund võimaldab selle väärtuse kuvada pärast `terraform apply` või kasutada seda teistes moodulites.```hcl
 output "file_path" {
   description = "Path to the created file"
   value       = local_file.example.filename
-}
-```
+}```
 
 ### Avaldised ja funktsioonid
 
-HCL toetab mitmesuguseid avaldisi ja funktsioone, mis võimaldavad dünaamilist konfiguratsiooni. Ternary operator võimaldab tingimuslikku loogikat: `condition ? true_value : false_value`. See on kasulik, kui vajate erinevaid väärtusi sõltuvalt keskkonnast või teistest tingimustest.
-```hcl
+HCL toetab mitmesuguseid avaldisi ja funktsioone, mis võimaldavad dünaamilist konfiguratsiooni. Ternary operator võimaldab tingimuslikku loogikat: `condition ? true_value : false_value`. See on kasulik, kui vajate erinevaid väärtusi sõltuvalt keskkonnast või teistest tingimustest.```hcl
 resource "local_file" "config" {
   content = var.environment == "production" ? "prod_config" : "dev_config"
   filename = "${path.module}/config.txt"
-}
-```
+}```
 
 Sisseehitatud funktsioonid pakuvad võimsaid töötlusvõimalusi. `jsonencode` ja `yamlencode` konverteerivad Terraform'i objekte JSON või YAML vormingusse. `file` funktsioon loeb faili sisu. `concat` ja `merge` võimaldavad nimekirju ja mape kombineerida. `lookup` otsib väärtust mapist vaikeväärtusega.
 
@@ -142,17 +134,14 @@ Stringide interpolatsioon võimaldab dünaamiliselt ehitada stringe, kombineerid
 
 Terraform võimaldab luua mitut sarnast ressurssi kahe erineva lähenemisega: `count` ja `for_each`. Count on lihtsam, kasutades numbrilist indeksit, samas kui for_each on võimsam, lubades itereerida üle mapide või setide.
 
-Count kasutamisel viitate konkreetsele instantsile `count.index` kaudu, mis on nullist algav täisarv. See on hea, kui vajate kindlat arvu sarnaseid ressursse ja järjekord ei ole oluline.
-```hcl
+Count kasutamisel viitate konkreetsele instantsile `count.index` kaudu, mis on nullist algav täisarv. See on hea, kui vajate kindlat arvu sarnaseid ressursse ja järjekord ei ole oluline.```hcl
 resource "local_file" "example" {
   count    = 3
   content  = "File number ${count.index}"
   filename = "${path.module}/file_${count.index}.txt"
-}
-```
+}```
 
-For_each on paindlikum, võimaldades kasutada nii mape kui sette. Viitate praegusele elemendile `each.key` ja `each.value` kaudu, mis teeb koodi loetavamaks ja haldatavamaks. For_each on eelistatud, kui ressursside identiteet on oluline või kui võite vajada ressursse hiljem eemaldada keskel.
-```hcl
+For_each on paindlikum, võimaldades kasutada nii mape kui sette. Viitate praegusele elemendile `each.key` ja `each.value` kaudu, mis teeb koodi loetavamaks ja haldatavamaks. For_each on eelistatud, kui ressursside identiteet on oluline või kui võite vajada ressursse hiljem eemaldada keskel.```hcl
 variable "files" {
   type = map(string)
   default = {
@@ -166,8 +155,7 @@ resource "local_file" "files" {
   for_each = var.files
   content  = each.value
   filename = "${path.module}/${each.key}.txt"
-}
-```
+}```
 
 ---
 

@@ -23,16 +23,13 @@ Soovitatav ajakava: 0-30 min (rakenduse loomine), 30-60 min (Dockerfile), 60-90 
 
 ## 2. Flask API Loomine
 
-### 2.1 Töökaust
-```bash
+### 2.1 Töökaust```bash
 mkdir docker-chatbot
-cd docker-chatbot
-```
+cd docker-chatbot```
 
 ### 2.2 Python Rakendus
 
-Looge fail `app.py`:
-```python
+Looge fail `app.py`:```python
 from flask import Flask, render_template, request, jsonify
 import random
 import datetime
@@ -78,16 +75,12 @@ def stats():
     })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
-```
+    app.run(host='0.0.0.0', port=5000, debug=False)```
 
 ### 2.3 HTML Template
 
-Looge kaust ja fail `templates/index.html`:
-```bash
-mkdir templates
-```
-```html
+Looge kaust ja fail `templates/index.html`:```bash
+mkdir templates``````html
 <!DOCTYPE html>
 <html lang="et">
 <head>
@@ -231,24 +224,20 @@ mkdir templates
         }
     </script>
 </body>
-</html>
-```
+</html>```
 
 Asendage `[TEIE NIMI]` oma nimega.
 
 ### 2.4 Requirements
 
-Looge fail `requirements.txt`:
-```
-Flask==3.0.0
-```
+Looge fail `requirements.txt`:```
+Flask==3.0.0```
 
 ---
 
 ## 3. Dockerfile Loomine
 
-Looge fail `Dockerfile`:
-```dockerfile
+Looge fail `Dockerfile`:```dockerfile
 FROM python:3.11-alpine
 
 WORKDIR /app
@@ -263,8 +252,7 @@ USER appuser
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
-```
+CMD ["python", "app.py"]```
 
 Dockerfile selgitus:
 - `python:3.11-alpine` - väike base image
@@ -277,24 +265,18 @@ Dockerfile selgitus:
 
 ## 4. Ehitamine ja Testimine
 
-### 4.1 Image Ehitamine
-```bash
-docker build -t chatbot-app .
-```
+### 4.1 Image Ehitamine```bash
+docker build -t chatbot-app .```
 
-### 4.2 Container Käivitamine
-```bash
-docker run -d --name chatbot -p 5000:5000 chatbot-app
-```
+### 4.2 Container Käivitamine```bash
+docker run -d --name chatbot -p 5000:5000 chatbot-app```
 
-### 4.3 Testimine
-```bash
+### 4.3 Testimine```bash
 # API testimine
 curl http://localhost:5000/api/stats
 
 # Brauseris
-echo "Avage: http://localhost:5000"
-```
+echo "Avage: http://localhost:5000"```
 
 Proovige chat bot'iga rääkida - sisestage "tere", "kuidas", "kes".
 
@@ -302,8 +284,7 @@ Proovige chat bot'iga rääkida - sisestage "tere", "kuidas", "kes".
 
 ## 5. Docker Compose
 
-Looge fail `docker-compose.yml`:
-```yaml
+Looge fail `docker-compose.yml`:```yaml
 version: '3.8'
 
 services:
@@ -322,11 +303,9 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - chatbot
-```
+      - chatbot```
 
-Looge fail `nginx.conf`:
-```nginx
+Looge fail `nginx.conf`:```nginx
 events {
     worker_connections 1024;
 }
@@ -345,13 +324,10 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
         }
     }
-}
-```
+}```
 
-Käivitage:
-```bash
-docker-compose up -d
-```
+Käivitage:```bash
+docker-compose up -d```
 
 Nüüd töötab nginx reverse proxy port 80 peal: `http://localhost`
 
@@ -363,22 +339,18 @@ Nüüd töötab nginx reverse proxy port 80 peal: `http://localhost`
 
 Looge konto: https://hub.docker.com (tasuta, kinnitage email)
 
-### 6.2 Login
-```bash
+### 6.2 Login```bash
 docker login
-# Sisestage username ja password
-```
+# Sisestage username ja password```
 
-### 6.3 Tag ja Push
-```bash
+### 6.3 Tag ja Push```bash
 # Tag image oma username'iga
 docker tag chatbot-app [teie-username]/chatbot-app:latest
 docker tag chatbot-app [teie-username]/chatbot-app:v1.0
 
 # Push Docker Hub'i (public repository)
 docker push [teie-username]/chatbot-app:latest
-docker push [teie-username]/chatbot-app:v1.0
-```
+docker push [teie-username]/chatbot-app:v1.0```
 
 Asendage `[teie-username]` oma Docker Hub username'iga.
 
@@ -390,8 +362,7 @@ Docker Hub'is:
 3. Tehke repository **Public**
 4. Lisage kirjeldus: "Docker homework - Chat bot API"
 
-### 6.5 Public Image Testimine
-```bash
+### 6.5 Public Image Testimine```bash
 # Kustutage local image
 docker rmi chatbot-app
 docker rmi [teie-username]/chatbot-app:latest
@@ -403,15 +374,13 @@ docker pull [teie-username]/chatbot-app:latest
 docker run -d --name public-chatbot -p 5001:5000 [teie-username]/chatbot-app:latest
 
 # Test
-curl http://localhost:5001/api/stats
-```
+curl http://localhost:5001/api/stats```
 
 ---
 
 ## 7. README.md Kirjutamine
 
-Looge fail `README.md` järgmise struktuuriga:
-```markdown
+Looge fail `README.md` järgmise struktuuriga:```markdown
 # Docker Chat Bot
 
 Lihtne chat bot Docker container'is, mis demonstreerib Docker põhiteadmisi.
@@ -432,21 +401,17 @@ Flask-põhine chat bot, mis vastab lihtsatele küsimustele. Demonstreerib:
 
 ### Lokaalselt
 
-\
-```bash
+\```bash
 docker run -d -p 5000:5000 [username]/chatbot-app:latest
-\
-```
+\```
 
 Avage: http://localhost:5000
 
 ### Docker Compose
 
-\
-```bash
+\```bash
 docker-compose up -d
-\
-```
+\```
 
 Avage: http://localhost
 
@@ -465,8 +430,7 @@ Avage: http://localhost
 
 ## Docker Hub
 
-Image: https://hub.docker.com/r/[username]/chatbot-app
-```
+Image: https://hub.docker.com/r/[username]/chatbot-app```
 
 ---
 
@@ -498,8 +462,7 @@ Mis oli selle projekti juures kõige meeldivam või huvitavam?
 
 ## Esitamine
 
-### 9.1 Repository Struktuur
-```
+### 9.1 Repository Struktuur```
 docker-chatbot/
 ├── app.py
 ├── requirements.txt
@@ -509,13 +472,11 @@ docker-chatbot/
 ├── nginx.conf
 ├── templates/
 │   └── index.html
-└── README.md
-```
+└── README.md```
 
 ### 9.2 .dockerignore
 
-Looge fail `.dockerignore`:
-```
+Looge fail `.dockerignore`:```
 __pycache__/
 *.pyc
 *.pyo
@@ -524,8 +485,7 @@ __pycache__/
 .env
 venv/
 .vscode/
-.idea/
-```
+.idea/```
 
 ### 9.3 Esitamise Viis
 
@@ -581,11 +541,9 @@ venv/
 
 ## Boonus (Valikuline, +10%)
 
-### 10.1 Health Check
-```dockerfile
+### 10.1 Health Check```dockerfile
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:5000/api/stats || exit 1
-```
+  CMD curl -f http://localhost:5000/api/stats || exit 1```
 
 ### 10.2 Multi-Stage Build
 
@@ -593,14 +551,12 @@ Optimeerige Dockerfile'i kasutades multi-stage build'i.
 
 ### 10.3 Environment Variables
 
-Lisage `.env` fail ja kasutage environment variable'eid:
-```yaml
+Lisage `.env` fail ja kasutage environment variable'eid:```yaml
 services:
   chatbot:
     environment:
       - BOT_NAME=${BOT_NAME:-DefaultBot}
-      - DEBUG=${DEBUG:-False}
-```
+      - DEBUG=${DEBUG:-False}```
 
 ### 10.4 Monitoring
 

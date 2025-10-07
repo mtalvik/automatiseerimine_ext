@@ -11,10 +11,8 @@
 
 Õpi kuidas automatiseerida servereid, hallata kontainereid ja luua CI/CD pipeline'e nagu päris DevOps insenerid. Kursus on 70% praktika, 30% teooria - õpid tehes!
 
-### Mida õpid?
-```
-Git → Ansible → Docker → Terraform → Kubernetes → CI/CD → Lõpuprojekt
-```
+### Mida õpid?```
+Git → Ansible → Docker → Terraform → Kubernetes → CI/CD → Lõpuprojekt```
 
 - **Git & GitHub** - versioonihaldus ja meeskonnatöö
 - **Docker** - konteinerite loomine ja orkestratsioon
@@ -69,14 +67,12 @@ Git → Ansible → Docker → Terraform → Kubernetes → CI/CD → Lõpuproje
 
 ## Vajalikud tööriistad
 
-Paigalda need enne kursuse algust:
-```bash
+Paigalda need enne kursuse algust:```bash
 # Kontrolli kas on installitud
 git --version
 docker --version
 # VÕI
-podman --version
-```
+podman --version```
 
 **Kohustuslikud:**
 
@@ -100,8 +96,7 @@ podman --version
 
 ---
 
-## Projekti struktuur
-```
+## Projekti struktuur```
 automatiseerimine_ext/
 │
 ├── git/                    # Moodul 1: Git versioonihaldus
@@ -119,8 +114,7 @@ automatiseerimine_ext/
 ├── terraform_advanced/     # Moodul 8: Terraform edasijõudnud
 ├── kubernetes/             # Moodul 9: Kubernetes
 ├── ci_cd/                  # Moodul 10: CI/CD pipeline'id
-└── lopuprojekt/            # Moodul 11: Lõpuprojekt
-```
+└── lopuprojekt/            # Moodul 11: Lõpuprojekt```
 
 ---
 
@@ -150,21 +144,16 @@ automatiseerimine_ext/
 
 ## Kuidas alustada?
 
-### 1. Klooni repositoorium
-```bash
+### 1. Klooni repositoorium```bash
 git clone https://github.com/mtalvik/automatiseerimine-2025
-cd automatiseerimine-2025
-```
+cd automatiseerimine-2025```
 
-### 2. Alusta esimesest moodulist
-```bash
+### 2. Alusta esimesest moodulist```bash
 cd git
 cat loeng.md  # Loe teooria
-cat labor.md  # Tee praktika
-```
+cat labor.md  # Tee praktika```
 
-### 3. Tee oma repositoorium
-```bash
+### 3. Tee oma repositoorium```bash
 # Loo oma kursuse repositoorium
 mkdir automatiseerimine-[sinu-nimi]
 cd automatiseerimine-[sinu-nimi]
@@ -177,16 +166,13 @@ git commit -m "Initial commit"
 
 # Loo GitHub'is repo ja push
 git remote add origin https://github.com/[sinu-kasutaja]/automatiseerimine-[nimi].git
-git push -u origin main
-```
+git push -u origin main```
 
-### 4. Tee nädala töö
-```
+### 4. Tee nädala töö```
 Esmaspäev   → Loe loeng.md
 Kolmapäev   → Tee labor.md klassis
 Reede       → Esita kodutoo.md
-Nädalavahetus → (Valikuline) lisapraktika.md
-```
+Nädalavahetus → (Valikuline) lisapraktika.md```
 
 ---
 

@@ -21,8 +21,7 @@ Pärast seda loengut:
 
 Te olete kirjutanud koodi. Testinud. Töötab teie arvutis. Nüüd peab see jõudma kasutajateni. Kuidas see täpsemalt käib?
 
-Vaatame klassikalist pilti, mida nähakse paljudes ettevõtetes tänapäevalgi. Arendaja kirjutab koodi nädalaid, siis tuleb "release day". Kõik on stressis. Operations tiim saab ZIP faili emailiga või Slack'is. Keegi peab käsitsi serverisse logima, failid õigesse kohta panema, teenused restartima. Midagi läheb valesti. Pooled ööd debugitakse. Järgmine päev tehakse "hotfix", mis läheb samuti käsitsi tootmisse. Ring kordub.
-```mermaid
+Vaatame klassikalist pilti, mida nähakse paljudes ettevõtetes tänapäevalgi. Arendaja kirjutab koodi nädalaid, siis tuleb "release day". Kõik on stressis. Operations tiim saab ZIP faili emailiga või Slack'is. Keegi peab käsitsi serverisse logima, failid õigesse kohta panema, teenused restartima. Midagi läheb valesti. Pooled ööd debugitakse. Järgmine päev tehakse "hotfix", mis läheb samuti käsitsi tootmisse. Ring kordub.```mermaid
 graph LR
     A[Arendaja<br/>kirjutab koodi<br/>2 nädalat] --> B[Email: ZIP fail]
     B --> C[Ops tiim<br/>logib SSH'iga]
@@ -33,13 +32,11 @@ graph LR
     
     style D fill:#ff6b6b
     style E fill:#ff6b6b
-    style F fill:#ffd93d
-```
+    style F fill:#ffd93d```
 
 See ei ole efektiivne. See ei ole turvaline. See ei skaleeru. Ja mis kõige hullem - see on igav ning stressirohke töö, mis ei peaks üldse eksisteerima.
 
-CI/CD on vastus küsimusele: kuidas viia kood arendaja käest kasutajani nii, et inimesed saaksid keskenduda huvitavale tööle, mitte käsitsi failide kopeerimisele?
-```mermaid
+CI/CD on vastus küsimusele: kuidas viia kood arendaja käest kasutajani nii, et inimesed saaksid keskenduda huvitavale tööle, mitte käsitsi failide kopeerimisele?```mermaid
 graph LR
     A[git push] --> B[Auto build]
     B --> C[Auto test]
@@ -49,8 +46,7 @@ graph LR
     style B fill:#51cf66
     style C fill:#51cf66
     style D fill:#51cf66
-    style E fill:#4dabf7
-```
+    style E fill:#4dabf7```
 
 ### Miks on see Oluline?
 
@@ -66,8 +62,7 @@ Continuous Integration tähendab, et arendajad integreerivad oma koodi jagatud r
 
 Kõlab lihtsalt, aga mõelge mis see tähendab. Traditsioonilises arenduses võivad arendajad töötada eraldi branch'ides nädalaid või kuid. Kui nad lõpuks oma koodi kokku viivad, tekib integratsiooni põrgu. Merge konfliktid, ühildumatud muudatused, keegi muutis API'd mida teine kasutab. Kõik läheb katki ja kulub päevi asjade parandamiseks.
 
-CI lähenemine on teistmoodi. Kui integreerite sagedasti, siis iga muudatus on väike. Väikesi muudatusi on lihtne debugida. Kui midagi läheb katki, tead täpselt milline commit selle põhjustas. Ei pea otsima nädalate kaupa koodi läbi, et leida kus probleem tekkis.
-```mermaid
+CI lähenemine on teistmoodi. Kui integreerite sagedasti, siis iga muudatus on väike. Väikesi muudatusi on lihtne debugida. Kui midagi läheb katki, tead täpselt milline commit selle põhjustas. Ei pea otsima nädalate kaupa koodi läbi, et leida kus probleem tekkis.```mermaid
 graph TD
     subgraph "TRADITSIOONILINE (Integration Hell)"
         T1[Dev A<br/>töötab 2 nädalat] --> T2[Dev B<br/>töötab 2 nädalat]
@@ -86,8 +81,7 @@ graph TD
     
     style T4 fill:#ff6b6b
     style T5 fill:#ff6b6b
-    style C4 fill:#51cf66
-```
+    style C4 fill:#51cf66```
 
 ### CI Põhikomponendid
 
@@ -115,8 +109,7 @@ Continuous Deployment viib CI edasi. Kui kood läbis kõik testid ja kontrollid,
 
 See kõlab paljudele hirmutavalt. "Automaatselt tootmisse? Ilma, et keegi kontrollib?"
 
-Aga mõelge sellele nii: kas inimene, kes kell 23:00 käsitsi deployb, on tõesti parem kontroll kui automatiseeritud süsteem, mis on testitud tuhandeid kordi? Continuous Deployment ei tähenda "lase kõik lihtsalt läbi". See tähendab, et sul on niivõrd hea testimine, kvaliteedikontroll ja automatiseerimine, et sa usaldad seda protsessi rohkem kui käsitsi deployment'i.
-```mermaid
+Aga mõelge sellele nii: kas inimene, kes kell 23:00 käsitsi deployb, on tõesti parem kontroll kui automatiseeritud süsteem, mis on testitud tuhandeid kordi? Continuous Deployment ei tähenda "lase kõik lihtsalt läbi". See tähendab, et sul on niivõrd hea testimine, kvaliteedikontroll ja automatiseerimine, et sa usaldad seda protsessi rohkem kui käsitsi deployment'i.```mermaid
 graph LR
     A[Pull Request<br/>merged] --> B[Auto tests]
     B --> C[Auto build]
@@ -127,8 +120,7 @@ graph LR
     F -->|Ei| H[Auto rollback]
     
     style G fill:#51cf66
-    style H fill:#ff6b6b
-```
+    style H fill:#ff6b6b```
 
 Praktikas näeb see välja nii:
 - arendaja mergeb pull request'i. Automaatselt algab protsess
@@ -150,8 +142,7 @@ Kiirem feedback loop tähendab paremat toodet. Kui kasutajad saavad uue feature'
 
 Pipeline on automatiseerimise selgroog. See defineerib täpselt, mis juhtub kui keegi pushib koodi.
 
-Kujutage pipeline'i kui tehase konveierit: Alguses tuleb tooraine (source code), see läbib erinevaid jaamu (stages), igas jaamas tehakse kindlaid operatsioone (jobs), lõpus tuleb välja valmis toode (deployed application).
-```mermaid
+Kujutage pipeline'i kui tehase konveierit: Alguses tuleb tooraine (source code), see läbib erinevaid jaamu (stages), igas jaamas tehakse kindlaid operatsioone (jobs), lõpus tuleb välja valmis toode (deployed application).```mermaid
 graph TB
     subgraph "PIPELINE (10-15 min)"
         A[Source<br/>git push] --> B[Build<br/>docker build]
@@ -174,8 +165,7 @@ graph TB
     style E fill:#51cf66
     style F fill:#51cf66
     style G fill:#4dabf7
-    style H fill:#ff6b6b
-```
+    style H fill:#ff6b6b```
 
 ### Pipeline Stages
 
@@ -185,8 +175,7 @@ Source stage tõmbab koodi repositooriumist. See juhtub automaatselt kui keegi p
 
 Build stage kompileerib või paketeerib koodi. Java projektides Maven või Gradle loob JAR faili. Node.js projektides npm install ja webpack teeb bundle'i. Python projektides tekib wheel package. Docker projektides käivitub docker build ja tekib container image. Tulemus on midagi, mida saab käivitada.
 
-Test stage jooksutab teste paralleelselt. Unit testid on kiired (sekundid) ja kontrollivad üksikuid funktsioone. Integration testid on aeglasemad (minutid) ja kontrollivad komponentide koosmängu. E2E testid simuleerivad kasutaja käitumist - klikid, vormid, töövood. Performance testid kontrollivad, kas rakendus on piisavalt kiire. Security scannid otsivad turvaprobleeme.
-```mermaid
+Test stage jooksutab teste paralleelselt. Unit testid on kiired (sekundid) ja kontrollivad üksikuid funktsioone. Integration testid on aeglasemad (minutid) ja kontrollivad komponentide koosmängu. E2E testid simuleerivad kasutaja käitumist - klikid, vormid, töövood. Performance testid kontrollivad, kas rakendus on piisavalt kiire. Security scannid otsivad turvaprobleeme.```mermaid
 graph LR
     A[Test Stage] --> B[Unit Tests<br/>kiire, 30s]
     A --> C[Integration Tests<br/>aeglane, 2 min]
@@ -203,8 +192,7 @@ graph LR
     
     style F fill:#ffd93d
     style G fill:#51cf66
-    style H fill:#ff6b6b
-```
+    style H fill:#ff6b6b```
 
 Deploy stage paigaldab rakenduse keskkonda. Development keskkond on arendajate mänguväljak, kus võib kõik olla katki. Staging on production'i koopia test andmetega. Production on päris kasutajad ja päris andmed.
 
@@ -297,8 +285,7 @@ Meie kursuses kasutame GitHub Actions't. Vaatame kuidas see töötab.
 
 Workflow on pipeline - YAML fail `.github/workflows/` kaustas. Job on stage. Step on task job'i sees. Action on taaskasutav komponent marketplace'ist.
 
-Lihtne näide:
-```yaml
+Lihtne näide:```yaml
 name: CI
 
 on:
@@ -319,13 +306,11 @@ jobs:
           python-version: '3.9'
       
       - name: Run tests
-        run: pytest tests/
-```
+        run: pytest tests/```
 
 ### Sama Pipeline Erinevatel Platvormidel
 
-GitHub Actions:
-```yaml
+GitHub Actions:```yaml
 name: CI/CD
 on:
   push:
@@ -336,11 +321,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: docker build -t myapp .
-```
+      - run: docker build -t myapp .```
 
-GitLab CI:
-```yaml
+GitLab CI:```yaml
 stages:
   - build
 
@@ -348,11 +331,9 @@ build:
   stage: build
   image: docker:latest
   script:
-    - docker build -t myapp .
-```
+    - docker build -t myapp .```
 
-Jenkins:
-```groovy
+Jenkins:```groovy
 pipeline {
     agent any
     stages {
@@ -362,15 +343,13 @@ pipeline {
             }
         }
     }
-}
-```
+}```
 
 Näete: sama loogika, erinev süntaks. Kui õpite üht, teine on lihtne.
 
 ### GitHub Actions Marketplace
 
-GitHub'il on marketplace kus on tuhandeid valmis action'eid. Ei pea ise kirjutama - keegi on juba teinud.
-```yaml
+GitHub'il on marketplace kus on tuhandeid valmis action'eid. Ei pea ise kirjutama - keegi on juba teinud.```yaml
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -385,8 +364,7 @@ jobs:
       - uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-```
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}```
 
 ---
 
@@ -394,8 +372,7 @@ jobs:
 
 Kui rääkida CI/CD-st tänapäeval, ei saa mööda Docker'ist. Need kaks tehnoloogiat täiendavad ideaalselt üksteist.
 
-CI/CD probleemiks on alati olnud keskkondade erinevused. Arendaja masinal on Python 3.9, test serveril Python 3.8, production'il Python 3.10. Arendajal on ühed teegid, serveril teised versioonid. Midagi töötab ühes kohas, ei tööta teises.
-```mermaid
+CI/CD probleemiks on alati olnud keskkondade erinevused. Arendaja masinal on Python 3.9, test serveril Python 3.8, production'il Python 3.10. Arendajal on ühed teegid, serveril teised versioonid. Midagi töötab ühes kohas, ei tööta teises.```mermaid
 graph LR
     subgraph "ILMA DOCKER'ITA"
         D1[Dev: Python 3.9] -.X.-> T1[Test: Python 3.8]
@@ -412,8 +389,7 @@ graph LR
     style P1 fill:#ff6b6b
     style D2 fill:#51cf66
     style T2 fill:#51cf66
-    style P2 fill:#51cf66
-```
+    style P2 fill:#51cf66```
 
 Docker lahendab selle radikaalse lähenemisega: me ei paigalda rakendust otse serverisse. Me pakendame rakenduse koos kõigi sõltuvustega ühte container image'isse. See image sisaldab täpselt sama keskkonda igal pool - arendaja laptopil, CI süsteemis, staging'ul, production'il.
 
@@ -421,45 +397,37 @@ Docker lahendab selle radikaalse lähenemisega: me ei paigalda rakendust otse se
 
 CI/CD kontekstis tähendab see kahte asja. Esiteks, job'id jooksevad container'ites. Iga job saab määrata, millises Docker image'is ta jookseb.
 
-GitHub Actions:
-```yaml
+GitHub Actions:```yaml
 jobs:
   test:
     runs-on: ubuntu-latest
     container:
       image: python:3.9
     steps:
-      - run: pytest
-```
+      - run: pytest```
 
-GitLab CI:
-```yaml
+GitLab CI:```yaml
 test:
   image: python:3.9
   script:
-    - pytest
-```
+    - pytest```
 
 Teiseks, me build'ime container image'id. Rakenduse deployment tähendab container image loomist.
 
-GitHub Actions:
-```yaml
+GitHub Actions:```yaml
 - name: Build and push
   run: |
     docker build -t myapp:${{ github.sha }} .
-    docker push myapp:${{ github.sha }}
-```
+    docker push myapp:${{ github.sha }}```
 
-GitLab CI:
-```yaml
+GitLab CI:```yaml
 build:
   image: docker:latest
   services:
     - docker:dind
   script:
     - docker build -t myapp:$CI_COMMIT_SHA .
-    - docker push myapp:$CI_COMMIT_SHA
-```
+    - docker push myapp:$CI_COMMIT_SHA```
 
 Tulemus: garanteeritud ühesugune keskkond. Kui testid läbivad CI-s, siis sama image töötab ka production'is.
 
@@ -473,8 +441,7 @@ Docker + CI/CD kombinatsioon elimineerib "works on my machine" probleemi täieli
 
 Kõige olulisem osa CI/CD'st ei ole ehitamine ega deploy - see on testimine. Automaatsed testid on see, mis annab meile kindluse, et kood töötab.
 
-### Testide Tüübid
-```mermaid
+### Testide Tüübid```mermaid
 graph TD
     Code[Kood] --> UT[Unit Tests<br/>Kiired: sekund<br/>Üksikud funktsioonid]
     Code --> IT[Integration Tests<br/>Aeglased: minutid<br/>Komponendid koos]
@@ -489,11 +456,9 @@ graph TD
     style UT fill:#51cf66
     style IT fill:#ffd93d
     style E2E fill:#ff6b6b
-    style Deploy fill:#339af0,color:#fff
-```
+    style Deploy fill:#339af0,color:#fff```
 
-Unit testid testavad üksikuid funktsioone isolatsioonis. Need on kiired - jooksevad sekundites. Neid on palju - iga funktsiooni jaoks.
-```python
+Unit testid testavad üksikuid funktsioone isolatsioonis. Need on kiired - jooksevad sekundites. Neid on palju - iga funktsiooni jaoks.```python
 # app.py
 def calculate_price(quantity, unit_price, discount=0):
     if quantity < 0 or unit_price < 0:
@@ -504,11 +469,9 @@ def calculate_price(quantity, unit_price, discount=0):
 # test_app.py
 def test_calculate_price():
     assert calculate_price(10, 5.0) == 50.0
-    assert calculate_price(10, 10.0, discount=20) == 80.0
-```
+    assert calculate_price(10, 10.0, discount=20) == 80.0```
 
-Integration testid testavad komponentide koosmängu. Need on aeglasemad - jooksevad minutites. Kontrollivad kas API, andmebaas ja muud komponendid töötavad koos.
-```python
+Integration testid testavad komponentide koosmängu. Need on aeglasemad - jooksevad minutites. Kontrollivad kas API, andmebaas ja muud komponendid töötavad koos.```python
 def test_api_create_order():
     response = requests.post("/api/orders", json={
         "items": [{"id": 1, "qty": 2}]
@@ -516,15 +479,13 @@ def test_api_create_order():
     assert response.status_code == 201
     # Kontrolli andmebaasis
     order = db.get_order(response.json()["order_id"])
-    assert order is not None
-```
+    assert order is not None```
 
 E2E testid testavad tervet rakendust kasutaja vaatenurgast. Need on väga aeglased - jooksevad tundides. Simuleerivad päris kasutaja tegevusi - klikid, vormide täitmine, töövood.
 
 ### Test Coverage
 
-Code coverage näitab, kui palju koodist on testidega kaetud.
-```bash
+Code coverage näitab, kui palju koodist on testidega kaetud.```bash
 pytest --cov=app --cov-report=html
 
 # Name                Stmts   Miss  Cover
@@ -533,23 +494,20 @@ pytest --cov=app --cov-report=html
 # app/models.py          45      3    93%
 # app/api.py             78     12    85%
 # ---------------------------------------
-# TOTAL                 128     15    88%
-```
+# TOTAL                 128     15    88%```
 
 Tööstuse standard:
 - 80%+ coverage on hea. Kriitilised funktsioonid (payment, authentication) peavad olema 100%. Aga 100% ei ole eesmärk
 - kvaliteet on tähtsam kui kvantiteet.
 
-### Test Pyramid
-```
+### Test Pyramid```
      /\
     /E2E\      ← Vähe, aeglased
    /------\
   /  Int  \    ← Mõned, keskmised
  /----------\
 /   Unit     \ ← Palju, kiired
---------------
-```
+--------------```
 
 Reegel: 70% unit, 20% integration, 10% E2E
 
@@ -565,8 +523,7 @@ Automaatsed testid tähendavad ka, et sa ei pea käsitsi testimisele aega kuluta
 
 Harva deployditakse otse production'i. Tavaliselt on mitu keskkonda.
 
-Development on arendajate mänguväljak. Siin võib kõik olla katki. Staging on koopia production'ist - sama konfiguratsioon, aga test andmetega. Production on päris kasutajad ja päris andmed.
-```mermaid
+Development on arendajate mänguväljak. Siin võib kõik olla katki. Staging on koopia production'ist - sama konfiguratsioon, aga test andmetega. Production on päris kasutajad ja päris andmed.```mermaid
 graph LR
     CODE[Code] --> DEV[Development<br/>Arendajad]
     DEV --> STAGE[Staging<br/>Testing]
@@ -579,28 +536,23 @@ graph LR
     style DEV fill:#4dabf7
     style STAGE fill:#ffd93d
     style PROD fill:#51cf66
-    style ROLLBACK fill:#ff6b6b
-```
+    style ROLLBACK fill:#ff6b6b```
 
-GitHub Actions:
-```yaml
+GitHub Actions:```yaml
 deploy:
   environment:
     name: production
     url: https://myapp.com
   steps:
-    - run: deploy.sh
-```
+    - run: deploy.sh```
 
-GitLab CI:
-```yaml
+GitLab CI:```yaml
 deploy:
   environment:
     name: production
     url: https://myapp.com
   script:
-    - deploy.sh
-```
+    - deploy.sh```
 
 ### Deployment Meetodid
 
@@ -608,8 +560,7 @@ Rolling deployment uuendab servereid järjest. Lihtne implementeerida, aga võta
 
 Blue-green deployment kasutab kaht keskkonda. Blue on praegune production. Green on uus versioon. Kui green on valmis ja testitud, switchid traffic'u blue'lt green'le. Kiire rollback - lihtsalt switchi tagasi. Aga vajab 2× ressursse.
 
-Canary deployment alustab väikese kasutajate grupiga. 5% kasutajatest saab uue versiooni. Kui kõik on OK, järk-järgult 10%, 25%, 50%, 100%. Kui midagi läheb valesti, rollback mõjutab ainult väikest osa kasutajatest. Kõige turvalisem, aga kõige keerulisem implementeerida.
-```mermaid
+Canary deployment alustab väikese kasutajate grupiga. 5% kasutajatest saab uue versiooni. Kui kõik on OK, järk-järgult 10%, 25%, 50%, 100%. Kui midagi läheb valesti, rollback mõjutab ainult väikest osa kasutajatest. Kõige turvalisem, aga kõige keerulisem implementeerida.```mermaid
 graph TB
     subgraph "CANARY DEPLOYMENT"
         C1[95% users → v1] 
@@ -620,8 +571,7 @@ graph TB
     end
     
     style C4 fill:#51cf66
-    style C5 fill:#ff6b6b
-```
+    style C5 fill:#ff6b6b```
 
 ### Miks on see Oluline?
 
@@ -631,8 +581,7 @@ Deployment strateegia valik määrab, kui kiiresti saad uusi feature'id kasutaja
 
 ## 9. Turvalisus ja Secrets
 
-Pipeline'id kasutavad tundlikke andmeid: paroole, API võtmeid, SSH key'sid. Mitte kunagi pane neid koodi sisse!
-```mermaid
+Pipeline'id kasutavad tundlikke andmeid: paroole, API võtmeid, SSH key'sid. Mitte kunagi pane neid koodi sisse!```mermaid
 graph TD
     BAD[Secrets koodis] --> GIT[Git repository]
     GIT --> PUBLIC[Public/leaked]
@@ -645,8 +594,7 @@ graph TD
     style BAD fill:#ff6b6b
     style PUBLIC fill:#ff6b6b
     style HACK fill:#ff6b6b
-    style SAFE fill:#51cf66
-```
+    style SAFE fill:#51cf66```
 
 GitHub Actions: Settings → Secrets and variables → Actions. Kasuta `${{ secrets.API_KEY }}` workflow'des.
 
@@ -672,26 +620,22 @@ Pipeline jookseb. Kas õnnestus? Kas ebaõnnestus? Kus läks katki?
 
 Kõik CI/CD platvormid näitavad pipeline status'it (roheline/punane), job loge, execution time'i ja error messages'eid. Aga pipeline on ainult pool tõest. Teine pool: mis toimub application'iga pärast deployment'i?
 
-### Health Checks
-```yaml
+### Health Checks```yaml
 deploy:
   steps:
     - run: deploy.sh
     - run: sleep 10
-    - run: curl -f https://myapp.com/health || exit 1
-```
+    - run: curl -f https://myapp.com/health || exit 1```
 
 Pärast deployment'i kontrolli kas rakendus vastab. Kui ei vasta, rollback.
 
 ### Notifications
 
-Slack webhooks saadavad sõnumeid Slack kanalisse. Email teavitab arendajaid. PagerDuty äratab inimesi kell 3 öösel kui production on katki.
-```yaml
+Slack webhooks saadavad sõnumeid Slack kanalisse. Email teavitab arendajaid. PagerDuty äratab inimesi kell 3 öösel kui production on katki.```yaml
 - uses: 8398a7/action-slack@v3
   with:
     status: ${{ job.status }}
-    webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-```
+    webhook_url: ${{ secrets.SLACK_WEBHOOK }}```
 
 ### Deployment Annotations
 
@@ -713,41 +657,33 @@ Pipeline'id võivad võtta aega. Kui iga kord installite kõik dependencies null
 
 Cache on viis kuidas salvestada faile job'ide vahel. Dependencies ei muutu iga commit'iga. Miks alla laadida uuesti?
 
-GitHub Actions:
-```yaml
+GitHub Actions:```yaml
 - uses: actions/cache@v3
   with:
     path: ~/.cache/pip
-    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-```
+    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}```
 
-GitLab CI:
-```yaml
+GitLab CI:```yaml
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
-    - node_modules/
-```
+    - node_modules/```
 
 ### Artifacts
 
 Artifacts on job'i väljund, mida järgmine stage vajab. Build stage loob JAR faili. Deploy stage vajab seda JAR faili. Artifacts võimaldavad seda jagada.
 
-GitHub Actions:
-```yaml
+GitHub Actions:```yaml
 - uses: actions/upload-artifact@v3
   with:
     name: build
-    path: build/
-```
+    path: build/```
 
-GitLab CI:
-```yaml
+GitLab CI:```yaml
 artifacts:
   paths:
     - build/
-  expire_in: 1 week
-```
+  expire_in: 1 week```
 
 Cache vs Artifacts: Cache on optimisatsioon (kiirendab), Artifacts on funktsionaalsus (vajalik).
 

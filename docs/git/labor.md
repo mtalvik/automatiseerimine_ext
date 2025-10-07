@@ -22,60 +22,43 @@ Esimene samm on kontrollida, et Git on installitud ja õigesti konfigureeritud. 
 
 ### 1.1 Installatsioonikontroll
 
-Ava terminal ja kontrolli Git'i olemasolu:
-```bash
-git --version
-```
+Ava terminal ja kontrolli Git'i olemasolu:```bash
+git --version```
 
-Oodatav väljund on midagi sarnast:
-```
-git version 2.40.0
-```
+Oodatav väljund on midagi sarnast:```
+git version 2.40.0```
 
 Kui Git'i ei ole, paigalda see:
 
-**Windows:**
-```bash
-winget install --id Git.Git -e --source winget
-```
+**Windows:**```bash
+winget install --id Git.Git -e --source winget```
 
-**macOS:**
-```bash
-brew install git
-```
+**macOS:**```bash
+brew install git```
 
-**Linux (Ubuntu/Debian):**
-```bash
+**Linux (Ubuntu/Debian):**```bash
 sudo apt update
-sudo apt install git
-```
+sudo apt install git```
 
 ### 1.2 Kasutajainfo Seadistamine
 
-Git salvestab iga commit'iga sinu nime ja e-maili. Seadista need globaalselt:
-```bash
+Git salvestab iga commit'iga sinu nime ja e-maili. Seadista need globaalselt:```bash
 git config --global user.name "Sinu Nimi"
-git config --global user.email "sinu.email@example.com"
-```
+git config --global user.email "sinu.email@example.com"```
 
 Asenda "Sinu Nimi" ja "sinu.email@example.com" oma tegelike andmetega. Kui töötad kooli arvutis, kasuta kooli e-maili.
 
-Kontrolli seadistust:
-```bash
-git config --list
-```
+Kontrolli seadistust:```bash
+git config --list```
 
-Peaksid nägema:
-```
+Peaksid nägema:```
 user.name=Sinu Nimi
 user.email=sinu.email@example.com
-...
-```
+...```
 
 ### 1.3 Editor Seadistamine (Valikuline)
 
-Git avab mõnikord editori (näiteks commit sõnumite jaoks). Seadista oma eelistatud editor:
-```bash
+Git avab mõnikord editori (näiteks commit sõnumite jaoks). Seadista oma eelistatud editor:```bash
 # VS Code
 git config --global core.editor "code --wait"
 
@@ -83,8 +66,7 @@ git config --global core.editor "code --wait"
 git config --global core.editor "nano"
 
 # Vim
-git config --global core.editor "vim"
-```
+git config --global core.editor "vim"```
 
 ### Kontrollnimekiri
 
@@ -102,40 +84,29 @@ Nüüd lood oma esimese Git repositooriumi ja õpid põhilist töövoogu: muuda 
 
 ### 2.1 Repositooriumi Loomine
 
-Loo uus kataloog ja alusta Git'i kasutamist:
-```bash
+Loo uus kataloog ja alusta Git'i kasutamist:```bash
 mkdir git-labor
 cd git-labor
-git init
-```
+git init```
 
-Väljund peaks olema:
-```
-Initialized empty Git repository in /path/to/git-labor/.git/
-```
+Väljund peaks olema:```
+Initialized empty Git repository in /path/to/git-labor/.git/```
 
-Kontrolli, mis toimus:
-```bash
-ls -la
-```
+Kontrolli, mis toimus:```bash
+ls -la```
 
 Näed `.git` kataloogi - see sisaldab kogu Git'i andmebaasi.
 
 ### 2.2 Esimene Fail ja Commit
 
-Loo README.md fail:
-```bash
+Loo README.md fail:```bash
 echo "# Git Labor Projekt" > README.md
-echo "See on minu esimene Git repositoorium." >> README.md
-```
+echo "See on minu esimene Git repositoorium." >> README.md```
 
-Kontrolli repositooriumi seisu:
-```bash
-git status
-```
+Kontrolli repositooriumi seisu:```bash
+git status```
 
-Väljund:
-```
+Väljund:```
 On branch main
 
 No commits yet
@@ -144,101 +115,73 @@ Untracked files:
   (use "git add <file>..." to include in what will be committed)
         README.md
 
-nothing added to commit but untracked files present
-```
+nothing added to commit but untracked files present```
 
-Git näitab, et README.md on "untracked" - Git ei jälgi seda veel. Lisa fail staging area'sse:
-```bash
-git add README.md
-```
+Git näitab, et README.md on "untracked" - Git ei jälgi seda veel. Lisa fail staging area'sse:```bash
+git add README.md```
 
-Kontrolli uuesti:
-```bash
-git status
-```
+Kontrolli uuesti:```bash
+git status```
 
-Nüüd näed:
-```
+Nüüd näed:```
 On branch main
 
 No commits yet
 
 Changes to be committed:
   (use "git rm --cached <file>..." to unstage)
-        new file:   README.md
-```
+        new file:   README.md```
 
-README.md on nüüd staging area's ja valmis commit'iks. Tee esimene commit:
-```bash
-git commit -m "Esimene commit: lisa README"
-```
+README.md on nüüd staging area's ja valmis commit'iks. Tee esimene commit:```bash
+git commit -m "Esimene commit: lisa README"```
 
-Väljund:
-```
+Väljund:```
 [main (root-commit) a1b2c3d] Esimene commit: lisa README
  1 file changed, 2 insertions(+)
- create mode 100644 README.md
-```
+ create mode 100644 README.md```
 
-Vaata ajalugu:
-```bash
-git log
-```
+Vaata ajalugu:```bash
+git log```
 
-Näed oma commit'i koos kõigi detailidega. Kompaktsem vaade:
-```bash
-git log --oneline
-```
+Näed oma commit'i koos kõigi detailidega. Kompaktsem vaade:```bash
+git log --oneline```
 
 ### 2.3 Töövoog: Muuda → Add → Commit
 
-Muuda README.md faili:
-```bash
+Muuda README.md faili:```bash
 echo "" >> README.md
 echo "## Projekti eesmärk" >> README.md
-echo "Õpime Git'i põhitõdesid." >> README.md
-```
+echo "Õpime Git'i põhitõdesid." >> README.md```
 
-Vaata, mis muutus:
-```bash
-git status
-```
-```
+Vaata, mis muutus:```bash
+git status``````
 On branch main
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
-        modified:   README.md
-```
+        modified:   README.md```
 
-Vaata täpseid muudatusi:
-```bash
-git diff
-```
+Vaata täpseid muudatusi:```bash
+git diff```
 
 Näed punasega eemaldatud read (pole praegu) ja rohelisega lisatud read.
 
-Lisa muudatused staging area'sse ja commit'i:
-```bash
+Lisa muudatused staging area'sse ja commit'i:```bash
 git add README.md
-git commit -m "Lisa projekti eesmärk README'sse"
-```
+git commit -m "Lisa projekti eesmärk README'sse"```
 
 ### 2.4 Mitme Faili Haldamine
 
-Loo uus Python fail:
-```bash
+Loo uus Python fail:```bash
 cat > hello.py << 'EOF'
 def greet(name):
     return f"Tere, {name}!"
 
 if __name__ == "__main__":
     print(greet("Git"))
-EOF
-```
+EOF```
 
-Loo veel üks fail:
-```bash
+Loo veel üks fail:```bash
 cat > calculator.py << 'EOF'
 def add(a, b):
     return a + b
@@ -249,33 +192,22 @@ def subtract(a, b):
 if __name__ == "__main__":
     print("2 + 3 =", add(2, 3))
     print("5 - 2 =", subtract(5, 2))
-EOF
-```
+EOF```
 
-Kontrolli olukorda:
-```bash
-git status
-```
+Kontrolli olukorda:```bash
+git status```
 
-Näed kahte untracked faili. Lisa mõlemad korraga:
-```bash
-git add .
-```
+Näed kahte untracked faili. Lisa mõlemad korraga:```bash
+git add .```
 
-Punkt (.) tähendab "kõik muudatused praeguses kataloogis". Kontrolli:
-```bash
-git status
-```
+Punkt (.) tähendab "kõik muudatused praeguses kataloogis". Kontrolli:```bash
+git status```
 
-Commit:
-```bash
-git commit -m "Lisa Python skriptid: tervitus ja kalkulaator"
-```
+Commit:```bash
+git commit -m "Lisa Python skriptid: tervitus ja kalkulaator"```
 
-Vaata ajalugu graafina:
-```bash
-git log --oneline --graph
-```
+Vaata ajalugu graafina:```bash
+git log --oneline --graph```
 
 ### Kontrollnimekiri
 
@@ -288,19 +220,15 @@ git log --oneline --graph
 
 **Probleem:** Teinud commit'i, aga unustas faili lisada.
 
-**Lahendus:** Lisa fail ja kasuta `git commit --amend`:
-```bash
+**Lahendus:** Lisa fail ja kasuta `git commit --amend`:```bash
 echo "# Unustatud fail" > forgotten.txt
 git add forgotten.txt
-git commit --amend --no-edit
-```
+git commit --amend --no-edit```
 
 **Probleem:** Tahtlikult valed muudatused staging area's.
 
-**Lahendus:** Eemalda staging area'st:
-```bash
-git reset HEAD fail.txt
-```
+**Lahendus:** Eemalda staging area'st:```bash
+git reset HEAD fail.txt```
 
 ---
 
@@ -310,8 +238,7 @@ Kõik failid ei peaks repositooriumis olema. Õpime, mida ignoreerida ja miks.
 
 ### 3.1 Probleemsed Failid
 
-Loo mõned failid, mida ei peaks versioonihaldusse panema:
-```bash
+Loo mõned failid, mida ei peaks versioonihaldusse panema:```bash
 # Log fail
 echo "Error: something happened" > debug.log
 
@@ -326,20 +253,16 @@ DATABASE_URL=postgresql://localhost/db
 EOF
 
 # Suur fail (simulatsioon)
-echo "Suur video fail" > video.mp4
-```
+echo "Suur video fail" > video.mp4```
 
-Kontrolli olukorda:
-```bash
-git status
-```
+Kontrolli olukorda:```bash
+git status```
 
 Näed 4 untracked "faili/kausta". Need EI TOHIKS repositooriumisse minna.
 
 ### 3.2 .gitignore Loomine
 
-Loo .gitignore fail:
-```bash
+Loo .gitignore fail:```bash
 cat > .gitignore << 'EOF'
 # Python
 __pycache__/
@@ -374,21 +297,16 @@ Thumbs.db
 *.avi
 *.mov
 *.mkv
-EOF
-```
+EOF```
 
-Kontrolli uuesti:
-```bash
-git status
-```
+Kontrolli uuesti:```bash
+git status```
 
 Nüüd näed ainult `.gitignore` faili untracked'ina. Teised failid on ignoreeritud!
 
-Lisa .gitignore repositooriumisse:
-```bash
+Lisa .gitignore repositooriumisse:```bash
 git add .gitignore
-git commit -m "Lisa .gitignore Python projektile"
-```
+git commit -m "Lisa .gitignore Python projektile"```
 
 ### 3.3 Miks Need Reeglid?
 
@@ -418,11 +336,9 @@ Ava .gitignore ja vaata iga sektsiooni:
 
 **Probleem:** Committisin .env faili enne .gitignore loomist.
 
-**Lahendus:** Eemalda failist repositooriumist (kuid säilita kohalikult):
-```bash
+**Lahendus:** Eemalda failist repositooriumist (kuid säilita kohalikult):```bash
 git rm --cached .env
-git commit -m "Eemalda .env repositooriumist"
-```
+git commit -m "Eemalda .env repositooriumist"```
 
 ---
 
@@ -432,42 +348,29 @@ Branch'id võimaldavad arendada uusi funktsioone ilma põhikoodi segamata. Õpim
 
 ### 4.1 Branch'ide Vaatamine ja Loomine
 
-Vaata olemasolevaid branch'e:
-```bash
-git branch
-```
+Vaata olemasolevaid branch'e:```bash
+git branch```
 
 Näed ainult `main` (või `master`). Tärn (*) näitab käesolevat branch'i.
 
-Loo uus branch:
-```bash
-git branch feature/math-operations
-```
+Loo uus branch:```bash
+git branch feature/math-operations```
 
-Kontrolli:
-```bash
-git branch
-```
+Kontrolli:```bash
+git branch```
 
-Nüüd näed kahte branch'i, kuid oled ikka `main` branch'is. Vaheta branch'i:
-```bash
-git checkout feature/math-operations
-```
+Nüüd näed kahte branch'i, kuid oled ikka `main` branch'is. Vaheta branch'i:```bash
+git checkout feature/math-operations```
 
-Väljund:
-```
-Switched to branch 'feature/math-operations'
-```
+Väljund:```
+Switched to branch 'feature/math-operations'```
 
-Või loo ja vaheta ühe käsuga:
-```bash
-git checkout -b feature/string-utils
-```
+Või loo ja vaheta ühe käsuga:```bash
+git checkout -b feature/string-utils```
 
 ### 4.2 Töö Branch'is
 
-Oled `feature/string-utils` branch'is. Loo uus fail:
-```bash
+Oled `feature/string-utils` branch'is. Loo uus fail:```bash
 cat > string_utils.py << 'EOF'
 def reverse(text):
     """Pööra string tagurpidi."""
@@ -487,36 +390,26 @@ if __name__ == "__main__":
     print(f"Reversed: {reverse(sample)}")
     print(f"Words: {count_words(sample)}")
     print(f"Uppercase: {to_uppercase(sample)}")
-EOF
-```
+EOF```
 
-Commit:
-```bash
+Commit:```bash
 git add string_utils.py
-git commit -m "Lisa string utiliitide moodul"
-```
+git commit -m "Lisa string utiliitide moodul"```
 
-Vaheta tagasi main'i:
-```bash
-git checkout main
-```
+Vaheta tagasi main'i:```bash
+git checkout main```
 
-Kontrolli:
-```bash
-ls -la
-```
+Kontrolli:```bash
+ls -la```
 
 `string_utils.py` on kadunud! See on normaalne - see fail on ainult `feature/string-utils` branch'is.
 
 ### 4.3 Töö Teises Branch'is
 
-Loo ja vaheta uude branch'i:
-```bash
-git checkout -b feature/math-operations
-```
+Loo ja vaheta uude branch'i:```bash
+git checkout -b feature/math-operations```
 
-Lisa calculator.py'sse uued funktsioonid:
-```bash
+Lisa calculator.py'sse uued funktsioonid:```bash
 cat >> calculator.py << 'EOF'
 
 def multiply(a, b):
@@ -532,19 +425,14 @@ def divide(a, b):
 def power(base, exponent):
     """Arvu astendamine."""
     return base ** exponent
-EOF
-```
+EOF```
 
-Commit:
-```bash
+Commit:```bash
 git add calculator.py
-git commit -m "Lisa korrutamine, jagamine ja astendamine"
-```
+git commit -m "Lisa korrutamine, jagamine ja astendamine"```
 
-Vaata branch'ide ajalugu:
-```bash
-git log --oneline --graph --all
-```
+Vaata branch'ide ajalugu:```bash
+git log --oneline --graph --all```
 
 Näed mitut "haru" - branch'id on divergeerunud.
 
@@ -563,71 +451,53 @@ Nüüd ühendame branch'ide tööd tagasi main'i.
 
 ### 5.1 Fast-Forward Merge
 
-Vaheta main'i:
-```bash
-git checkout main
-```
+Vaheta main'i:```bash
+git checkout main```
 
-Merge string-utils branch:
-```bash
-git merge feature/string-utils
-```
+Merge string-utils branch:```bash
+git merge feature/string-utils```
 
-Väljund:
-```
+Väljund:```
 Updating a1b2c3d..e4f5g6h
 Fast-forward
  string_utils.py | 20 ++++++++++++++++++++
  1 file changed, 20 insertions(+)
- create mode 100644 string_utils.py
-```
+ create mode 100644 string_utils.py```
 
 "Fast-forward" tähendab, et main ei ole vahepeal muutunud - lihtsalt liigutas osuti edasi.
 
-Kontrolli:
-```bash
-ls -la
-```
+Kontrolli:```bash
+ls -la```
 
 `string_utils.py` on nüüd main'is!
 
 ### 5.2 Three-Way Merge
 
-Merge math-operations branch:
-```bash
-git merge feature/math-operations
-```
+Merge math-operations branch:```bash
+git merge feature/math-operations```
 
 Git avab editori merge commit sõnumiga. Salvesta ja sulge.
 
-Väljund:
-```
+Väljund:```
 Merge made by the 'recursive' strategy.
  calculator.py | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
-```
+ 1 file changed, 15 insertions(+)```
 
 See on "three-way merge" - Git lõi merge commit'i, sest mõlemad branch'id muutsid ajalugu paralleelselt.
 
-Vaata ajalugu:
-```bash
-git log --oneline --graph --all
-```
+Vaata ajalugu:```bash
+git log --oneline --graph --all```
 
 Näed merge commit'i kahe "vanemaga".
 
 ### 5.3 Puhastamine
 
-Kustuta merged branch'id:
-```bash
+Kustuta merged branch'id:```bash
 git branch -d feature/string-utils
-git branch -d feature/math-operations
-```
+git branch -d feature/math-operations```
 
-Kontrolli:
-```bash
-git branch
-```
+Kontrolli:```bash
+git branch```
 
 Jäi ainult `main`.
 
@@ -645,30 +515,23 @@ Konfliktid juhtuvad, kui kaks branch'i muudavad sama faili sama kohta. Õpime ne
 
 ### 6.1 Konflikti Loomine
 
-Loo kaks branch'i, mis muudavad sama rida:
-```bash
-git checkout -b fix/greeting-estonian
-```
+Loo kaks branch'i, mis muudavad sama rida:```bash
+git checkout -b fix/greeting-estonian```
 
-Muuda hello.py:
-```bash
+Muuda hello.py:```bash
 cat > hello.py << 'EOF'
 def greet(name):
     return f"Tere, {name}! Kuidas sul läheb?"
 
 if __name__ == "__main__":
     print(greet("Git"))
-EOF
-```
+EOF```
 
-Commit:
-```bash
+Commit:```bash
 git add hello.py
-git commit -m "Lisa pikem tervitus eesti keeles"
-```
+git commit -m "Lisa pikem tervitus eesti keeles"```
 
-Vaheta main'i ja tee konfliktne muudatus:
-```bash
+Vaheta main'i ja tee konfliktne muudatus:```bash
 git checkout main
 cat > hello.py << 'EOF'
 def greet(name):
@@ -676,50 +539,36 @@ def greet(name):
 
 if __name__ == "__main__":
     print(greet("Git"))
-EOF
-```
+EOF```
 
-Commit:
-```bash
+Commit:```bash
 git add hello.py
-git commit -m "Muuda tervitus inglise keeleks"
-```
+git commit -m "Muuda tervitus inglise keeleks"```
 
-Nüüd merge'i - konflikt!
-```bash
-git merge fix/greeting-estonian
-```
+Nüüd merge'i - konflikt!```bash
+git merge fix/greeting-estonian```
 
-Väljund:
-```
+Väljund:```
 Auto-merging hello.py
 CONFLICT (content): Merge conflict in hello.py
-Automatic merge failed; fix conflicts and then commit the result.
-```
+Automatic merge failed; fix conflicts and then commit the result.```
 
 ### 6.2 Konflikti Lahendamine
 
-Vaata konflikti:
-```bash
-git status
-```
-```
+Vaata konflikti:```bash
+git status``````
 On branch main
 You have unmerged paths.
   (fix conflicts and run "git commit")
 
 Unmerged paths:
   (use "git add <file>..." to mark resolution)
-        both modified:   hello.py
-```
+        both modified:   hello.py```
 
-Ava hello.py:
-```bash
-cat hello.py
-```
+Ava hello.py:```bash
+cat hello.py```
 
-Näed:
-```python
+Näed:```python
 def greet(name):
 <<<<<<< HEAD
     return f"Hello, {name}! Welcome!"
@@ -728,16 +577,14 @@ def greet(name):
 >>>>>>> fix/greeting-estonian
 
 if __name__ == "__main__":
-    print(greet("Git"))
-```
+    print(greet("Git"))```
 
 Konfliktimärgid:
 - `<<<<<<< HEAD` - sinu praegune versioon (main)
 - `=======` - eraldaja
 - `>>>>>>> fix/greeting-estonian` - merge'itav versioon
 
-Redigeeri faili ja vali või kombineeri versioone:
-```bash
+Redigeeri faili ja vali või kombineeri versioone:```bash
 cat > hello.py << 'EOF'
 def greet(name):
     """Tervitab kasutajat nii eesti kui inglise keeles."""
@@ -745,25 +592,18 @@ def greet(name):
 
 if __name__ == "__main__":
     print(greet("Git"))
-EOF
-```
+EOF```
 
-Märgi konflikt lahendatuks:
-```bash
-git add hello.py
-```
+Märgi konflikt lahendatuks:```bash
+git add hello.py```
 
-Lõpeta merge:
-```bash
-git commit
-```
+Lõpeta merge:```bash
+git commit```
 
 Git avab editori vaikimisi merge sõnumiga. Salvesta ja sulge.
 
-Kontrolli ajalugu:
-```bash
-git log --oneline --graph --all
-```
+Kontrolli ajalugu:```bash
+git log --oneline --graph --all```
 
 ### Kontrollnimekiri
 
@@ -779,32 +619,22 @@ Nüüd ühendame kohaliku repositooriumi GitHub'iga.
 
 ### 7.1 SSH Võtmete Seadistamine
 
-Kontrolli, kas SSH võtmed on olemas:
-```bash
-ls -la ~/.ssh/
-```
+Kontrolli, kas SSH võtmed on olemas:```bash
+ls -la ~/.ssh/```
 
-Kui näed `id_ed25519` ja `id_ed25519.pub`, võtmed on olemas. Kui mitte, loo need:
-```bash
-ssh-keygen -t ed25519 -C "sinu.email@example.com"
-```
+Kui näed `id_ed25519` ja `id_ed25519.pub`, võtmed on olemas. Kui mitte, loo need:```bash
+ssh-keygen -t ed25519 -C "sinu.email@example.com"```
 
 Vajuta Enter kõigile küsimustele (vaikevastused on OK).
 
-Käivita SSH agent:
-```bash
-eval "$(ssh-agent -s)"
-```
+Käivita SSH agent:```bash
+eval "$(ssh-agent -s)"```
 
-Lisa võti:
-```bash
-ssh-add ~/.ssh/id_ed25519
-```
+Lisa võti:```bash
+ssh-add ~/.ssh/id_ed25519```
 
-Kopeeri avalik võti:
-```bash
-cat ~/.ssh/id_ed25519.pub
-```
+Kopeeri avalik võti:```bash
+cat ~/.ssh/id_ed25519.pub```
 
 Kopeeri väljund lõikelauale.
 
@@ -817,15 +647,11 @@ Kopeeri väljund lõikelauale.
 5. Key: kleebi kopeeritud avalik võti
 6. Click "Add SSH key"
 
-Testi ühendust:
-```bash
-ssh -T git@github.com
-```
+Testi ühendust:```bash
+ssh -T git@github.com```
 
-Oodatav väljund:
-```
-Hi TEIE-KASUTAJANIMI! You've successfully authenticated, but GitHub does not provide shell access.
-```
+Oodatav väljund:```
+Hi TEIE-KASUTAJANIMI! You've successfully authenticated, but GitHub does not provide shell access.```
 
 ### 7.3 GitHub Repository Loomine
 
@@ -839,47 +665,35 @@ GitHub näitab sulle juhiseid. Kasuta "push an existing repository from the comm
 
 ### 7.4 Remote'i Ühendamine
 
-Lisa remote repositoorium:
-```bash
-git remote add origin git@github.com:TEIE-KASUTAJANIMI/git-labor.git
-```
+Lisa remote repositoorium:```bash
+git remote add origin git@github.com:TEIE-KASUTAJANIMI/git-labor.git```
 
 Asenda `TEIE-KASUTAJANIMI` oma GitHub kasutajanimega.
 
-Kontrolli:
-```bash
-git remote -v
-```
+Kontrolli:```bash
+git remote -v```
 
-Väljund:
-```
+Väljund:```
 origin  git@github.com:TEIE-KASUTAJANIMI/git-labor.git (fetch)
-origin  git@github.com:TEIE-KASUTAJANIMI/git-labor.git (push)
-```
+origin  git@github.com:TEIE-KASUTAJANIMI/git-labor.git (push)```
 
-Push esimest korda:
-```bash
-git push -u origin main
-```
+Push esimest korda:```bash
+git push -u origin main```
 
 `-u` seab tracking'u - edaspidi piisab lihtsalt `git push`.
 
 ### 7.5 Push ja Pull Workflow
 
-Tee kohalik muudatus:
-```bash
+Tee kohalik muudatus:```bash
 echo "" >> README.md
 echo "## GitHub'i Integratsioon" >> README.md
 echo "See repositoorium on nüüd GitHub'is!" >> README.md
 
 git add README.md
-git commit -m "Dokumenteeri GitHub'i integratsiooni"
-```
+git commit -m "Dokumenteeri GitHub'i integratsiooni"```
 
-Push GitHub'i:
-```bash
-git push
-```
+Push GitHub'i:```bash
+git push```
 
 Simuleerime meeskonnatööd. Mine GitHub'i (veebi kaudu):
 
@@ -890,25 +704,19 @@ Simuleerime meeskonnatööd. Mine GitHub'i (veebi kaudu):
 5. Lisa commit sõnum: "Lisa märkus GitHub'ist"
 6. Click "Commit changes"
 
-Nüüd GitHub on ees. Pull muudatused:
-```bash
-git pull
-```
+Nüüd GitHub on ees. Pull muudatused:```bash
+git pull```
 
-Väljund:
-```
+Väljund:```
 remote: Enumerating objects: 5, done.
 ...
 Updating a1b2c3d..e4f5g6h
 Fast-forward
  README.md | 1 +
- 1 file changed, 1 insertion(+)
-```
+ 1 file changed, 1 insertion(+)```
 
-Vaata README.md:
-```bash
-cat README.md
-```
+Vaata README.md:```bash
+cat README.md```
 
 Näed GitHub'is tehtud muudatust!
 
@@ -928,13 +736,10 @@ Pull request (PR) on GitHub'i mehhanism koodi ülevaatuseks enne merge'imist.
 
 ### 8.1 Feature Branch Loomine
 
-Loo uus feature:
-```bash
-git checkout -b feature/documentation
-```
+Loo uus feature:```bash
+git checkout -b feature/documentation```
 
-Loo USAGE.md fail:
-```bash
+Loo USAGE.md fail:```bash
 cat > USAGE.md << 'EOF'
 # Kasutamisjuhend
 
@@ -943,26 +748,20 @@ cat > USAGE.md << 'EOF'
 ### hello.py
 Lihtne tervitusprogramm, mis demonstreerib funktsioonide kasutamist.
 
-Kasutamine:
-```bash
-python3 hello.py
-```
+Kasutamine:```bash
+python3 hello.py```
 
 ### calculator.py
 Põhilised ja täiustatud matemaatilised operatsioonid.
 
-Kasutamine:
-```bash
-python3 calculator.py
-```
+Kasutamine:```bash
+python3 calculator.py```
 
 ### string_utils.py
 Stringide töötlemise utiliidid.
 
-Kasutamine:
-```bash
-python3 string_utils.py
-```
+Kasutamine:```bash
+python3 string_utils.py```
 
 ## Arendamine
 
@@ -972,24 +771,18 @@ python3 string_utils.py
 4. Push: `git push origin feature/uus-funktsioon`
 5. Tee Pull Request GitHub'is
 
-## Paigaldamine
-
-```bash
+## Paigaldamine```bash
 git clone git@github.com:KASUTAJANIMI/git-labor.git
 cd git-labor
 python3 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt  # kui on dependency'sid
-```
-EOF
-```
+pip install -r requirements.txt  # kui on dependency'sid```
+EOF```
 
-Commit ja push:
-```bash
+Commit ja push:```bash
 git add USAGE.md
 git commit -m "Lisa kasutamisjuhend dokumentatsioon"
-git push -u origin feature/documentation
-```
+git push -u origin feature/documentation```
 
 ### 8.2 Pull Request'i Loomine
 
@@ -1000,8 +793,7 @@ Mine GitHub'i (veebilehitseja):
 3. Täida PR vorm:
    - **Title:** Lisa kasutamisjuhend
    - **Description:**
-   
-```
+   ```
    ## Muudatused
    - Lisasin USAGE.md faili
    - Dokumenteeritud kõik skriptid
@@ -1011,8 +803,7 @@ Mine GitHub'i (veebilehitseja):
    - [x] Dokumentatsioon on täielik
    - [x] Näited on testitud
    - [x] Failid on õigesti vormindatud
-   
-```
+   ```
 4. Click "Create pull request"
 
 ### 8.3 Code Review ja Merge
@@ -1033,21 +824,15 @@ Merge PR:
 
 ### 8.4 Kohaliku Repositooriumi Uuendamine
 
-Vaheta tagasi main'i ja pull:
-```bash
+Vaheta tagasi main'i ja pull:```bash
 git checkout main
-git pull origin main
-```
+git pull origin main```
 
-Kustuta lokaalne feature branch:
-```bash
-git branch -d feature/documentation
-```
+Kustuta lokaalne feature branch:```bash
+git branch -d feature/documentation```
 
-Kontrolli:
-```bash
-git log --oneline --graph
-```
+Kontrolli:```bash
+git log --oneline --graph```
 
 Näed merge commit'i PR'ist.
 
@@ -1083,44 +868,36 @@ Enne laborit lõpetatuks lugemist veendu:
 
 **Probleem:** `Permission denied (publickey)`
 
-**Lahendus:**
-```bash
+**Lahendus:**```bash
 # Kontrolli, kas SSH agent töötab
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
 
 # Testi uuesti
-ssh -T git@github.com
-```
+ssh -T git@github.com```
 
 ### Probleemid Push'imisega
 
 **Probleem:** `rejected - non-fast-forward`
 
-**Lahendus:** Keegi teine push'is vahepeal. Pull esmalt:
-```bash
+**Lahendus:** Keegi teine push'is vahepeal. Pull esmalt:```bash
 git pull origin main
 # Lahenda konfliktid, kui on
-git push origin main
-```
+git push origin main```
 
 ### Probleemid Merge'imisega
 
 **Probleem:** Merge läks katki, ei tea, mis teha.
 
-**Lahendus:** Tühista merge:
-```bash
-git merge --abort
-```
+**Lahendus:** Tühista merge:```bash
+git merge --abort```
 
 ### Probleemid Branch'idega
 
 **Probleem:** Ei saa branch'i kustutada: "not fully merged"
 
-**Lahendus:** Kasuta force delete (ainult kui oled kindel):
-```bash
-git branch -D branch-name
-```
+**Lahendus:** Kasuta force delete (ainult kui oled kindel):```bash
+git branch -D branch-name```
 
 ---
 

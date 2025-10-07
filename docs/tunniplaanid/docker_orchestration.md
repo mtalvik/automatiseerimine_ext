@@ -171,16 +171,14 @@ Küsi õppuritelt (1 min, suuline tagasiside):
 **5-20 min: Esimene Compose fail (scaffolded)**
 - Ava VSCode ja loo tühi docker-compose.yml
 - **Samm 1:** Ainult versioon ja üks teenus (nginx)
-  
-```yaml
+  ```yaml
   version: '3.8'
   services:
     web:
       image: nginx:alpine
       ports:
         - "8080:80"
-  
-```
+  ```
 - Käivita: `docker-compose up`
 - Kontrolli brauseris: localhost:8080
 - **Samm 2:** Lisa teine teenus (redis)
@@ -190,11 +188,9 @@ Küsi õppuritelt (1 min, suuline tagasiside):
 **20-30 min: DNS ja võrgustik**
 - Seleta: teenuse nimi = hostname
 - Demo: mine nginx konteinerisse ja pingi redis'e
-  
-```bash
+  ```bash
   docker-compose exec web ping redis
-  
-```
+  ```
 - Näita et IP võib muutuda aga nimi jääb samaks
 - Joonista tahvlile: Network diagram
 

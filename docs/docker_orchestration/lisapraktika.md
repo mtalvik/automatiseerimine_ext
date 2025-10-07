@@ -12,8 +12,7 @@ See fail sisaldab lisaharjutusi ja edasijõudnud teemasid Docker Compose mooduli
 
 Build dependencies suurendavad image'i mahtu. Node.js rakenduse image võib olla 1.2GB, kuigi runtime vajab ainult 150MB.
 
-### 1.2 Lahendus: Multi-Stage Build
-```dockerfile
+### 1.2 Lahendus: Multi-Stage Build```dockerfile
 # Build stage
 FROM node:18 AS builder
 WORKDIR /app
@@ -28,8 +27,7 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 3000
-CMD ["node", "dist/index.js"]
-```
+CMD ["node", "dist/index.js"]```
 
 Image väheneb 1.2GB → 150MB.
 
@@ -62,8 +60,7 @@ Looge multi-stage Dockerfile Python Flask rakendusele:
 
 Container jookseb aga rakendus sees on hangund või ei vasta enam. Docker arvab et kõik on OK, sest protsess töötab.
 
-### 2.2 Lahendus: Health Checks
-```yaml
+### 2.2 Lahendus: Health Checks```yaml
 version: '3.8'
 
 services:
@@ -85,8 +82,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    restart: unless-stopped
-```
+    restart: unless-stopped```
 
 ### 2.3 Harjutus: Production-Ready Compose
 
@@ -104,8 +100,7 @@ Looge `docker-compose.yml` mis sisaldab:
 - `wget --spider` ei lae sisu, ainult kontrollib HTTP status
 - `pg_isready` on PostgreSQL'i built-in health check
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 docker compose up -d
 docker compose ps  # peaks näitama "(healthy)"
 
@@ -113,8 +108,7 @@ docker compose ps  # peaks näitama "(healthy)"
 docker exec -it <container> pkill node
 
 # Docker peaks 30 sek jooksul taaskäivitama
-watch docker compose ps
-```
+watch docker compose ps```
 
 **Boonus:**
 - Lisage logging configuration (max-size, max-file)
@@ -129,19 +123,16 @@ watch docker compose ps
 
 Development vajab hot reload ja debug mode. Production vajab resource limits, turvalisust ja optimeerimist. Üks `docker-compose.yml` ei sobi mõlemale.
 
-### 3.2 Lahendus: Override Files
-```
+### 3.2 Lahendus: Override Files```
 project/
 ├── docker-compose.yml          # Base config
 ├── docker-compose.dev.yml      # Development overrides
 ├── docker-compose.prod.yml     # Production overrides
 ├── .env.example
 ├── .env.dev                    # NOT in git
-└── .env.prod                   # NOT in git
-```
+└── .env.prod                   # NOT in git```
 
-**Base docker-compose.yml:**
-```yaml
+**Base docker-compose.yml:**```yaml
 version: '3.8'
 
 services:
@@ -150,11 +141,9 @@ services:
     ports:
       - "${PORT}:3000"
     env_file:
-      - .env
-```
+      - .env```
 
-**docker-compose.dev.yml:**
-```yaml
+**docker-compose.dev.yml:**```yaml
 version: '3.8'
 
 services:
@@ -164,11 +153,9 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - DEBUG=*
-```
+      - DEBUG=*```
 
-**docker-compose.prod.yml:**
-```yaml
+**docker-compose.prod.yml:**```yaml
 version: '3.8'
 
 services:
@@ -180,17 +167,14 @@ services:
           memory: 512M
     environment:
       - NODE_ENV=production
-    restart: always
-```
+    restart: always```
 
-**Käivitamine:**
-```bash
+**Käivitamine:**```bash
 # Development
 docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d
 
 # Production
-docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d
-```
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d```
 
 ### 3.3 Harjutus: Kolme Keskkonna Setup
 
@@ -203,8 +187,7 @@ Looge projekti struktuur koos deployment script'iga:
 - [ ] `deploy.sh` script mis käivitab õige keskkonna
 - [ ] `.env.example` on git'is, `.env.*` on `.gitignore`'s
 
-**deploy.sh näide:**
-```bash
+**deploy.sh näide:**```bash
 #!/bin/bash
 
 ENV=${1:-dev}
@@ -223,11 +206,9 @@ case $ENV in
     echo "Usage: $0 {dev|prod|stop}"
     exit 1
     ;;
-esac
-```
+esac```
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 chmod +x deploy.sh
 
 ./deploy.sh dev
@@ -236,8 +217,7 @@ curl http://localhost:3000/health
 ./deploy.sh stop
 
 ./deploy.sh prod
-curl http://localhost:3000/health
-```
+curl http://localhost:3000/health```
 
 **Näpunäiteid:**
 - `-f` flag laseb override'ida config'e

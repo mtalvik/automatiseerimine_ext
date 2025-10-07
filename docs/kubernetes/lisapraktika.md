@@ -32,8 +32,7 @@ HPA vajab Metrics Server'it, mis kogub ressursi kasutust kõigist node'idest. Mi
 - [Kubernetes HPA dokumentatsioon](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
 - [Metrics Server](https://github.com/kubernetes-sigs/metrics-server)
 
-**Minimaalne näide:**
-```yaml
+**Minimaalne näide:**```yaml
 # HPA põhistruktuur
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -52,8 +51,7 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 50  # Target CPU %
-```
+        averageUtilization: 50  # Target CPU %```
 
 ### 1.3 Harjutus: Autoscaling Test
 
@@ -76,8 +74,7 @@ spec:
 - Load generator: `kubectl run load-generator --image=busybox --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://SINU-SERVICE:80; done"`
 - Scale-down võtab ~5 minutit (cooldown periood)
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # 1. Kontrolli et Metrics Server töötab
 kubectl top nodes
 
@@ -95,8 +92,7 @@ kubectl get pods --watch
 kubectl delete pod load-generator
 
 # 6. Vaata scale-down
-kubectl get hpa --watch
-```
+kubectl get hpa --watch```
 
 **Boonus:**
 - Lisa memory-based scaling (targetAverageUtilization: 70)
@@ -135,8 +131,7 @@ StatefulSet kasutab Headless Service'i (`clusterIP: None`), mis annab igale pod'
 - [Kubernetes StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
 - [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 
-**Minimaalne näide:**
-```yaml
+**Minimaalne näide:**```yaml
 # Headless Service (clusterIP: None)
 apiVersion: v1
 kind: Service
@@ -182,8 +177,7 @@ spec:
       accessModes: ["ReadWriteOnce"]
       resources:
         requests:
-          storage: 1Gi
-```
+          storage: 1Gi```
 
 ### 2.3 Harjutus: Data Persistence Test
 
@@ -208,8 +202,7 @@ spec:
 - Pod võtab 30-60 sek enne kui valmis (MySQL init)
 - PVC jääb alles isegi kui pod kustutatakse
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # 1. Rakenda kõik failid
 kubectl apply -f mysql-secret.yaml
 kubectl apply -f mysql-statefulset.yaml
@@ -241,8 +234,7 @@ kubectl wait --for=condition=ready pod/mysql-0 --timeout=120s
 # 7. Kontrolli andmeid
 kubectl exec -it mysql-0 -- mysql -p -e "USE testdb; SELECT * FROM users;"
 
-# Alice ja Bob peavad olema alles!
-```
+# Alice ja Bob peavad olema alles!```
 
 **Boonus:**
 - Loo 3-replica StatefulSet (mysql-0, mysql-1, mysql-2)
@@ -275,8 +267,7 @@ Helm on "package manager" Kubernetes'i jaoks (nagu apt/yum Linux'is). Helm Chart
 - **Values**: Konfiguratsioon (values.yaml, values-dev.yaml)
 - **Template**: YAML kus on muutujad (`{{ .Values.replicaCount }}`)
 
-**Chart struktuur:**
-```
+**Chart struktuur:**```
 myapp/
 ├── Chart.yaml              # Metadata (nimi, versioon)
 ├── values.yaml             # Default väärtused
@@ -284,8 +275,7 @@ myapp/
 │   ├── deployment.yaml
 │   ├── service.yaml
 │   └── _helpers.tpl        # Helper funktsioonid
-└── charts/                 # Dependencies
-```
+└── charts/                 # Dependencies```
 
 **Loe veel:**
 - loeng.md - YAML struktuurid (deployment, service)
@@ -293,8 +283,7 @@ myapp/
 - [Helm dokumentatsioon](https://helm.sh/docs/)
 - [Helm Best Practices](https://helm.sh/docs/chart_best_practices/)
 
-**Template näide:**
-```yaml
+**Template näide:**```yaml
 # templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -308,9 +297,7 @@ spec:
       - name: app
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         resources:
-          {{- toYaml .Values.resources | nindent 10 }}    # Kopeeri terve YAML block
-```
-```yaml
+          {{- toYaml .Values.resources | nindent 10 }}    # Kopeeri terve YAML block``````yaml
 # values.yaml
 replicaCount: 2
 image:
@@ -319,11 +306,9 @@ image:
 resources:
   limits:
     cpu: 200m
-    memory: 256Mi
-```
+    memory: 256Mi```
 
-**Helm käsud:**
-```bash
+**Helm käsud:**```bash
 # Loo chart
 helm create myapp
 
@@ -340,8 +325,7 @@ helm upgrade myrelease ./myapp --set replicaCount=5
 helm rollback myrelease 1
 
 # Uninstall
-helm uninstall myrelease
-```
+helm uninstall myrelease```
 
 ### 3.3 Harjutus: Multi-Environment Deployment
 
@@ -370,8 +354,7 @@ helm uninstall myrelease
 - `helm list` näitab kõiki release'e
 - `helm uninstall` kustutab kõik ressursid (Deployment, Service, jne)
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # 1. Loo chart
 helm create myshop
 cd myshop/
@@ -447,8 +430,7 @@ helm rollback myshop-dev 1
 
 # 13. Cleanup
 helm uninstall myshop-dev
-helm uninstall myshop-prod
-```
+helm uninstall myshop-prod```
 
 **Boonus:**
 - Lisa conditional Ingress: `{{- if .Values.ingress.enabled }}`
