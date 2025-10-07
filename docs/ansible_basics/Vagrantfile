@@ -1,5 +1,5 @@
-# 🚀 Vagrant Seadistus Ansible Laboriks
-# Loob 2 Ubuntu VM-i Ansible harjutamiseks
+# Vagrant Configuration for Ansible Lab
+# Creates 2 Ubuntu VMs for Ansible practice
 
 Vagrant.configure("2") do |config|
   

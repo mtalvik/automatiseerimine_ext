@@ -1,37 +1,21 @@
 # Docker Lisapraktika
 
-**Eeltingimused:** Docker põhiteadmised, Docker Hub konto
+**Eeldused:** Loeng ja labor läbitud, Docker Hub konto
+
+See fail sisaldab lisaharjutusi ja edasijõudnud teemasid Docker mooduli jaoks. Materjal on valikuline ja mõeldud neile, kes soovivad süvendada oma oskusi.
 
 ---
 
-##  Ülevaade
+## 1. Multi-Stage Builds Optimeerimiseks
 
-See fail sisaldab lisapraktikaid ja boonusülesandeid Docker mooduli jaoks, sealhulgas multi-stage builds, Docker networking, ja advanced optimization techniques.
+### 1.1 Probleem
 
----
+Build dependencies suurendavad image'i mahtu. Node.js rakenduse image võib olla 1.2GB, kuigi runtime vajab ainult 150MB.
 
-## Õpiväljundid
-
-Pärast lisapraktikat oskate:
-
-- Multi-stage Dockerfile'ide kirjutamine
-- Docker networking'u süvitsi mõistmine
-- Image'ide optimeerimist (size, layers, cache)
-- Docker Compose advanced features
-- Container security best practices
-
----
-
-##  Multi-Stage Builds
-
-### Praktiline Näide: Node.js Rakendus
-
-**Probleem:** Build dependencies suurendavad image'i üle 1GB
-
-**Lahendus:** Multi-stage build
+### 1.2 Lahendus: Multi-Stage Build
 
 ```dockerfile
-# Stage 1: Build
+# Build stage
 FROM node:18 AS builder
 WORKDIR /app
 COPY package*.json ./
@@ -39,7 +23,7 @@ RUN npm ci --only=production
 COPY . .
 RUN npm run build
 
-# Stage 2: Production
+# Runtime stage
 FROM node:18-alpine
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
@@ -48,20 +32,28 @@ EXPOSE 3000
 CMD ["node", "dist/index.js"]
 ```
 
-**Tulemus:** Image väheneb 1.2GB → 150MB!
+Image väheneb 1.2GB → 150MB.
 
-### Ülesanne 1: Python Flask Multi-Stage
+### 1.3 Harjutus: Python Flask Multi-Stage
 
-Loo multi-stage Dockerfile Python Flask app'ile:
+Looge multi-stage Dockerfile Python Flask rakendusele:
+
+**Nõuded:**
 - Stage 1: Install dependencies ja compile
 - Stage 2: Ainult runtime + compiled files
-- Eesmärk: <100MB final image
+- Eesmärk: alla 100MB final image
+
+**Näpunäiteid:**
+- Kasutage `python:3.11` builder'is
+- Kasutage `python:3.11-alpine` runtime'is
+- Kompileerige `.pyc` failid: `python -m compileall`
+- Kopeerige ainult vajalikud failid
 
 ---
 
-## Docker Networking Süvitsi
+## 2. Docker Networking Süvitsi
 
-### Custom Networks
+### 2.1 Custom Networks
 
 ```bash
 # Loo bridge network
@@ -78,10 +70,11 @@ docker network create \
 docker network inspect app-network
 ```
 
-### Container-to-Container Communication
+### 2.2 Container-to-Container DNS
+
+Network'is container'id näevad teineteist DNS'i kaudu:
 
 ```bash
-# Network'is containers näevad teineteist DNS'i kaudu
 docker run -d --name db --network app-network postgres
 docker run -d --name api --network app-network \
   -e DB_HOST=db \
@@ -90,44 +83,60 @@ docker run -d --name api --network app-network \
 # API saab ühenduda: postgresql://db:5432
 ```
 
-### Ülesanne 2: 3-Tier Network Setup
+### 2.3 Harjutus: 3-Tier Network Setup
 
-Loo 3 network'i:
-- `frontend-net` (nginx ↔ api)
-- `backend-net` (api ↔ db)
-- `api` on mõlemas network'is (bridge)
+Looge 3 network'i:
+
+**Nõuded:**
+- `frontend-net` - nginx ↔ api
+- `backend-net` - api ↔ db
+- `api` container on mõlemas network'is (bridge)
+
+**Validatsioon:**
+- nginx ei näe db'd
+- api näeb mõlemat
+- db ei näe nginx'i
 
 ---
 
-##  Image Optimization
+## 3. Image Optimeerimise Tehnikad
 
-### Tehnikad
+### 3.1 .dockerignore Kasutamine
 
-**1. Use .dockerignore**
 ```
 node_modules/
 .git/
 *.log
+.DS_Store
 .env
-README.md
-.vscode/
+coverage/
+.pytest_cache/
+__pycache__/
 ```
 
-**2. Combine RUN commands**
+### 3.2 RUN Käskude Kombineerimine
+
+**Halb:**
 ```dockerfile
-# Halb (3 layer'it)
 RUN apt-get update
 RUN apt-get install -y curl
 RUN apt-get clean
+```
 
-# Hea (1 layer)
+Kolm layer'it, apt cache jääb.
+
+**Hea:**
+```dockerfile
 RUN apt-get update && \
     apt-get install -y curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 ```
 
-**3. Order matters (cache)**
+Üks layer, cache kustutatud.
+
+### 3.3 Layer Order Matters
+
 ```dockerfile
 # Dependencies enne koodi (cache friendly)
 COPY package.json package-lock.json ./
@@ -135,14 +144,16 @@ RUN npm ci
 COPY . .
 ```
 
-**4. Use slim/alpine images**
+### 3.4 Kasutage Slim/Alpine Image'e
+
 ```dockerfile
 FROM python:3.11-slim  # 50MB vs python:3.11 (900MB)
 ```
 
-### Ülesanne 3: Optimize Bloated Image
+### 3.5 Harjutus: Optimize Bloated Image
 
-Antud image on 800MB. Optimeeri alla 100MB:
+Antud image on 800MB. Optimeerige alla 100MB:
+
 ```dockerfile
 FROM ubuntu:22.04
 RUN apt-get update
@@ -153,11 +164,17 @@ RUN pip3 install flask requests beautifulsoup4
 CMD ["python3", "app.py"]
 ```
 
+**Näpunäiteid:**
+- Kasutage alpine base'd
+- Eemaldage ebavajalikud tools (vim, wget)
+- Kombineerige RUN käsud
+- Lisage .dockerignore
+
 ---
 
-##  Docker Compose Advanced
+## 4. Docker Compose Edasijõudnud
 
-### Health Checks
+### 4.1 Health Checks
 
 ```yaml
 version: '3.8'
@@ -175,7 +192,7 @@ services:
     image: my-api:latest
     depends_on:
       db:
-        condition: service_healthy  # Ootab kuni db healthy
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -183,7 +200,7 @@ services:
       retries: 3
 ```
 
-### Profiles (Different Environments)
+### 4.2 Profiles (Erinevad Keskkonnad)
 
 ```yaml
 services:
@@ -192,17 +209,25 @@ services:
     
   debug:
     image: my-app:debug
-    profiles: ["debug"]  # Ainult kui: docker-compose --profile debug up
+    profiles: ["debug"]
     
   test-db:
     image: postgres:15-alpine
     profiles: ["testing"]
 ```
 
-### Ülesanne 4: Production-Ready Compose
+Käivitamine:
+```bash
+docker-compose up  # ainult app
+docker-compose --profile debug up  # app + debug
+```
 
-Loo `docker-compose.yml` koos:
-- Health checks kõigile services'tele
+### 4.3 Harjutus: Production-Ready Compose
+
+Looge `docker-compose.yml` koos:
+
+**Nõuded:**
+- Health checks kõigile teenustele
 - Resource limits (CPU, memory)
 - Restart policies
 - Logging configuration
@@ -210,26 +235,24 @@ Loo `docker-compose.yml` koos:
 
 ---
 
-##  Container Security
+## 5. Container Turvalisus
 
-### 1. Non-Root User
+### 5.1 Non-Root User
 
 ```dockerfile
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
-# Loo kasutaja
-RUN useradd -m -u 1000 appuser
+RUN adduser -D -s /bin/sh appuser
 
 WORKDIR /app
 COPY --chown=appuser:appuser . .
 
-# Vaheta kasutajale
 USER appuser
 
 CMD ["python", "app.py"]
 ```
 
-### 2. Read-Only Filesystem
+### 5.2 Read-Only Filesystem
 
 ```bash
 docker run --read-only \
@@ -237,31 +260,35 @@ docker run --read-only \
   my-app:latest
 ```
 
-### 3. Security Scanning
+### 5.3 Security Scanning
 
 ```bash
-# Scan image vulnerabilities
+# Docker scan
 docker scan my-app:latest
 
-# Trivy scanner (better)
+# Trivy (parem)
 trivy image my-app:latest
+
+# Filtreeri ainult HIGH ja CRITICAL
+trivy image --severity HIGH,CRITICAL my-app:latest
 ```
 
-### Ülesanne 5: Secure Your Container
+### 5.4 Harjutus: Secure Container
 
-Võta olemasolev Dockerfile ja:
+Võtke olemasolev Dockerfile ja:
+
+**Nõuded:**
 - [ ] Lisa non-root user
-- [ ] Eemalda SHELL access (`rm /bin/sh`)
+- [ ] Eemalda shell access (`rm /bin/sh`)
 - [ ] Kasuta read-only filesystem
-- [ ] Scan vulnerabilities ja paranda
+- [ ] Skanni haavatavusi
+- [ ] Paranda leitud probleemid
 
 ---
 
-##  Advanced Scenarios
+## 6. Advanced Scenarios
 
-### Scenario 1: Zero-Downtime Deployment
-
-**Blue-Green Deployment with Docker:**
+### 6.1 Zero-Downtime Deployment (Blue-Green)
 
 ```bash
 # Blue (current)
@@ -270,28 +297,28 @@ docker run -d --name app-blue -p 8080:80 my-app:v1
 # Green (new)
 docker run -d --name app-green -p 8081:80 my-app:v2
 
-# Test green
+# Test v2.0 on port 8081
 curl http://localhost:8081/health
 
-# Switch traffic (update load balancer or port mapping)
-docker stop app-blue
-docker rm app-blue
-docker rename app-green app-blue
-docker port app-blue  # Update to port 8080
+# Switch traffic (update load balancer)
+# Remove blue
+docker stop app-blue && docker rm app-blue
 ```
 
-### Scenario 2: Multi-Architecture Build
+### 6.2 Multi-Architecture Build
 
 ```bash
-# Build for ARM ja AMD64
+# Setup buildx
 docker buildx create --use
+
+# Build for ARM ja AMD64
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -t my-app:multiarch \
   --push .
 ```
 
-### Scenario 3: Docker-in-Docker (CI/CD)
+### 6.3 Docker-in-Docker (CI/CD)
 
 ```yaml
 # .github/workflows/docker.yml
@@ -300,30 +327,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build Docker image
+      - name: Build image
         run: docker build -t my-app:${{ github.sha }} .
-      - name: Test in container
+      - name: Test
         run: docker run my-app:${{ github.sha }} npm test
 ```
 
 ---
 
-## Monitoring ja Logging
+## 7. Monitoring ja Logging
 
-### Container Stats
+### 7.1 Container Stats
 
 ```bash
 # Real-time stats
 docker stats
 
-# Specific container
-docker stats my-app
-
 # Export metrics
 docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
 ```
 
-### Centralized Logging
+### 7.2 Centralized Logging
 
 ```yaml
 version: '3.8'
@@ -337,7 +361,6 @@ services:
         max-size: "10m"
         max-file: "3"
   
-# Või kasuta syslog
   api:
     image: my-api:latest
     logging:
@@ -346,35 +369,185 @@ services:
         syslog-address: "tcp://192.168.1.100:514"
 ```
 
+### 7.3 Prometheus Metrics
+
+```dockerfile
+FROM prom/prometheus
+
+COPY prometheus.yml /etc/prometheus/
+
+CMD ["--config.file=/etc/prometheus/prometheus.yml"]
+```
+
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['cadvisor:8080']
+```
+
 ---
 
-##  Challenge: Fullstack Production Setup
+## 8. Fullstack Production Setup Challenge
 
-**Ülesanne:** Loo production-ready fullstack app Docker'iga
+Looge production-ready fullstack rakendus Docker'iga.
 
-**Nõuded:**
-- [ ] Frontend (React/Vue) - multi-stage build, nginx
-- [ ] Backend (Node/Python) - non-root, health checks
-- [ ] Database (PostgreSQL) - volumes, backups
+### 8.1 Nõuded
+
+**Frontend:**
+- [ ] React/Vue rakendus
+- [ ] Multi-stage build
+- [ ] Nginx serveerib
+- [ ] Alla 50MB
+
+**Backend:**
+- [ ] Node/Python API
+- [ ] Non-root user
+- [ ] Health checks
+- [ ] Environment variables
+
+**Database:**
+- [ ] PostgreSQL
+- [ ] Named volume
+- [ ] Backup strategy
+
+**Infra:**
 - [ ] Redis cache
-- [ ] Nginx reverse proxy SSL'iga
-- [ ] Docker Compose orchestration
-- [ ] Monitoring (Prometheus + Grafana)
-- [ ] Logging (ELK stack või Loki)
-- [ ] CI/CD pipeline (GitHub Actions)
-- [ ] Security hardened (scanning, non-root, secrets)
+- [ ] Nginx reverse proxy
+- [ ] SSL sertifikaat
+- [ ] Docker Compose orkestratsioon
+
+**CI/CD:**
+- [ ] GitHub Actions pipeline
+- [ ] Image build ja test
+- [ ] Push Docker Hub'i
+- [ ] Auto-deploy
+
+**Monitoring:**
+- [ ] Prometheus metrics
+- [ ] Grafana dashboard
+- [ ] Centralized logging
+
+**Turvalisus:**
+- [ ] Security scanning
+- [ ] Non-root users
+- [ ] Secrets management
+- [ ] Network isolation
+
+### 8.2 Arhitektuur
+
+```
+Internet
+    ↓
+[Nginx Reverse Proxy] :80/:443
+    ↓
+[Frontend] :3000 ←→ [Backend API] :8000
+                         ↓
+                    [Redis] :6379
+                         ↓
+                    [PostgreSQL] :5432
+```
+
+### 8.3 Hindamine
+
+**Põhi (60%):**
+- Kõik teenused töötavad
+- Docker Compose setup
+- Volume'id säilitavad andmeid
+
+**Täiendav (20%):**
+- Health checks
+- Non-root users
+- Nginx reverse proxy
+
+**Boonus (20%):**
+- CI/CD pipeline
+- Monitoring
+- SSL sertifikaat
+- Security scanning
 
 ---
 
-## Kasulikud Ressursid
+## 9. Kasulikud Ressursid
 
-- **Docker Best Practices**: https://docs.docker.com/develop/dev-best-practices/
-- **Dockerfile Reference**: https://docs.docker.com/engine/reference/builder/
-- **Multi-stage builds**: https://docs.docker.com/build/building/multi-stage/
-- **Security**: https://docs.docker.com/engine/security/
-- **Compose Spec**: https://compose-spec.io/
+**Dokumentatsioon:**
+- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
+- [Dockerfile Reference](https://docs.docker.com/engine/reference/builder/)
+- [Multi-stage Builds](https://docs.docker.com/build/building/multi-stage/)
+- [Docker Security](https://docs.docker.com/engine/security/)
+- [Compose Specification](https://compose-spec.io/)
+
+**Tööriistad:**
+- Trivy - security scanning
+- Dive - image layer analysis
+- Hadolint - Dockerfile linter
+- Container Structure Tests - Google'i test framework
+
+**Platvormid:**
+- Docker Hub - public registry
+- GitHub Container Registry - private images
+- AWS ECR - enterprise registry
+- Harbor - self-hosted registry
 
 ---
 
-**Edu advanced Docker'iga!** 
+## 10. Troubleshooting Guide
 
+### 10.1 Build Ebaõnnestub
+
+```bash
+# Vaata build cache'i
+docker builder prune
+
+# Build ilma cache'ita
+docker build --no-cache -t myapp .
+
+# Vaata layer'eid
+docker history myapp
+```
+
+### 10.2 Container Crashib
+
+```bash
+# Vaata exit code
+docker ps -a
+
+# Vaata logisid
+docker logs container-name
+
+# Käivita interaktiivselt
+docker run -it --entrypoint sh myapp
+```
+
+### 10.3 Networking Probleemid
+
+```bash
+# Vaata network'e
+docker network ls
+docker network inspect network-name
+
+# Test connectivity
+docker run --rm --network mynet alpine ping -c 2 service-name
+
+# DNS debug
+docker run --rm --network mynet alpine nslookup service-name
+```
+
+### 10.4 Volume Probleemid
+
+```bash
+# Vaata volume'eid
+docker volume ls
+docker volume inspect volume-name
+
+# Vaata sisu
+docker run --rm -v volume-name:/data alpine ls -la /data
+
+# Backup
+docker run --rm -v volume-name:/data -v $(pwd):/backup alpine tar czf /backup/backup.tar.gz /data
+```
+
+---
+
+Need harjutused on mõeldud süvendama teie Docker oskusi. Alustage lihtsatest ja liikuge järk-järgult keerulisemate poole.

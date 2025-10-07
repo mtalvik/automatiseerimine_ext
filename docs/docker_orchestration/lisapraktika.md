@@ -1,590 +1,277 @@
-# Docker Orchestration Lisapraktika
+# Docker Compose Lisapraktika
 
-Täiendavad ülesanded Docker Compose'i oskuste süvendamiseks.
+**Eeldused:** Loeng ja labor läbitud, Docker Hub konto
 
-**Eeldused:** Põhilabor läbitud, Docker Compose põhitõed selged
-
----
-
-## Enne alustamist
-
-Need ülesanded on valikulised ja mõeldud neile, kes:
-
-- Lõpetasid põhilabori ära
-- Mõistavad Docker Compose põhitõdesid
-- Tahavad õppida advanced orchestration
-- Valmistuvad päris production deployment'ideks
+See fail sisaldab lisaharjutusi ja edasijõudnud teemasid Docker Compose mooduli jaoks. Materjal on valikuline ja mõeldud neile, kes soovivad süvendada oma oskusi.
 
 ---
 
-## Väljakutse 1: Multi-Stage Builds ja Optimization
+## 1. Multi-Stage Builds Optimeerimiseks
 
+### 1.1 Probleem
 
-### Mida õpid?
-- Multi-stage builds
-- Layer caching strategies
-- Image optimization techniques
-- Build arguments
+Build dependencies suurendavad image'i mahtu. Node.js rakenduse image võib olla 1.2GB, kuigi runtime vajab ainult 150MB.
 
-### Ülesanne:
-Loo Node.js rakendus, mis kasutab multi-stage build'i:
+### 1.2 Lahendus: Multi-Stage Build
 
 ```dockerfile
-# Halb näide (image: ~1GB)
-FROM node:18
-WORKDIR /app
-COPY . .
-RUN npm install
-CMD ["npm", "start"]
-
-# Hea näide (image: ~150MB)
-# Stage 1: Build
-FROM node:18-alpine AS builder
+# Build stage
+FROM node:18 AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 COPY . .
 RUN npm run build
 
-# Stage 2: Production
+# Runtime stage
 FROM node:18-alpine
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY package*.json ./
-USER node
 EXPOSE 3000
 CMD ["node", "dist/index.js"]
 ```
 
-### Sammud:
-1. **Loo test projekt:**
-   ```bash
-   mkdir multi-stage-demo && cd multi-stage-demo
-   npm init -y
-   npm install express
-   ```
+Image väheneb 1.2GB → 150MB.
 
-2. **Lisa .dockerignore:**
-   ```
-   node_modules
-   npm-debug.log
-   .git
-   .DS_Store
-   *.md
-   ```
+### 1.3 Harjutus: Python Flask Multi-Stage
 
-3. **Build ja võrdle:**
-   ```bash
-# Enne
-   docker build -t myapp:basic -f Dockerfile.basic .
-   docker images myapp:basic
-   
-# Pärast
-   docker build -t myapp:optimized -f Dockerfile.multistage .
-   docker images myapp:optimized
-   ```
+Looge multi-stage Dockerfile Python Flask rakendusele:
 
-###  Boonus:
-- Lisa BuildKit cache mounts
-- Kasuta distroless images
-- Implementeeri security scanning (Trivy)
-- Loo automated image optimization pipeline
+**Nõuded:**
+- [ ] Stage 1: Install dependencies ja compile
+- [ ] Stage 2: Ainult runtime + compiled files
+- [ ] Eesmärk: alla 100MB final image
+- [ ] Kasutage `python:3.11` builder'is
+- [ ] Kasutage `python:3.11-alpine` runtime'is
+
+**Näpunäiteid:**
+- Kompileerige `.pyc` failid: `python -m compileall`
+- Kopeerige ainult vajalikud failid
+- Lisage .dockerignore fail
+
+**Boonus:**
+- Kasutage distroless image't lõpptulemuses
+- Skannige Trivy'ga: `trivy image your-image:latest`
+- Optimeerige alla 50MB
 
 ---
 
-## Väljakutse 2: Health Checks ja Self-Healing
+## 2. Health Checks ja Self-Healing
 
+### 2.1 Probleem
 
-### Mida õpid?
-- Docker health checks
-- Restart policies
-- Dependency management
-- Graceful shutdowns
+Container jookseb aga rakendus sees on hangund või ei vasta enam. Docker arvab et kõik on OK, sest protsess töötab.
 
-### Ülesanne:
+### 2.2 Lahendus: Health Checks
+
 ```yaml
-# docker-compose.yml
 version: '3.8'
 
 services:
-  web:
-    image: nginx:alpine
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
-    restart: unless-stopped
-    depends_on:
-      api:
-        condition: service_healthy
-  
-  api:
-    build: ./api
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: on-failure:3
-    environment:
-      - DB_HOST=postgres
-    depends_on:
-      postgres:
-        condition: service_healthy
-  
-  postgres:
-    image: postgres:15-alpine
+  db:
+    image: postgres:15
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
 
-volumes:
-  postgres_data:
+  api:
+    image: my-api:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
 ```
 
-### Sammud:
-1. **Loo health endpoint API'sse:**
-   ```javascript
-   // api/index.js
-   app.get('/health', async (req, res) => {
-     try {
-       await db.query('SELECT 1');
-       res.json({ status: 'healthy', timestamp: new Date() });
-     } catch (error) {
-       res.status(503).json({ status: 'unhealthy', error: error.message });
-     }
-   });
-   ```
+### 2.3 Harjutus: Production-Ready Compose
 
-2. **Test health checks:**
-   ```bash
-   docker-compose up -d
-   docker-compose ps  # Vaata health status
-   docker inspect myapp_api_1 | grep -A 10 Health
-   ```
+Looge `docker-compose.yml` mis sisaldab:
 
-3. **Simulee failure:**
-   ```bash
-# Tapa API protsess container sees
-   docker-compose exec api kill 1
-# Vaata, kuidas Docker automaatselt restartib
-   ```
+**Nõuded:**
+- [ ] Vähemalt 3 teenust (frontend, backend, database)
+- [ ] Health checks kõigile teenustele
+- [ ] Resource limits (CPU: 0.5, Memory: 512M)
+- [ ] Restart policies
+- [ ] `depends_on` koos `condition: service_healthy`
 
-###  Boonus:
-- Lisa monitoring (Prometheus health check metrics)
-- Loo custom health check script
-- Implementeeri circuit breaker pattern
-- Lisa notification system (ebaõnnestumise korral Slack alert)
+**Näpunäiteid:**
+- `start_period` annab aega bootimiseks
+- `wget --spider` ei lae sisu, ainult kontrollib HTTP status
+- `pg_isready` on PostgreSQL'i built-in health check
+
+**Testimine:**
+```bash
+docker compose up -d
+docker compose ps  # peaks näitama "(healthy)"
+
+# Simuleerige crash
+docker exec -it <container> pkill node
+
+# Docker peaks 30 sek jooksul taaskäivitama
+watch docker compose ps
+```
+
+**Boonus:**
+- Lisage logging configuration (max-size, max-file)
+- Looge `/health` endpoint mis tagastab süsteemi seisundi
+- Integreerige Prometheus metrics
 
 ---
 
-## Väljakutse 3: Multi-Environment Setup
+## 3. Multi-Environment Setup
 
+### 3.1 Probleem
 
-### Mida õpid?
-- Environment-specific configs
-- Docker Compose extends
-- Secret management
-- Configuration best practices
+Development vajab hot reload ja debug mode. Production vajab resource limits, turvalisust ja optimeerimist. Üks `docker-compose.yml` ei sobi mõlemale.
 
-### Projekt struktuur:
+### 3.2 Lahendus: Override Files
+
 ```
-multi-env-app/
-├── docker-compose.yml           # Base configuration
-├── docker-compose.dev.yml       # Dev overrides
-├── docker-compose.staging.yml   # Staging overrides
-├── docker-compose.prod.yml      # Prod overrides
-├── .env.dev                     # Dev environment variables
-├── .env.staging                 # Staging environment variables
-├── .env.prod                    # Prod environment variables (encrypted!)
-└── scripts/
-    ├── deploy-dev.sh
-    ├── deploy-staging.sh
-    └── deploy-prod.sh
+project/
+├── docker-compose.yml          # Base config
+├── docker-compose.dev.yml      # Development overrides
+├── docker-compose.prod.yml     # Production overrides
+├── .env.example
+├── .env.dev                    # NOT in git
+└── .env.prod                   # NOT in git
 ```
 
-### Base config (docker-compose.yml):
+**Base docker-compose.yml:**
 ```yaml
 version: '3.8'
 
 services:
-  app:
-    image: myapp:${VERSION:-latest}
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-    volumes:
-      - ./app:/app
+  api:
+    build: .
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${PORT}:3000"
+    env_file:
+      - .env
 ```
 
-### Dev override (docker-compose.dev.yml):
+**docker-compose.dev.yml:**
 ```yaml
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: ./app
-      dockerfile: Dockerfile.dev
+  api:
     volumes:
-      - ./app:/app
-      - /app/node_modules  # Don't override node_modules
+      - .:/app
+      - /app/node_modules
     environment:
       - NODE_ENV=development
-      - LOG_LEVEL=debug
-      - HOT_RELOAD=true
-    command: npm run dev
+      - DEBUG=*
 ```
 
-### Prod override (docker-compose.prod.yml):
+**docker-compose.prod.yml:**
 ```yaml
 version: '3.8'
 
 services:
-  app:
-    image: myapp:${VERSION}  # Must specify version
-    restart: always
-    environment:
-      - NODE_ENV=production
-      - LOG_LEVEL=error
+  api:
     deploy:
-      replicas: 3
       resources:
         limits:
           cpus: '0.5'
           memory: 512M
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`myapp.com`)"
+    environment:
+      - NODE_ENV=production
+    restart: always
 ```
 
-### Deploy scripts:
+**Käivitamine:**
 ```bash
-# scripts/deploy-dev.sh
-#!/bin/bash
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml \
-  --env-file .env.dev up -d
+# Development
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d
 
-# scripts/deploy-prod.sh
-#!/bin/bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml \
-  --env-file .env.prod up -d --scale app=3
+# Production
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d
 ```
 
-###  Boonus:
-- Lisa secrets management (Docker secrets või AWS Secrets Manager)
-- Loo automated deployment pipeline
-- Implementeeri blue-green deployment
-- Lisa rollback functionality
+### 3.3 Harjutus: Kolme Keskkonna Setup
 
----
+Looge projekti struktuur koos deployment script'iga:
 
-## Väljakutse 4: Logging ja Monitoring Stack
+**Nõuded:**
+- [ ] Base `docker-compose.yml` + 2 override faili (dev, prod)
+- [ ] Development mount'ib koodi (hot reload)
+- [ ] Production seab resource limits ja restart: always
+- [ ] `deploy.sh` script mis käivitab õige keskkonna
+- [ ] `.env.example` on git'is, `.env.*` on `.gitignore`'s
 
-
-### Mida õpid?
-- Centralized logging
-- Metrics collection
-- Log aggregation
-- Visualization
-
-### Stack komponendid:
-```yaml
-version: '3.8'
-
-services:
-# Your application
-  app:
-    image: myapp
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: "app"
-    labels:
-      - "prometheus-job=app"
-
-# Log aggregation
-  fluentd:
-    image: fluent/fluentd:latest
-    ports:
-      - "24224:24224"
-    volumes:
-      - ./fluentd/conf:/fluentd/etc
-      - fluentd-logs:/fluentd/log
-
-# Log storage
-  elasticsearch:
-    image: elasticsearch:8.10.0
-    environment:
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    volumes:
-      - es-data:/usr/share/elasticsearch/data
-
-# Log visualization
-  kibana:
-    image: kibana:8.10.0
-    ports:
-      - "5601:5601"
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-
-# Metrics collection
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus:/etc/prometheus
-      - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-
-# Metrics visualization
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-
-volumes:
-  fluentd-logs:
-  es-data:
-  prometheus-data:
-  grafana-data:
-```
-
-### Prometheus config:
-```yaml
-# prometheus/prometheus.yml
-global:
-  scrape_interval: 15s
-
-scrape_configs:
-  - job_name: 'app'
-    static_configs:
-      - targets: ['app:3000']
-  
-  - job_name: 'docker'
-    static_configs:
-      - targets: ['host.docker.internal:9323']
-```
-
-###  Boonus:
-- Lisa alerting (Alertmanager)
-- Loo custom Grafana dashboards
-- Implementeeri log parsing rules
-- Lisa APM (Application Performance Monitoring) - Jaeger
-
----
-
-## Väljakutse 5: Service Mesh Pattern
-
-
-### Mida õpid?
-- Service mesh concepts
-- Load balancing
-- Service discovery
-- Circuit breakers
-
-### Ülesanne:
-```yaml
-version: '3.8'
-
-services:
-# Traefik reverse proxy
-  traefik:
-    image: traefik:v2.10
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--metrics.prometheus=true"
-    ports:
-      - "80:80"
-      - "8080:8080"  # Traefik dashboard
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-
-# API Gateway
-  gateway:
-    image: myapp/gateway
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.gateway.rule=Host(`api.localhost`)"
-      - "traefik.http.services.gateway.loadbalancer.server.port=3000"
-      - "traefik.http.middlewares.gateway-ratelimit.ratelimit.average=100"
-      - "traefik.http.routers.gateway.middlewares=gateway-ratelimit"
-
-# Service A (scaled)
-  service-a:
-    image: myapp/service-a
-    deploy:
-      replicas: 3
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.service-a.rule=Host(`api.localhost`) && PathPrefix(`/api/a`)"
-      - "traefik.http.services.service-a.loadbalancer.server.port=3000"
-      - "traefik.http.services.service-a.loadbalancer.healthcheck.path=/health"
-      - "traefik.http.services.service-a.loadbalancer.healthcheck.interval=10s"
-
-# Service B (scaled)
-  service-b:
-    image: myapp/service-b
-    deploy:
-      replicas: 2
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.service-b.rule=Host(`api.localhost`) && PathPrefix(`/api/b`)"
-```
-
-### Test load balancing:
+**deploy.sh näide:**
 ```bash
-# Vaata Traefik dashboard
-open http://localhost:8080
+#!/bin/bash
 
-# Test round-robin load balancing
-for i in {1..10}; do
-  curl http://api.localhost/api/a/
-done
+ENV=${1:-dev}
+
+case $ENV in
+  dev)
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d
+    ;;
+  prod)
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d
+    ;;
+  stop)
+    docker compose down
+    ;;
+  *)
+    echo "Usage: $0 {dev|prod|stop}"
+    exit 1
+    ;;
+esac
 ```
 
-###  Boonus:
-- Lisa SSL/TLS (Let's Encrypt)
-- Implementeeri sticky sessions
-- Lisa circuit breaker (Traefik retry & circuit breaker middleware)
-- Loo canary deployment strategy
+**Testimine:**
+```bash
+chmod +x deploy.sh
 
----
+./deploy.sh dev
+curl http://localhost:3000/health
 
-## Väljakutse 6: CI/CD Integration
+./deploy.sh stop
 
-
-### Mida õpid?
-- GitLab CI/Docker integration
-- Automated testing
-- Image versioning
-- Automated deployment
-
-### GitLab CI config (.gitlab-ci.yml):
-```yaml
-stages:
-  - build
-  - test
-  - deploy
-
-variables:
-  DOCKER_DRIVER: overlay2
-  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-
-build:
-  stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker-compose build
-    - docker-compose push
-  only:
-    - main
-
-test:
-  stage: test
-  image: docker/compose:latest
-  services:
-    - docker:dind
-  script:
-    - docker-compose -f docker-compose.test.yml up --abort-on-container-exit
-    - docker-compose -f docker-compose.test.yml down
-  only:
-    - main
-
-deploy:
-  stage: deploy
-  image: docker/compose:latest
-  script:
-    - docker-compose -f docker-compose.prod.yml pull
-    - docker-compose -f docker-compose.prod.yml up -d
-  only:
-    - main
-  environment:
-    name: production
-    url: https://myapp.com
+./deploy.sh prod
+curl http://localhost:3000/health
 ```
 
-### Test compose (docker-compose.test.yml):
-```yaml
-version: '3.8'
+**Näpunäiteid:**
+- `-f` flag laseb override'ida config'e
+- `--env-file` valib õige environment
+- Production'is ALATI sea memory limits
+- Ära pane saladusi git'i - kasuta `.env.example` placeholder'itega
 
-services:
-  app:
-    build: ./app
-    environment:
-      - NODE_ENV=test
-  
-  test-runner:
-    image: node:18-alpine
-    volumes:
-      - ./app:/app
-    working_dir: /app
-    command: npm test
-    depends_on:
-      - app
-```
-
-###  Boonus:
-- Lisa integration tests
-- Loo automated rollback on failure
-- Implementeeri smoke tests pärast deployment'i
-- Lisa deployment notifications (Slack/Discord)
+**Boonus:**
+- Lisage staging environment (docker-compose.staging.yml)
+- Implementeerige Docker secrets
+- Looge smoke test script mis kontrollib deployment'i
+- Lisage blue-green deployment strategy
 
 ---
 
-## Täiendavad ressursid
+## Kasulikud Ressursid
 
-### Dokumentatsioon:
-- [Docker Compose Best Practices](https://docs.docker.com/compose/production/)
-- [Docker Multi-Stage Builds](https://docs.docker.com/develop/develop-images/multistage-build/)
-- [Docker Health Checks](https://docs.docker.com/engine/reference/builder/#healthcheck)
+**Dokumentatsioon:**
+- [Docker Multi-stage Builds](https://docs.docker.com/build/building/multi-stage/)
+- [Compose Healthcheck](https://docs.docker.com/compose/compose-file/compose-file-v3/#healthcheck)
+- [Compose Override](https://docs.docker.com/compose/extends/)
 
-### Tööriistad:
-- **Dive:** Docker image analyzer - `docker run --rm -it wagoodman/dive:latest <image>`
-- **Hadolint:** Dockerfile linter
-- **Trivy:** Container security scanner
-- **ctop:** Container metrics viewer
+**Tööriistad:**
+- **Dive** - image layer analüüs: `docker run --rm -it wagoodman/dive:latest <image>`
+- **Trivy** - security scanning: `trivy image <image>`
+- **Hadolint** - Dockerfile linter: https://github.com/hadolint/hadolint
 
-### Näited:
-- [Awesome Compose](https://github.com/docker/awesome-compose) - Community examples
-- [Docker Samples](https://github.com/dockersamples) - Official samples
-
----
-
-## Näpunäited
-
-1. **Alusta väikesest:** Ära proovi kõike korraga. Lisa funktsionaalsust sammhaaval.
-2. **Monitoring on kriit:** Production'is pead teadma, mis toimub.
-3. **Security matters:** Ära kasuta `latest` tag'i production'is, scanni image'id.
-4. **Test locally:** Kasuta sama compose file'i nii local'is kui production'is (overrides'idega).
-5. **Document everything:** README should explain how to run everything.
+**Näited:**
+- Awesome Compose: https://github.com/docker/awesome-compose
+- Docker Samples: https://github.com/dockersamples
 
 ---
 
-**Edu ja head orkestreerimist!** 
-
+Need harjutused on mõeldud süvendama teie Docker Compose oskusi. Alustage esimesest ja liikuge järk-järgult keerulisemate poole.

@@ -1,4 +1,4 @@
-site_name: DevOps Automatiseerimine
+site_name: Automatiseerimine
 site_description: DevOps Automatiseerimine - praktilised materjalid
 site_author: Maria Talvik
 repo_url: https://github.com/mtalvik/automatiseerimine_ext
@@ -9,14 +9,14 @@ theme:
   language: et
   palette:
   - scheme: default
-    primary: deep purple
-    accent: cyan
+    primary: indigo
+    accent: orange
     toggle:
       icon: material/brightness-7
       name: Lülita tumedale teemale
   - scheme: slate
-    primary: deep purple
-    accent: cyan
+    primary: indigo
+    accent: orange
     toggle:
       icon: material/brightness-4
       name: Lülita heledaleale teemale
@@ -26,19 +26,32 @@ theme:
   features:
   - navigation.tabs
   - navigation.sections
+  - navigation.expand
   - navigation.top
   - navigation.footer
+  - navigation.instant
+  - navigation.instant.progress
+  - navigation.tracking
+  - navigation.path
+  - toc.follow
   - search.suggest
   - search.highlight
+  - search.share
   - content.code.copy
   - content.code.annotate
   - content.tabs.link
+  - content.action.edit
+  - content.action.view
   icon:
     repo: fontawesome/brands/github
 
 plugins:
 - search:
     lang: et
+
+exclude_docs: |
+  curriculum.md
+  tunniplaanid/
 
 markdown_extensions:
 - pymdownx.highlight:
@@ -61,57 +74,82 @@ markdown_extensions:
 - attr_list
 - md_in_html
 - tables
+- pymdownx.emoji:
+    emoji_index: !!python/name:material.extensions.emoji.twemoji ""
+    emoji_generator: !!python/name:material.extensions.emoji.to_svg ""
+- pymdownx.keys
+- pymdownx.mark
+- pymdownx.caret
+- pymdownx.tilde
+- def_list
+- footnotes
 
 extra_css:
 - stylesheets/extra.css
 
 nav:
 - Avaleht: index.md
-- Git Versioonihaldus:
-  - Loeng: git/loeng.md
-  - Labor: git/labor.md
-  - Kodutöö: git/kodutoo.md
-  - Lisapraktika: git/lisapraktika.md
-- Docker Alused:
-  - Loeng: docker_basics/loeng.md
-  - Labor: docker_basics/labor.md
-  - Kodutöö: docker_basics/kodutoo.md
-  - Lisapraktika: docker_basics/lisapraktika.md
-- Docker Orkestratsioon:
-  - Loeng: docker_orchestration/loeng.md
-  - Labor: docker_orchestration/labor.md
-  - Kodutöö: docker_orchestration/kodutoo.md
-  - Lisapraktika: docker_orchestration/lisapraktika.md
-- Ansible Alused:
-  - Loeng: ansible_basics/loeng.md
-  - Labor: ansible_basics/labor.md
-  - Kodutöö: ansible_basics/kodutoo.md
-  - Lisapraktika: ansible_basics/lisapraktika.md
-- Ansible Rollid:
-  - Loeng: ansible_roles/loeng.md
-  - Labor: ansible_roles/labor.md
-  - Kodutöö: ansible_roles/kodutoo.md
-  - Lisapraktika: ansible_roles/lisapraktika.md
-- Ansible Edasijõudnud:
-  - Loeng: ansible_advanced/loeng.md
-  - Labor: ansible_advanced/labor.md
-  - Kodutöö: ansible_advanced/kodutoo.md
-  - Lisapraktika: ansible_advanced/lisapraktika.md
-- Terraform Alused:
-  - Loeng: terraform_basics/loeng.md
-  - Labor: terraform_basics/labor.md
-  - Kodutöö: terraform_basics/kodutoo.md
-  - Lisapraktika: terraform_basics/lisapraktika.md
-- Terraform Edasijõudnud:
-  - Loeng: terraform_advanced/loeng.md
-  - Labor: terraform_advanced/labor.md
-  - Kodutöö: terraform_advanced/kodutoo.md
-  - Lisapraktika: terraform_advanced/lisapraktika.md
-- Kubernetes:
-  - Loeng: kubernetes/loeng.md
-  - Labor: kubernetes/labor.md
-  - Kodutöö: kubernetes/kodutoo.md
-  - Lisapraktika: kubernetes/lisapraktika.md
+- Versioonihaldus:
+  - Git:
+    - Loeng: git/loeng.md
+    - Labor: git/labor.md
+    - Kodutöö: git/kodutoo.md
+    - Lisapraktika: git/lisapraktika.md
+    - GitHub Tööriistad: git/github_tools.md
+    - Viited:
+      - Commit Juhend: git/reference/commit_guide.md
+      - Viide: git/reference/viide.md
+      - VS Code: git/reference/vscode.md
+- Konteinerid:
+  - Docker Alused:
+    - Loeng: docker_basics/loeng.md
+    - Labor: docker_basics/labor.md
+    - Kodutöö: docker_basics/kodutoo.md
+    - Lisapraktika: docker_basics/lisapraktika.md
+  - Docker Orkestratsioon:
+    - Loeng: docker_orchestration/loeng.md
+    - Labor: docker_orchestration/labor.md
+    - Kodutöö: docker_orchestration/kodutoo.md
+    - Lisapraktika: docker_orchestration/lisapraktika.md
+    - Seadistus: docker_orchestration/seadistus.md
+  - Kubernetes:
+    - Loeng: kubernetes/loeng.md
+    - Labor: kubernetes/labor.md
+    - Lisa Labor: kubernetes/lisa_labor.md
+    - Kodutöö: kubernetes/kodutoo.md
+    - Lisapraktika: kubernetes/lisapraktika.md
+- Konfiguratsioon:
+  - Ansible Alused:
+    - Loeng: ansible_basics/loeng.md
+    - Labor: ansible_basics/labor.md
+    - Kodutöö: ansible_basics/kodutoo.md
+    - Lisapraktika: ansible_basics/lisapraktika.md
+    - Lisamaterjalid: ansible_basics/lisamaterjalid.md
+    - Seadistus: ansible_basics/seadistus.md
+  - Ansible Rollid:
+    - Loeng: ansible_roles/loeng.md
+    - Labor: ansible_roles/labor.md
+    - Kodutöö: ansible_roles/kodutoo.md
+    - Lisapraktika: ansible_roles/lisapraktika.md
+  - Ansible Edasijõudnud:
+    - Loeng: ansible_advanced/loeng.md
+    - Labor: ansible_advanced/labor.md
+    - Kodutöö: ansible_advanced/kodutoo.md
+    - Lisapraktika: ansible_advanced/lisapraktika.md
+- Infrastruktuur:
+  - Terraform Alused:
+    - Loeng: terraform_basics/loeng.md
+    - Labor: terraform_basics/labor.md
+    - Kodutöö: terraform_basics/kodutoo.md
+    - Kodutöö (Lihtne): terraform_basics/kodutoo_lihtne.md
+    - Lisapraktika: terraform_basics/lisapraktika.md
+    - Lisapraktika AWS: terraform_basics/lisapraktika_aws.md
+    - Cloud Konto Seadistus: terraform_basics/cloud_konto_conf.md
+  - Terraform Edasijõudnud:
+    - Loeng: terraform_advanced/loeng.md
+    - Labor: terraform_advanced/labor.md
+    - Kodutöö: terraform_advanced/kodutoo.md
+    - Lisapraktika: terraform_advanced/lisapraktika.md
 - CI/CD:
   - Loeng: ci_cd/loeng.md
   - Labor: ci_cd/labor.md
@@ -119,9 +157,12 @@ nav:
   - Lisapraktika: ci_cd/lisapraktika.md
 - Lõpuprojekt:
   - Loeng: lopuprojekt/loeng.md
-  - Kodutöö: lopuprojekt/kodutoo.md
+  - Labor: lopuprojekt/labor.md
 
 extra:
   social:
   - icon: fontawesome/brands/github
     link: https://github.com/mtalvik
+  generator: false
+
+copyright: Copyright &copy; 2025 DevOps Automatiseerimine

@@ -1,929 +1,651 @@
-# CI/CD Labor
+# Pidev Integratsioon ja Tarnimine (CI/CD) Labor
 
-Täna integreerime kõik õpitud DevOps tööriistad ühes lõppprojektis.
+**Eeldused:** Git põhitõed, Docker, käsurida  
+**Platvorm:** GitHub Actions
 
 ---
 
 ## Õpiväljundid
 
-Pärast seda labori oskad:
-- Luua täieliku CI/CD pipeline'i
-- Integreerida Git, Docker, Kubernetes ja CI/CD
-- Automatiseerida build → test → deploy protsessi
-- Kasutada GitOps põhimõtteid
-- Rakendada production-ready practices (rollback, monitoring)
+Pärast seda labor'it oskad:
+- **Loob** GitHub Actions pipeline'i põhistruktuuri stage'idega
+- **Seadistab** automaatse testimise ja Docker build'i
+- **Debugib** pipeline vigu logide abil
+- **Rakendab** manual approval'i production deployment'iks
+- **Selgitab** miks CI/CD vähendab vigu ja säästab aega
 
 ---
 
-### Blokk 1 – CI pipeline setup (build + test)
-- **Tegevused:**
-  - GitLab CI / GitHub Actions setup
-  - `.gitlab-ci.yml` või `.github/workflows/` konfiguratsioon
-  - Build stage - Docker image loomine
-  - Test stage - automated tests
-  - Image push Docker Hub'i
-- **Kontrollnimekiri:**
-  - [ ] CI pipeline on seadistatud
-  - [ ] Build stage töötab (Docker image)
-  - [ ] Test stage töötab (automated tests)
-  - [ ] Image push'ib Docker Hub'i
-- **Kontrollküsimus:** "Mis on Continuous Integration ja miks see oluline?"
-- **Refleksioon:** "CI/CD on nagu... A) robottehases  B) automaatne kojahoidja  C) maagiline võlukepp "
+## Enne kui alustad
+
+See labor võtab umbes 90 minutit. Lab'i lõpuks on sul töötav automatiseeritud süsteem: sina kirjutad koodi, teed git push, ja automaatne masin kontrollib koodi, käivitab testid, ehitab Docker image ja deploy'ib rakenduse pärast sinu kinnitust.
+
+### Miks see oluline?
+
+Vaatame kahte stsenaariumi. Ilma CI/CD'ta peab arendaja käsitsi testid jooksutama, mis võtab kakskümmend minutit ja mida vahel unustatakse. Seejärel käsitsi Docker build, mis võtab kümme minutit. Siis käsitsi deployment, veel viisteist minutit. Kui midagi läheb valesti, võtab rollback pool tundi. Kokku üle seitsmekümne minuti ja kolmekümne protsendine vigade risk.
+
+CI/CD'ga arendaja kirjutab koodi ja teeb git push. Pipeline käivitub automaatselt. Viis minutit hiljem on kõik testid läbitud ja süsteem on valmis deployment'iks. Üks klikk ja valmis. Kokku viis minutit pluss üks klikk, viis protsenti vigade risk.
 
 ---
 
-### Blokk 2 – CD pipeline (deploy to Kubernetes)
+## 1. Rakenduse ja Git Setup
 
----
+Selles jaotises loome lihtsa API, mida hiljem automatiseerime. Me kasutame lihtsat rakendust, et fookus oleks automatiseerimisel, mitte rakenduse keerukusel. Kui rakendus on keerukas, on raske eristada kas probleem on rakenduses või pipeline'is.
 
-### Blokk 3 – Monitoring, rollback ja best practices
-
----
-
-**Valmis? Alustame detailsete sammudega!** ⬇
-
----
-
-##  Lab'i eesmärk
-
-**Täna teeme LÕPPPROJEKTI!** Kasutame KÕIKI oskusi, mida õppisime:
-
-- **Git** (Nädal 9) → Version control ja collaboration
-- **Ansible** (Nädal 11-15) → Server configuration
-- **Docker** (Nädal 19-21) → Containerization
-- **Terraform** (Nädal 23) → Infrastructure as Code
-- **CI/CD** (Nädal 25) → Automated deployment
-- **Monitoring** → Production visibility
-
-##  **PROJEKT: "TechShop" E-commerce Automatiseerimine**
-
-**Klient:** Väike e-commerce startup "TechShop"
-
-**Probleem:** 
-- Käsitsi deployment (2-3 tundi)
-- Tihti vigu (30% failure rate)
-- Aeglane rollback (1 tund)
-- Arendajad stressis
-
-**Lahendus:** Täielik automatiseerimine kõigi oskustega!
-
----
-
-## **Vajalikud tööriistad**
-
-**Kontrollige, et teil on:**
-- Git
-- Docker
-- Python 3.9+
-- Ansible
-- Terraform
-- GitLab konto (tasuta)
-- VS Code
-
----
-
-## **Samm 2: Infrastructure as Code (Terraform) - 30 min**
-
-### 2.1: Loo Terraform projekt
+### Loo projekt
 
 ```bash
-# 1. Loo projekt struktuur
-mkdir techshop-automation
-cd techshop-automation
-
-# 2. Loo Terraform kaust
-mkdir terraform
-cd terraform
-
-# 3. Loo Terraform failid
-touch main.tf
-touch variables.tf
-touch outputs.tf
-touch terraform.tfvars
+mkdir cicd-demo
+cd cicd-demo
+git init
+git branch -M main
 ```
 
-### 2.2: Loo infrastruktuur
+### Loo Flask rakendus
 
-**`variables.tf`:**
-```hcl
-variable "project_name" {
-  description = "Project name"
-  type        = string
-  default     = "techshop"
-}
+Loo fail nimega app.py:
 
-variable "environment" {
-  description = "Environment name"
-  type        = string
-  default     = "production"
-}
-
-variable "instance_type" {
-  description = "Local instance type"
-  type        = string
-  default     = "local"
-}
-```
-
-**`main.tf`:**
-```hcl
-terraform {
-  required_providers {
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.0"
-    }
-  }
-}
-
-# Local infrastructure setup
-resource "local_file" "project_config" {
-  content  = "Project: ${var.project_name}\nEnvironment: ${var.environment}\nInstance Type: ${var.instance_type}"
-  filename = "${path.module}/config.txt"
-}
-
-resource "local_directory" "app_directory" {
-  path = "${path.module}/app"
-}
-
-resource "local_file" "docker_compose" {
-  content = templatefile("${path.module}/docker-compose.yml.tpl", {
-    project_name = var.project_name
-    environment  = var.environment
-  })
-  filename = "${path.module}/docker-compose.yml"
-}
-
-resource "local_file" "nginx_config" {
-  content = templatefile("${path.module}/nginx.conf.tpl", {
-    project_name = var.project_name
-    server_name  = "localhost"
-  })
-  filename = "${path.module}/nginx.conf"
-}
-
-  tags = {
-    Name = "${var.project_name}-web-server"
-  }
-}
-
-# Web configuration
-resource "local_file" "web_config" {
-  content  = "Web server configuration for ${var.project_name}"
-  filename = "web_config.txt"
-
-  tags = {
-    Name = "${var.project_name}-config"
-  }
-}
-```
-
-**`outputs.tf`:**
-```hcl
-output "project_config_path" {
-  description = "Path to project configuration"
-  value       = local_file.project_config.filename
-}
-
-output "app_directory_path" {
-  description = "Path to application directory"
-  value       = local_directory.app_directory.path
-}
-```
-
-### 2.3: Deploy'i infrastruktuur
-
-```bash
-# 1. Initsialiseeri Terraform
-terraform init
-
-# 2. Vaata planeeritud muudatusi
-terraform plan
-
-# 3. Deploy'i infrastruktuur
-terraform apply -auto-approve
-
-# 4. Salvesta väljundid
-terraform output > outputs.txt
-```
-
----
-
-## **Samm 3: Server Configuration (Ansible) - 30 min**
-
-### 3.1: Loo Ansible projekt
-
-```bash
-# 1. Mine tagasi projekti juurkausta
-cd ..
-
-# 2. Loo Ansible kaust
-mkdir ansible
-cd ansible
-
-# 3. Loo Ansible failid
-touch inventory.yml
-touch playbook.yml
-touch group_vars/all.yml
-mkdir roles
-mkdir roles/webserver
-mkdir roles/webserver/tasks
-mkdir roles/webserver/handlers
-mkdir roles/webserver/templates
-touch roles/webserver/tasks/main.yml
-touch roles/webserver/handlers/main.yml
-```
-
-### 3.2: Seadista inventory
-
-**`inventory.yml`:**
-```yaml
-all:
-  children:
-    webservers:
-      hosts:
-        localhost:
-          ansible_connection: local
-      vars:
-        app_name: techshop
-        app_port: 5000
-```
-
-### 3.3: Loo webserver role
-
-**`roles/webserver/tasks/main.yml`:**
-```yaml
----
-- name: Update package cache
-  apt:
-    update_cache: yes
-    cache_valid_time: 3600
-
-- name: Install required packages
-  apt:
-    name:
-      - python3
-      - python3-pip
-      - nginx
-      - docker.io
-      - docker-compose
-    state: present
-
-- name: Start and enable Docker
-  systemd:
-    name: docker
-    state: started
-    enabled: yes
-
-- name: Add ubuntu user to docker group
-  user:
-    name: ubuntu
-    groups: docker
-    append: yes
-
-- name: Create application directory
-  file:
-    path: /opt/{{ app_name }}
-    state: directory
-    owner: ubuntu
-    group: ubuntu
-    mode: '0755'
-
-- name: Copy nginx configuration
-  template:
-    src: nginx.conf.j2
-    dest: /etc/nginx/sites-available/{{ app_name }}
-    owner: root
-    group: root
-    mode: '0644'
-  notify: restart nginx
-
-- name: Enable nginx site
-  file:
-    src: /etc/nginx/sites-available/{{ app_name }}
-    dest: /etc/nginx/sites-enabled/{{ app_name }}
-    state: link
-  notify: restart nginx
-
-- name: Remove default nginx site
-  file:
-    path: /etc/nginx/sites-enabled/default
-    state: absent
-  notify: restart nginx
-```
-
-**`roles/webserver/handlers/main.yml`:**
-```yaml
----
-- name: restart nginx
-  systemd:
-    name: nginx
-    state: restarted
-```
-
-**`roles/webserver/templates/nginx.conf.j2`:**
-```nginx
-server {
-    listen 80;
-    server_name _;
-
-    location / {
-        proxy_pass http://localhost:{{ app_port }};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /health {
-        proxy_pass http://localhost:{{ app_port }}/health;
-        access_log off;
-    }
-}
-```
-
-### 3.4: Loo playbook
-
-**`playbook.yml`:**
-```yaml
----
-- name: Configure web server
-  hosts: webservers
-  become: yes
-  roles:
-    - webserver
-```
-
-### 3.5: Käivita Ansible
-
-```bash
-# 1. Seadista keskkonna muutuja
-export WEB_SERVER_IP=$(terraform -chdir=../terraform output -raw web_server_public_ip)
-
-# 2. Käivita Ansible playbook
-ansible-playbook -i inventory.yml playbook.yml
-
-# 3. Kontrolli tulemus
-ansible webservers -i inventory.yml -m ping
-```
-
----
-
-##  **Samm 4: Application Development (Docker) - 30 min**
-
-### 4.1: Loo rakendus
-
-```bash
-# 1. Mine tagasi projekti juurkausta
-cd ..
-
-# 2. Loo rakenduse kaust
-mkdir app
-cd app
-
-# 3. Loo rakenduse failid
-touch app.py
-touch requirements.txt
-touch Dockerfile
-touch docker-compose.yml
-```
-
-### 4.2: Loo Flask rakendus
-
-**`app.py`:**
 ```python
-from flask import Flask, jsonify, request
-import os
-import logging
+from flask import Flask, jsonify
 from datetime import datetime
-
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    logger.info(f"Home page accessed at {datetime.now()}")
     return jsonify({
-        'message': 'TechShop E-commerce API',
+        'message': 'CI/CD Demo API',
         'version': '1.0.0',
-        'status': 'running',
-        'timestamp': str(datetime.now()),
-        'hostname': os.uname().nodename
+        'timestamp': str(datetime.now())
     })
 
 @app.route('/health')
 def health():
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': str(datetime.now())
-    })
+    return jsonify({'status': 'healthy'}), 200
 
 @app.route('/products')
 def products():
-    products = [
-        {'id': 1, 'name': 'Laptop', 'price': 999.99},
-        {'id': 2, 'name': 'Phone', 'price': 599.99},
-        {'id': 3, 'name': 'Tablet', 'price': 399.99}
-    ]
-    return jsonify(products)
-
-@app.route('/orders', methods=['POST'])
-def create_order():
-    data = request.get_json()
-    logger.info(f"New order created: {data}")
-    return jsonify({
-        'message': 'Order created successfully',
-        'order_id': 12345,
-        'timestamp': str(datetime.now())
-    })
+    return jsonify([
+        {'id': 1, 'name': 'Laptop', 'price': 999},
+        {'id': 2, 'name': 'Phone', 'price': 599}
+    ])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ```
 
-**`requirements.txt`:**
+Health endpoint on oluline, sest pipeline kasutab seda pärast deployment'i kontrollimaks kas rakendus töötab. Kui health endpoint ei vasta, siis deployment on ebaõnnestunud.
+
+Loo fail nimega requirements.txt:
+
 ```
-Flask==2.3.3
-gunicorn==21.2.0
-psutil==5.9.5
-requests==2.31.0
-```
-
-### 4.3: Loo Dockerfile
-
-**`Dockerfile`:**
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
-
-EXPOSE 5000
-
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "app:app"]
+Flask==3.0.0
+pytest==7.4.3
 ```
 
-### 4.4: Loo docker-compose
-
-**`docker-compose.yml`:**
-```yaml
-version: '3.8'
-
-services:
-  app:
-    build: .
-    ports:
-      - "5000:5000"
-    environment:
-      - FLASK_ENV=production
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-```
-
-### 4.5: Testi kohalikult
+### Testi kohalikult
 
 ```bash
-# 1. Ehita ja käivita
-docker-compose up --build -d
+pip install -r requirements.txt
+python app.py
+```
 
-# 2. Testi rakendust
+Ava teine terminal ja testi endpoint'e:
+
+```bash
 curl http://localhost:5000/
 curl http://localhost:5000/health
 curl http://localhost:5000/products
-
-# 3. Peata
-docker-compose down
 ```
 
----
+Kõik kolm endpoint'i peaksid tagastama JSON vastuse.
 
-## **HARJUTUS 4: CI/CD Pipeline (GitLab CI) - 45 min**
-
-### Samm 1: Loo Git repository
+### Loo Git repository
 
 ```bash
-# 1. Mine tagasi projekti juurkausta
-cd ..
-
-# 2. Initsialiseeri Git
-git init
-
-# 3. Lisa .gitignore
-echo "*.tfstate" > .gitignore
-echo "*.tfstate.backup" >> .gitignore
-echo "*.tfvars" >> .gitignore
-echo ".terraform/" >> .gitignore
-echo "__pycache__/" >> .gitignore
+echo "__pycache__/" > .gitignore
 echo "*.pyc" >> .gitignore
-echo ".env" >> .gitignore
+echo "venv/" >> .gitignore
 
-# 4. Lisa failid
 git add .
+git commit -m "Initial: Flask app"
+```
 
-# 5. Esimene commit
-git commit -m "Initial commit - TechShop automation project"
+### GitHub setup
 
-# 6. Lisa remote (asenda oma GitLab URL'iga)
-git remote add origin https://gitlab.com/teie-kasutajanimi/techshop-automation.git
+Mine GitHub'i lehele ja loo uus repository nimega cicd-demo. Vali Public visibility, et GitHub Actions töötaks tasuta.
 
-# 7. Push'i kood
+```bash
+# Asenda USERNAME oma GitHub kasutajanimega
+git remote add origin https://github.com/USERNAME/cicd-demo.git
 git push -u origin main
 ```
 
-### Samm 2: Loo CI/CD pipeline
+### Kontrolli
 
-**`.gitlab-ci.yml`:**
-```yaml
-stages:
-  - validate
-  - test
-  - build
-  - deploy-infrastructure
-  - configure-servers
-  - deploy-application
-
-variables:
-  DOCKER_IMAGE: registry.gitlab.com/teie-kasutajanimi/techshop-app
-  TF_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/techshop
-
-# Validate Terraform
-validate-terraform:
-  stage: validate
-  image: hashicorp/terraform:latest
-  script:
-    - cd terraform
-    - terraform init
-    - terraform validate
-    - terraform plan -out=plan.tfplan
-  artifacts:
-    paths:
-      - terraform/plan.tfplan
-    expire_in: 1 hour
-  only:
-    - main
-
-# Test application
-test-app:
-  stage: test
-  image: python:3.9
-  script:
-    - cd app
-    - pip install -r requirements.txt
-    - python -c "import app; print(' App import successful')"
-    - echo "Application tests passed!"
-  only:
-    - main
-
-# Build Docker image
-build-app:
-  stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - cd app
-    - docker build -t $DOCKER_IMAGE:$CI_COMMIT_SHA .
-    - docker push $DOCKER_IMAGE:$CI_COMMIT_SHA
-    - echo " Docker image built and pushed!"
-  only:
-    - main
-
-# Deploy infrastructure
-deploy-infrastructure:
-  stage: deploy-infrastructure
-  image: hashicorp/terraform:latest
-  before_script:
-    - cd terraform
-    - terraform init
-  script:
-    - terraform apply -auto-approve
-    - terraform output -json > outputs.json
-  artifacts:
-    paths:
-      - terraform/outputs.json
-    expire_in: 1 week
-  only:
-    - main
-  when: manual
-
-# Configure servers with Ansible
-configure-servers:
-  stage: configure-servers
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache ansible openssh-client
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-  script:
-    - cd ansible
-    - ansible-playbook -i inventory.yml playbook.yml
-    - echo " Local environment configured!"
-  dependencies:
-    - deploy-infrastructure
-  only:
-    - main
-  when: manual
-
-# Deploy application
-deploy-application:
-  stage: deploy-application
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache docker-cli curl
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    - echo " Deploying application locally..."
-    - docker pull $DOCKER_IMAGE:$CI_COMMIT_SHA
-    - docker stop techshop-app || true
-    - docker rm techshop-app || true
-    - docker run -d --name techshop-app -p 5000:5000 $DOCKER_IMAGE:$CI_COMMIT_SHA
-    - sleep 10
-    - curl -f http://localhost:5000/health || exit 1
-    - echo " Application deployed successfully!"
-  dependencies:
-    - configure-servers
-  only:
-    - main
-  when: manual
-```
-
-### Samm 3: Seadista GitLab CI/CD
-
-1. **Mine GitLab'i** → oma projekt
-2. **Settings** → **CI/CD** → **Variables**
-3. **Lisa muutujad:**
-   - `DOCKER_IMAGE`: teie Docker image nimi
-   - `CI_REGISTRY_USER`: GitLab registry kasutajanimi
-   - `CI_REGISTRY_PASSWORD`: GitLab registry parool
+Veendu et rakendus töötab kohalikult, kõik endpoint'id vastavad korrektselt ja kood on GitHub'is nähtav.
 
 ---
 
-## **HARJUTUS 5: Monitoring ja Troubleshooting - 30 min**
+## 2. Validate Stage
 
-### Samm 1: Lisa monitoring
+Selles jaotises loome esimese pipeline stage'i, mis kontrollib koodi süntaksit. Pipeline'id on jagatud stage'ideks hierarhilises järjekorras. Validate stage võtab umbes kümme sekundit, test stage kolmkümmend sekundit, build kaks minutit ja deploy ühe minuti. Põhimõte on leida vigu võimalikult vara ja odavalt.
 
-**Lisa `app.py` faili:**
+Kui koodis on süntaksi viga, siis validate stage fail'ib kümne sekundi pärast. Ilma validate'ita jookseks build kaks minutit ja alles siis fail'iks. See tähendab et kaks minutit aega läks raisku.
+
+### Validate stage eesmärk
+
+Validate stage kontrollib ainult süntaksi vigu. See ei kontrolli loogikat ega ärireegleid. Näiteks validate leiab kui kooloni ei ole funktsioonideklaratsioonis, aga ei leia kui if-lause kasutab vale võrdlusmärki.
+
+Validate on esimene stage, kuna see on kõige kiirem ja odavam viis vigade leidmiseks. Kui valideerimine fail'ib, pole mõtet teste ega build'i käivitada.
+
+### Loo workflow fail
+
+Loo kataloog ja fail: .github/workflows/ci.yml
+
+```yaml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Validate Python syntax
+        run: |
+          echo "Alustan valideerimist..."
+          python -m py_compile app.py
+          echo "Kood on korrektne"
+```
+
+Workflow käivitub automaatselt kui keegi pushib või avab pull request'i main branch'i. Validate job käivitub Ubuntu masinal, tõmbab koodi, seadistab Python'i ja kontrollib app.py süntaksit.
+
+### Push ja vaata
+
+```bash
+git add .github/
+git commit -m "Add pipeline: validate stage"
+git push origin main
+```
+
+Mine GitHub'is Actions tab'i alla. Kliki pipeline'i nimel ja vaata validate job'i logi. Pipeline peaks käivituma automaatselt, job peaks olema roheline ja logis peaksid nägema echo käskude väljundit.
+
+### Eksperiment - süntaksi viga
+
+Nüüd õpime kuidas pipeline vigu leiab. Lisa app.py faili tahtlik süntaksi viga. Muuda real kuus def home(): nii, et eemaldad kooloni: def home(). Commit ja push.
+
+```bash
+git add app.py
+git commit -m "Test: syntax error"
+git push origin main
+```
+
+Mine GitHub Actions'i ja vaata mis juhtub. Pipeline fail'ib kiiresti. Vaata error message'it logis. See näitab täpselt kus viga on. Paranda viga ja push uuesti.
+
+```bash
+# Paranda app.py - lisa koolon tagasi
+git add app.py
+git commit -m "Fix: syntax error"
+git push origin main
+```
+
+### Refleksioon
+
+Mõtle kui kiiresti said teada, et midagi oli valesti. Kümme sekundit versus minutid või tunnid hiljem. See on validate stage'i väärtus.
+
+---
+
+## 3. Test Stage
+
+Selles jaotises lisame automaatsed testid, mis kontrollivad kas rakendus töötab õigesti. Validate kontrollib süntaksit, test kontrollib loogikat. Validate leiab kui koolon puudub. Test leiab kui rakendus tagastab vale andmeid.
+
+### Validate versus Test
+
+Validate kontrollib kas kood kompileerub. Test kontrollib kas kood teeb õiget asja. Validate võtab kümme sekundit. Test võtab kolmkümmend kuni kuuskümmend sekundit. Validate leiab vigu mida compiler näeks. Test leiab vigu mida kasutaja näeks. Mõlemad on vajalikud.
+
+### Loo testid
+
+Loo fail nimega test_app.py:
+
 ```python
-# Lisa import'id
-import psutil
-import requests
+import pytest
+from app import app
 
-@app.route('/metrics')
-def metrics():
-    cpu_percent = psutil.cpu_percent(interval=1)
-    memory = psutil.virtual_memory()
-    disk = psutil.disk_usage('/')
-    
-    return jsonify({
-        'cpu_percent': cpu_percent,
-        'memory_percent': memory.percent,
-        'disk_percent': disk.percent,
-        'timestamp': str(datetime.now())
-    })
+@pytest.fixture
+def client():
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        yield client
 
-@app.route('/status')
-def status():
-# Check database connection (if exists)
-    db_status = "healthy"  # Placeholder
-    
-# Check external services
-    try:
-        response = requests.get('https://httpbin.org/status/200', timeout=5)
-        external_status = "healthy" if response.status_code == 200 else "unhealthy"
-    except:
-        external_status = "unhealthy"
-    
-    return jsonify({
-        'database': db_status,
-        'external_services': external_status,
-        'application': 'healthy',
-        'timestamp': str(datetime.now())
-    })
+def test_health(client):
+    response = client.get('/health')
+    assert response.status_code == 200
+    assert response.get_json()['status'] == 'healthy'
+
+def test_home(client):
+    response = client.get('/')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data['version'] == '1.0.0'
+
+def test_products(client):
+    response = client.get('/products')
+    assert response.status_code == 200
+    assert len(response.get_json()) == 2
 ```
 
-### Samm 2: Lisa health check CI/CD pipeline'i
+Esimene test kontrollib health endpoint'i - see peab tagastama status code 200 ja status healthy. Teine test kontrollib home endpoint'i - versioon peab olema 1.0.0. Kolmas test kontrollib products endpoint'i - peab olema kaks toodet.
 
-**Lisa `.gitlab-ci.yml` faili:**
+### Testi kohalikult
+
+```bash
+pytest test_app.py -v
+```
+
+Kõik kolm testi peaksid läbima rohelisega. Kui mõni test fail'ib, loe error message'it. Vaata milline assert fail'is. Paranda test või rakendus.
+
+### Lisa test stage workflow'sse
+
+Uuenda .github/workflows/ci.yml faili. Lisa uus job nimega test, mis jookseb pärast validate'i:
+
 ```yaml
-# Lisa uus stage
-health-check:
-  stage: deploy-application
-  image: alpine:latest
-  script:
-    - apk add --no-cache curl
-    - python3 -c "import json; data=json.load(open('terraform/outputs.json')); print(f'export WEB_SERVER_IP={data[\"web_server_public_ip\"][\"value\"]}')" > set_ip.sh
-    - source set_ip.sh
-    - echo " Running health checks..."
-    - curl -f http://$WEB_SERVER_IP/health || exit 1
-    - curl -f http://$WEB_SERVER_IP/metrics || exit 1
-    - curl -f http://$WEB_SERVER_IP/status || exit 1
-    - echo " All health checks passed!"
-  dependencies:
-    - deploy-application
-  only:
-    - main
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Validate Python syntax
+        run: |
+          python -m py_compile app.py
+
+  test:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run tests
+        run: |
+          pytest test_app.py -v
+          echo "Testid läbisid edukalt"
 ```
 
-### Samm 3: Troubleshooting harjutused
+Test job kasutab needs: validate, mis tähendab et test jookseb ainult kui validate õnnestub. Kui validate fail'ib, siis test ei käivitu üldse. See hoiab kokku aega ja ressursse.
 
-**Probleem 1: Application ei käivitu**
+### Push ja kontrolli
+
 ```bash
-# Kontrolli Docker container'i
-ssh ubuntu@$WEB_SERVER_IP "docker ps -a"
-ssh ubuntu@$WEB_SERVER_IP "docker logs techshop-app"
-
-# Kontrolli port'i
-ssh ubuntu@$WEB_SERVER_IP "netstat -tlnp | grep 5000"
-
-# Kontrolli nginx
-ssh ubuntu@$WEB_SERVER_IP "sudo systemctl status nginx"
+git add test_app.py .github/workflows/ci.yml
+git commit -m "Add tests and test stage"
+git push origin main
 ```
 
-**Probleem 2: Infrastructure deployment ebaõnnestub**
+Mine GitHub Actions'i. Vaata et validate job jookseb esimesena. Test job jookseb teisena. Mõlemad peaksid olema rohelised.
+
+### Eksperiment - testide failure
+
+Nüüd vaatame mis juhtub kui test fail'ib. Muuda app.py's versiooni 2.0.0 aga ära muuda test'i. Test ootab endiselt versiooni 1.0.0.
+
 ```bash
-# Kontrolli Terraform state
-cd terraform
-terraform show
-terraform plan
-
-# Kontrolli kohalikke seadeid
-ls -la
+# Muuda app.py's version: '2.0.0'
+git add app.py
+git commit -m "Update version"
+git push origin main
 ```
 
-**Probleem 3: Ansible connection ebaõnnestub**
-```bash
-# Kontrolli SSH connection
-ssh -i ~/.ssh/techshop-key.pem ubuntu@$WEB_SERVER_IP
-
-# Kontrolli Ansible inventory
-ansible webservers -i inventory.yml -m ping -vvv
-```
+Vaata GitHub Actions'is mis juhtub. Validate läbib edukalt. Test fail'ib. Loe error message'it - see näitab et oodati 1.0.0 aga sai 2.0.0. Paranda test nii, et see ootab 2.0.0 ja push uuesti.
 
 ---
 
-## **HARJUTUS 6: Dokumenteerimine ja Demo - 15 min**
+## 4. Build Stage
 
-### Samm 1: Loo README.md
+Selles jaotises pakime rakenduse Docker image'iks. Docker image sisaldab rakendust, kõiki dependencies'eid, operatsioonisüsteemi ja runtime'i. See tähendab et kui image töötab meie masinas, töötab see ka igal pool mujal.
+
+### Miks Docker?
+
+Klassikaline probleem: arendaja ütleb et rakendus töötab tema masinas. Server ütleb et ei tööta. Põhjused on erinevad Python versioonid, puuduvad teegid või erinev operatsioonisüsteem. Docker lahendab selle pakendades kõik kokku ühte image'isse.
+
+### Loo Dockerfile
+
+Loo fail nimega Dockerfile:
+
+```dockerfile
+FROM python:3.9-slim
+WORKDIR /app
+
+# Kopeeri ja installi dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Kopeeri rakendus
+COPY app.py .
+
+# Port
+EXPOSE 5000
+
+# Käivita
+CMD ["python", "app.py"]
+```
+
+Dockerfile algab Python 3.9 slim base image'iga. Töökaust on app. Esimesena kopeerime requirements.txt ja installime dependencies. Alles seejärel kopeerime app.py. See järjekord on oluline Docker layer caching'u jaoks. Dependencies muutuvad harva, app.py muutub tihti. Kui kopeerime requirements eraldi, siis Docker cacheb dependency installatsiooni.
+
+### Testi Docker kohalikult
+
+```bash
+# Ehita image
+docker build -t cicd-demo:test .
+
+# Käivita container
+docker run -d -p 5000:5000 --name test-app cicd-demo:test
+
+# Testi
+curl http://localhost:5000/health
+
+# Peata ja eemalda
+docker stop test-app
+docker rm test-app
+```
+
+Kontrolli et Docker build õnnestub, container käivitub ja rakendus vastab korrektselt.
+
+### Lisa build stage
+
+Uuenda .github/workflows/ci.yml faili. Lisa build job mis jookseb pärast test'i:
+
+```yaml
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push Docker image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}
+          docker build -t $IMAGE_NAME:${{ github.sha }} .
+          docker build -t $IMAGE_NAME:latest .
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:latest
+          echo "Image pushed successfully"
+```
+
+Build job kasutab if tingimust, et jooksda ainult main branch'il. See hoiab ära et iga feature branch push'iga ehitataks Docker image. Job logib sisse GitHub Container Registry'sse, ehitab image'i kahe tag'iga ja pushib registry'sse.
+
+Kaks tag'i on vajalikud erinevatel põhjustel. Latest tag on lihtsam development'is - see annab alati uusima versiooni. Commit hash tag on täpne versioon, mida saab kasutada rollback'iks või audit'iks.
+
+### Seadista permissions
+
+GitHub vajab luba registry'sse kirjutamiseks. Mine repo Settings'i. Vali Actions alt General. Workflow permissions alt vali Read and write permissions. Salvesta.
+
+### Push ja kontrolli
+
+```bash
+git add Dockerfile .github/workflows/ci.yml
+git commit -m "Add Docker build stage"
+git push origin main
+```
+
+Mine GitHub Actions'i ja vaata pipeline'i. Validate, test ja build peaksid kõik edukalt läbima. Mine repo põhilehele ja vaata Packages sektsiooni paremal. Seal peaks nähtav olema sinu image koos kahe tag'iga.
+
+---
+
+## 5. Deploy Stage
+
+Selles jaotises lisame deployment'i, mis viib rakenduse live keskkonda. Deploy võib olla automaatne või nõuda manuaalset kinnitust. Development ja staging keskkonnad kasutavad tavaliselt automaatset deployment'i, kuna risk on madal ja kiire feedback on oluline. Production kasutab manuaalset deployment'i, kuna risk on kõrge ja vajame kontrolli.
+
+### Automaatne versus manuaalne
+
+Otsustuspunkt on keskkond. Development'is on automaatne deploy hea, sest kiire feedback ja madal risk. Staging'us samuti automaatne, et testida enne production'i. Production'is manuaalne, sest kõrge risk ja vajame kinnitust.
+
+Mõned ettevõtted kasutavad täielikult automaatset production deployment'i, aga see nõuab väga häid teste, kõrget coverage'it, madalat riski ja lihtsat rollback'i. Enamik ettevõtteid kasutab manuaalset production deployment'i.
+
+### Lisa deploy stage
+
+Uuenda .github/workflows/ci.yml faili. Lisa deploy job:
+
+```yaml
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: http://localhost:5000
+    steps:
+      - name: Deploy application
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}:${{ github.sha }}
+          echo "Deploying $IMAGE_NAME"
+          echo "SIMULATED: docker pull $IMAGE_NAME"
+          echo "SIMULATED: docker stop cicd-demo || true"
+          echo "SIMULATED: docker rm cicd-demo || true"
+          echo "SIMULATED: docker run -d --name cicd-demo -p 5000:5000 $IMAGE_NAME"
+          echo "SIMULATED: Health check would run here"
+          echo "Deploy successful"
+```
+
+Deploy job kasutab environment konfiguratsiooni. See võimaldab meil seadistada manual approval'i ja näha deployment ajalugu.
+
+### Seadista manual approval
+
+Mine GitHub repo Settings'i. Vali Environments. Loo uus environment nimega production. Deployment protection rules alt vali Required reviewers. Lisa ennast vähemalt üheks reviewer'iks. Salvesta.
+
+### Testi deployment workflow
+
+Muuda app.py's versiooni 2.0.0. Uuenda test_app.py's oodatavat versiooni 2.0.0. Commit ja push.
+
+```bash
+git add app.py test_app.py .github/workflows/ci.yml
+git commit -m "Version 2.0.0 + deploy stage"
+git push origin main
+```
+
+Mine GitHub Actions'i ja vaata pipeline'i. Validate, test ja build jooksevad läbi. Deploy job jääb ootama kollase Waiting staatusega. Kliki deploy job'il. Vajuta Review deployments. Märgi production ja vajuta Approve and deploy. Vaata kuidas deploy job käivitub ja logis näed deployment samme.
+
+### Deployment ajalugu
+
+Pärast deployment'i mine repo Settings'i ja vaata Environments lehte. Seal näed production environment'i ja deployment ajalugu. Iga deployment on logitud koos ajaga, kasutajaga ja commit'iga.
+
+---
+
+## 6. Pipeline Optimeerimine
+
+Selles jaotises õpime kuidas pipeline'i kiiremaks teha. Põhiline tehnika on caching, mis võimaldab meil salvestada ja taaskasutada andmeid pipeline run'ide vahel.
+
+### Caching kontseptsioon
+
+Probleem on see, et iga pipeline run installib dependencies nullist. Kui dependencies ei muutu, siis see on sama töö kordamine. Esimene run võtab kolmkümmend sekundit dependency installatsiooni. Teine run võtab jälle kolmkümmend sekundit. Kolmas run samuti.
+
+Caching lahendab selle. Esimene run installib dependencies ja salvestab cache'sse. Teine run laeb cache'st, mis võtab ainult viis sekundit. See on kuus korda kiirem.
+
+### Lisa caching test job'i
+
+Uuenda test job'i .github/workflows/ci.yml failis:
+
+```yaml
+  test:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run tests
+        run: |
+          pytest test_app.py -v
+```
+
+Setup-python action toetab built-in caching'ut. Lisa lihtsalt cache: pip parameeter ja see hakkab automaatselt cachima pip dependencies'eid.
+
+### Lisa README badge
+
+Loo README.md fail:
 
 ```markdown
-# TechShop E-commerce Automation Project
+# CI/CD Demo
 
-## Projekt kirjeldus
-Täielik automatiseeritud e-commerce lahendus, mis kasutab kõiki DevOps oskusi.
+[![CI/CD](https://github.com/USERNAME/cicd-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/USERNAME/cicd-demo/actions/workflows/ci.yml)
 
-## Arhitektuur
-- **Infrastructure**: Local (Terraform)
-- **Configuration**: Ansible
-- **Application**: Python Flask (Docker)
-- **CI/CD**: GitLab CI
-- **Monitoring**: Custom metrics
+Automaatse CI/CD pipeline'iga Flask API.
 
-## Komponendid
+## Pipeline
 
-### 1. Infrastructure (Terraform)
-- Kohalikud seaded
-- Konfiguratsioonifailid
-- Security groups
-- Elastic IP
+Pipeline koosneb neljast stage'ist:
 
-### 2. Server Configuration (Ansible)
-- Nginx reverse proxy
-- Docker installation
-- Application directory setup
+1. Validate - Python syntax check
+2. Test - Automated tests
+3. Build - Docker image
+4. Deploy - Manual production deployment
 
-### 3. Application (Docker)
-- Flask REST API
-- Health checks
-- Metrics endpoint
-- Product catalog
+## Endpoints
 
-### 4. CI/CD Pipeline (GitLab CI)
-- Infrastructure deployment
-- Server configuration
-- Application deployment
-- Health monitoring
+Rakendus pakub kolme endpoint'i:
 
-## Kuidas kasutada
+- GET / - API info
+- GET /health - Health check
+- GET /products - Products list
 
-### Kohalik arendus
+## Käivitamine
+
+Lokaalselt:
+
+\`\`\`bash
+pip install -r requirements.txt
+python app.py
+\`\`\`
+
+Docker'iga:
+
+\`\`\`bash
+docker build -t cicd-demo .
+docker run -p 5000:5000 cicd-demo
+\`\`\`
+
+Testid:
+
+\`\`\`bash
+pytest test_app.py -v
+\`\`\`
+```
+
+Asenda USERNAME oma GitHub kasutajanimega. Badge näitab pipeline'i staatust - roheline kui kõik töötab, punane kui midagi on katki.
+
+### Viimane push
+
 ```bash
-# 1. Klooni projekt
-git clone https://gitlab.com/teie-kasutajanimi/techshop-automation.git
-
-# 2. Käivita kohalikult
-cd app
-docker-compose up --build
-
-# 3. Testi
-curl http://localhost:5000/
+git add README.md .github/workflows/ci.yml
+git commit -m "Add caching and README"
+git push origin main
 ```
 
-### Production deployment
-1. Push'i kood GitLab'i
-2. Käivita "deploy-infrastructure" job
-3. Käivita "configure-servers" job
-4. Käivita "deploy-application" job
-
-## API Endpoints
-- `GET /` - Home page
-- `GET /health` - Health check
-- `GET /metrics` - System metrics
-- `GET /status` - Service status
-- `GET /products` - Product catalog
-- `POST /orders` - Create order
-
-## Monitoring
-- Health checks: `/health`
-- System metrics: `/metrics`
-- Service status: `/status`
-- CI/CD pipeline monitoring
-
-## Troubleshooting
-- Application logs: `docker logs techshop-app`
-- Nginx logs: `sudo tail -f /var/log/nginx/access.log`
-- System logs: `journalctl -u docker`
-
-## Tehnoloogiad
-- **Infrastructure**: Terraform, Local
-- **Configuration**: Ansible
-- **Containerization**: Docker
-- **CI/CD**: GitLab CI
-- **Application**: Python Flask
-- **Web Server**: Nginx
-
-## Järgmised sammud
-- [ ] Lisa PostgreSQL andmebaas
-- [ ] Lisa Redis cache
-- [ ] Lisa Prometheus monitoring
-- [ ] Lisa SSL sertifikaadid
-- [ ] Lisa backup automatiseerimine
-```
-
-### Samm 2: Demo ettevalmistus
-
-**Valmista ette demo:**
-1. **Infrastructure**: Näita Terraform koodi ja kohalikke ressursse
-2. **Configuration**: Näita Ansible playbook'i ja kohalikku seadistust
-3. **Application**: Näita Flask rakendust ja Docker container'it
-4. **CI/CD**: Käivita pipeline ja näita deployment'i
-5. **Monitoring**: Näita health checks ja metrics
+Vaata GitHub'is et pipeline jookseb läbi ja README näitab badge'i.
 
 ---
 
-## **Samm 2: Lab Kokkuvõte**
+## Kontrollnimekiri
 
-### **Kõik oskused kasutatud:**
-1. **Git** → Version control ja collaboration
-2. **Terraform** → Infrastructure as Code
-3. **Ansible** → Server configuration
-4. **Docker** → Application containerization
-5. **CI/CD** → Automated deployment
-6. **Monitoring** → Production visibility
-7. **Troubleshooting** → Probleemide lahendamine
+Kontrolli et oled kõik sammud läbinud:
 
-### **Real-world projekt:**
-- **Production-ready** e-commerce lahendus
-- **Täielik automatiseerimine** - nullist kuni deployment'ini
-- **Kõik DevOps praktikad** ühes projektis
+**Rakendus:**
+- [ ] Flask app töötab kohalikult
+- [ ] Kõik kolm endpoint'i vastavad korrektselt
+- [ ] Testid läbivad kohalikult
 
-### **Tulemused:**
-- **Deployment aeg**: 2-3 tundi → 5 minutit
-- **Vigade arv**: 30% → 2%
-- **Rollback aeg**: 1 tund → 2 minutit
-- **Arendaja stress**: Kõrge → Madal
+**Pipeline:**
+- [ ] Validate stage kontrollib süntaksit
+- [ ] Test stage jooksutab automaatseid teste
+- [ ] Build stage ehitab Docker image'i
+- [ ] Deploy stage nõuab manual approval'i
 
-### **Järgmised sammud:**
-- Lisa andmebaas automatiseerimine
-- Lisa monitoring ja alerting
-- Lisa security scanning
-- Lisa backup ja disaster recovery
+**GitHub:**
+- [ ] Repository on public
+- [ ] Actions permissions on seadistatud
+- [ ] Production environment on loodud
+- [ ] Image on nähtav Packages'is
 
-** Palju õnne! Oled nüüd valmis automatiseerimise projektideks!**
+**Mõistmine:**
+- [ ] Tead miks validate on esimene stage
+- [ ] Mõistad erinevust validate ja test vahel
+- [ ] Oskad selgitada miks kasutame Docker'it
+- [ ] Tead millal kasutada manual deployment'i
 
+---
+
+## Refleksioon
+
+Vasta ausalt järgmistele küsimustele. See aitab sul õppida ja mõista mida õppisid.
+
+**Mis oli kõige raskem?**
+
+Kirjuta paar lauset selle kohta, mis osa lab'ist oli kõige keerulisem. Kas see oli YAML süntaks, Docker mõistmine, pipeline'i debugimine või kontseptsioonide mõistmine?
+
+**Mis oli ahaa moment?**
+
+Kirjuta millal läks lambike põlema. Millist kontseptsiooni sa nüüd mõistad, mis varem oli ebaselge? Kas see oli kui nägid kuidas automaatne testimine töötab? Või kui mõistsid miks validate peab olema esimene?
+
+**Kas oskad selgitada?**
+
+Kontrolli et oskad sõnastada:
+- Miks validate on esimene stage? (Kõige kiirem viis vigade leidmiseks)
+- Miks production deploy on manual? (Kõrge risk, vajame kontrolli)
+- Kuidas Docker aitab? (Garanteerib sama keskkonna igal pool)
+
+**Mida teeksid järgmine kord teisiti?**
+
+Kirjuta paar lauset selle kohta, mida sa järgmine kord teisiti teeksid. Kas alustaksid teisest kohast? Kas kasutaksid rohkem dokumentatsiooni? Kas võtaksid rohkem aega mõistmiseks?
+
+**Järgmised sammud:**
+
+Nüüd oskad luua põhilist CI/CD pipeline'i, automatiseerida build-test-deploy protsessi ja kasutada Docker'it CI/CD kontekstis. Järgmised võimalused on kodutöö kus lood sarnase pipeline'i erineva rakendusega, lisapraktika kus lisad notifications'eid ja rollback'i või uurid GitLab CI'd kui alternatiivi GitHub Actions'ile.

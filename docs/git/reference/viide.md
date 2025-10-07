@@ -1,4 +1,4 @@
-# Git Käsud Viitematerjal
+#  Git Käsud Viitematerjal
 
 **Kasutamine:** Kasutage seda viidet, kui vajate kiiret abi Git käskude kohta
 
@@ -28,7 +28,7 @@ git push origin main        # Saada muudatused
 git pull origin main        # Võta uusimad muudatused
 ```
 
-## Info ja Ajalugu
+##  Info ja Ajalugu
 
 ### Muudatuste Vaatamine
 ```bash
@@ -78,7 +78,7 @@ git rebase --abort          # Katkesta rebase
 git rebase --continue       # Jätka pärast konfliktide lahendamist
 ```
 
-## Kaugrepositooriumid (Remote)
+##  Kaugrepositooriumid (Remote)
 
 ### Remote'ide Haldamine
 ```bash
@@ -108,7 +108,7 @@ git push origin funktsioon-login  # Uue haru saatmine
 git push origin --delete funktsioon-login  # Haru kustutamine
 ```
 
-## Failide Haldamine
+##  Failide Haldamine
 
 ### Failide Lisamine ja Eemaldamine
 ```bash
@@ -167,7 +167,7 @@ git stash drop stash@{0}   # Kustuta stash
 git stash clear            # Kustuta kõik stash'ed
 ```
 
-## Otsimine ja Filtreerimine
+##  Otsimine ja Filtreerimine
 
 ```bash
 git log --grep="sõna"      # Otsi commit'ides
@@ -189,7 +189,7 @@ git push origin v1.0.0     # Saada tag
 git push origin --tags     # Saada kõik tag'id
 ```
 
-## Konfliktide Lahendamine
+##  Konfliktide Lahendamine
 
 ```bash
 git status                 # Näitab konfliktilisi faile
@@ -235,7 +235,7 @@ git unstage fail.txt     # git reset HEAD -- fail.txt
 - Selgeid commit sõnumeid
 - `.gitignore` faili
 
-## Lisaressursid
+##  Lisaressursid
 
 - [Git'i ametlik dokumentatsioon](https://git-scm.com/doc)
 - [Git'i visuaalne õpetus](https://git-scm.com/book/en/v2)

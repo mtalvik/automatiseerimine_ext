@@ -1,74 +1,38 @@
 # Terraform Kodutöö: Kohalik Infrastruktuur
 
-**Tähtaeg:** Järgmise nädala alguseks  
+See kodutöö võtab umbes 3-4 tundi, sõltuvalt teie Terraform kogemusest. Keskendu me kohaliku infrastruktuuri loomisele, mis on ideaalne IaC põhimõtete õppimiseks ilma pilve kuludeta.
+
+**Eeldused:** Terraform basics labor läbitud, HCL süntaksi põhiteadmised
+
+**Esitamine:** GitHub repositoorium koos README.md failiga
+
+**Tähtaeg:** Järgmise nädala alguseks
 
 ---
 
-## Ülesande kirjeldus
+## 1. Ülesande Kirjeldus
 
-Fookus on Terraform'i ja Infrastructure as Code'i õppimisel kohalikus keskkonnas! Ehitage lihtne infrastruktuur Terraform'iga.
+Looge Terraform'iga projekt, mis genereerib automaatselt projekti failide struktuuri koos konfiguratsioonidega. See ülesanne simuleerib reaalset vajadust - iga kord kui alustate uut projekti, vajate standardset kaustade struktuuri, konfiguratsioonifaile ja skripte.
 
----
+Teie Terraform kood peaks looma:
+- Projekti kaustade struktuuri (config, scripts, docs)
+- Konfiguratsioonifaile JSON ja YAML vormingus
+- Skripte projekti haldamiseks
+- README faili projekti dokumentatsiooniga
 
-## **Projekt: Kohalik Infrastruktuur Terraform'iga**
-
-### Mis on see projekt?
-
-Looge kohalik infrastruktuur Terraform'i abil. See on nagu "digitaalse maja ehitamine" kohalikus arvutis - kirjutate üles, mida soovite, ja Terraform teeb selle teie eest.
-
-### Mida te ehitate?
-
-** Kohalik Infrastruktuur**
-- **Failid ja kaustad** - projektifailide struktuur
-- **Konfiguratsioonid** - JSON ja YAML failid
-- **Skriptid** - automatiseerimise skriptid
-
-### Miks see on kasulik?
-
-- **Õpite Terraform'i** - praktiline kogemus
-- **Lihtne alustada** - töötab kohalikus arvutis
-- **Reaalne projekt** - failide ja konfiguratsiooni haldamine
-- **Taaskasutatav** - sama kood töötab erinevates arvutites
+Kõik failid peavad kasutama variables, et koodi saaks korduvkasutada erinevate projektide jaoks. Sama Terraform kood peaks töötama nii development, staging kui production keskkondades, muutes ainult muutujate väärtusi.
 
 ---
 
-##  **Ülesanne 1: Projekti struktuuri loomine**
+## 2. Projekti Failide Struktuuri Loomine
 
-### Samm 1: Põhifailid
-
-**Looge järgmine failide struktuur:**
-
-```bash
-terraform-basics-homework/
-├── main.tf          # Põhiline Terraform fail
-├── variables.tf     # Muutujad
-├── outputs.tf       # Väljundid
-├── terraform.tfvars # Muutujate väärtused
-└── README.md        # Projekti kirjeldus
-```
-
-### Samm 2: main.tf fail
+Alustage projekti põhikaustade loomisega. Kasutage `local_directory` ressurssi kolme põhikausta jaoks: config, scripts ja docs.
 
 ```hcl
-terraform {
-  required_providers {
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.0"
-    }
-  }
-}
-
-# Loo projekti põhikaust
 resource "local_directory" "project_root" {
   path = "${path.module}/${var.project_name}"
 }
 
-# Loo alamkaustad
 resource "local_directory" "config" {
   path = "${local_directory.project_root.path}/config"
 }
@@ -80,8 +44,17 @@ resource "local_directory" "scripts" {
 resource "local_directory" "docs" {
   path = "${local_directory.project_root.path}/docs"
 }
+```
 
-# Projekti konfiguratsioon
+Iga kataloog peaks kasutama eelmise kataloogi teed, et tagada õige hierarhia. `path.module` viitab kausta, kus Terraform fail asub, ja `var.project_name` võimaldab dünaamilist nime.
+
+---
+
+## 3. Konfiguratsioonifailide Genereerimine
+
+Looge JSON konfiguratsioonifail, mis sisaldab projekti metaandmeid. See fail peaks kajastama praegust keskkonda, versiooni ja projekti detaile.
+
+```hcl
 resource "local_file" "project_config" {
   content = jsonencode({
     project_name = var.project_name
@@ -97,8 +70,11 @@ resource "local_file" "project_config" {
   })
   filename = "${local_directory.config.path}/project.json"
 }
+```
 
-# YAML konfiguratsioon
+Lisaks JSON failile looge ka YAML konfiguratsioonifail rakenduse seadete jaoks. YAML on tihti kasutatav formaadis, mida paljud tööriistad eelistavad.
+
+```hcl
 resource "local_file" "app_config" {
   content = yamlencode({
     app = {
@@ -118,11 +94,22 @@ resource "local_file" "app_config" {
   })
   filename = "${local_directory.config.path}/app.yaml"
 }
+```
 
-# Käivitamise skript
+Pange tähele, kuidas kasutame tingimuslikku loogikat: debug režiim on sisse lülitatud ainult development keskkonnas, ja logimine on produktsioonis range, kuid development's verbose.
+
+---
+
+## 4. Skriptifailide Loomine
+
+Looge kaks skriptifaili: startup.sh projekti käivitamiseks ja cleanup.sh puhastamiseks.
+
+Startup skript peaks kuvama projekti info ja kontrollima keskkonda:
+
+```hcl
 resource "local_file" "startup_script" {
   content = <<-EOF
-#!/bin/bash
+    #!/bin/bash
     echo "======================================"
     echo "Tere tulemast ${var.project_name} projekti!"
     echo "======================================"
@@ -141,11 +128,14 @@ resource "local_file" "startup_script" {
   filename        = "${local_directory.scripts.path}/startup.sh"
   file_permission = "0755"
 }
+```
 
-# Puhastamise skript
+Cleanup skript peaks puhastama ajutised failid:
+
+```hcl
 resource "local_file" "cleanup_script" {
   content = <<-EOF
-#!/bin/bash
+    #!/bin/bash
     echo "Puhastan ${var.project_name} projekti..."
     echo "Kustutan ajutised failid..."
     rm -f *.tmp *.log
@@ -154,18 +144,26 @@ resource "local_file" "cleanup_script" {
   filename        = "${local_directory.scripts.path}/cleanup.sh"
   file_permission = "0755"
 }
+```
 
-# Juhuslik ID failide jaoks
+Pange tähele `file_permission = "0755"` kasutamist, mis muudab skriptid käivitatavaks.
+
+---
+
+## 5. Näidisfailide Genereerimine
+
+Kasutage `count` või `for_each` loomaks mitu näidisfaili docs kausta. Failide arv peaks olema muutuja kaudu konfigureeritav.
+
+```hcl
 resource "random_id" "file_suffix" {
   byte_length = 4
 }
 
-# Loo mitu näidisfaili
 resource "local_file" "example_files" {
   count = var.file_count
   
   content = <<-EOF
-# Näidisfail ${count.index + 1}
+    # Näidisfail ${count.index + 1}
     
     Projekti nimi: ${var.project_name}
     Keskkond: ${var.environment}
@@ -179,51 +177,15 @@ resource "local_file" "example_files" {
   
   filename = "${local_directory.docs.path}/example_${count.index + 1}_${random_id.file_suffix.hex}.txt"
 }
-
-# README fail
-resource "local_file" "readme" {
-  content = <<-EOF
-# ${var.project_name}
-    
-## Kirjeldus
-    
-    See projekt on loodud Terraform'i abil demonstreerima Infrastructure as Code põhimõtteid.
-    
-## Struktuuri
-    
-    ```
-    ${var.project_name}/
-    ├── config/          # Konfiguratsioonifailid
-    ├── scripts/         # Skriptid
-    ├── docs/           # Dokumentatsioon ja näited
-    └── README.md       # See fail
-    ```
-    
-## Kasutamine
-    
-    1. Käivita projekt: `./scripts/startup.sh`
-    2. Vaata konfiguratsioone: `cat config/project.json`
-    3. Puhasta projekt: `./scripts/cleanup.sh`
-    
-## Keskkond
-    
-    - Keskkond: ${var.environment}
-    - Versioon: 1.0.0
-    - Loodud: ${timestamp()}
-    
-## Terraform info
-    
-    See projekt loodi kasutades:
-    - Local provider
-    - Random provider
-    - File resources
-    - Directory resources
-  EOF
-  filename = "${local_directory.project_root.path}/README.md"
-}
 ```
 
-### Samm 3: variables.tf fail
+Random ID kasutamine tagab, et failinimed on unikaalsed isegi siis, kui sama koodi käivitatakse mitu korda.
+
+---
+
+## 6. Variables ja Outputs
+
+Defineerige kõik vajalikud muutujad `variables.tf` failis:
 
 ```hcl
 variable "project_name" {
@@ -260,22 +222,12 @@ variable "file_count" {
 }
 ```
 
-### Samm 4: outputs.tf fail
+Outputs peaksid näitama olulisi infosid pärast infrastruktuuri loomist:
 
 ```hcl
 output "project_directory" {
   description = "Projekti kausta tee"
   value       = local_directory.project_root.path
-}
-
-output "project_structure" {
-  description = "Projekti struktuur"
-  value = {
-    root_dir    = local_directory.project_root.path
-    config_dir  = local_directory.config.path
-    scripts_dir = local_directory.scripts.path
-    docs_dir    = local_directory.docs.path
-  }
 }
 
 output "created_files" {
@@ -290,7 +242,6 @@ output "created_files" {
       local_file.cleanup_script.filename
     ]
     doc_files = local_file.example_files[*].filename
-    readme_file = local_file.readme.filename
   }
 }
 
@@ -307,368 +258,289 @@ output "project_summary" {
     ═══════════════════════════════════════
   EOF
 }
+```
 
-output "next_steps" {
-  description = "Järgmised sammud"
-  value = [
-    "1. Käivitage: cd ${local_directory.project_root.path}",
-    "2. Vaadake struktuuri: tree . (või ls -la)",
-    "3. Käivitage startup skript: ./scripts/startup.sh",
-    "4. Vaadake konfiguratsioonifaile: cat config/*.json",
-    "5. Muutke terraform.tfvars ja rakendage uuesti"
-  ]
+---
+
+## 7. README Genereerimine
+
+Looge README fail, mis dokumenteerib projekti struktuuri ja kasutamist:
+
+```hcl
+resource "local_file" "readme" {
+  content = <<-EOF
+    # ${var.project_name}
+    
+    ## Kirjeldus
+    
+    See projekt on loodud Terraform'i abil demonstreerima Infrastructure as Code põhimõtteid.
+    
+    ## Struktuur
+    
+    ```
+    ${var.project_name}/
+    ├── config/          # Konfiguratsioonifailid
+    ├── scripts/         # Skriptid
+    ├── docs/            # Dokumentatsioon ja näited
+    └── README.md        # See fail
+    ```
+    
+    ## Kasutamine
+    
+    1. Käivita projekt: `./scripts/startup.sh`
+    2. Vaata konfiguratsioone: `cat config/project.json`
+    3. Puhasta projekt: `./scripts/cleanup.sh`
+    
+    ## Keskkond
+    
+    - Keskkond: ${var.environment}
+    - Versioon: 1.0.0
+    - Loodud: ${timestamp()}
+    
+    ## Terraform Info
+    
+    See projekt loodi kasutades:
+    - Local provider
+    - Random provider
+    - File resources
+    - Directory resources
+  EOF
+  filename = "${local_directory.project_root.path}/README.md"
 }
 ```
 
-### Samm 5: terraform.tfvars fail
+---
+
+## 8. Esitamine
+
+### Repositooriumi ettevalmistamine
+
+Looge avalik GitHub repositoorium nimega `terraform-basics-homework`. Repositooriumi peakski sisaldama:
+
+```
+terraform-basics-homework/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── terraform.tfvars.example
+├── .gitignore
+└── README.md
+```
+
+### .gitignore fail
+
+Looge `.gitignore` fail, et vältida tundlike failide üleslaadimist:
+
+```
+# Terraform files
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+!terraform.tfvars.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Generated files
+terraform-basics-homework/
+```
+
+### terraform.tfvars.example
+
+Looge näidisfail, mis näitab, milliseid väärtusi saab seadistada:
 
 ```hcl
-project_name = "minu-terraform-projekt"
+project_name = "minu-projekt"
 environment  = "development"
 file_count   = 3
 ```
 
----
+### README.md
 
-##  **Ülesanne 2: Projekti käivitamine**
+Teie repositooriumi README.md peab sisaldama:
 
-### Samm 1: Terraform'i initsialiseerimine
-
-```bash
-# Navigate to project directory
-cd terraform-basics-homework
-
-# Initialize Terraform
-terraform init
-```
-
-### Samm 2: Planeerimine
-
-```bash
-# See what will be created
-terraform plan
-```
-
-### Samm 3: Projekti loomine
-
-```bash
-# Create the infrastructure
-terraform apply
-```
-
-### Samm 4: Tulemuste vaatamine
-
-```bash
-# Check outputs
-terraform output
-
-# Check created files
-ls -la minu-terraform-projekt/
-tree minu-terraform-projekt/  # kui tree on installitud
-```
+1. Projekti kirjeldust - mis see on ja mida teeb
+2. Kuidas seadistada - `terraform init` ja sõltuvused
+3. Kuidas käivitada - `terraform plan`, `terraform apply`
+4. Näidisväärtused - mis muutujaid saab seada
+5. Refleksioon - vastused viiele küsimusele
 
 ---
 
-##  **Ülesanne 3: Eksperimenteerimine**
+## Refleksioon
 
-### Samm 1: Muutujate muutmine
+Lisa oma README.md faili lõppu peatükk "## Refleksioon" ja vasta järgmistele küsimustele kahest kolme lausega igaühele:
 
-**Muutke `terraform.tfvars` faili:**
+### 1. Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?
 
-```hcl
-project_name = "minu-uus-projekt"
-environment  = "production"
-file_count   = 10
-```
+Kirjelda konkreetset tehnilist väljakutset, mida kogesid. Võib olla state haldamine, HCL süntaks, või resources vahel sõltuvuste seadmine. Selgita, milliseid ressursse kasutasid (dokumentatsioon, Stack Overflow, klassikaaslased) ja kuidas probleemi lahendasid.
 
-**Rakendage muudatused:**
+### 2. Milline Terraform kontseptsioon oli sulle kõige suurem "ahaa!" elamus ja miks?
 
-```bash
-terraform plan
-terraform apply
-```
+Mõtle hetkele, kui midagi lõpuks klikkis. Võib olla state faili roll, providers süsteem, või kuidas variables ja outputs töötavad koos. Kirjelda, miks see kontseptsioon oli oluline ja kuidas see muutis su arusaamist IaC-st.
 
-### Samm 2: Uue ressursi lisamine
+### 3. Kuidas saaksid Terraform'i kasutada oma teistes projektides või töös?
 
-**Lisage `main.tf` faili:**
+Ole konkreetne. Ära kirjuta lihtsalt "automatiseerimine on hea". Kirjelda reaalset kasutusjuhtu: kas see on projekti struktuuri loomine, development keskkondade seadistamine, või millegi muu. Kuidas Terraform lahendaks konkreetse probleemi, mis sul on?
 
-```hcl
-# Loo konfiguratsioonifail iga keskkonna jaoks
-resource "local_file" "env_config" {
-  content = jsonencode({
-    environment = var.environment
-    settings = {
-      debug_mode    = var.environment != "production"
-      log_level     = var.environment == "production" ? "error" : "debug"
-      feature_flags = {
-        new_ui      = var.environment == "development"
-        analytics   = var.environment != "development"
-        monitoring  = var.environment == "production"
-      }
-    }
-  })
-  filename = "${local_directory.config.path}/environment.json"
-}
-```
+### 4. Kui peaksid oma sõbrale selgitama, mis on Infrastructure as Code ja miks see on kasulik, siis mida ütleksid?
 
-### Samm 3: Output'ide uuendamine
+Kasuta lihtsat keelt ilma žargoonita. Võrdle IaC-d millegagi tuttavaga (näiteks retsept vs iga kord uuesti leiutamine). Selgita kolme peamist eelist, mida IaC annab traditsioonilise lähenemise ees.
 
-**Lisage `outputs.tf` faili:**
+### 5. Mis oli selle projekti juures kõige lõbusam või huvitavam osa?
 
-```hcl
-output "environment_config" {
-  description = "Keskkonna konfiguratsioon"
-  value       = local_file.env_config.filename
-}
-```
-
-### Samm 4: Testimine
-
-```bash
-terraform apply
-./minu-uus-projekt/scripts/startup.sh
-cat minu-uus-projekt/config/environment.json
-```
+See võib olla tehnilne avastus, mõni ootamatu tulemus, või lihtsalt rahuldus kui `terraform apply` töötas. Ära ole liiga formaalne - ausus ja isiklik perspektiiv on väärtuslikud.
 
 ---
 
-##  **Ülesanne 4: Puhastamine ja dokumenteerimine**
+## Kontrollnimekiri Enne Esitamist
 
-### Samm 1: Infrastruktuuri kustutamine
+Kontrolli need asjad enne kui esitad:
 
-```bash
-terraform destroy
-```
-
-### Samm 2: Kokkuvõtte kirjutamine
-
-**Vastake küsimustele:**
-
-1. **Mis oli kõige lihtsam Terraform'i juures?**
-2. **Mis oli kõige keerulisem?**
-3. **Kuidas saaks seda projekti parandada?**
-4. **Mida õppisite Infrastructure as Code kohta?**
-
----
-
-## **Boonusülesanded (valikuline)**
-
-### 1. Tingimused ja tsüklid
-
-```hcl
-# Loo backup failid ainult production keskkonnas
-resource "local_file" "backup_script" {
-  count = var.environment == "production" ? 1 : 0
-  
-  content = "#!/bin/bash\necho 'Backup started...\n'"
-  filename = "${local_directory.scripts.path}/backup.sh"
-  file_permission = "0755"
-}
-
-# Loo erinevad konfiguratsioonie failure iga faili jaoks
-resource "local_file" "app_configs" {
-  for_each = toset(["api", "web", "worker"])
-  
-  content = jsonencode({
-    service = each.key
-    port    = each.key == "api" ? 3000 : each.key == "web" ? 8080 : 9000
-    env     = var.environment
-  })
-  filename = "${local_directory.config.path}/${each.key}.json"
-}
-```
-
-### 2. Locals ja funktsioonid
-
-```hcl
-locals {
-  project_prefix = "${var.project_name}-${var.environment}"
-  timestamp_formatted = formatdate("YYYY-MM-DD-hhmm", timestamp())
-  
-  common_tags = {
-    Project     = var.project_name
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-    CreatedAt   = local.timestamp_formatted
-  }
-}
-
-resource "local_file" "metadata" {
-  content = jsonencode(local.common_tags)
-  filename = "${local_directory.config.path}/metadata.json"
-}
-```
-
-### 3. Moodulite struktuuri ettevalmistamine
-
-```bash
-mkdir -p modules/file-generator
-# Liigutage osa koodist moodulitesse
-```
-
----
-
-## **Kokkuvõte**
-
-Täna õppisite:
-- **Terraform'i põhitõdesid** - kuidas kirjutada HCL koodi
-- **Local provider'i** - kuidas hallata kohalikke faile
-- **Variables ja outputs** - kuidas teha koodi paindlikuks
-- **Infrastructure as Code** - kuidas kood saab infrastruktuuri kirjeldada
-
-**Järgmised sammud:**
-- Õppige rohkem provider'ite kohta
-- Proovige kohalikke provider'eid (local, null, random)
-- Uurige Terraform module'eid
-- Rakendage real-world projektides
-
-**Küsimused?** 
-
----
-
-##  Refleksioon (kirjuta README.md lõppu)
-
-Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
-
-### Küsimused (vasta 2-3 lausega igaühele):
-
-1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
-   - Näide: "Kõige raskem oli mõista, kuidas variables ja outputs töötavad koos. Lugesin dokumentatsiooni ja tegin palju teste."
-
-2. **Milline Terraform kontseptsioon oli sulle kõige suurem "ahaa!"-elamus ja miks?**
-   - Näide: "Terraform state oli mulle suur avastus – nüüd saan aru, kuidas Terraform teab, mis on juba loodud!"
-
-3. **Kuidas saaksid Terraform'i kasutada oma teistes projektides või töös?**
-   - Näide: "Võiksin Terraform'iga luua oma projekti struktuur automaatselt, et ei peaks käsitsi kaustu looma."
-
-4. **Kui peaksid oma sõbrale selgitama, mis on Infrastructure as Code (IaC) ja miks see on kasulik, siis mida ütleksid?**
-   - Näide: "IaC on nagu ehitusplaan – kirjutad üles, mida tahad, ja Terraform ehitab selle sulle!"
-
-5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
-   - Näide: "Mulle meeldis `terraform apply` ja vaadata, kuidas failid automaatselt ilmuvad – nagu maagia!"
-
----
-
-## Kontrollnimekiri (enne esitamist)
-
-**Kontrolli need asjad:**
-
-- [ ] GitHubis on avalik repositoorium
-- [ ] Terraform failid (`main.tf`, `variables.tf`, `outputs.tf`) on loodud
-- [ ] `terraform init` ja `terraform apply` töötavad ilma vigadeta
-- [ ] Kõik ressursid (failid, kaustad) on loodud
+- [ ] GitHub repositoorium on avalik
+- [ ] Kõik Terraform failid (`main.tf`, `variables.tf`, `outputs.tf`) on commititud
+- [ ] `terraform init` töötab ilma vigadeta
+- [ ] `terraform plan` näitab oodatud ressursse
+- [ ] `terraform apply` loob kõik failid ja kaustad
 - [ ] `terraform destroy` kustutab kõik ressursid
+- [ ] `.gitignore` fail on lisatud ja töötab
+- [ ] `terraform.tfvars.example` fail on olemas
 - [ ] README.md sisaldab:
-  - [ ] Projekti kirjeldus (mis see on?)
-  - [ ] Kuidas seadistada (`terraform init`)
-  - [ ] Kuidas käivitada (`terraform apply`)
-  - [ ] Refleksioon (5 küsimuse vastused, 2-3 lauset igaüks)
-- [ ] Kõik muudatused on GitHubi push'itud
+  - [ ] Projekti kirjeldust
+  - [ ] Seadistamise juhiseid
+  - [ ] Kasutamise juhiseid
+  - [ ] Refleksiooni (5 küsimust, 2-3 lauset iga)
+- [ ] Kõik muudatused on push'itud GitHub'i
 
 ---
 
-##  Hindamiskriteeriumid
+## Hindamiskriteeriumid
 
 | Kriteerium | Punktid | Kirjeldus |
 |------------|---------|-----------|
-| **Terraform failid** | 25% | `main.tf`, `variables.tf`, `outputs.tf` korrektsed |
-| **Variables** | 20% | Variables õigesti kasutatud, mitte hardcoded |
-| **Outputs** | 15% | Outputs kuvavad õigeid väärtusi |
-| **Ressursid** | 20% | Failid ja kaustad luuakse õigesti |
-| **README** | 10% | Projekti kirjeldus, käivitamisjuhend, selge |
-| **Refleksioon** | 10% | 5 küsimust vastatud, sisukas, näitab mõistmist |
+| **Terraform failid** | 25% | `main.tf`, `variables.tf`, `outputs.tf` on korrektsed ja töötavad |
+| **Variables kasutamine** | 20% | Variables on õigesti defineeritud, validation töötab, ei ole hardcoded väärtuseid |
+| **Outputs** | 15% | Outputs kuvavad õigeid väärtuseid, on hästi struktureeritud |
+| **Ressursside loomine** | 20% | Kõik nõutud failid ja kaustad luuakse õigesti, skriptid töötavad |
+| **README kvaliteet** | 10% | Projekti kirjeldus on selge, juhised on täielikud, dokumentatsioon on professionaalne |
+| **Refleksioon** | 10% | 5 küsimust on vastatud sisukalt, näitab mõistmist, on isiklik ja aus |
 
-**Kokku: 100%**
+**Kokku:** 100%
+
+### Hindamine
+
+90-100%: Suurepärane. Kõik töötab flawlessly, kood on puhas, dokumentatsioon on põhjalik, refleksioon näitab sügavat mõistmist.
+
+75-89%: Väga hea. Peaaegu kõik töötab, mõned väikesed vead või puudulikud osad, hea refleksioon.
+
+60-74%: Hea. Põhifunktsionaalsus töötab, aga on puudusi või vigu, refleksioon on pinnapealne.
+
+50-59%: Rahuldav. Osalised tulemused, mitmed vead, minimaalne refleksioon.
+
+Alla 50%: Mitterahuldav. Ei tööta või on ebatäielikud, puuduv dokumentatsioon.
 
 ---
 
-## Abimaterjalid ja lugemine
+## Abimaterjalid
 
-**Kiirviited:**
-- [Terraform Docs - Get Started](https://developer.hashicorp.com/terraform/tutorials/aws-get-started)
-- [Terraform Docs - Configuration Language](https://developer.hashicorp.com/terraform/language)
-- [Terraform Docs - Local Provider](https://registry.terraform.io/providers/hashicorp/local/latest/docs)
-- [HCL Syntax Guide](https://developer.hashicorp.com/terraform/language/syntax/configuration)
+**Terraform dokumentatsioon:**
+- [Get Started](https://developer.hashicorp.com/terraform/tutorials/aws-get-started)
+- [Configuration Language](https://developer.hashicorp.com/terraform/language)
+- [Local Provider](https://registry.terraform.io/providers/hashicorp/local/latest/docs)
+- [Random Provider](https://registry.terraform.io/providers/hashicorp/random/latest/docs)
 
 **Kui abi vaja:**
-1. Vaata `lisapraktika.md` faili täiendavate näidete jaoks
-2. Kasuta `terraform console` interaktiivse testimise jaoks
+1. Vaata loengumaterjalide ja laborikoodide
+2. Kasuta `terraform console` interaktiivseks testimiseks
 3. Küsi klassikaaslaselt või õpetajalt
-4. Stack Overflow: search "terraform [sinu probleem]"
+4. Stack Overflow: otsi "terraform [sinu probleem]"
+
+**Testimine:**
+```bash
+# Kontrolli süntaksit
+terraform fmt
+terraform validate
+
+# Vaata, mis juhtub
+terraform plan
+
+# Rakenda
+terraform apply
+
+# Puhasta
+terraform destroy
+```
 
 ---
 
 ## Boonus (valikuline, +10%)
 
-**Kui tahad ekstra punkte, tee üks või mitu neist:**
+Kui tahad ekstra punkte, tee üks või mitu neist:
 
-1. **Multiple environments:** Dev vs Prod workspaces
-   ```bash
-   terraform workspace new dev
-   terraform workspace new prod
-   ```
+### 1. Terraform Workspaces
 
-2. **Data sources:** Loe olemasolevaid faile
-   ```hcl
-   data "local_file" "example" {
-     filename = "./existing-file.txt"
-   }
-   ```
+Loo eraldi workspaces development ja production jaoks:
 
-3. **Count meta-argument:** Loo 5 faili korraga
-   ```hcl
-   resource "local_file" "example" {
-     count    = 5
-     filename = "./file-${count.index}.txt"
-   }
-   ```
-
-4. **Conditional expressions:** Ressursid vastavalt environment'ile
-   ```hcl
-   resource "local_file" "example" {
-     content = var.environment == "prod" ? "Production" : "Development"
-   }
-   ```
-
----
-
-##  **Failide näited**
-
-### Oodatav terraform output:
-
+```bash
+terraform workspace new development
+terraform workspace new production
+terraform workspace select development
+terraform apply
 ```
-project_directory = "./minu-terraform-projekt"
-project_structure = {
-  "config_dir" = "./minu-terraform-projekt/config"
-  "docs_dir" = "./minu-terraform-projekt/docs"
-  "root_dir" = "./minu-terraform-projekt"
-  "scripts_dir" = "./minu-terraform-projekt/scripts"
+
+Dokumenteeri README's, kuidas workspaces töötavad.
+
+### 2. Data Sources
+
+Kasuta data source'e olemasolevate failide lugemiseks:
+
+```hcl
+data "local_file" "template" {
+  filename = "${path.module}/templates/config.tpl"
 }
-project_summary = <<EOT
-═══════════════════════════════════════
-Terraform Projekt: minu-terraform-projekt
-═══════════════════════════════════════
-Keskkond: development
-Failide arv: 7
-Loodud: 2024-01-15T10:30:45Z
-Kaust: ./minu-terraform-projekt
-═══════════════════════════════════════
-EOT
+
+resource "local_file" "generated" {
+  content  = data.local_file.template.content
+  filename = "${local_directory.config.path}/generated.conf"
+}
 ```
 
-### Oodatav failide struktuur:
+### 3. Conditional Resources
 
+Loo ressursse ainult konkreetses keskkonnas:
+
+```hcl
+resource "local_file" "prod_only" {
+  count    = var.environment == "production" ? 1 : 0
+  content  = "Production only config"
+  filename = "${local_directory.config.path}/prod.conf"
+}
 ```
-minu-terraform-projekt/
-├── README.md
-├── config/
-│   ├── project.json
-│   └── app.yaml
-├── scripts/
-│   ├── startup.sh
-│   └── cleanup.sh
-└── docs/
-    ├── example_1_abc123.txt
-    ├── example_2_abc123.txt
-    └── example_3_abc123.txt
+
+### 4. For_Each Map
+
+Kasuta for_each map'iga:
+
+```hcl
+variable "services" {
+  type = map(object({
+    port = number
+    env  = string
+  }))
+  default = {
+    "web" = { port = 8080, env = "production" }
+    "api" = { port = 3000, env = "development" }
+  }
+}
+
+resource "local_file" "service_configs" {
+  for_each = var.services
+  content  = "Port: ${each.value.port}, Env: ${each.value.env}"
+  filename = "${local_directory.config.path}/${each.key}.conf"
+}
 ```
+
+Dokumenteeri README's, mida boonuses tegid ja miks.

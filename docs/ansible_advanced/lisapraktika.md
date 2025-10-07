@@ -1,37 +1,83 @@
-# Ansible Edasijõudnud Lisapraktika
+# Ansible Advanced Lisapraktika
 
-Täiendavad ülesanded Ansible advanced patterns'i õppimiseks.
+Süvendavad harjutused Ansible edasijõudnud funktsioonidega. Need harjutused on mõeldud neile, kes soovivad õppida production-level tehnikaid ja automatiseerida keerukamaid stsenaariume.
 
-**Eeldused:** Põhilabor läbitud, templates/vault/variables selged
-
----
-
-## Enne alustamist
-
-Need ülesanded on valikulised ja mõeldud neile, kes:
-
-- Lõpetasid põhilabori ära
-- Mõistavad Ansible templates, vault, variables
-- Tahavad õppida advanced Ansible patterns
-- Valmistuvad päris production automation'iks
+**Eeldused:** Ansible põhiteadmised, templates, vault, handlers
 
 ---
 
-## Väljakutse 1: Complex Template Logic
+## 1. Complex Template Logic
 
+### 1.1 Probleem
 
-### Mida õpid?
-- Jinja2 filters ja tests
-- Macros ja includes
-- Template inheritance
-- Complex conditionals
+Põhi Jinja2 template'id kasutavad lihtsaid muutujaid ja `{% if %}` tingimusi, kuid production keskkonnas on vaja keerulisemat loogikat. Kuidas luua template, mis:
+- Arvutab dünaamiliselt väärtusi mitme muutuja põhjal
+- Itereerib komplekssete andmestruktuuride üle
+- Kasutab makrosid korduvate koodiplokkide jaoks
+- Rakendab advanced filtreid andmete töötlemiseks
 
-### Advanced Jinja2 näited:
+Näiteks Nginx konfiguratsioon, kus on mitu backend serverit, SSL seadistused sõltuvad keskkonnast, ja worker protsesside arv arvutatakse serveri ressursside põhjal.
+
+### 1.2 Lahendus
+
+Jinja2 pakub advanced funktsionaalsust, mis võimaldab kirjutada keerukaid template'eid:
+
+**Filters ja arvutused:**
 
 ```jinja2
-{# templates/nginx-advanced.conf.j2 #}
 {% set workers = ansible_processor_vcpus | default(2) %}
+worker_processes {{ workers }};
+worker_connections {{ (1024 * workers) | int }};
 
+{% set disk_space_gb = (ansible_mounts[0].size_total / 1024 / 1024 / 1024) | round(2) %}
+# Available disk: {{ disk_space_gb }} GB
+```
+
+**Loops ja complex data:**
+
+```jinja2
+{% for backend in backend_servers %}
+upstream {{ backend.name }} {
+    {% for server in backend.servers %}
+    server {{ server.host }}:{{ server.port }}{% if server.weight is defined %} weight={{ server.weight }}{% endif %};
+    {% endfor %}
+}
+{% endfor %}
+```
+
+**Macros korduvate plokkide jaoks:**
+
+```jinja2
+{% macro location_block(path, proxy_pass) %}
+location {{ path }} {
+    proxy_pass {{ proxy_pass }};
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+{% endmacro %}
+
+server {
+    {{ location_block('/api/', 'http://api_backend') }}
+    {{ location_block('/admin/', 'http://admin_backend') }}
+}
+```
+
+**Advanced conditionals:**
+
+```jinja2
+{% if environment == 'prod' %}
+error_log /var/log/nginx/error.log error;
+{% elif environment == 'staging' %}
+error_log /var/log/nginx/error.log warn;
+{% else %}
+error_log /var/log/nginx/error.log debug;
+{% endif %}
+```
+
+Täielik näide (templates/nginx-advanced.conf.j2):
+
+```jinja2
+{% set workers = ansible_processor_vcpus | default(2) %}
 user nginx;
 worker_processes {{ workers }};
 
@@ -40,7 +86,6 @@ events {
 }
 
 http {
-    {# Loop over upstream servers #}
     {% for backend in backend_servers %}
     upstream {{ backend.name }} {
         {% for server in backend.servers %}
@@ -49,14 +94,12 @@ http {
     }
     {% endfor %}
 
-    {# Include SSL config only if enabled #}
     {% if ssl_enabled | default(false) %}
     ssl_protocols {{ ssl_protocols | join(' ') }};
     ssl_ciphers {{ ssl_ciphers }};
     ssl_prefer_server_ciphers on;
     {% endif %}
 
-    {# Macro for location blocks #}
     {% macro location_block(path, proxy_pass) %}
     location {{ path }} {
         proxy_pass {{ proxy_pass }};
@@ -66,7 +109,6 @@ http {
     }
     {% endmacro %}
 
-    {# Use macros #}
     server {
         listen 80;
         server_name {{ server_name }};
@@ -74,28 +116,46 @@ http {
         {{ location_block('/api/', 'http://api_backend') }}
         {{ location_block('/admin/', 'http://admin_backend') }}
     }
-
-    {# Complex conditional with filters #}
-    {% if environment == 'prod' %}
-    access_log /var/log/nginx/access.log combined;
-    error_log /var/log/nginx/error.log error;
-    {% elif environment == 'staging' %}
-    access_log /var/log/nginx/access.log combined;
-    error_log /var/log/nginx/error.log warn;
-    {% else %}
-    access_log /var/log/nginx/access.log combined;
-    error_log /var/log/nginx/error.log debug;
-    {% endif %}
-
-    {# Custom filters #}
-    {% set disk_space_gb = (ansible_mounts[0].size_total / 1024 / 1024 / 1024) | round(2) %}
-# Available disk space: {{ disk_space_gb }} GB
 }
 ```
 
-### Variables for template:
+### 1.3 Harjutus: Nginx Load Balancer Template
+
+Loo advanced Nginx template, mis konfigreerib load balancer'i dünaamiliselt.
+
+**Nõuded:**
+
+- [ ] Template loob upstream blokke backend_servers listist
+- [ ] Iga backend server saab weight väärtuse (kui defineeritud)
+- [ ] SSL konfiguratsioon lisatakse ainult kui ssl_enabled == true
+- [ ] Worker processes arvutatakse CPU tuumade põhjal
+- [ ] Location blokid luuakse macro abil (vähemalt 2 location'i)
+- [ ] Log level sõltub environment muutujast (prod/staging/dev)
+
+**Näpunäiteid:**
+
+- Kasuta `{% for %}` loopimiseks üle backend serverite
+- `| default(value)` annab vaikeväärtuse kui muutuja puudub
+- `| int` konverteerib stringi numbriks
+- `{% if variable is defined %}` kontrollib muutuja olemasolu
+- Macro defineeritakse `{% macro name(params) %}...{% endmacro %}`
+
+**Testimine:**
+
+```bash
+# Genereeri template
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags nginx
+
+# Kontrolli genereeritud faili
+cat /etc/nginx/nginx.conf
+
+# Testi Nginx konfiguratsiooni
+nginx -t
+```
+
+**Muutujad (group_vars/webservers/nginx.yml):**
+
 ```yaml
-# group_vars/webservers/nginx.yml
 backend_servers:
   - name: api_backend
     servers:
@@ -105,6 +165,10 @@ backend_servers:
       - host: 10.0.1.11
         port: 8080
         weight: 2
+  - name: admin_backend
+    servers:
+      - host: 10.0.2.10
+        port: 9090
 
 ssl_enabled: true
 ssl_protocols:
@@ -112,31 +176,36 @@ ssl_protocols:
   - TLSv1.3
 ssl_ciphers: "HIGH:!aNULL:!MD5"
 
-environment: "{{ lookup('env', 'ENVIRONMENT') | default('dev') }}"
+environment: "{{ app_env }}"
 server_name: "{{ inventory_hostname }}.example.com"
 ```
 
-###  Boonus:
-- Loo custom Jinja2 filter plugins
-- Implementeeri template testing
-- Lisa template validation
-- Loo template library
+**Boonus:**
+
+- Lisa health check konfiguratsioon igale upstream serverile
+- Implementeeri rate limiting erinevate location'ide jaoks
+- Loo separate template fail includes jaoks ja kasuta `{% include %}`
+- Lisa custom error pages konfiguratsioon
 
 ---
 
-## Väljakutse 2: Dynamic Inventory
+## 2. Dynamic Inventory AWS
 
+### 2.1 Probleem
 
-### Mida õpid?
-- Dynamic inventory scripts
-- AWS EC2 inventory
-- Inventory caching
-- Custom grouping
+Static inventory failid ei skaleeru cloud keskkonnas, kus servereid luuakse ja kustutatakse dünaamiliselt. Kui AWS-is on 50 EC2 instance't ja need muutuvad iga päev, on käsitsi inventory uuendamine võimatu. Kuidas:
+- Automaatselt avastada servereid AWS-ist
+- Grupeerida neid tagide järgi
+- Uuendada inventory't real-time
+- Kasutada AWS metaandmeid Ansible muutujatena
 
-### AWS EC2 Dynamic Inventory:
+### 2.2 Lahendus
+
+Ansible toetab AWS EC2 dynamic inventory plugin'it, mis pärib instance'id otse AWS API-st. Plugin kasutab boto3 library't ja AWS credentials'eid.
+
+**AWS EC2 inventory plugin (aws_ec2.yml):**
 
 ```yaml
-# aws_ec2.yml
 plugin: aws_ec2
 
 regions:
@@ -150,11 +219,13 @@ filters:
   instance-state-name: running
 
 keyed_groups:
-# Group by tags
+  # Group by Environment tag
   - key: tags.Environment
     prefix: env
+  # Group by Role tag
   - key: tags.Role
     prefix: role
+  # Group by availability zone
   - key: placement.availability_zone
     prefix: az
 
@@ -167,10 +238,17 @@ compose:
   ansible_user: "'ec2-user'"
 ```
 
-### Custom inventory script (Python):
+See konfiguratsioon:
+- Otsib instance'id US-East-1 ja EU-West-1 regioonidest
+- Filtreerib ainult running instance'id Environment tagiga
+- Loob gruppe tagide ja availability zone'ide järgi
+- Kasutab Name tag'i või DNS nime hostname'ina
+- Seadistab ansible_host ja ansible_user automaatselt
+
+**Custom inventory script alternatiiv (inventory/custom_inventory.py):**
+
 ```python
 #!/usr/bin/env python3
-# inventory/custom_inventory.py
 
 import json
 import boto3
@@ -195,18 +273,15 @@ def get_inventory():
             name = next((tag['Value'] for tag in instance.get('Tags', []) 
                         if tag['Key'] == 'Name'), instance['InstanceId'])
             
-# Get tags
             tags = {tag['Key']: tag['Value'] 
                    for tag in instance.get('Tags', [])}
             
-# Add to inventory
             env = tags.get('Environment', 'undefined')
             if env not in inventory:
                 inventory[env] = {'hosts': []}
             
             inventory[env]['hosts'].append(name)
             
-# Host vars
             inventory['_meta']['hostvars'][name] = {
                 'ansible_host': instance.get('PublicIpAddress'),
                 'ansible_user': 'ec2-user',
@@ -221,439 +296,109 @@ if __name__ == '__main__':
     print(json.dumps(get_inventory(), indent=2))
 ```
 
-### Use dynamic inventory:
+### 2.3 Harjutus: AWS Dynamic Inventory Setup
+
+Seadista AWS EC2 dynamic inventory ja kasuta seda playbook'ides.
+
+**Nõuded:**
+
+- [ ] AWS credentials konfigureeritud (~/.aws/credentials või env vars)
+- [ ] aws_ec2.yml inventory fail loodud
+- [ ] Plugin pärib instance'id vähemalt ühest regioonist
+- [ ] Instance'id on grupeeritud Environment tag järgi
+- [ ] Playbook kasutab dynamic inventory't
+- [ ] Inventory cache konfiguratsioon lisatud
+
+**Näpunäiteid:**
+
+- Installi boto3: `pip install boto3`
+- AWS credentials: `aws configure` või seadista AWS_ACCESS_KEY_ID ja AWS_SECRET_ACCESS_KEY
+- Testi inventory't: `ansible-inventory -i aws_ec2.yml --list`
+- Kasuta `--graph` inventory struktuuri vaatamiseks
+- Cache'imine kiirendab suuri inventory'sid
+
+**Testimine:**
+
 ```bash
-# List inventory
+# Installi dependencies
+pip install boto3 botocore
+
+# Testi AWS ühendust
+aws ec2 describe-instances --region us-east-1
+
+# Vaata inventory't
 ansible-inventory -i aws_ec2.yml --list
 
-# Use in playbook
+# Vaata grupeerimist
+ansible-inventory -i aws_ec2.yml --graph
+
+# Kasuta playbook'iga
 ansible-playbook -i aws_ec2.yml site.yml
 
-# With caching
+# Cache'imisega
 ansible-playbook -i aws_ec2.yml site.yml \
   --inventory-cache-plugin jsonfile \
   --inventory-cache-timeout 3600
 ```
 
-###  Boonus:
-- Loo multi-cloud inventory (AWS + Azure + GCP)
-- Implementeeri inventory caching
-- Lisa custom grouping logic
-- Loo inventory validation
+**AWS IAM õigused (minimum):**
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeInstances",
+        "ec2:DescribeTags"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+**Boonus:**
+
+- Lisa multi-region support (kõik AWS regions)
+- Implementeeri custom grouping logic (instance type, VPC, subnet)
+- Loo inventory cache invalidation strategy
+- Lisa DigitalOcean või Azure inventory samale projektile
 
 ---
 
-## Väljakutse 3: Ansible Tower/AWX Automation
+## 3. Zero-Downtime Deployment
 
+### 3.1 Probleem
 
-### Mida õpid?
-- AWX installation
-- Job Templates
-- Workflows
-- RBAC
+Tavaline deployment peatab rakenduse, uuendab koodi ja käivitab uuesti. See tekitab downtime - kasutajad näevad vigu deployment'i ajal. Production keskkonnas pole downtime vastuvõetav. Kuidas:
+- Deployida uus versioon ilma teenust peatamata
+- Eemaldada servereid load balancer'ist enne uuendamist
+- Kontrollida deployment'i õnnestumist enne järgmise serveri uuendamist
+- Rollback automaatselt kui deployment ebaõnnestub
 
-### AWX setup (Docker Compose):
-```yaml
-# docker-compose.yml
-version: '3.8'
+### 3.2 Lahendus
 
-services:
-  awx_web:
-    image: ansible/awx:latest
-    depends_on:
-      - postgres
-      - redis
-    environment:
-      - SECRET_KEY=awxsecret
-      - DATABASE_USER=awx
-      - DATABASE_PASSWORD=awxpass
-      - DATABASE_NAME=awx
-      - DATABASE_HOST=postgres
-    ports:
-      - "8080:8052"
+Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serveri tervise enne järgmise juurde liikumist. Ansible `serial` direktiiv võimaldab kontrollida mitu serverit korraga töödeldakse.
 
-  awx_task:
-    image: ansible/awx:latest
-    depends_on:
-      - awx_web
-    environment:
-      - SECRET_KEY=awxsecret
+**Rolling deployment pattern:**
 
-  postgres:
-    image: postgres:13
-    environment:
-      - POSTGRES_USER=awx
-      - POSTGRES_PASSWORD=awxpass
-      - POSTGRES_DB=awx
-
-  redis:
-    image: redis:6
-```
-
-### AWX Configuration via API:
-```python
-#!/usr/bin/env python3
-# configure_awx.py
-
-import requests
-import json
-
-AWX_URL = "http://localhost:8080/api/v2"
-USERNAME = "admin"
-PASSWORD = "password"
-
-def create_project(name, scm_url):
-    response = requests.post(
-        f"{AWX_URL}/projects/",
-        auth=(USERNAME, PASSWORD),
-        json={
-            "name": name,
-            "scm_type": "git",
-            "scm_url": scm_url,
-            "scm_update_on_launch": True
-        }
-    )
-    return response.json()
-
-def create_job_template(name, project_id, playbook):
-    response = requests.post(
-        f"{AWX_URL}/job_templates/",
-        auth=(USERNAME, PASSWORD),
-        json={
-            "name": name,
-            "job_type": "run",
-            "inventory": 1,
-            "project": project_id,
-            "playbook": playbook,
-            "credential": 1,
-            "ask_variables_on_launch": True
-        }
-    )
-    return response.json()
-
-# Create project
-project = create_project(
-    "MyApp Infrastructure",
-    "https://github.com/myorg/ansible-playbooks"
-)
-
-# Create job template
-job_template = create_job_template(
-    "Deploy Application",
-    project['id'],
-    "playbooks/deploy.yml"
-)
-
-print(f"Created job template: {job_template['id']}")
-```
-
-### Workflow setup:
-```python
-def create_workflow():
-# Create workflow
-    workflow = requests.post(
-        f"{AWX_URL}/workflow_job_templates/",
-        auth=(USERNAME, PASSWORD),
-        json={
-            "name": "Full Deployment Workflow",
-            "description": "Deploy app with validation"
-        }
-    ).json()
-    
-# Add nodes
-    nodes = [
-        {"unified_job_template": 1, "success_nodes": [2]},  # Validate
-        {"unified_job_template": 2, "success_nodes": [3], "failure_nodes": [4]},  # Deploy
-        {"unified_job_template": 3},  # Test
-        {"unified_job_template": 5}   # Rollback
-    ]
-    
-    for node in nodes:
-        requests.post(
-            f"{AWX_URL}/workflow_job_templates/{workflow['id']}/workflow_nodes/",
-            auth=(USERNAME, PASSWORD),
-            json=node
-        )
-```
-
-###  Boonus:
-- Loo automated workflow creation
-- Implementeeri job scheduling
-- Lisa notification integrations (Slack/Email)
-- Loo custom credential types
-
----
-
-## Väljakutse 4: Testing with Molecule
-
-
-### Mida õpid?
-- Molecule framework
-- Test scenarios
-- Multiple platforms
-- CI/CD integration
-
-### Molecule setup:
-```bash
-# Install
-pip install molecule molecule-docker
-
-# Initialize
-cd roles/myapp
-molecule init scenario --driver-name docker
-
-# Test
-molecule test
-```
-
-### Molecule config (molecule/default/molecule.yml):
-```yaml
----
-dependency:
-  name: galaxy
-driver:
-  name: docker
-platforms:
-  - name: ubuntu-20
-    image: ubuntu:20.04
-    pre_build_image: true
-  - name: ubuntu-22
-    image: ubuntu:22.04
-    pre_build_image: true
-  - name: centos-8
-    image: centos:8
-    pre_build_image: true
-
-provisioner:
-  name: ansible
-  playbooks:
-    converge: converge.yml
-    verify: verify.yml
-  inventory:
-    group_vars:
-      all:
-        myapp_version: "1.0.0"
-
-verifier:
-  name: ansible
-
-scenario:
-  test_sequence:
-    - dependency
-    - lint
-    - cleanup
-    - destroy
-    - syntax
-    - create
-    - prepare
-    - converge
-    - idempotence
-    - side_effect
-    - verify
-    - cleanup
-    - destroy
-```
-
-### Test playbook (molecule/default/verify.yml):
-```yaml
----
-- name: Verify
-  hosts: all
-  gather_facts: false
-  tasks:
-    - name: Check service is running
-      command: systemctl is-active myapp
-      register: result
-      failed_when: result.rc != 0
-
-    - name: Check port is listening
-      wait_for:
-        port: 8080
-        timeout: 5
-
-    - name: Test HTTP endpoint
-      uri:
-        url: http://localhost:8080/health
-        status_code: 200
-```
-
-### GitLab CI integration:
-```yaml
-# .gitlab-ci.yml
-test:molecule:
-  stage: test
-  image: python:3.9
-  services:
-    - docker:dind
-  before_script:
-    - pip install molecule molecule-docker
-  script:
-    - cd roles/myapp
-    - molecule test
-```
-
-###  Boonus:
-- Loo multi-platform tests
-- Lisa performance testing
-- Implementeeri security scanning
-- Loo test coverage reports
-
----
-
-## Väljakutse 5: Custom Modules
-
-
-### Mida õpid?
-- Module development
-- AnsibleModule API
-- Return values
-- Error handling
-
-### Custom module (library/custom_user.py):
-```python
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-from ansible.module_utils.basic import AnsibleModule
-
-DOCUMENTATION = '''
----
-module: custom_user
-short_description: Manage users with custom logic
-description:
-    - Create, modify, or delete users with custom validation
-options:
-    name:
-        description: Username
-        required: true
-        type: str
-    state:
-        description: User state
-        choices: ['present', 'absent']
-        default: present
-        type: str
-    email:
-        description: User email
-        type: str
-'''
-
-EXAMPLES = '''
-- name: Create user
-  custom_user:
-    name: john
-    email: john@example.com
-    state: present
-'''
-
-def main():
-    module = AnsibleModule(
-        argument_spec=dict(
-            name=dict(type='str', required=True),
-            state=dict(type='str', default='present', choices=['present', 'absent']),
-            email=dict(type='str'),
-        ),
-        supports_check_mode=True
-    )
-
-    name = module.params['name']
-    state = module.params['state']
-    email = module.params['email']
-
-    result = dict(
-        changed=False,
-        name=name,
-        state=state
-    )
-
-# Check if user exists
-    try:
-        import pwd
-        user_exists = True
-        pwd.getpwnam(name)
-    except KeyError:
-        user_exists = False
-
-    if state == 'present':
-        if not user_exists:
-            if not module.check_mode:
-# Create user logic here
-                import subprocess
-                cmd = ['useradd', name]
-                rc = subprocess.call(cmd)
-                if rc != 0:
-                    module.fail_json(msg=f"Failed to create user {name}")
-            
-            result['changed'] = True
-            result['msg'] = f"User {name} created"
-        else:
-            result['msg'] = f"User {name} already exists"
-
-    elif state == 'absent':
-        if user_exists:
-            if not module.check_mode:
-# Delete user logic here
-                import subprocess
-                cmd = ['userdel', name]
-                rc = subprocess.call(cmd)
-                if rc != 0:
-                    module.fail_json(msg=f"Failed to delete user {name}")
-            
-            result['changed'] = True
-            result['msg'] = f"User {name} deleted"
-        else:
-            result['msg'] = f"User {name} does not exist"
-
-    module.exit_json(**result)
-
-if __name__ == '__main__':
-    main()
-```
-
-### Use custom module:
-```yaml
-# playbook.yml
-- hosts: all
-  tasks:
-    - name: Create user with custom module
-      custom_user:
-        name: john
-        email: john@example.com
-        state: present
-```
-
-###  Boonus:
-- Loo module with complex logic
-- Lisa comprehensive error handling
-- Implementeeri module testing
-- Publish module to Ansible Galaxy
-
----
-
-## Väljakutse 6: Zero-Downtime Deployment
-
-
-### Mida õpid?
-- Serial execution
-- Health checks
-- Rollback strategies
-- Load balancer integration
-
-### Rolling deployment playbook:
 ```yaml
 ---
 - name: Rolling deployment
   hosts: webservers
-  serial: 1  # One server at a time
-  max_fail_percentage: 0  # Stop if any fails
+  serial: 1  # Üks server korraga
+  max_fail_percentage: 0  # Peata kui üks ebaõnnestub
 
   pre_tasks:
-    - name: Check server health before deployment
+    - name: Health check enne deployment'i
       uri:
         url: "http://{{ inventory_hostname }}/health"
         status_code: 200
       delegate_to: localhost
 
-    - name: Remove from load balancer
+    - name: Eemalda load balancer'ist
       haproxy:
         state: disabled
         host: "{{ inventory_hostname }}"
@@ -661,23 +406,29 @@ if __name__ == '__main__':
       delegate_to: "{{ groups['loadbalancers'][0] }}"
 
   tasks:
-    - name: Stop application
+    - name: Peata rakendus
       systemd:
         name: myapp
         state: stopped
 
-    - name: Deploy new version
+    - name: Backup current version
+      copy:
+        src: /opt/myapp/app.jar
+        dest: /opt/myapp/app.jar.backup
+        remote_src: true
+
+    - name: Deploy uus versioon
       copy:
         src: "myapp-{{ version }}.jar"
         dest: /opt/myapp/app.jar
       notify: restart myapp
 
-    - name: Start application
+    - name: Käivita rakendus
       systemd:
         name: myapp
         state: started
 
-    - name: Wait for application to be ready
+    - name: Oota kuni rakendus valmis
       uri:
         url: "http://{{ inventory_hostname }}:8080/health"
         status_code: 200
@@ -687,14 +438,14 @@ if __name__ == '__main__':
       delay: 2
 
   post_tasks:
-    - name: Add back to load balancer
+    - name: Lisa tagasi load balancer'isse
       haproxy:
         state: enabled
         host: "{{ inventory_hostname }}"
         socket: /var/run/haproxy.sock
       delegate_to: "{{ groups['loadbalancers'][0] }}"
 
-    - name: Run smoke tests
+    - name: Smoke test
       uri:
         url: "http://{{ inventory_hostname }}/api/test"
         status_code: 200
@@ -705,77 +456,119 @@ if __name__ == '__main__':
       systemd:
         name: myapp
         state: restarted
-
-  rescue:
-    - name: Rollback on failure
-      include_tasks: rollback.yml
 ```
 
-### Rollback playbook:
+**Rollback playbook (rollback.yml):**
+
 ```yaml
-# rollback.yml
 ---
-- name: Stop current version
-  systemd:
-    name: myapp
-    state: stopped
+- name: Rollback deployment
+  hosts: "{{ failed_host }}"
+  tasks:
+    - name: Peata current version
+      systemd:
+        name: myapp
+        state: stopped
 
-- name: Restore previous version
-  copy:
-    src: /opt/myapp/app.jar.backup
-    dest: /opt/myapp/app.jar
-    remote_src: true
+    - name: Restore backup
+      copy:
+        src: /opt/myapp/app.jar.backup
+        dest: /opt/myapp/app.jar
+        remote_src: true
 
-- name: Start application
-  systemd:
-    name: myapp
-    state: started
+    - name: Käivita rakendus
+      systemd:
+        name: myapp
+        state: started
 
-- name: Notify team
-  slack:
-    token: "{{ slack_token }}"
-    channel: "#deployments"
-    msg: "Rollback executed on {{ inventory_hostname }}"
+    - name: Verify rollback
+      uri:
+        url: "http://{{ inventory_hostname }}:8080/health"
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 10
+      delay: 2
 ```
 
-###  Boonus:
-- Lisa canary deployment strategy
-- Loo automated rollback triggers
-- Implementeeri health check validation
-- Lisa deployment metrics collection
+### 3.3 Harjutus: Rolling Deployment Implementeerimine
+
+Loo rolling deployment strategy veebirakendusele koos health check'ide ja rollback'iga.
+
+**Nõuded:**
+
+- [ ] Serial deployment - üks server korraga
+- [ ] Pre-deployment health check kontrollib serveri tervise
+- [ ] Server eemaldatakse load balancer'ist enne deployment'i
+- [ ] Post-deployment health check verifitseerib rakenduse
+- [ ] Server lisatakse tagasi load balancer'isse peale õnnestumist
+- [ ] Deployment peatub kui üks server ebaõnnestub
+- [ ] Backup luuakse enne uue versiooni deploy'mist
+
+**Näpunäiteid:**
+
+- `serial: 1` deployib üks server korraga, `serial: 2` kaks korraga
+- `max_fail_percentage: 0` peatab kohe kui üks ebaõnnestub
+- `delegate_to: localhost` käivitab task'i Ansible control node'is
+- `until` ja `retries` ootavad kuni tingimus täidetud
+- `pre_tasks` käivituvad enne `tasks`, `post_tasks` pärast
+
+**Testimine:**
+
+```bash
+# Deploy uus versioon
+ansible-playbook -i inventory/hosts.yml rolling-deploy.yml -e "version=2.0.0"
+
+# Kontrolli deployment progressi
+# (peaks nägema servereid ükshaaval)
+
+# Testi rollback
+ansible-playbook -i inventory/hosts.yml rollback.yml -e "failed_host=web1"
+```
+
+**Load balancer konfiguratsioon (HAProxy):**
+
+```cfg
+# /etc/haproxy/haproxy.cfg
+global
+    stats socket /var/run/haproxy.sock mode 600 level admin
+
+backend webservers
+    balance roundrobin
+    option httpchk GET /health
+    server web1 10.0.1.10:8080 check
+    server web2 10.0.1.11:8080 check
+    server web3 10.0.1.12:8080 check
+```
+
+**Boonus:**
+
+- Implementeeri canary deployment (5% trafficu uuele versioonile esimesena)
+- Lisa automated rollback kui health check ebaõnnestub
+- Loo Slack notification deployment'i edusammudest
+- Implementeeri blue-green deployment alternatiivina
 
 ---
 
-## Täiendavad ressursid
+## Kasulikud Ressursid
 
-### Dokumentatsioon:
-- [Ansible Docs](https://docs.ansible.com/)
-- [Molecule Docs](https://molecule.readthedocs.io/)
-- [AWX Docs](https://docs.ansible.com/ansible-tower/)
-- [Jinja2 Docs](https://jinja.palletsprojects.com/)
+**Dokumentatsioon:**
+- [Ansible Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
+- [Jinja2 Template Designer](https://jinja.palletsprojects.com/en/3.0.x/templates/)
+- [AWS EC2 Inventory Plugin](https://docs.ansible.com/ansible/latest/collections/amazon/aws/aws_ec2_inventory.html)
+- [Rolling Updates](https://docs.ansible.com/ansible/latest/user_guide/playbooks_delegation.html)
 
-### Tööriistad:
-- **ansible-lint:** Playbook linter
-- **ansible-doctor:** Documentation generator
-- **ara:** Ansible run analysis
-- **mitogen:** Performance boost for Ansible
+**Tööriistad:**
+- **ansible-lint** - Playbook'ide linter ja best practices checker: `pip install ansible-lint`
+- **ansible-doctor** - Automaatne dokumentatsiooni genereerimine: `pip install ansible-doctor`
+- **ara** - Ansible run analysis ja visualiseerimine: `pip install ara`
+- **mitogen** - Ansible performance parandamine (kuni 7x kiirem): `pip install mitogen`
 
-### Näited:
-- [Ansible Examples](https://github.com/ansible/ansible-examples)
-- [Jeff Geerling's Roles](https://github.com/geerlingguy)
-- [Debops](https://debops.org/) - Complete datacenter automation
-
----
-
-## Näpunäited
-
-1. **Test in dev first:** Ära kunagi testi production'is esimest korda
-2. **Use check mode:** `--check` on sinu sõber
-3. **Version control:** Kõik playbook'id peaks olema Git'is
-4. **Document plays:** Kommentaarid on tulevase sina jaoks
-5. **Monitor execution:** Kasuta ara või AWX logi analüüsiks
+**Näited:**
+- [Ansible Examples Repository](https://github.com/ansible/ansible-examples)
+- [Jeff Geerling's Ansible Roles](https://github.com/geerlingguy) - kvaliteetsed production-ready rollid
+- [Debops](https://debops.org/) - täielik datacenter automatiseerimine
 
 ---
 
-**Edu ja head automatiseerimist!** 
-
+Need harjutused on mõeldud sügvendama teie Ansible advanced oskusi. Alustage esimesest ja liikuge järk-järgult keerulisemate poole. Iga harjutus õpetab tehnikaid, mida kasutatakse pärisettevõtetes production keskkonnas.

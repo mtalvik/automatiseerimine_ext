@@ -1,10 +1,11 @@
-# Kubernetes Kodutöö: E-Pood → Tootmine
+#  Kubernetes Kodutöö: E-Pood → Tootmine
 
 **Tähtaeg:** Järgmise nädala alguseks  
 
+
 ---
 
-## Ülesande kirjeldus
+##  Ülesande kirjeldus
 
 Laboris tegime e-poe kus kood oli ConfigMap'is. See on halb praktika. Nüüd teeme sama e-poe õigesti - kood Docker image'isse.
 
@@ -147,10 +148,10 @@ spec:
         image: valixyz/shop-backend:v1.0  # SINU IMAGE!
         ports:
         - containerPort: 3000
-# POLE ENAM:
-# - volumeMounts
-# - initContainers
-# - volumes ConfigMap'iga
+        # POLE ENAM:
+        # - volumeMounts
+        # - initContainers
+        # - volumes ConfigMap'iga
         resources:
           requests:
             cpu: "50m"
@@ -191,7 +192,7 @@ spec:
         image: valixyz/shop-frontend:v1.0  # SINU IMAGE!
         ports:
         - containerPort: 80
-# POLE ENAM volumeMounts ConfigMap'iga!
+        # POLE ENAM volumeMounts ConfigMap'iga!
 ---
 apiVersion: v1
 kind: Service
@@ -490,19 +491,19 @@ helm uninstall myshop
 
 ## Tehtud Muudatused
 
-### 1. Docker Images
+## 1. Docker Images
 - Laboris: Kood oli ConfigMap'is (halb)
 - Nüüd: Kood on Docker image'is (hea)
 - Backend: valixyz/shop-backend:v1.0
 - Frontend: valixyz/shop-frontend:v1.0
 
-### 2. Miks Docker Images Paremad
+## 2. Miks Docker Images Paremad
 - Versioonihaldus (v1.0, v1.1, v2.0)
 - Rollback võimalus
 - CI/CD pipeline võimalik
 - Ei pea pod'is npm install tegema
 
-### 3. Production Feature: [HPA/Blue-Green/Helm]
+## 3. Production Feature: [HPA/Blue-Green/Helm]
 [Kirjelda mida tegid ja miks kasulik]
 
 ## Testimine
@@ -581,7 +582,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-## Kontrollnimekiri (enne esitamist)
+##  Kontrollnimekiri (enne esitamist)
 
 **Kontrolli need asjad:**
 
@@ -617,7 +618,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-## Abimaterjalid ja lugemine
+##  Abimaterjalid ja lugemine
 
 **Kiirviited:**
 - [Kubernetes Docs - Concepts](https://kubernetes.io/docs/concepts/)
@@ -633,7 +634,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-## Boonus (valikuline, +10%)
+##  Boonus (valikuline, +10%)
 
 **Kui tahad ekstra punkte, tee üks või mitu neist:**
 

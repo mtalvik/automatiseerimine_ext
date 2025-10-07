@@ -1,4 +1,4 @@
-# VS Code Viitematerjal
+#  VS Code Viitematerjal
 
 **Kasutamine:** Kasutage seda viidet VS Code seadistamiseks ja Git integratsiooni jaoks
 

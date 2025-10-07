@@ -1,40 +1,38 @@
 # Ansible Kodutöö: Veebirakendus Vault'iga
 
-**Tähtaeg:** Järgmise nädala alguseks  
+Looge Ansible lahendus, mis juurutab veebirakenduse kasutades Vault'i, template'eid ja handler'eid. Lahendus peab toetama kahte keskkonda (dev/prod) erinevate konfiguratsioonidega. See ülesanne võtab orienteeruvalt 4-6 tundi.
 
----
+**Eeldused:** Ansible põhiteadmised, YAML süntaks, Jinja2 template'id, Linux süsteemihaldus  
+**Esitamine:** GitHub avalik repositoorium koos README.md failiga  
+**Tähtaeg:** Järgmise nädala alguseks
 
-## **OLULINE: Kui kasutad päris pilve servereid!**
+## OLULINE: Pilve Serverite Kasutamisel
 
-**NB!** Seda kodutööd saab teha ka kohalike VM'idega (VirtualBox/Vagrant) - see on TASUTA!
+Seda kodutööd saab teha kohalike VM'idega (VirtualBox/Vagrant) - see on TASUTA.
 
-**Aga kui kasutad pilve (AWS EC2, Azure VM, DigitalOcean):**
+Kui kasutate pilve (AWS EC2, Azure VM, DigitalOcean):
 
-###  Enne alustamist:
-
-1. **Seadista billing alerts** (vaata Terraform homework hoiatust)
-2. **Kasuta väiksemaid instance'eid:**
+1. Seadistage billing alerts
+2. Kasutage väiksemaid instance'eid:
    - AWS: `t2.micro` või `t3.micro` (Free Tier)
-   - Azure: `B1s` (väike ja odav)
-   - DigitalOcean: `$6/month droplet`
+   - Azure: `B1s`
+   - DigitalOcean: $6/month droplet
+3. KUSTUTAGE serverid pärast testimist
 
-3. ** KUSTUTA serverid pärast testimist!**
-   ```bash
-# AWS
-   aws ec2 terminate-instances --instance-ids i-xxxxx
-   
-# Azure
-   az vm delete --name myvm --resource-group mygroup --yes
-   
-# Või Terraform destroy
-   terraform destroy
-   ```
-
-### SOOVITATAV: Kasuta kohalikke VM'e
-
-**Tasuta ja turvaline variant:**
 ```bash
-# Vagrant setup (kohalikud VM'id)
+# AWS
+aws ec2 terminate-instances --instance-ids i-xxxxx
+
+# Azure
+az vm delete --name myvm --resource-group mygroup --yes
+
+# Terraform
+terraform destroy
+```
+
+Kohalike VM'ide kasutamine:
+
+```bash
 vagrant up
 ansible-playbook -i inventory site.yml
 vagrant destroy  # pärast testimist
@@ -42,249 +40,465 @@ vagrant destroy  # pärast testimist
 
 ---
 
-## Ülesanne
+## 1. Ülesande Kirjeldus
 
 Juurutage veebirakendus (teie valik) kasutades:
 - Ansible Vault paroolide jaoks
-- Template'e konfiguratsioonifailidele  
+- Template'e konfiguratsioonifailidele
 - Handler'eid teenuste haldamiseks
 - Kahte keskkonda (dev/prod)
 
----
+Valige keerukus:
 
-##  Nõuded
+**Variant 1: Static website**
+- Apache + HTML
+- Template: Apache vhost
+- Vault: Apache admin parool, SSL parool
+- Dev: port 8080, prod: port 80
 
-### 1. Vault (25 punkti)
-- [ ] Vähemalt 5 krüpteeritud muutujat
-- [ ] Paroolid peavad olema vault'is
-- [ ] Vault muutujate kasutamine template'ides
+**Variant 2: Blog platform**
+- Apache/Nginx + MySQL + PHP (WordPress või custom)
+- Template'id: vhost, DB config, PHP config
+- Vault: DB paroolid, admin parool
+- Dev: vähem RAM ja debug logging, prod: optimeeritud
 
-### 2. Template'id (25 punkti)
-- [ ] Vähemalt 2 Jinja2 template'i
-- [ ] Kasutage `{% if %}` tingimusi
-- [ ] Erinevad konfiguratsioonid dev/prod jaoks
-
-### 3. Handler'id (20 punkti)
-- [ ] Vähemalt 2 handler'it
-- [ ] Teenuste restart/reload
-- [ ] Käivituvad ainult muudatuste korral
-
-### 4. Struktuur (15 punkti)
-```
-teie-projekt/
-├── inventory/hosts.yml
-├── group_vars/
-│   └── all/vault.yml
-├── templates/
-├── playbooks/
-└── README.md
-```
-
-### 5. Dokumentatsioon (15 punkti)
-- [ ] README.md
-- [ ] Screenshot'id (vault krüpteeritud, rakendus töötab)
-- [ ] Käivitamise juhised
+**Variant 3: API server**
+- Nginx + PostgreSQL + Node.js/Go/Rust
+- Redis cache, load balancing
+- Template'id: Nginx upstream, DB tuning, API config
+- Vault: DB paroolid, API tokens, Redis parool, SSL certs
 
 ---
 
-## Vihjed
+## 2. Vault Nõuded (15%)
 
-### Vault'i loomine
+Looge Ansible Vault fail vähemalt 5 krüpteeritud muutujaga:
+
 ```bash
-# Looge krüpteeritud fail
+# Loo vault fail
 ansible-vault create group_vars/all/vault.yml
 
-# Vaadake sisu
+# Vaata sisu
 ansible-vault view group_vars/all/vault.yml
 
-# Käivitage playbook
+# Käivita playbook
 ansible-playbook site.yml --ask-vault-pass
 ```
 
-### Template'i näpunäide
-```jinja2
-# Keskkonna järgi erinevad väärtused
-{% if env_type == 'production' %}
-# Tootmise seadistused
-{% else %}
-# Arenduse seadistused
-{% endif %}
+Vault failis:
 
-# Muutuja vault'ist
-password = {{ vault_db_password }}
+```yaml
+vault_db_password: "tugevParool123"
+vault_admin_user: "administrator"
+vault_admin_password: "veel_tugevam"
+vault_api_key: "secret_key_1234"
+vault_ssl_cert_password: "cert_pass"
 ```
 
-### Handler'i näpunäide
+Kasutamine template'ides:
+
+```jinja2
+database_password: {{ vault_db_password }}
+admin_user: {{ vault_admin_user }}
+```
+
+Nõuded:
+- [ ] Vähemalt 5 krüpteeritud muutujat
+- [ ] Kõik paroolid vault'is (mitte plain text)
+- [ ] Vault muutujad kasutatavad template'ides
+
+---
+
+## 3. Template'ide Nõuded (20%)
+
+Looge vähemalt 2 Jinja2 template'i, mis kasutavad `{% if %}` tingimusi.
+
+Apache vhost template (vhost.conf.j2):
+
+```jinja2
+<VirtualHost *:{{ http_port }}>
+    ServerName {{ server_name }}
+    DocumentRoot {{ document_root }}
+
+    {% if env_type == 'production' %}
+    ErrorLog ${APACHE_LOG_DIR}/{{ app_name }}_error.log
+    LogLevel warn
+    {% else %}
+    ErrorLog ${APACHE_LOG_DIR}/{{ app_name }}_dev_error.log
+    LogLevel debug
+    {% endif %}
+
+    <Directory {{ document_root }}>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+DB konfiguratsioon (my.cnf.j2):
+
+```jinja2
+[client]
+user = {{ vault_db_user }}
+password = {{ vault_db_password }}
+host = {{ db_host }}
+
+[mysqld]
+{% if env_type == 'production' %}
+max_connections = 200
+innodb_buffer_pool_size = 1G
+{% else %}
+max_connections = 50
+innodb_buffer_pool_size = 256M
+{% endif %}
+```
+
+Nõuded:
+- [ ] Vähemalt 2 template'i
+- [ ] Kasutavad `{% if %}` tingimusi
+- [ ] Erinevad konfiguratsioonid dev/prod jaoks
+
+---
+
+## 4. Handler'ite Nõuded (15%)
+
+Looge vähemalt 2 handler'it teenuste haldamiseks.
+
 ```yaml
 tasks:
-  - name: Deploy config
+  - name: Deploy Apache vhost
     template:
-      src: config.j2
-      dest: /etc/app/config
-    notify: restart service
+      src: templates/vhost.conf.j2
+      dest: /etc/apache2/sites-available/{{ app_name }}.conf
+    notify: restart apache
+
+  - name: Deploy DB config
+    template:
+      src: templates/my.cnf.j2
+      dest: /etc/mysql/my.cnf
+    notify: reload mysql
 
 handlers:
-  - name: restart service
+  - name: restart apache
     service:
-      name: myapp
+      name: apache2
       state: restarted
+
+  - name: reload mysql
+    service:
+      name: mysql
+      state: reloaded
 ```
 
----
-
-## Kasulikud lingid
-
-**Ansible dokumentatsioon:**
-- [Ansible Vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html)
-- [Jinja2 Templates](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_templating.html)
-- [Handlers](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_handlers.html)
-
-**Template'ide näited:**
-- [Jinja2 if statements](https://jinja.palletsprojects.com/en/3.0.x/templates/#if)
-- [Variables in templates](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html)
-
-**Vault praktikad:**
-- [Best practices](https://www.digitalocean.com/community/tutorials/how-to-use-vault-to-protect-sensitive-ansible-data)
+Nõuded:
+- [ ] Vähemalt 2 handler'it
+- [ ] Teenused restarditakse ainult muudatuste korral
+- [ ] Handler'id `handlers:` sektsioonis, mitte `tasks:` sees
 
 ---
 
-## Kontrollnimekiri
+## 5. Projekti Struktuur (15%)
 
-Enne esitamist kontrollige:
+```
+teie-projekt/
+├── inventory/
+│   └── hosts.yml
+├── group_vars/
+│   ├── all/
+│   │   ├── vars.yml
+│   │   └── vault.yml
+│   ├── dev/
+│   │   └── vars.yml
+│   └── production/
+│       └── vars.yml
+├── templates/
+│   ├── vhost.conf.j2
+│   └── my.cnf.j2
+├── playbooks/
+│   ├── site.yml
+│   └── deploy.yml
+├── screenshots/
+│   ├── vault_encrypted.png
+│   ├── playbook_success.png
+│   └── app_running.png
+└── README.md
+```
+
+Inventory näide (hosts.yml):
+
+```yaml
+all:
+  children:
+    dev:
+      hosts:
+        dev-server:
+          ansible_host: 192.168.56.10
+          ansible_user: vagrant
+          env_type: development
+    
+    production:
+      hosts:
+        prod-server:
+          ansible_host: 192.168.56.20
+          ansible_user: ubuntu
+          env_type: production
+```
+
+Nõuded:
+- [ ] Failid õigesti organiseeritud
+- [ ] Vault fail group_vars/all/ kaustas
+- [ ] Template'id templates/ kaustas
+- [ ] Erinevad muutujad dev/prod jaoks
+
+---
+
+## 6. Esitamine
+
+README.md peab sisaldama:
+
+```markdown
+# [Projekti Nimi]
+
+## Autor
+[Teie nimi ja õpperühm]
+
+## Kirjeldus
+[Mis rakendus, mis komponendid]
+
+## Eeldused
+- Ubuntu 20.04/22.04
+- Ansible 2.9+
+- SSH juurdepääs
+
+## Failide struktuur
+[Kirjelda kataloogide sisu]
+
+## Seadistamine
+
+1. Kloonige repo
+2. Muutke inventory/hosts.yml
+3. Muutke group_vars/all/vars.yml
+4. Käivitage: `ansible-playbook playbooks/site.yml --ask-vault-pass`
+
+## Kasutamine
+
+### Esimene käivitus
+```bash
+ansible-playbook playbooks/site.yml --ask-vault-pass
+```
+
+### Dev keskkond
+```bash
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l dev
+```
+
+### Production keskkond
+```bash
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l production
+```
+
+## Testimine
+[Kuidas kontrollida, et töötab]
+
+## Screenshot
+[Lisa screenshot]
+
+## Probleemid ja lahendused
+[Mis raskused, kuidas lahendasid]
+```
+
+### Kontroll Enne Esitamist
+
+- [ ] GitHubis avalik repo
+- [ ] Ansible project structure korrektne
+- [ ] Template'id töötavad (dünaamilised configs)
+- [ ] Vault kasutatud (paroolid krüpteeritud)
+- [ ] Playbook töötab ilma vigadeta
+- [ ] Rakendus funktsionaalne (testitud)
+- [ ] README.md sisaldab:
+  - [ ] Projekti kirjeldus
+  - [ ] Arhitektuur
+  - [ ] Seadistamisjuhend
+  - [ ] Käivitamisjuhend
+  - [ ] Screenshots
+  - [ ] Refleksioon (5 küsimust)
+- [ ] Kõik muudatused push'itud
+
+Valideerimine:
 
 ```bash
-# 1. Vault on krüpteeritud?
+# Vault krüpteeritud?
 file group_vars/all/vault.yml
 
-# 2. Syntax OK?
+# Syntax OK?
 ansible-playbook site.yml --syntax-check
 
-# 3. Dry run töötab?
-ansible-playbook site.yml --check
+# Dry run?
+ansible-playbook site.yml --check --ask-vault-pass
 
-# 4. Screenshot'id tehtud?
+# Screenshots olemas?
 ls screenshots/
 ```
 
 ---
 
-##  Sagedased vead
+## 7. Refleksioon
 
-1. **Vault parool Git'is** - ÄRGE committige `.vault_pass` faili
-2. **Hardcoded paroolid** - Kõik paroolid vault'i
-3. **Handler'id puuduvad** - Teenused peavad restartima ainult vajadusel
-4. **Üks keskkond** - Peab olema dev JA prod
+Lisa README.md lõppu peatükk "Refleksioon" ja vasta (2-3 lauset igaühele):
 
----
+### 1. Mis oli kõige raskem ja kuidas lahendasid?
 
-##  Nõutavad tõendid
+Kirjelda konkreetset tehnilist probleemi ja lahendust.
 
-1. Krüpteeritud vault: `cat group_vars/all/vault.yml | head`
-2. Playbook töötab: terminal output
-3. Rakendus töötab: browser screenshot
-4. Handler käivitub: `RUNNING HANDLER` output'is
+### 2. Milline Ansible advanced kontseptsioon oli suurim "ahaa!" hetk?
 
----
+Kirjelda, mis avas uue mõtteviisi või oli üllatav.
 
-## Ideed projektiks
+### 3. Kuidas saaksid Ansible'i advanced funktsioone kasutada teistes projektides?
 
-**Lihtne:** Static website (Apache + HTML templates)  
-**Keskmine:** Blog platform (Apache + MySQL + PHP)  
-**Keeruline:** API server (Nginx + PostgreSQL + Node.js)
+Kirjelda konkreetseid kasutusjuhte.
 
-Valige vastavalt oma oskustele!
+### 4. Kui peaksid selgitama sõbrale, mis on Infrastructure as Code, siis mida ütleksid?
+
+Lihtne selgitus mitteinfotehnoloogile.
+
+### 5. Mis oli kursusel kõige väärtuslikum õppetund?
+
+Mõtle laiemalt kui ainult tehnilised oskused.
 
 ---
 
-**Esitamine:** GitHub link + screenshot'id
+## 8. Hindamiskriteeriumid
 
----
-
-##  Refleksioon (kirjuta README.md lõppu)
-
-Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
-
-### Küsimused (vasta 2-3 lausega igaühele):
-
-1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
-   - Näide: "Kõige raskem oli Jinja2 templates - eriti loops ja conditions. Lugesin dokumentatsiooni ja tegin palju teste."
-
-2. **Milline Ansible advanced kontseptsioon oli sulle kõige suurem "ahaa!"-elamus ja miks?**
-   - Näide: "Ansible Vault! Nüüd saan aru, kuidas hoida paroole turvaliselt Git'is."
-
-3. **Kuidas saaksid Ansible'i advanced funktsioone kasutada oma teistes projektides?**
-   - Näide: "Võiksin luua template'eid oma standardsetele server config'idele ja kasutada vault'i secrets jaoks."
-
-4. **Kui peaksid selgitama sõbrale, mis on Infrastructure as Code ja miks see on kasulik, siis mida ütleksid?**
-   - Näide: "IaC on nagu retsept - kirjutad üles, mida tahad, ja Ansible teeb selle automaatselt kõikides serverites!"
-
-5. **Mis oli selle kursusel kõige väärtuslikum õppetund?**
-   - Näide: "Sain aru, et automatiseerimine on võti - kunagi enam ei sea ma servereid käsitsi!"
-
----
-
-## Kontrollnimekiri (enne esitamist)
-
-**Kontrolli need asjad:**
-
-- [ ] GitHubis on avalik repositoorium
-- [ ] Ansible project structure on korrektne
-- [ ] Templates töötavad (dünaamilised configs)
-- [ ] Vault on kasutatud (paroolid krüpteeritud)
-- [ ] Playbook töötab ilma vigadeta
-- [ ] Rakendus on funktsionaalne (testitud)
-- [ ] README.md sisaldab:
-  - [ ] Projekti kirjeldus (mis see on?)
-  - [ ] Arhitektuur (millised komponendid)
-  - [ ] Kuidas seadistada (inventory, vault)
-  - [ ] Kuidas käivitada (`ansible-playbook` käsud)
-  - [ ] Screenshots (deployed app, configs)
-  - [ ] Refleksioon (5 küsimuse vastused)
-- [ ] Kõik muudatused on GitHubi push'itud
-
----
-
-##  Hindamiskriteeriumid
-
-| Kriteerium | Punktid | Kirjeldus |
+| Kriteerium | Osakaal | Kirjeldus |
 |------------|---------|-----------|
-| **Funktsionaalsus** | 30% | Rakendus töötab, kõik komponendid korrektsed |
-| **Templates** | 20% | Jinja2 templates dünaamilised ja korrektsed |
-| **Vault** | 15% | Paroolid krüpteeritud, vault õigesti kasutatud |
-| **Project structure** | 15% | Organiseeritud struktuur, group_vars/host_vars |
-| **README** | 10% | Projekti kirjeldus, käivitamisjuhend, selge |
-| **Refleksioon** | 10% | 5 küsimust vastatud, sisukas, näitab mõistmist |
+| Funktsionaalsus | 30% | Rakendus töötab, kõik komponendid korrektselt seadistatud |
+| Template'id | 20% | Jinja2 template'id dünaamilised, kasutavad `{% if %}`, genereerivad korrektseid config'e |
+| Vault | 15% | Kõik paroolid krüpteeritud, vault õigesti integreeritud |
+| Projekti struktuur | 15% | Organiseeritud kataloogstruktuur, järgib Ansible best practices |
+| README | 10% | Projekti kirjeldus, käivitamisjuhised, arhitektuur, screenshots |
+| Refleksioon | 10% | 5 küsimust vastatud, sisukad vastused |
 
 **Kokku: 100%**
 
 ---
 
-## Abimaterjalid ja lugemine
+## 9. Sagedased Vead
 
-**Kiirviited:**
-- [Ansible Jinja2 Templates](https://docs.ansible.com/ansible/latest/user_guide/playbooks_templating.html)
-- [Ansible Vault](https://docs.ansible.com/ansible/latest/user_guide/vault.html)
-- [Ansible Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
+**Vault parool Git'is:** `.vault_pass` peab olema `.gitignore` failis.
+
+**Hardcoded paroolid:** Kui template'is on `password: admin123`, siis vault nõue pole täidetud.
+
+**Handler'id valesti:** Handler peab olema `handlers:` sektsioonis ja käivituma `notify:` kaudu.
+
+**Ainult üks keskkond:** Peab olema dev JA production erinevate seadistustega.
+
+---
+
+## 10. Abimaterjalid
+
+**Ansible dokumentatsioon:**
+- [Ansible Vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html)
+- [Jinja2 Templates](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_templating.html)
+- [Handlers](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_handlers.html)
+- [Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
+
+**Jinja2:**
 - [Jinja2 Documentation](https://jinja.palletsprojects.com/)
 
 **Kui abi vaja:**
-1. Vaata `lisapraktika.md` faili täiendavate näidete jaoks
-2. Kasuta `ansible-playbook --syntax-check` syntax kontrollikls
+1. Vaata `lisapraktika.md` täiendavaid näiteid
+2. Kasuta `ansible-playbook --syntax-check`
 3. Kasuta `ansible-playbook --check` kuivaks käiguks
 4. Küsi klassikaaslaselt või õpetajalt
 
 ---
 
-## Boonus (valikuline, +10%)
+## 11. Boonus (valikuline, +10%)
 
-**Kui tahad ekstra punkte, tee üks või mitu neist:**
+Valikulised täiendused lisapunktide saamiseks:
 
-1. **Dynamic inventory:** Kasuta dynamic inventory (AWS EC2, Azure)
-2. **Ansible Tower/AWX:** Deploy projecti Tower/AWX kaudu
-3. **Molecule testing:** Lisa Molecule test suite
-4. **Multiple environments:** Dev, Staging, Production (erinevad vault failid)
-5. **CI/CD integration:** Lisa GitLab CI/GitHub Actions Ansible jaoks
+### Dynamic inventory (+3%)
+
+Kasuta dynamic inventory AWS EC2 või Azure VM'idega:
+
+```yaml
+# aws_ec2.yml
+plugin: aws_ec2
+regions:
+  - eu-north-1
+filters:
+  tag:Environment:
+    - dev
+    - production
+```
+
+### Ansible Tower/AWX (+3%)
+
+Deploy projekti Tower/AWX'i ja loo job template.
+
+### Molecule testing (+2%)
+
+Lisa Molecule test suite:
+
+```bash
+molecule init scenario
+molecule test
+```
+
+### Multiple environments (+2%)
+
+Kolm keskkonda: Dev, Staging, Production (erinevad vault failid igaühele).
+
+```
+group_vars/
+  dev/vault.yml
+  staging/vault.yml
+  production/vault.yml
+```
+
+### CI/CD integration (+2%)
+
+Lisa GitLab CI või GitHub Actions pipeline:
+
+```yaml
+# .gitlab-ci.yml
+deploy:
+  script:
+    - ansible-playbook playbooks/site.yml --ask-vault-pass
+```
 
 ---
 
-**Edu! **
+## 12. Debugimine
+
+Verbose režiim:
+```bash
+ansible-playbook site.yml -vvv
+```
+
+Kuiv käivitus:
+```bash
+ansible-playbook site.yml --check
+```
+
+Vaata diff'i:
+```bash
+ansible-playbook site.yml --diff
+```
+
+---
+
+## Mida MITTE teha
+
+- Paroolid plain text'is
+- `.vault_pass` Git'is
+- Kõik ühes playbook'is
+- Muutujad otse playbook'is `vars:` sektsioonis
+- Handler'id `tasks:` sektsioonis
+- Hardcoded IP aadressid või kasutajanimed
+
+---
+
+**Edu!**

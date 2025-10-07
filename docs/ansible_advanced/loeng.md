@@ -1,653 +1,620 @@
-# Ansible: Edasijõudnud Funktsioonid
+# Ansible Edasijõudnud Funktsioonid
 
-**Teemad:** Ansible Vault, Jinja2 templates, optimiseerimine, troubleshooting
+**Eeldused:** Ansible põhiteadmised, YAML süntaks, Linux CLI  
+**Platvorm:** Ansible 2.9+, Ubuntu/Debian/RHEL/CentOS
+
+## Õpiväljundid
+
+Pärast seda loengut õpilane:
+- Mõistab muutujate hierarhia põhimõtteid ja nende praktilist väärtust
+- Selgitab template'ide eeliseid staatiliste failide ees
+- Eristab handler'ite ja tavalist task'ide kasutusviise
+- Võrdleb paroolide haldamise lähenemisi ja Vault'i rolli
+- Rakendab neid kontseptsioone reaalse infrastruktuuri automatiseerimisel
 
 ---
 
-## Sissejuhatus
+## 1. Skaleeritavuse Väljakutse
 
-Tere, täna räägime Ansible'i edasijõudnutest funktsioonidest. Aga mis juhtub siis, kui teie infrastruktuur kasvab kolmest serverist kolmesajani? Mis juhtub, kui teil on arenduskeskkond, testimiskeskkond ja produktsioon, kõik erinevate konfiguratsioonidega? Täna õpime tööriistu, mis muudavad suure infrastruktuuri haldamise võimalikuks ja turvaliseks.
+Väike infrastruktuur on lihtne hallata. Kolm serverit, kõik identsed - üks playbook ja valmis. Aga mis juhtub, kui ettevõte kasvab?
 
-Kujutage ette, et töötate startup'is. Alguses on teil kolm serverit - kõik Ubuntud, kõik ühtemoodi seadistatud. Lihtne. Aga firma kasvab. Nüüd on teil 50 serverit, osa neist on andmebaasiserverid, osa veebiserverid, osa cache-serverid. Mõned jooksevad Ubuntu peal, mõned CentOS'il. Arendusmeeskond tahab oma serverites debug-mode'i, aga produktsioonis see kindlasti ei tohi olla. Kuidas te seda kõike hallate ilma hulluks minemata?
+### Kui Lihtne Lähenemine Enam Ei Tööta
 
-Vastus on struktureeritud lähenemine muutujatele, dünaamilised konfiguratsioonid template'idega, intelligentne teenuste haldamine handler'itega ja turvaline paroolide hoidmine Vault'iga. Need neli komponenti moodustavad professionaalse Ansible seadistuse aluse.
+Kujutage ette arengut:
 
-## Muutujad ja nende prioriteedid
+**Nädal 1:** 3 serverit, kõik Ubuntu 20.04, kõik identse konfiguratsiooniga. Üks playbook kopeerib faile ja restart'ib teenused.
 
-Alustame muutujate hierarhiast. Ansible'is saate defineerida muutujaid kaheksas erinevas kohas, ja igaühel on oma prioriteet. See pole bug, see on feature - see annab teile tohutult paindlikkust. Kõrgem prioriteet võidab alati madalama.
+**Kuu 3:** 15 serverit. Osa on veebiserveri, osa andmebaasid. Teete kaks playbook'i - ühe web'ile, teise db'le. Kui midagi ühist muuta, muudate mõlemas.
 
-Hierarhia on järgmine, kõrgeimast madalaimani:
-1. Command line extra-vars (need mida annate -e lipuga)
-2. Task muutujad (otse task'i sees defineeritud)
-3. Block muutujad (terve bloki jaoks)
-4. Role muutujad (role/vars/main.yml)
-5. Play muutujad (playbook'i alguses)
-6. Host muutujad (host_vars/ kataloogis)
-7. Group muutujad (group_vars/ kataloogis)
-8. Role vaikeväärtused (role/defaults/main.yml)
+**Kuu 6:** 40 serverit kolmes keskkonnas (dev, staging, prod). Nüüd on teil 6 playbook'i. Muudatus tähendab 6 faili muutmist. Teete vea ühes, sama viga korduv kuues.
 
-Vaatame konkreetset näidet. Teil on muutuja `server_port`, mis määrab, millisel pordil teie rakendus kuulab. Vaikimisi tahate, et kõik serverid kuulaksid pordil 80. Seega panete `group_vars/all.yml` faili:
+**Aasta 1:** 100+ serverit, mitu keskkonda, erinevad OS-id, erinevad konfiguratsioonid. Playbook'e on kümneid. Muudatuste tegemine võtab tunde. Code review on võimatu - keegi ei mäleta, mis kus on.
+
+```mermaid
+graph TD
+    A[3 serverit<br/>1 playbook] --> B[15 serverit<br/>2 playbook'i]
+    B --> C[40 serverit<br/>6 playbook'i]
+    C --> D[100+ serverit<br/>20+ playbook'i<br/>KAOS]
+    
+    style A fill:#9f6
+    style D fill:#f96
+```
+
+### Miks See Lähenemine Ebaõnnestub
+
+Probleem pole serverite arvus - probleem on **korduses**. Iga kord kui kopeerite koodi:
+- Kasvab hoolduskoormus eksponentsiaalselt
+- Vigade tõenäosus suureneb
+- Muudatused muutuvad aeglaseks ja ohtlikuks
+- Code review on võimatu
+- Uued tiimiliikmeed ei saa aru, mis toimub
+
+See on fundamentaalne skaleeritavuse probleem. Ansible põhifunktsioonid aitavad automatiseerida üksikuid servereid. Edasijõudnud funktsioonid lahendavad **suure infrastruktuuri haldamise** probleemi.
+
+---
+
+## 2. Muutujate Hierarhia Kontseptsioon
+
+### Probleem: Üks Playbook, Paljud Kontekstid
+
+Teie rakendus peab töötama erinevates kontekstides:
+- Arenduses port 3000, tootmises port 80
+- Arenduses debug sisse, tootmises välja
+- Serveritel erinev RAM, CPU - konfiguratsioon peab kohanema
+- Test server vajab täiesti erinevat seadistust
+
+Kuidas kirjutada ÜKS playbook, mis töötab kõigis nendes kontekstides?
+
+### Lahendus: Hierarhiline Override System
+
+Ansible rakendab prioriteetide süsteemi - spetsiifilisem alati võidab üldisema. See pole juhuslik - see peegeldab, kuidas inimesed mõtlevad konfiguratsioonist.
+
+```mermaid
+graph BT
+    A[Role Defaults<br/>kõige üldisem] --> B[Group Variables<br/>grupile]
+    B --> C[Host Variables<br/>serverile]
+    C --> D[Play Variables<br/>playbook'is]
+    D --> E[Task Variables<br/>task'is]
+    E --> F[Command Line -e<br/>kõige spetsiifilisem]
+    
+    style A fill:#e1f5e1
+    style F fill:#ffe1e1
+```
+
+**Miks see töötab?**
+
+Inimesed mõtlevad konfiguratsioonist loomulikus hierarhias:
+1. "Tavaliselt on see nii" (defaults)
+2. "Aga selle grupi puhul on teisiti" (group vars)
+3. "Välja arvatud see üks server" (host vars)
+4. "Praegu tahan testida midagi muud" (command line)
+
+Hierarhia võimaldab järgida **DRY (Don't Repeat Yourself)** printsiipi. Defineerite üldise reegli üks kord, override'ite ainult erandeid.
+
+### Praktiline Näide
+
+Kujutage ette, et konfigureerite web servereid:
+
 ```yaml
-server_port: 80
+# Kõigile serveritele - üldine reegel
+max_connections: 100
+
+# Aga production serverid on võimsamad
+# group_vars/production.yml
+max_connections: 1000
+
+# Üks server on eriti võimas
+# host_vars/mega-server.yml
+max_connections: 5000
 ```
 
-See kehtib nüüd kõigile serveritele. Aga ootke - teie staging serverid peavad kuulama pordil 8080, sest port 80 on juba kasutusel. Pole probleemi, teete `group_vars/staging.yml` faili:
+Playbook kasutab lihtsalt `{{ max_connections }}` - Ansible valib automaatselt õige väärtuse.
+
+```mermaid
+graph LR
+    A[dev-server] -->|max: 100| E[Default rakendub]
+    B[prod-server1] -->|max: 1000| F[Group override]
+    C[prod-server2] -->|max: 1000| G[Group override]
+    D[mega-server] -->|max: 5000| H[Host override]
+```
+
+### Faktid: Automaatne Kontekst
+
+Ansible kogub automaatselt iga serveri kohta faktiinfot. See on nagu automaatne host_vars, mida te ei pea ise kirjutama:
+
+- CPU tuumade arv
+- RAM kogus
+- Operatsioonisüsteem
+- Võrgu konfiguratsioon
+- Ketta maht
+
+**Miks see oluline?**
+
+Saate teha intelligentseid otsuseid ilma käsitsi konfiguratsiooni kirjutamata:
+
 ```yaml
-server_port: 8080
+# Apache workers automaatselt CPU järgi
+apache_workers: "{{ ansible_processor_vcpus * 2 }}"
+
+# MySQL buffer automaatselt RAM järgi
+mysql_buffer: "{{ (ansible_memtotal_mb * 0.7) | int }}M"
+
+# Pakett automaatselt OS järgi
+package_name: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
 ```
 
-Nüüd kõik staging grupi serverid kasutavad porti 8080, aga ülejäänud ikka 80. Veelgi enam - teil on üks spetsiaalne test server, mis peab kuulama pordil 3000. Teete `host_vars/testserver1.yml`:
-```yaml
-server_port: 3000
+Server ise ütleb Ansible'ile, mis ta vajab. Te ei pea teadma, kas serveril on 2GB või 16GB RAM-i - Ansible kohandab automaatselt.
+
+---
+
+## 3. Template'id: Dünaamilised Konfiguratsioonid
+
+### Probleem: Staatilised Failid Ei Skaleeru
+
+Teil on Nginx konfiguratsioon. Arenduses ja tootmises on erinev:
+
+**Development:**
+- Port 8080
+- Debug logging
+- Cache välja
+- SSL välja
+
+**Production:**
+- Port 80 ja 443
+- Error logging ainult
+- Cache sisse
+- SSL sisse
+
+Staatiline lähenemine = kaks faili. Muudatus tähendab kahe faili muutmist. Copy-paste vigu. Sünkroniseerimisprobleeme.
+
+### Lahendus: Üks Mall, Palju Väljundeid
+
+Template on fail, kus osad asjad on **parameetrid**, mitte fikseeritud väärtused. Üks mall genereerib erinevaid väljundeid vastavalt kontekstile.
+
+```mermaid
+graph LR
+    A[Template<br/>nginx.conf.j2] --> B{Keskkond?}
+    B -->|development| C[Dev konfig<br/>port 8080<br/>debug ON]
+    B -->|production| D[Prod konfig<br/>port 80+443<br/>SSL ON]
+    B -->|staging| E[Staging konfig<br/>port 8080<br/>SSL ON]
 ```
 
-See override'ib kõik eelnevad väärtused, aga ainult selle ühe serveri jaoks.
+**Põhiidee:**
 
-Ja kui teil on vaja kiirelt testida midagi teise pordiga? Käivitate playbook'i:
-```bash
-ansible-playbook site.yml -e server_port=9000
-```
+Template sisaldab:
+1. **Muutujad** - asendatakse väärtustega: `{{ port }}`
+2. **Tingimused** - lisab/eemaldab sektsioone: `{% if ssl_enabled %}`
+3. **Tsüklid** - genereerib korduvaid struktuure: `{% for server in servers %}`
 
-See extra-var override'ib kõik teised. See on kasulik testimiseks, aga ärge kasutage seda produktsioonis - muutujad peaksid olema koodis, mitte käsureal.
+### Jinja2 Loogika
 
-Miks see hierarhia oluline on? Sest see võimaldab teil kirjutada ühe playbook'i, mis töötab kogu teie infrastruktuuris. Te ei pea tegema eraldi playbook'i iga serveri või grupi jaoks. DRY principle - Don't Repeat Yourself - toimib ka infrastruktuuri koodis.
+Jinja2 on template engine - see teisendab malli lõplikuks failiks.
 
-Ansible kogub ka automaatselt fakte igast serverist. Need on süsteemi muutujad, mida Ansible automaatselt avastab - operatsioonisüsteem, IP-aadress, mälu hulk, protsessorite arv. Näiteks:
-```yaml
-- debug:
-    msg: "Serveril {{ inventory_hostname }} on {{ ansible_memtotal_mb }}MB mälu"
-```
-
-Te saate neid fakte kasutada intelligentsete otsuste tegemiseks. Kui serveril on vähem kui 2GB mälu, seadistage Apache'le vähem worker'eid. Kui server jookseb Debian'il, kasutage apt'i, kui RedHat'il, siis yum'i.
-
-Registered variables on veel üks võimas funktsioon. Saate salvestada mis tahes task'i tulemuse ja kasutada seda hiljem:
-```yaml
-- name: "Kontrolli, kas Apache jookseb"
-  command: systemctl is-active apache2
-  register: apache_check
-  failed_when: false
-
-- name: "Käivita Apache kui vaja"
-  service:
-    name: apache2
-    state: started
-  when: apache_check.stdout != "active"
-```
-
-## Jinja2 mallid - dünaamilised konfiguratsioonid
-
-Nüüd jõuame kõige võimsama tööriista juurde - template'id. Mäletate, kuidas vanasti kopeerisite Apache konfiguratsioonifaili serverist serverisse ja muutsite käsitsi IP-aadresse ja pordi numbreid? Unustage see. Template'idega genereerite konfiguratsioonifailid automaatselt, kasutades muutujaid ja loogikat.
-
-Template on põhimõtteliselt tekstifail, kus osad kohad on asendatud muutujate ja loogikaga. Ansible kasutab Jinja2 template engine'it, mis on väga võimas aga samas lihtne õppida.
-
-Vaatame reaalset näidet. Teil on vaja Nginx konfiguratsioonifaili, mis on erinev arendus- ja produktsioonikeskkondades. Arenduses tahate debug logisid ja cache välja lülitatud. Produktsioonis vastupidi. Traditsiooniliselt peaksite haldama kahte erinevat faili. Template'iga teete ühe faili, mis genereerib õige konfiguratsioon vastavalt keskkonnale.
-
-Siin on näide template'ist:
+**Tingimused:**
 ```jinja2
-# /etc/nginx/sites-available/{{ site_name }}
-# {{ ansible_managed }}
-
-server {
-    listen {{ server_port }};
-    server_name {{ server_name }};
-    root {{ document_root }};
-    
-    {% if environment == 'production' %}
-# Production settings
-    access_log /var/log/nginx/{{ site_name }}-access.log combined;
-    error_log /var/log/nginx/{{ site_name }}-error.log error;
-    
-# Enable caching
-    location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
-        expires 365d;
-        add_header Cache-Control "public, immutable";
-    }
-    {% else %}
-# Development settings
-    access_log /var/log/nginx/{{ site_name }}-access.log combined;
-    error_log /var/log/nginx/{{ site_name }}-error.log debug;
-    
-# Disable caching
-    add_header Cache-Control "no-cache, no-store, must-revalidate";
-    {% endif %}
-    
-    location / {
-        proxy_pass http://127.0.0.1:{{ app_port | default(3000) }};
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
+{% if environment == 'production' %}
+# Production seaded
+{% else %}
+# Development seaded
+{% endif %}
 ```
 
-Näete, kuidas `{% if environment == 'production' %}` kontrollib keskkonda ja lisab erinevad seaded? Ja `{{ app_port | default(3000) }}` kasutab vaikeväärtust 3000, kui muutuja pole defineeritud?
+See pole lihtsalt teksti asendamine - see on **programmeerimiskeeleline loogika** faili genereerimiseks.
 
-Kõige lahedam asi template'ides on loop'id. ```jinja2
+**Tsüklid:**
+```jinja2
 {% for vhost in virtual_hosts %}
-<VirtualHost *:{{ vhost.port | default(80) }}>
-    ServerName {{ vhost.domain }}
-    DocumentRoot {{ vhost.path }}
-    
-    {% if vhost.ssl_enabled | default(false) %}
-    SSLEngine on
-    SSLCertificateFile {{ vhost.ssl_cert }}
-    SSLCertificateKeyFile {{ vhost.ssl_key }}
-    {% endif %}
-    
-    <Directory {{ vhost.path }}>
-        AllowOverride All
-        Require all granted
-    </Directory>
+<VirtualHost>
+  ServerName {{ vhost.domain }}
 </VirtualHost>
 {% endfor %}
 ```
 
-Kui vaja lisada 21. virtual host, lisate lihtsalt ühe rea oma muutujate faili. Template teeb ülejäänu.
+Kui teil on list 3 domeenist, genereerib see 3 VirtualHost plokki. Lisate 4. domeeni listile - mall genereerib automaatselt 4 plokki.
 
-Filter'id on template'ide supervõimed. Need on nagu väikesed funktsioonid, mis töötlevad andmeid:
-- `{{ server_name | upper }}` - teeb suurtähtedeks
-- `{{ server_name | lower }}` - teeb väiketähtedeks
-- `{{ my_list | join(', ') }}` - ühendab listi elemendid stringiks
-- `{{ ansible_memtotal_mb * 0.8 | int }}` - arvutab ja ümardab
-- `{{ my_dict | to_nice_json }}` - teisendab JSON formaati
-
-Üks oluline nipp - kasutage alati `default` filter'it, kui muutuja võib puududa. See väldib vigu ja teeb template'id robustsemaks.
-
-## Käsitlejad ja teavitused
-
-Järgmine teema on handler'id. Need on spetsiaalsed task'id, mis käivituvad ainult siis, kui midagi muutub. Klassikaline näide - Apache konfiguratsioon. Kui konfiguratsioonifail muutub, peate Apache't taaskäivitama. Aga kui fail ei muutu, pole mõtet teenust puutuda.
-
-Vaatame, kuidas see töötab:
-```yaml
-- name: "Deploy Apache configuration"
-  hosts: webservers
-  tasks:
-    - name: "Copy Apache config"
-      template:
-        src: apache.conf.j2
-        dest: /etc/apache2/apache2.conf
-      notify: restart apache
-    
-    - name: "Copy PHP config"
-      template:
-        src: php.ini.j2
-        dest: /etc/php/7.4/apache2/php.ini
-      notify: restart apache
-    
-  handlers:
-    - name: "restart apache"
-      service:
-        name: apache2
-        state: restarted
+**Filtrid:**
+```jinja2
+{{ ansible_memtotal_mb * 0.7 | int }}M
 ```
 
-Handler käivitub ainult siis, kui template tegelikult faili muudab. Kui konfiguratsioon on juba õige, jääb Apache rahule töötama.
+Filtrid töötlevad andmeid - arvutavad, vormindavad, teisendavad. See on nagu väikesed funktsioonid template'is.
 
-Handler'id käivituvad playbook'i lõpus, mitte kohe. See on oluline - kui viis task'i muudavad Apache konfiguratsioon, taaskäivitub Apache ainult üks kord lõpus, mitte viis korda. See on efektiivne ja vähendab downtime'i.
+### Miks See On Võimas
 
-Mõnikord on vaja valida restart'i ja reload'i vahel:
-- **Restart** - katkestab kõik ühendused ja käivitab teenuse nullist. Kasutage seda, kui muudate põhilisi seadeid.
-- **Reload** - laeb uue konfiguratsioon ilma ühendusi katkestamata. Kasutage seda, kui võimalik.
+1. **Üks tõde** - mall on üks fail, mitte kümneid koopiaid
+2. **Automaatne kohandamine** - sama mall kohandub keskkonnale
+3. **Vähem vigu** - viga on ühes kohas, parandus ka ühes kohas
+4. **Loetavam** - näete loogikat, mitte fikseeritud väärtusi
 
-```yaml
-handlers:
-  - name: "restart apache"
-    service:
-      name: apache2
-      state: restarted
-  
-  - name: "reload apache"
-    service:
-      name: apache2
-      state: reloaded
+Template'id lahendavad configuration management'i fundamentaalse probleemi - kuidas hallata sarnaseid aga mitte identseid konfiguratsioone ilma korduseta.
+
+---
+
+## 4. Handler'id: Intelligentne Teenuste Haldamine
+
+### Probleem: Ülearused Restartid
+
+Konfiguratsioonifaili muutmine nõuab teenuse taaskäivitamist. Aga teil on 5 task'i, mis muudavad 5 erinevat Apache konfiguratsioonifaili.
+
+Naiivne lähenemine:
+```
+Task 1: Muuda config1 → Restart Apache
+Task 2: Muuda config2 → Restart Apache  
+Task 3: Muuda config3 → Restart Apache
+Task 4: Muuda config4 → Restart Apache
+Task 5: Muuda config5 → Restart Apache
 ```
 
-Võimas funktsioon on listen groups. Mitu handler'it saavad kuulata sama signaali:
+Apache taaskäivitub 5 korda. Iga restart katkestab ühendused. Kasutajad näevad vigu. Aega läheb raisku.
+
+```mermaid
+sequenceDiagram
+    participant P as Playbook
+    participant A as Apache
+    participant U as Users
+    
+    P->>A: Config 1 changed → Restart
+    A->>U: ❌ Downtime 1
+    P->>A: Config 2 changed → Restart
+    A->>U: ❌ Downtime 2
+    P->>A: Config 3 changed → Restart
+    A->>U: ❌ Downtime 3
+```
+
+### Lahendus: Handler'id
+
+Handler on **laisalt täidetav task**. See:
+1. Käivitub ainult kui midagi **tegelikult muutus**
+2. Käivitub ainult **üks kord**
+3. Käivitub **playbook'i lõpus**, mitte kohe
+
 ```yaml
 tasks:
-  - name: "Update PHP config"
-    template:
-      src: php.ini.j2
-      dest: /etc/php/7.4/fpm/php.ini
-    notify: restart web stack
-
-handlers:
-  - name: "restart php-fpm"
-    service:
-      name: php7.4-fpm
-      state: restarted
-    listen: restart web stack
+  - name: Config 1
+    template: ...
+    notify: restart apache
   
-  - name: "restart nginx"
-    service:
-      name: nginx
-      state: restarted
-    listen: restart web stack
+  - name: Config 2
+    template: ...
+    notify: restart apache
+    
+handlers:
+  - name: restart apache
+    service: ...
 ```
 
-Üks praktiline nipp - kui teil on kriitiline task, mis sõltub teenuse taaskäivitamisest, kasutage `meta: flush_handlers`:
+Isegi kui 5 task'i teavitavad handler'it, käivitub see ainult üks kord lõpus.
+
+```mermaid
+sequenceDiagram
+    participant T as Tasks
+    participant H as Handler
+    participant A as Apache
+    
+    T->>T: Config 1 ✓ (notify)
+    T->>T: Config 2 ✓ (notify)
+    T->>T: Config 3 ✓ (notify)
+    Note over T: Kõik tasks valmis
+    H->>A: Restart (ainult 1x)
+```
+
+**Miks see on parem?**
+
+- **Efektiivsus** - üks restart, mitte viis
+- **Vähem downtime** - kasutajad näevad viga ainult üks kord
+- **Intelligentsus** - kui midagi ei muutu, ei restart'i
+- **Idempotentsus** - saate playbook'i käivitada mitu korda turvaliselt
+
+### Restart vs Reload
+
+Paljud teenused toetavad kahte viisi:
+
+**Restart:**
+- Peatab teenuse täielikult
+- Katkestab kõik ühendused
+- Aeglane
+- Vajalik suurte muudatuste puhul
+
+**Reload:**
+- Laeb konfiguratsioon uuesti
+- Ei katkesta ühendusi
+- Kiire
+- Piisav enamike muudatuste jaoks
+
+Handler võimaldab valida õige strateegia:
+
 ```yaml
-- name: "Install MySQL"
-  apt:
-    name: mysql-server
-    state: present
-  notify: start mysql
-
-- name: "Flush handlers now"
-  meta: flush_handlers
-
-- name: "Create database"
-  mysql_db:
-    name: myapp
-    state: present
+notify: reload apache  # Väike muudatus
+notify: restart apache # Suur muudatus
 ```
 
-See käivitab kõik ootel handler'id kohe, mitte playbook'i lõpus.
+Handler'id lahendavad teenuste haldamise fundamentaalse probleemi - kuidas taaskäivitada teenuseid efektiivselt ja turvaliselt.
 
-## Ansible Vault - turvalisus esimesena
+---
 
-Nüüd jõuame kõige olulisema teemani - turvalisus. Kui teil on paroolid, API võtmed või sertifikaadid, ei tohi need kunagi olla plain text'ina git'is. Kunagi. Isegi mitte private repository's. Ansible Vault krüpteerib need andmed nii, et saate neid turvaliselt git'i panna.
+## 5. Ansible Vault: Turvalisuse Fundamentaalid
 
-Vault töötab lihtsalt - te krüpteerite faili parooliga ja Ansible dekrüpteerib selle playbook'i käivitamisel. Krüpteeritud fail näeb välja nagu juhuslikud tähed ja numbrid:
+### Probleem: Paroolid Koodis
+
+Teie playbook vajab MySQL parooli. Kõige lihtsam viis:
+
+```yaml
+mysql_password: "SuperSecret123"
+```
+
+See läheb Git'i. Nüüd on parool:
+- Igale inimesele nähtav, kellel on repo ligipääs
+- Git ajaloos igavesti (isegi kui kustutate)
+- Endistele töötajatele ligipääsetav
+- Forkitud koopiatesse kopeeritud
+
+**Turvaprobleem:**
+
+Kui üks inimene lahkub ettevõttest, peate:
+1. Muutma kõiki paroole (kümneid/sadu)
+2. Uuendama kõiki playbook'e
+3. Redeployma kõiki servereid
+4. Lootma, et ei unustanud midagi
+
+Kui parool lekkib (ja private repo'st võib lekkida):
+- Ründajal on ligipääs kogu infrastruktuurile
+- Te ei tea, millal leke toimus
+- Te ei tea, kas keegi kasutas parooli ära
+
+### Lahendus: Krüpteerimine
+
+Vault krüpteerib failid AES-256 algoritmiga. Krüpteeritud fail näeb välja nii:
+
 ```
 $ANSIBLE_VAULT;1.1;AES256
-66383439383437366337643938376139323...
-38336233353664386139383665656439616...
+66383439383437366337643938376139323531...
+38336233353664386139383665656439616238...
 ```
 
-Keegi ei saa sealt midagi kätte ilma paroolita.
+Ilma vault paroolita on see lihtsalt juhuslik andmehunnik. Isegi kui keegi saab repo kätte, ei saa ta paroole kätte.
 
-Vault'i kasutamine on lihtne. Loome krüpteeritud faili:
-```bash
-ansible-vault create secrets.yml
+```mermaid
+graph LR
+    A[Plain Text<br/>Password123] -->|ansible-vault encrypt| B[Encrypted<br/>$ANSIBLE_VAULT...]
+    B -->|ansible-vault decrypt<br/>WRONG password| C[❌ Fail]
+    B -->|ansible-vault decrypt<br/>CORRECT password| D[✓ Password123]
+    
+    style A fill:#f96
+    style B fill:#9f6
 ```
 
-See küsib parooli ja avab tekstiredaktori. Kirjutate oma saladused:
+### Kuidas See Töötab
+
+1. **Faili loomine:** `ansible-vault create secrets.yml`
+   - Küsib vault parooli
+   - Salvestades krüpteerib automaatselt
+
+2. **Playbook kasutab:** Viitab vault muutujatele
+   ```yaml
+   mysql_password: "{{ vault_mysql_password }}"
+   ```
+
+3. **Käivitamine:** `ansible-playbook site.yml --ask-vault-pass`
+   - Küsib vault parooli
+   - Dekrüpteerib ajutiselt mälus
+   - Kasutab väärtusi
+   - Pole kunagi plain text kettale
+
+### Organisatsiooni Mudel
+
+Best practice: eraldi vault failid tavalistest failidest.
+
+```
+group_vars/
+  production/
+    vars.yml       # Avalik - konfiguratsioon
+    vault.yml      # Krüpteeritud - paroolid
+```
+
+**vars.yml** (avalik, Git'is):
 ```yaml
-mysql_root_password: "SuperSecret123!"
-api_key: "abc123def456ghi789"
-ssl_private_key: |
-  -----BEGIN PRIVATE KEY-----
-  MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKg...
-  -----END PRIVATE KEY-----
+database_host: "prod-db.example.com"
+database_user: "app_user"
+database_password: "{{ vault_database_password }}"
 ```
 
-Salvestades krüpteerib Ansible faili automaatselt.
-
-Parim praktika on hoida saladused eraldi failis ja viidatakse neile avalikes failides. Näiteks:
-
-`group_vars/production/vault.yml` (krüpteeritud):
+**vault.yml** (krüpteeritud, Git'is):
 ```yaml
-vault_mysql_password: "ReallySecretProd123!"
-vault_api_key: "production-key-xyz789"
+vault_database_password: "ActualSecretPassword123"
 ```
 
-`group_vars/production/vars.yml` (avalik):
-```yaml
-mysql_password: "{{ vault_mysql_password }}"
-api_key: "{{ vault_api_key }}"
-environment: "production"
-debug_mode: false
-```
+Nimetamiskonventsioon `vault_` prefiksiga muudab kohe selgeks, mis on krüpteeritud.
 
-Nii on kohe näha, millised muutujad on salajased (algavad vault_) ja kust nad tulevad.
+### Miks See On Parem
 
-Playbook'i käivitamisel on mitu võimalust parooli andmiseks:
-```bash
-# Küsi parooli interaktiivselt
-ansible-playbook site.yml --ask-vault-pass
+**Turvalisus:**
+- Paroolid on krüpteeritud isegi Git'is
+- Ainult õigete inimestega vault parooli
+- Vault parooli saab vahetada ilma infrastruktuuri muutmata
 
-# Kasuta parooli failist
-echo "mypassword" > .vault_pass
-chmod 600 .vault_pass
-ansible-playbook site.yml --vault-password-file .vault_pass
+**Auditeerimine:**
+- Näete Git'is, millal vault faili muudeti
+- Ei näe, millised väärtused muutusid (krüpteeritud)
+- Saate kontrollida, kes millal ligi pääses
 
-# Kasuta environment variable'it
-export ANSIBLE_VAULT_PASSWORD="mypassword"
-ansible-playbook site.yml
-```
+**Turvatsoon:**
+- Repo võib lekkida - paroolid on turvalised
+- Endised töötajad võivad säilitada ligipääsu repo'le - paroolid on turvalised
+- Vahetate vault parooli - kõik senised ligipääsud kehtetuks
 
-Reaalses elus on teil tõenäoliselt erinevad paroolid arenduses ja produktsioonis. Ansible toetab multiple vault'e:
-```bash
-# Loo eraldi vault'id
-ansible-vault create --vault-id dev@prompt dev-secrets.yml
-ansible-vault create --vault-id prod@prompt prod-secrets.yml
+Vault lahendab configuration management'i turvaprobleemi - kuidas hoida saladusi versioonikontrollis ilma neid paljastamata.
 
-# Käivita mõlemaga
-ansible-playbook site.yml --vault-id dev@prompt --vault-id prod@prompt
-```
-
-Vault parooli haldamine meeskonnas on väljakutse. Mõned variandid:
-1. **Password manager** - hoida parooli 1Password'is või LastPass'is
-2. **HashiCorp Vault** - tsentraliseeritud secrets management
-3. **Environment variable CI/CD-s** - Jenkins/GitLab hoiab parooli
-4. **Ansible Tower/AWX** - built-in credential management
-
-Oluline on ka regulaarne paroolide roteerumine. Ansible vault rekey käsk laseb teil muuta vault parooli ilma sisu dekrüpteerimata:
-```bash
-ansible-vault rekey secrets.yml
-```
-
-Tehke seda vähemalt kord kvartalis. Dokumenteerige protsess:
-1. Genereeri uus parool
-2. Rekey kõik vault failid
-3. Uuenda CI/CD süsteemid
-4. Jaga uus parool meeskonnaga
-5. Eemalda vana parool kõigist süsteemidest
-
-## Praktiline näide - kõik koos
-
-Vaatame nüüd, kuidas kõik need komponendid töötavad koos reaalses projektis. Kujutage ette, et peate üles seadma WordPress hosting platvormi. Teil on kolm keskkonda - dev, staging ja production. Igas keskkonnas on veebiserver, andmebaasiserver ja cache server.
-
-Projekti struktuur:
-```
-wordpress-platform/
-├── ansible.cfg
-├── inventory/
-│   ├── dev
-│   ├── staging
-│   └── production
-├── group_vars/
-│   ├── all/
-│   │   ├── vars.yml       # Üldised seaded
-│   │   └── vault.yml      # Üldised saladused
-│   ├── dev/
-│   │   ├── vars.yml       # Dev spetsiifilised
-│   │   └── vault.yml      # Dev paroolid
-│   ├── staging/
-│   │   ├── vars.yml
-│   │   └── vault.yml
-│   └── production/
-│       ├── vars.yml
-│       └── vault.yml
-├── templates/
-│   ├── nginx.conf.j2
-│   ├── wp-config.php.j2
-│   └── my.cnf.j2
-├── playbooks/
-│   ├── site.yml
-│   ├── deploy.yml
-│   └── backup.yml
-└── handlers/
-    └── main.yml
-```
-
-`group_vars/all/vars.yml` - seaded mis kehtivad kõigile:
-```yaml
-timezone: "Europe/Tallinn"
-locale: "et_EE.UTF-8"
-wordpress_version: "6.3"
-php_version: "8.1"
-```
-
-`group_vars/production/vars.yml` - produktsiooni spetsiifilised:
-```yaml
-environment: "production"
-debug_mode: false
-wp_debug: false
-mysql_max_connections: 500
-php_memory_limit: "256M"
-nginx_worker_processes: "{{ ansible_processor_vcpus }}"
-ssl_enabled: true
-ssl_certificate: "/etc/ssl/certs/production.crt"
-ssl_private_key: "/etc/ssl/private/production.key"
-```
-
-`templates/wp-config.php.j2` - WordPress konfiguratsioon:
-```php
-<?php
-/* {{ ansible_managed }} */
-
-// Database settings
-define('DB_NAME', '{{ wp_db_name }}');
-define('DB_USER', '{{ wp_db_user }}');
-define('DB_PASSWORD', '{{ wp_db_password }}');
-define('DB_HOST', '{{ mysql_host }}');
-
-// Environment specific
-{% if environment == 'production' %}
-define('WP_DEBUG', false);
-define('WP_DEBUG_LOG', false);
-define('WP_DEBUG_DISPLAY', false);
-define('DISALLOW_FILE_EDIT', true);
-{% else %}
-define('WP_DEBUG', true);
-define('WP_DEBUG_LOG', true);
-define('WP_DEBUG_DISPLAY', true);
-{% endif %}
-
-// Security keys from vault
-define('AUTH_KEY', '{{ vault_auth_key }}');
-define('SECURE_AUTH_KEY', '{{ vault_secure_auth_key }}');
-define('LOGGED_IN_KEY', '{{ vault_logged_in_key }}');
-define('NONCE_KEY', '{{ vault_nonce_key }}');
-
-// Cache settings
-{% if redis_enabled | default(false) %}
-define('WP_REDIS_HOST', '{{ redis_host }}');
-define('WP_REDIS_PORT', {{ redis_port }});
-{% endif %}
-
-$table_prefix = 'wp_';
-
-require_once(ABSPATH . 'wp-settings.php');
-```
-
-Playbook, mis kasutab kõike õpitut:
-```yaml
 ---
-- name: "Deploy WordPress Platform"
-  hosts: all
-  become: yes
-  
-  tasks:
-    - name: "Install required packages"
-      apt:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - nginx
-        - "php{{ php_version }}-fpm"
-        - "php{{ php_version }}-mysql"
-        - mysql-client
-      notify: restart services
+
+## 6. Kõik Koos: Arhitektuuri Mõistmine
+
+Need neli kontseptsiooni ei ole isoleeritud trikid - need töötavad koos, moodustades skaleeritava arhitektuuri.
+
+```mermaid
+graph TD
+    A[Muutujate Hierarhia] --> E[Skaleeritav Infrastruktuur]
+    B[Template'id] --> E
+    C[Handler'id] --> E
+    D[Vault] --> E
     
-    - name: "Deploy Nginx configuration"
-      template:
-        src: nginx.conf.j2
-        dest: /etc/nginx/sites-available/wordpress
-      notify: reload nginx
-    
-    - name: "Deploy WordPress config"
-      template:
-        src: wp-config.php.j2
-        dest: /var/www/wordpress/wp-config.php
-        owner: www-data
-        group: www-data
-        mode: '0640'
-      notify: restart php-fpm
-    
-    - name: "Setup MySQL database"
-      mysql_db:
-        name: "{{ wp_db_name }}"
-        state: present
-      delegate_to: "{{ mysql_host }}"
-      run_once: true
-    
-    - name: "Create MySQL user"
-      mysql_user:
-        name: "{{ wp_db_user }}"
-        password: "{{ wp_db_password }}"
-        priv: "{{ wp_db_name }}.*:ALL"
-        host: "%"
-        state: present
-      delegate_to: "{{ mysql_host }}"
-      run_once: true
-  
-  handlers:
-    - name: "restart services"
-      service:
-        name: "{{ item }}"
-        state: restarted
-      loop:
-        - nginx
-        - "php{{ php_version }}-fpm"
-      listen: restart services
-    
-    - name: "reload nginx"
-      service:
-        name: nginx
-        state: reloaded
-    
-    - name: "restart php-fpm"
-      service:
-        name: "php{{ php_version }}-fpm"
-        state: restarted
+    E --> F[Üks Playbook<br/>Töötab Kõigis Keskkondades]
+    E --> G[Turvaline<br/>Paroolid Krüpteeritud]
+    E --> H[Efektiivne<br/>Minimaalne Downtime]
+    E --> I[Hooldatav<br/>DRY Printsiip]
 ```
 
-Käivitamine erinevates keskkondades:
+### Kuidas Need Ühenduvad
+
+**Stsenaarium:** WordPress hosting platvorm 3 keskkonnas.
+
+**Muutujate hierarhia** määrab:
+- `group_vars/all/` - ühised seaded (WordPress versioon, timezone)
+- `group_vars/production/` - tootmise seaded (SSL sisse, debug välja)
+- `group_vars/development/` - arenduse seaded (SSL välja, debug sisse)
+
+**Template'id** genereerivad:
+- Nginx konfiguratsioon kohandub keskkonnale
+- WordPress config failis õiged paroolid igal keskkonnal
+- PHP settings kohanduvad serveri RAM-ile
+
+**Handler'id** haldavad:
+- Nginx reload kui konfig muutub
+- PHP-FPM restart kui versioon uuendub
+- Ainult üks kord playbook'i lõpus
+
+**Vault** krüpteerib:
+- Database paroolid igal keskkonnal
+- WordPress security keys
+- SSL privaatvõtmed
+
+### Tulemus
+
+Üks playbook käivitub erinevates keskkondades:
+
 ```bash
 # Development
-ansible-playbook -i inventory/dev playbooks/site.yml --vault-id dev@prompt
+ansible-playbook site.yml -i inventory/dev --ask-vault-pass
 
-# Staging
-ansible-playbook -i inventory/staging playbooks/site.yml --vault-id staging@prompt
-
-# Production (with specific checks)
-ansible-playbook -i inventory/production playbooks/site.yml \
-  --vault-id prod@prompt \
-  --check  # Dry run first!
+# Production  
+ansible-playbook site.yml -i inventory/prod --ask-vault-pass
 ```
 
-## Kokkuvõte ja soovitused
+SAMA playbook, erinevad tulemused:
+- Dev: port 8080, debug ON, SSL OFF, dev paroolid
+- Prod: port 80+443, debug OFF, SSL ON, prod paroolid
 
-See oli päris palju infot, aga need funktsioonid muudavad Ansible'i tõeliselt võimsaks tööriistaks. Kokkuvõtteks peamised punktid:
+Infrastruktuur kohandub automaatselt:
+- 2GB RAM server → PHP memory 256M
+- 16GB RAM server → PHP memory 512M
+- 4 CPU tuuma → 8 PHP worker'it
 
-**Muutujate hierarhia** annab paindlikkuse. Defineerige üldised asjad üldiselt ja spetsiifilised spetsiifiliselt. Ärge korrake ennast.
+Kõik on turvaline:
+- Paroolid krüpteeritud
+- SSL võtmed krüpteeritud
+- API võtmed krüpteeritud
 
-**Template'id** väldivad kordusi. Ärge kunagi kopeeri konfiguratsioonifaile, genereerige need. Üks template töötab kõigis keskkondades.
+Kõik on efektiivne:
+- Teenused restart'ivad ainult kui vaja
+- Ainult üks restart playbook'i kohta
+- Muudatused rakenduvad kiiresti
 
-**Handler'id** optimeerivad teenuste haldust. Taaskäivitage ainult siis, kui vaja. Grupeerige seotud handler'id.
+---
 
-**Vault** hoiab asjad turvalisena. Kunagi, mitte kunagi ärge pange paroole plain text'ina git'i. Krüpteerige kõik tundlikud andmed.
+## 7. Miks Need Kontseptsioonid On Olulised
 
-Minu soovitused algajatele:
+### Ilma Nende Funktsioonideta
 
-1. **Alustage väikeselt** - võtke üks lihtne konfiguratsioonifail ja tehke sellest template
-2. **Testige alati** - kasutage `--check` lippu enne produktsiooni muudatusi
-3. **Dokumenteerige** - kirjutage README, selgitage oma valikuid
-4. **Versioonihaldus** - kõik peab olema git'is
-5. **Code review** - laske kolleegil üle vaadata enne merge'imist
+**Väike projekt (3-10 serverit):**
+- Läheb veel kuidagi
+- Copy-paste töötab
+- Kõik meelde jääb
 
-Sagedased vead mida vältida:
+**Keskmine projekt (10-50 serverit):**
+- Copy-paste muutub koormuseks
+- Vead hakkavad ilmnema
+- Muudatused võtavad tunde
 
-1. **Hardcoded väärtused** - kasutage muutujaid
-2. **Paroolid plain text'ina** - kasutage vault'i
-3. **Restart asemel reload** - kui reload töötab, kasutage seda
-4. **Copy-paste** - kui kopeerite, mõelge template'ile
-5. **Testimata muudatused** - alati testige staging'us
+**Suur projekt (50+ serverit):**
+- Ilma nende funktsioonideta on hooldamine võimatu
+- Muudatused võtavad päevi
+- Vigade risk on kriitiline
 
-Järgmisel nädalal räägime Ansible role'idest, mis viivad korduvkasutuse veelgi kõrgemale tasemele. Role'id on nagu Lego klotsid - saate koostada infrastruktuuri väikestest, testitud ja korduvkasutatavatest komponentidest.
+### Nende Funktsioonidega
 
-Samuti tutvume Puppet'iga, mis on alternatiivne configuration management tööriist. Puppet läheneb samadele probleemidele teise nurga alt - deklaratiivne vs imperatiivne lähenemine. Huvitav on näha, kuidas erinevad tööriistad lahendavad samu väljakutseid.
+**Skaleerub lõputult:**
+- 3 serverit → sama playbook
+- 300 serverit → sama playbook
+- 3000 serverit → sama playbook
 
-## Praktilised näited
+**Hooldatav:**
+- Muudatus ühes kohas
+- Rakendub kõigis keskkondades
+- Code review on võimalik
 
-Vaatame mõned praktilised näited. Alustame lihtsast ja liigume keerulisema poole.
+**Turvaline:**
+- Paroolid pole plain text'is
+- Ligipääsu saab kontrollida
+- Audit trail eksisteerib
 
-### Näide 1: Muutujate hierarhia
+**Professionaalne:**
+- Industry standard praktikad
+- Tunnustatud iga DevOps insener
+- Kasutusel suurtes ettevõtetes
 
-Näide, kuidas luua projekti struktuur ja testida, milline muutuja võidab:
-```bash
-mkdir ansible-practice
-cd ansible-practice
-mkdir -p group_vars/all group_vars/web host_vars
+---
 
-echo "port: 80" > group_vars/all/main.yml
-echo "port: 8080" > group_vars/web/main.yml
-echo "port: 3000" > host_vars/server1.yml
+## 8. Õppeprotsess
 
-# Test playbook
-cat > test.yml << EOF
-- hosts: server1
-  tasks:
-    - debug:
-        msg: "Port is {{ port }}"
-EOF
-```
+### Mida Te Nüüd Teate
 
-### Näide 2: Lihtne template
+**Kontseptuaalne mõistmine:**
+- Miks muutujate hierarhia on vajalik
+- Kuidas template'id lahendavad korduse probleemi
+- Miks handler'id on efektiivsemad kui otsesed restartid
+- Kuidas vault lahendab turvaprobleemi
 
-Näide dünaamilise konfiguratsioonifaili loomisest:
-```bash
-mkdir templates
-cat > templates/app.conf.j2 << EOF
-# {{ ansible_managed }}
-[server]
-host = {{ ansible_hostname }}
-port = {{ app_port | default(3000) }}
-workers = {{ ansible_processor_vcpus * 2 }}
+**Arhitektuuri mõistmine:**
+- Kuidas need funktsioonid töötavad koos
+- Kuidas ehitada skaleeritav infrastruktuur
+- Mis teeb Ansible projekti professionaalseks
 
-[database]
-{% if environment == 'production' %}
-host = {{ db_host }}
-pool_size = 20
-{% else %}
-host = localhost
-pool_size = 5
-{% endif %}
-EOF
-```
+### Järgmine Samm: Praktika
 
-### Näide 3: Handler'iga playbook
+Labor'is rakendatakse neid kontseptsioone:
+- Loote muutujate hierarhia
+- Kirjutate template'eid
+- Seadistate handler'eid
+- Krüpteerite paroolid vault'iga
 
-```yaml
-- name: "Web server setup"
-  hosts: webservers
-  tasks:
-    - name: "Update config"
-      template:
-        src: nginx.conf.j2
-        dest: /etc/nginx/nginx.conf
-      notify: restart nginx
-    
-  handlers:
-    - name: "restart nginx"
-      service:
-        name: nginx
-        state: restarted
-```
+**Oluline:** Loeng andis MÕISTMISE, labor annab OSKUSE.
+
+Ei piisa teadmisest, mis on template - peate kirjutama template'eid. Ei piisa mõistmisest, kuidas vault töötab - peate seda kasutama.
+
+### Edasi
+
+**Järgmisel nädalal:**
+- Ansible Roles - kuidas teha korduvkasutatavad komponendid
+- Galaxy - kuidas kasutada teiste rollee
+- Testing - kuidas testida playbook'e enne production'i
+
+**Pikemas perspektiivis:**
+- Need on fundamentaalsed oskused DevOps töös
+- Iga Ansible projekt kasutab neid tehnikaid
+- Mõistmine võimaldab lugeda ja kirjutada professionaalset koodi
+
+---
 
 ## Kokkuvõte
 
-Selle mooduli järel oskad:
--  Kasutada Ansible Vault'i salajaste andmete turvaliseks haldamiseks
--  Luua Jinja2 template'id dünaamiliste konfiguratsioonifailide jaoks
--  Optimeerida playbook'ide jõudlust (parallelism, tags, handlers)
--  Kasutada edasijõudnud Ansible funktsioone tootmiskeskkonnas
+Ansible põhifunktsioonid lahendavad ühe serveri automatiseerimise. Edasijõudnud funktsioonid lahendavad **suure infrastruktuuri** automatiseerimise.
 
-**Mida see annab?**  
-Need on best practice'id, mida kasutavad tuhanded ettevõtted üle maailma. Automatiseerimine pole eesmärk omaette - eesmärk on vähendada vigu, säästa aega ja muuta infrastruktuur ennustatavaks.
+**Neli fundamentaalset kontseptsiooni:**
 
----
+1. **Muutujate hierarhia** - üks playbook, palju kontekste
+2. **Template'id** - üks mall, palju väljundeid  
+3. **Handler'id** - intelligentne teenuste haldamine
+4. **Vault** - turvaline paroolide haldamine
 
-## Järgmised sammud
+Need pole isoleeritud trikid - need on **arhitektuurilised printsiibid**, mis võimaldavad ehitada skaleeritavat, hooldatavat ja turvalist infrastruktuuri.
 
-**1. Praktiline töö:**
-- Tee läbi [labor.md](labor.md) harjutused
-- Konverteeri mõni konfiguratsioonifail template'iks
-- Krüpteeri testfail Vault'iga
-
-**2. Kodutöö:**
-- Vaata [kodutoo.md](kodutoo.md)
-- Rakenda õpitud tehnikaid oma projektis
-
-**3. Lisapraktika:**
-- Vaata [lisapraktika.md](lisapraktika.md) edasijõudnud teemade jaoks
-- Proovi AWX või Ansible Tower'd
-
----
-
-** Meeldetuletus:**  
-*"Monkey see, monkey do, aga targem ahv mõistab ka MIKS ta seda teeb!"* 
-
-**Edu automatiseerimisel!** 
+Labor annab teile praktilise kogemuse nende kontseptsioonide rakendamisel. Kasutage seda võimalust - kirjutage koodi, tehke vigu, õppige parandama. Kontseptuaalne mõistmine + praktiline kogemus = professionaalne oskus.

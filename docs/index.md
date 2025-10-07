@@ -1,6 +1,12 @@
-# Automatiseerimine
+# DevOps Automatiseerimine
 
-Praktiline kursus DevOps tööriistadest ja automatiseerimisest. 65 tundi, 11 moodulit, 100% hands-on.
+<p style="font-size: 1.2em; color: #666;">
+Praktiline kursus DevOps tööriistadest ja automatiseerimisest.<br>
+<strong>65 tundi • 11 moodulit • 100% hands-on</strong>
+</p>
+
+!!! tip "💡 Kursuse fookus"
+    Õpi automatiseerima infrastruktuuri ja deployment protsesse praktiliste projektidega. Iga moodul sisaldab loengut, labori harjutusi ja kodutööd.
 
 ---
 
@@ -82,15 +88,6 @@ graph LR
 
 ---
 
-## Kontakt
+## 🚀 Valmis alustama?
 
-**Maria Talvik** | Automatiseerimine  
-GitHub: [@mtalvik](https://github.com/mtalvik/automatiseerimine_ext)
-
----
-
-<div align="center">
-
-**[Star this repo](https://github.com/mtalvik/automatiseerimine_ext)** kui materjal on kasulik
-
-</div>
+Vali moodul ja ava loeng või hüppa otse [Git põhitõed](git/loeng.md) juurde!

@@ -1,337 +1,311 @@
 # Git Lisapraktika
 
-**Eeltingimused:** Git põhiteadmised, GitHub konto
+**Eeldused:** Git põhiteadmised (loeng.md ja labor.md läbitud), GitHub konto, käsurea kasutamine
+
+Need kolm harjutust käsitlevad production-ready Git tehnikaid: automatiseeritud kvaliteedikontroll, CI/CD pipeline ja ajaloo puhastamine. Iga harjutus võtab umbes 30-45 minutit.
 
 ---
 
-##  Ülevaade
+## 1. Git Hooks: Automaatne Koodikontroll
 
-See fail sisaldab lisapraktikaid ja boonusülesandeid Git versioonihalduse mooduli jaoks, sealhulgas GitHub Actions tutvustus ja edasijõudnud Git funktsioonid.
+### 1.1 Probleem
+
+Meeskonnas juhtub, et keegi commit'ib koodi, mis sisaldab süntaksi vigu, debug print'e või halbu commit sõnumeid. Iga selline commit võib blokeerida CI pipeline'i ja teiste tööd. Manuaalne kontroll enne iga commit'i on tüütu ja unustatakse ära.
+
+### 1.2 Lahendus
+
+Git hooks on skriptid `.git/hooks/` kaustas, mis käivituvad automaatselt. Pre-commit hook käivitub enne commit'i tegemist - kui script ebaõnnestub, commit tühistatakse.
+
+Näide Python projektile:
+
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+echo "Running pre-commit checks..."
+
+PYTHON_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.py$')
+
+if [ -z "$PYTHON_FILES" ]; then
+    exit 0
+fi
+
+for file in $PYTHON_FILES; do
+    python3 -m py_compile "$file"
+    if [ $? -ne 0 ]; then
+        echo "Syntax error in $file"
+        exit 1
+    fi
+done
+
+if grep -n "print(" $PYTHON_FILES; then
+    echo "Found debug print() statements"
+    exit 1
+fi
+
+if command -v flake8 &> /dev/null; then
+    flake8 $PYTHON_FILES || exit 1
+fi
+
+echo "Pre-commit checks passed!"
+```
+
+Commit sõnumite kontroll:
+
+```bash
+#!/bin/bash
+# .git/hooks/commit-msg
+
+COMMIT_MSG=$(cat "$1")
+
+if ! echo "$COMMIT_MSG" | grep -qE "^(feat|fix|docs|refactor|test|chore)(\(.+\))?: .{10,}"; then
+    echo "Invalid commit format!"
+    echo "Use: type(scope): description"
+    echo "Example: feat(auth): add login validation"
+    exit 1
+fi
+```
+
+### 1.3 Harjutus: Implementeeri Hooks
+
+**Nõuded:**
+- [ ] Loo pre-commit hook, mis kontrollib vähemalt 2 asja
+- [ ] Loo commit-msg hook Conventional Commits formaadi jaoks
+- [ ] Tee hook'id käivitatavaks: `chmod +x .git/hooks/*`
+- [ ] Testi mõlemat - veendu, et halvad commit'id blokeeritakse
+
+**Näpunäiteid:**
+- Hook'id ei liigu clone'iga - production'is kasuta framework'e
+- Ajutine vahele jätmine: `git commit --no-verify`
+- Kontrolli ainult staged faile: `git diff --cached --name-only`
+
+**Testimine:**
+```bash
+echo "print('debug')" > test.py
+git add test.py
+git commit -m "feat: test"  # Peaks ebaõnnestuma
+```
+
+**Boonus:**
+- Lisa kontroll failide suuruse kohta
+- Integreeri code formatter
+- Lisa secrets detection
 
 ---
 
-## Õpiväljundid
+## 2. GitHub Actions: CI/CD Pipeline
 
-Pärast lisapraktikat oskate:
+### 2.1 Probleem
 
-- GitHub Actions workflow'ide loomine
-- Edasijõudnud Git funktsioonide kasutamine
-- Git hooks ja automatiseerimine
-- Submodules ja monorepo haldamine
+Meeskonnas push'itakse PR'e iga päev. Kui ei käivita teste automaatselt, võib keegi merge'ida koodi, mis lõhub testid, ei builda production'is või sisaldab turvavigu. Manuaalne testimine ei skaleeru.
 
-##  GitHub Actions Tutvustus
+### 2.2 Lahendus
 
-### Lihtne CI/CD Workflow
+GitHub Actions käivitab workflow'sid iga push/PR peale. Workflow on YAML fail `.github/workflows/` kaustas.
 
-Loo `.github/workflows/ci.yml` fail:
+Põhiline CI workflow:
 
 ```yaml
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        
-    - name: Install dependencies
-      run: npm install
+      - uses: actions/checkout@v3
       
-    - name: Run tests
-      run: npm test
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
       
-    - name: Build project
-      run: npm run build
+      - name: Install dependencies
+        run: npm ci
       
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-files
-        path: dist/
+      - name: Run linter
+        run: npm run lint
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Build
+        run: npm run build
 ```
 
-### Deployment Workflow
-
-Loo `.github/workflows/deploy.yml` fail:
+Matrix strategy (mitu versiooni paralleelselt):
 
 ```yaml
-name: Deploy to Production
-
-on:
-  push:
-    branches: [ main ]
-
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    needs: test
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [16, 18, 20]
     
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Deploy to server
-      run: |
-        echo "Deploying to production..."
-# Lisa siia oma deployment skript
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm test
 ```
 
-##  Git Hooks
+Artifacts ja deployment:
 
-### Pre-commit Hook
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci && npm run build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
 
-Loo `.git/hooks/pre-commit` fail:
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+      - run: echo "Deploy to production"
+```
 
+### 2.3 Harjutus: CI/CD Pipeline
+
+**Nõuded:**
+- [ ] Loo `.github/workflows/ci.yml` fail
+- [ ] Workflow käivitub push'il ja PR'il
+- [ ] Sisaldab vähemalt 3 job'i: lint, test, build
+- [ ] Kasuta matrix strategy (vähemalt 2 versiooni)
+
+**Näpunäiteid:**
+- Alusta lihtsast ja lisa komplekssust järk-järgult
+- Kasuta `npm ci` mitte `npm install`
+- Cache dependency'sid: `cache: 'npm'`
+
+**Testimine:**
 ```bash
-#!/bin/bash
-
-echo "Running pre-commit checks..."
-
-# Kontrolli süntaksit
-if command -v node &> /dev/null; then
-  echo "Checking JavaScript syntax..."
-  node -c src/*.js
-  if [ $? -ne 0 ]; then
-    echo "JavaScript syntax errors found!"
-    exit 1
-  fi
-fi
-
-# Kontrolli linting'ut
-if command -v eslint &> /dev/null; then
-  echo "Running ESLint..."
-  eslint src/
-  if [ $? -ne 0 ]; then
-    echo "ESLint errors found!"
-    exit 1
-  fi
-fi
-
-echo "Pre-commit checks passed!"
+mkdir -p .github/workflows
+# Lisa CI YAML fail
+git add .github/
+git commit -m "ci: add workflow"
+git push origin main
+# Vaata GitHubis: Actions tab
 ```
 
-### Commit-msg Hook
-
-Loo `.git/hooks/commit-msg` fail:
-
-```bash
-#!/bin/bash
-
-# Kontrolli commit sõnumi formaati
-commit_msg=$(cat "$1")
-
-# Peamised reeglid
-if [[ ! $commit_msg =~ ^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: ]]; then
-  echo "Error: Invalid commit message format!"
-  echo "Use format: type(scope): description"
-  echo "Types: feat, fix, docs, style, refactor, test, chore"
-  exit 1
-fi
-
-if [[ ${#commit_msg} -lt 10 ]]; then
-  echo "Error: Commit message too short!"
-  exit 1
-fi
-
-echo "Commit message format is valid!"
-```
-
-##  Git Submodules
-
-### Submodule Lisamine
-
-```bash
-# Lisa submodule
-git submodule add https://github.com/user/repo.git external/repo
-
-# Initsialiseeri submodule
-git submodule init
-git submodule update
-
-# Värskenda submodule'i
-git submodule update --remote
-```
-
-### Submodule Haldamine
-
-```bash
-# Vaata submodule'ite staatust
-git submodule status
-
-# Kustuta submodule
-git submodule deinit external/repo
-git rm external/repo
-git commit -m "Remove submodule repo"
-```
-
-## Edasijõudnud Git Käsud
-
-### Git Reflog
-
-```bash
-# Vaata kõiki tegevusi
-git reflog
-
-# Taasta kaotatud commit
-git checkout -b recovery-branch HEAD@{5}
-
-# Taasta kaotatud fail
-git checkout HEAD@{1} -- lost-file.txt
-```
-
-### Git Bisect
-
-```bash
-# Alusta bisect protsessi
-git bisect start
-
-# Märgi halb commit
-git bisect bad HEAD
-
-# Märgi hea commit
-git bisect good v1.0
-
-# Git automaatselt kontrollib commit'e
-git bisect run npm test
-```
-
-### Git Worktree
-
-```bash
-# Loo uus worktree
-git worktree add ../feature-branch feature-branch
-
-# Vaata kõiki worktree'e
-git worktree list
-
-# Kustuta worktree
-git worktree remove ../feature-branch
-```
-
-##  Monorepo Struktuur
-
-### Projekti Struktuur
-
-```
-my-monorepo/
-├── .github/
-│   └── workflows/
-│       ├── ci.yml
-│       └── deploy.yml
-├── packages/
-│   ├── frontend/
-│   │   ├── package.json
-│   │   └── src/
-│   ├── backend/
-│   │   ├── package.json
-│   │   └── src/
-│   └── shared/
-│       ├── package.json
-│       └── src/
-├── tools/
-│   └── scripts/
-├── .gitignore
-├── package.json
-└── README.md
-```
-
-### Root Package.json
-
-```json
-{
-  "name": "my-monorepo",
-  "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
-  "scripts": {
-    "build": "lerna run build",
-    "test": "lerna run test",
-    "lint": "lerna run lint",
-    "clean": "lerna clean"
-  },
-  "devDependencies": {
-    "lerna": "^6.0.0"
-  }
-}
-```
-
-## Testimine ja Valideerimine
-
-### Git Hook Testimine
-
-```bash
-# Tee hook käivitatavaks
-chmod +x .git/hooks/pre-commit
-
-# Testi hook'i
-echo "test" > test.js
-git add test.js
-git commit -m "test: testing pre-commit hook"
-```
-
-### Workflow Testimine
-
-```bash
-# Testi workflow'i kohalikult
-act -j test
-
-# Testi konkreetset event'i
-act push -W .github/workflows/ci.yml
-```
-
-## Lisapraktika Ülesanded
-
-### Ülesanne 1: GitHub Actions Workflow
-
-Loo GitHub Actions workflow, mis:
-- Käivitub igal push'il ja pull request'il
-- Installib sõltuvused
-- Käivitab testid
-- Ehitab projekti
-- Uploadib build artifacts
-
-### Ülesanne 2: Git Hooks
-
-Implementeeri Git hooks, mis:
-- Kontrollivad koodi kvaliteeti
-- Valideerivad commit sõnumeid
-- Käivitavad automatiseeritud testid
-- Kontrollivad faili suurusi
-
-### Ülesanne 3: Monorepo Haldamine
-
-Loo monorepo struktuur, mis:
-- Kasutab workspaces
-- Haldab mitut paketti
-- Keskse CI/CD pipeline'i
-- Jagatud konfiguratsioone
-
-## Kasulikud Ressursid
-
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Git Hooks Documentation](https://git-scm.com/docs/githooks)
-- [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
-- [Monorepo Best Practices](https://monorepo.tools/)
-
-## Hindamine
-
-- **GitHub Actions (40%):** Workflow'ide loomine ja konfigureerimine
-- **Git Hooks (30%):** Automatiseeritud kontrollide implementeerimine
-- **Edasijõudnud Funktsioonid (30%):** Submodules, worktree, monorepo
+**Boonus:**
+- Lisa security scanning
+- Seadista Slack notificationid
+- Deploy production serverisse
 
 ---
 
-** Edu lisapraktika läbimisel!**
+## 3. Interactive Rebase: Ajaloo Puhastamine
+
+### 3.1 Probleem
+
+Teed feature jaoks 7 commit'i: feat, typo fix, oops, wip, actually fix, final, really final. PR ajalugu on räpane. Tahad puhast ajalugu, kus on 2-3 loogilist commit'i.
+
+### 3.2 Lahendus
+
+Interactive rebase võimaldab ajaloo ümberkirjutamist: squash commit'id kokku, muuda sõnumeid, eemalda commit'e.
+
+```bash
+git rebase -i HEAD~5
+```
+
+Avaneb editor:
+
+```
+pick a1b2c3d feat(auth): add login
+pick d4e5f6g fix: typo
+pick h7i8j9k wip
+pick k1l2m3n feat(auth): add logout
+pick n4o5p6q fix: oops
+```
+
+Puhasta:
+
+```
+pick a1b2c3d feat(auth): add login
+fixup d4e5f6g fix: typo
+drop h7i8j9k wip
+pick k1l2m3n feat(auth): add logout
+fixup n4o5p6q fix: oops
+```
+
+Tulemus: 5 commit → 2 commit. Commands: `pick` (use), `reword` (edit message), `squash` (merge, keep message), `fixup` (merge, discard message), `drop` (remove).
+
+Rebase main'i peale:
+
+```bash
+git checkout feature
+git rebase main
+```
+
+**HOIATUS:** Rebase'i ainult lokaalset ajalugu! Kui push'isid, rebase rikub teiste ajaloo.
+
+### 3.3 Harjutus: Puhasta Feature Branch
+
+**Nõuded:**
+- [ ] Loo feature branch ja tee 5-7 "räpast" commit'i
+- [ ] Kasuta `git rebase -i` et squash'ida 2-3 puhtaks commit'iks
+- [ ] Muuda vähemalt ühe commit'i sõnumit
+- [ ] Rebase feature main'i peale
+
+**Näpunäiteid:**
+- Backup enne: `git branch backup-feature`
+- Kui läks katki: `git rebase --abort`
+- Force push pärast: `git push --force-with-lease`
+
+**Testimine:**
+```bash
+git checkout -b feature/cleanup
+for i in {1..5}; do
+  echo "v$i" > file.txt
+  git add . && git commit -m "wip $i"
+done
+
+git log --oneline  # 5 commit'i
+git rebase -i HEAD~5  # Squash kokku
+git log --oneline  # 1 commit
+```
+
+**Boonus:**
+- Õpi `git reflog` - leia "kaotatud" commit'e
+- Proovi `git rebase --autosquash`
+- `git cherry-pick` - võta commit teisest branch'ist
+
+---
+
+## Kasulikud Ressursid
+
+**Dokumentatsioon:**
+- [Git Hooks](https://git-scm.com/docs/githooks)
+- [GitHub Actions](https://docs.github.com/en/actions)
+- [Git Rebase](https://git-scm.com/book/en/v2/Git-Branching-Rebasing)
+
+**Tööriistad:**
+- **pre-commit** - Hook'ide framework: `pip install pre-commit`
+- **act** - GitHub Actions lokaalselt: `brew install act`
+- **git-filter-repo** - Ajaloo puhastamine: `pip install git-filter-repo`
+
+**Näited:**
+- [GitHub Actions starter workflows](https://github.com/actions/starter-workflows)
+
+Need harjutused on mõeldud süvendama teie Git oskusi. Alustage esimesest ja liikuge järk-järgult keerulisemate poole.

@@ -1,12 +1,11 @@
-# Docker Compose Labor
+# Docker Compose Labor: Multi-container rakendus
 
-Täna õpid Docker Compose'i - tööriista, mis võimaldab hallata mitut container'it korraga.
-
----
+**Eeldused:** Docker installed, basic terminal skills, understanding of containers  
+**Platvorm:** Ubuntu 22.04 (VM or WSL2), Docker Engine 20.10+, Docker Compose v2
 
 ## Õpiväljundid
 
-Pärast seda labori oskad:
+Pärast seda lab'i oskad:
 - Kirjutada `docker-compose.yml` faile
 - Käivitada multi-container rakendusi
 - Ühendada container'eid võrkude kaudu
@@ -15,45 +14,16 @@ Pärast seda labori oskad:
 
 ---
 
-### Blokk 1 – Docker Compose põhitõed
-- **Tegevused:**
-  - Docker Compose installimine ja setup
-  - Esimene `docker-compose.yml` (web + database)
-  - `docker-compose up` - käivitamine
-  - `docker-compose ps` - container'ite vaatamine
-  - `docker-compose logs` - logide vaatamine
-- **Kontrollnimekiri:**
-  - [ ] Docker Compose on installeeritud
-  - [ ] Esimene `docker-compose.yml` fail on loodud
-  - [ ] Rakendus töötab (`docker-compose up`)
-  - [ ] Näed container'eid (`docker-compose ps`)
-- **Kontrollküsimus:** "Mis vahe on `docker run` ja `docker-compose up` vahel?"
-- **Refleksioon:** "Docker Compose on nagu... A) Spotify playlist  B) restorani menüü  C) orkestri partituur "
+## 1. Ettevalmistus
 
----
-
-### Blokk 2 – Networks ja volumes
-
----
-
-### Blokk 3 – Scaling ja production practices
-
----
-
-**Valmis? Alustame detailsete sammudega!** ⬇
-
----
-
-## ENNE ALUSTAMIST - Kontrolli Need!
-
-### 1. Kas Docker on installitud VM-is?
+### 1.1 Kontrolli Docker installatsioon
 
 ```bash
 docker --version
 docker-compose --version
 ```
 
-**Kui EI OLE installitud:**
+Kui EI OLE installitud:
 
 ```bash
 # Ubuntu/Debian VM
@@ -72,21 +42,21 @@ sudo usermod -aG docker $USER
 docker ps
 ```
 
-### 2. Kas VSCode on installitud?
+### 1.2 VSCode seadistamine
 
-**Host masinas (Windows/Mac):**
+Host masinas (Windows/Mac):
 - Lae alla: https://code.visualstudio.com/
 - Installi "Remote - SSH" extension
 
-**Või kasuta VM-is:**
+Või kasuta VM-is:
 ```bash
 # Kui tahad VSCode otse VM-is
 sudo snap install code --classic
 ```
 
-### 3. VM Port Forwarding (VirtualBox)
+### 1.3 VM Port Forwarding (VirtualBox)
 
-**Kui kasutad VirtualBox:**
+Kui kasutad VirtualBox:
 
 1. Ava VirtualBox
 2. Vali oma VM → Settings → Network
@@ -97,34 +67,33 @@ sudo snap install code --classic
    - Host Port: `8080`
    - Guest Port: `80`
 
-**Nüüd saad HOST masinas avada:** `http://localhost:8080`
+Nüüd saad HOST masinas avada: `http://localhost:8080`
 
 ---
 
-## SAMM 1: Projekti loomine VSCode'is
+## 2. Projekti loomine
 
-### 1.1 Loo projekt kaust VM-is
+### 2.1 Loo projekt kaust VM-is
 
 ```bash
-# Ava terminal VM-is
 cd ~
 mkdir todo-app
 cd todo-app
 ```
 
-### 1.2 Ava VSCode
+### 2.2 Ava VSCode
 
-**Kui VSCode on VM-is:**
+Kui VSCode on VM-is:
 ```bash
 code .
 ```
 
-**Kui VSCode on HOST masinas (Windows/Mac):**
+Kui VSCode on HOST masinas (Windows/Mac):
 1. VSCode → Remote-SSH
 2. Ühenda VM-iga
 3. File → Open Folder → vali `/home/kasutaja/todo-app`
 
-### 1.3 Loo kaustad VSCode'is
+### 2.3 Loo kaustad
 
 VSCode'is vajuta **New Folder** ikooni ja loo:
 - `api`
@@ -132,7 +101,7 @@ VSCode'is vajuta **New Folder** ikooni ja loo:
 - `frontend`
 - `nginx`
 
-**KONTROLLI** et su kausad näevad välja nii:
+Kontrolli et su kausad näevad välja nii:
 ```
 todo-app/
 ├── api/
@@ -143,11 +112,11 @@ todo-app/
 
 ---
 
-## SAMM 2: Andmebaas
+## 3. Andmebaas
 
-**Miks:** Andmebaas hoiab meie todos'e. PostgreSQL on eraldi konteineris, et saaksime seda uuendada ilma API-d puutumata.
+Andmebaas hoiab meie todos'e. PostgreSQL on eraldi konteineris, et saaksime seda uuendada ilma API-d puutumata.
 
-### 2.1 Loo fail `database/init.sql`
+### 3.1 Loo fail `database/init.sql`
 
 VSCode'is: Right click `database` kaust → New File → `init.sql`
 
@@ -173,13 +142,11 @@ INSERT INTO todos (title, description) VALUES
 
 ---
 
-## SAMM 3: API (Backend) - 20 min
+## 4. API (Backend)
 
-**Miks:** API on vahendaja frontendi ja andmebaasi vahel. Node.js töötab eraldi konteineris.
+API on vahendaja frontendi ja andmebaasi vahel. Node.js töötab eraldi konteineris.
 
-### 3.1 Loo fail `api/.dockerignore`
-
-**Miks:** Et Docker EI kopeeriks `node_modules` (see on SUUR ja AEGLANE).
+### 4.1 Loo fail `api/.dockerignore`
 
 ```
 node_modules
@@ -188,7 +155,7 @@ npm-debug.log
 .git
 ```
 
-### 3.2 Loo fail `api/package.json`
+### 4.2 Loo fail `api/package.json`
 
 ```json
 {
@@ -206,9 +173,7 @@ npm-debug.log
 }
 ```
 
-### 3.3 Loo fail `api/server.js`
-
-**Miks:** See on meie API loogika - see kuulab päringuid ja räägib andmebaasiga.
+### 4.3 Loo fail `api/server.js`
 
 ```javascript
 const express = require('express');
@@ -238,7 +203,7 @@ const pool = new Pool({
 });
 
 pool.on('connect', () => {
-  console.log(' Connected to PostgreSQL');
+  console.log('Connected to PostgreSQL');
 });
 
 pool.on('error', (err) => {
@@ -387,15 +352,13 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(` API server running on port ${PORT}`);
+  console.log(`API server running on port ${PORT}`);
   console.log(`  Health: http://localhost:${PORT}/health`);
   console.log(`  Todos:  http://localhost:${PORT}/api/todos`);
 });
 ```
 
-### 3.4 Loo fail `api/Dockerfile`
-
-**Miks:** See ütleb Docker'ile kuidas ehitada meie API konteiner.
+### 4.4 Loo fail `api/Dockerfile`
 
 ```dockerfile
 FROM node:16-alpine
@@ -420,11 +383,11 @@ CMD ["node", "server.js"]
 
 ---
 
-## SAMM 4: Frontend (React) - 25 min
+## 5. Frontend (React)
 
-**Miks:** Frontend on kasutajaliides brauseris. See on eraldi konteineris, et frontend arendajad saaksid töötada ilma backend'i puutumata.
+Frontend on kasutajaliides brauseris. See on eraldi konteineris, et frontend arendajad saaksid töötada ilma backend'i puutumata.
 
-### 4.1 Loo fail `frontend/.dockerignore`
+### 5.1 Loo fail `frontend/.dockerignore`
 
 ```
 node_modules
@@ -434,7 +397,7 @@ npm-debug.log
 build
 ```
 
-### 4.2 Loo fail `frontend/package.json`
+### 5.2 Loo fail `frontend/package.json`
 
 ```json
 {
@@ -463,13 +426,13 @@ build
 }
 ```
 
-### 4.3 Loo kaustad ja failid
+### 5.3 Loo kaustad
 
 VSCode'is loo:
 - `frontend/public/` kaust
 - `frontend/src/` kaust
 
-### 4.4 Loo fail `frontend/public/index.html`
+### 5.4 Loo fail `frontend/public/index.html`
 
 ```html
 <!DOCTYPE html>
@@ -488,7 +451,7 @@ VSCode'is loo:
 </html>
 ```
 
-### 4.5 Loo fail `frontend/src/index.js`
+### 5.5 Loo fail `frontend/src/index.js`
 
 ```javascript
 import React from 'react';
@@ -504,7 +467,7 @@ root.render(
 );
 ```
 
-### 4.6 Loo fail `frontend/src/index.css`
+### 5.6 Loo fail `frontend/src/index.css`
 
 ```css
 * {
@@ -527,9 +490,7 @@ code {
 }
 ```
 
-### 4.7 Loo fail `frontend/src/App.js`
-
-**Miks:** See on peamine React komponent mis näitab todos'e ja suhtleb API-ga.
+### 5.7 Loo fail `frontend/src/App.js`
 
 ```javascript
 import React, { useState, useEffect } from 'react';
@@ -640,14 +601,14 @@ function App() {
   return (
     <div className="App">
       <header className="header">
-        <h1> Todo App</h1>
+        <h1>Todo App</h1>
         <p>Built with Docker Compose</p>
       </header>
       
       {error && (
         <div className="error">
           <strong>Error:</strong> {error}
-          <button onClick={() => setError(null)}>x</button>
+          <button onClick={() => setError(null)}>×</button>
         </div>
       )}
       
@@ -679,7 +640,7 @@ function App() {
           
           {todos.length === 0 ? (
             <div className="no-todos">
-              <p> No todos yet!</p>
+              <p>No todos yet!</p>
               <p>Create your first todo above</p>
             </div>
           ) : (
@@ -705,7 +666,7 @@ function App() {
                     className="btn-delete"
                     title="Delete todo"
                   >
-                    
+                    ×
                   </button>
                 </div>
               ))}
@@ -724,7 +685,7 @@ function App() {
 export default App;
 ```
 
-### 4.8 Loo fail `frontend/src/App.css`
+### 5.8 Loo fail `frontend/src/App.css`
 
 ```css
 .App {
@@ -992,9 +953,7 @@ export default App;
 }
 ```
 
-### 4.9 Loo fail `frontend/Dockerfile`
-
-**Miks:** Multi-stage build - ehitame React app'i ja servime nginxiga. See on kiire ja väike.
+### 5.9 Loo fail `frontend/Dockerfile`
 
 ```dockerfile
 # Stage 1: Build React app
@@ -1032,11 +991,11 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ---
 
-## SAMM 5: Nginx (Reverse Proxy) - 10 min
+## 6. Nginx (Reverse Proxy)
 
-**Miks:** Nginx on värav mis suunab päringuid. `/api` läheb API konteinerisse, ülejäänud frontend konteinerisse. Nii töötab kõik ühest portist.
+Nginx on värav mis suunab päringuid. `/api` läheb API konteinerisse, ülejäänud frontend konteinerisse. Nii töötab kõik ühest portist.
 
-### 5.1 Loo fail `nginx/nginx.conf`
+### 6.1 Loo fail `nginx/nginx.conf`
 
 ```nginx
 events {
@@ -1044,7 +1003,7 @@ events {
 }
 
 http {
-# Upstream definitions
+    # Upstream definitions
     upstream frontend {
         server frontend:80;
     }
@@ -1057,11 +1016,11 @@ http {
         listen 80;
         server_name localhost;
 
-# Logging
+        # Logging
         access_log /var/log/nginx/access.log;
         error_log /var/log/nginx/error.log;
 
-# API requests - kõik mis algab /api
+        # API requests - kõik mis algab /api
         location /api {
             proxy_pass http://api;
             proxy_http_version 1.1;
@@ -1074,13 +1033,13 @@ http {
             proxy_cache_bypass $http_upgrade;
         }
 
-# Health check
+        # Health check
         location /health {
             proxy_pass http://api/health;
             proxy_set_header Host $host;
         }
 
-# Frontend - kõik ülejäänud
+        # Frontend - kõik ülejäänud
         location / {
             proxy_pass http://frontend;
             proxy_http_version 1.1;
@@ -1095,17 +1054,17 @@ http {
 
 ---
 
-## SAMM 6: Docker Compose - Orkestratsioon
+## 7. Docker Compose
 
-**Miks:** See fail ütleb Docker'ile kuidas kõik konteinerid koos töötavad - võrgud, sõltuvused, portid.
+See fail ütleb Docker'ile kuidas kõik konteinerid koos töötavad - võrgud, sõltuvused, portid.
 
-### 6.1 Loo fail `docker-compose.yml` (juurkaustas!)
+### 7.1 Loo fail `docker-compose.yml` (juurkaustas!)
 
 ```yaml
 version: '3.8'
 
 services:
-# PostgreSQL andmebaas
+  # PostgreSQL andmebaas
   database:
     image: postgres:14-alpine
     container_name: todo_db
@@ -1114,9 +1073,9 @@ services:
       POSTGRES_USER: todouser
       POSTGRES_PASSWORD: mypassword
     volumes:
-# Andmed püsivad siin
+      # Andmed püsivad siin
       - postgres_data:/var/lib/postgresql/data
-# Init skript
+      # Init skript
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - backend
@@ -1128,7 +1087,7 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-# Node.js API
+  # Node.js API
   api:
     build:
       context: ./api
@@ -1143,14 +1102,14 @@ services:
       - backend
       - frontend
     restart: unless-stopped
-# Logid stdout'i
+    # Logid stdout'i
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
 
-# React Frontend
+  # React Frontend
   frontend:
     build:
       context: ./frontend
@@ -1160,12 +1119,12 @@ services:
       - frontend
     restart: unless-stopped
 
-# Nginx Reverse Proxy
+  # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
     container_name: todo_nginx
     ports:
-# OLULINE: See port on kust pääsed ligi
+      # OLULINE: See port on kust pääsed ligi
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -1178,27 +1137,26 @@ services:
     restart: unless-stopped
 
 networks:
-# Backend võrk - andmebaas ja API
+  # Backend võrk - andmebaas ja API
   backend:
     driver: bridge
-# Frontend võrk - API, frontend, nginx
+  # Frontend võrk - API, frontend, nginx
   frontend:
     driver: bridge
 
 volumes:
-# PostgreSQL andmed
+  # PostgreSQL andmed
   postgres_data:
     driver: local
 ```
 
 ---
 
-## SAMM 7: Kontrollime faile
+## 8. Kontrolli faile
 
-**OLULINE:** Enne käivitamist kontrolli et KÕIK failid on olemas!
+Enne käivitamist kontrolli et KÕIK failid on olemas:
 
 ```bash
-# VM terminalis
 cd ~/todo-app
 
 # Näita failistruktuur
@@ -1220,15 +1178,9 @@ find . -type f -name "*.js" -o -name "*.json" -o -name "*.sql" -o -name "*.yml" 
 # ./nginx/nginx.conf
 ```
 
-**Kui mõni fail puudub - LOO SEE!**
-
 ---
 
-## SAMM 8: Ehitame ja käivitame
-
-**Miks:** Nüüd ehitame kõik Docker image'd ja käivitame konteinerid.
-
-### 8.1 Ehita ja käivita
+## 9. Ehita ja käivita
 
 ```bash
 cd ~/todo-app
@@ -1250,36 +1202,34 @@ docker-compose up --build
 # Creating todo_nginx ... done
 ```
 
-**OOTA kuni näed:**
+OOTA kuni näed:
 ```
 todo_db       | PostgreSQL init process complete; ready for start up.
-todo_api      |  Connected to PostgreSQL
-todo_api      |  API server running on port 3000
+todo_api      | Connected to PostgreSQL
+todo_api      | API server running on port 3000
 todo_frontend | (nginx startup logs)
 todo_nginx    | (nginx startup logs)
 ```
 
-### 8.2 AGA LOGI FAILID ON PIKAD! Kuidas teada et töötab?
-
-Ava **uus terminal** (ära sulge esimest!) ja kontrolli:
+Ava uus terminal (ära sulge esimest!) ja kontrolli:
 
 ```bash
 # Kontrolli konteinerite staatust
 docker-compose ps
 
 # Peaksid nägema 4 konteinerit "Up" staatuses:
-# NAME STATE PORTS
-# todo_db Up (healthy) 5432/tcp
-# todo_api Up 3000/tcp
-# todo_frontend Up 80/tcp
-# todo_nginx Up 0.0.0.0:80->80/tcp
+# NAME            STATE              PORTS
+# todo_db         Up (healthy)       5432/tcp
+# todo_api        Up                 3000/tcp
+# todo_frontend   Up                 80/tcp
+# todo_nginx      Up                 0.0.0.0:80->80/tcp
 ```
 
 ---
 
-## SAMM 9: TESTIMINE - Kas see töötab?
+## 10. Testimine
 
-### 9.1 Test VM-ist (sees)
+### 10.1 Test VM-ist
 
 ```bash
 # Test health check
@@ -1294,15 +1244,15 @@ curl http://localhost/api/todos
 # Peaks näitama JSON array todos'ega
 ```
 
-### 9.2 Test HOST masinast (Windows/Mac)
+### 10.2 Test HOST masinast
 
-**Kui kasutad VirtualBox port forwarding:**
+Kui kasutad VirtualBox port forwarding:
 
 1. Ava brauser HOST masinas
-2. Mine: **http://localhost:8080** (või mis port sa seadistasid)
+2. Mine: `http://localhost:8080` (või mis port sa seadistasid)
 3. Peaksid nägema Todo rakendust!
 
-**Kui kasutad Bridged network:**
+Kui kasutad Bridged network:
 
 ```bash
 # VM-is saa IP aadressi
@@ -1312,18 +1262,16 @@ ip addr show
 # Siis HOST masinas ava: http://192.168.x.x
 ```
 
-### 9.3 Test funktsionaalsust
+### 10.3 Test funktsionaalsust
 
-1. **Lisa uus todo** - Kirjuta tekst ja vajuta "Add Todo"
-2. **Märgi tehtud** - Click checkbox
-3. **Kustuta** - Click prügikasti ikoon
-4. **Refresh leht** - F5 - andmed peaksid püsima!
+1. Lisa uus todo - Kirjuta tekst ja vajuta "Add Todo"
+2. Märgi tehtud - Click checkbox
+3. Kustuta - Click prügikasti ikoon
+4. Refresh leht - F5 - andmed peaksid püsima!
 
 ---
 
-## SAMM 10: Logide vaatamine
-
-**Miks:** Kui midagi ei tööta, logid ütlevad sulle MIKS.
+## 11. Logide vaatamine
 
 ```bash
 # Vaata kõiki logisid
@@ -1344,11 +1292,11 @@ docker-compose logs database
 
 ---
 
-## KUI MIDAGI EI TÖÖTA - Troubleshooting
+## 12. Troubleshooting
 
 ### Probleem 1: "Cannot connect from HOST machine"
 
-**Diagnoos:**
+Diagnoos:
 ```bash
 # VM-is
 curl http://localhost/health
@@ -1358,15 +1306,15 @@ curl http://localhost/health
 # Ei tööta? Port forwarding probleem
 ```
 
-**Lahendus:**
+Lahendus:
 
-1. **VirtualBox Port Forwarding:**
+1. VirtualBox Port Forwarding:
    - VirtualBox → VM Settings → Network → Port Forwarding
    - Host Port: 8080
    - Guest Port: 80
    - Siis HOST-is: http://localhost:8080
 
-2. **Või kasuta VM IP:**
+2. Või kasuta VM IP:
 ```bash
 # VM-is
 ip addr show | grep "inet "
@@ -1378,14 +1326,14 @@ http://192.168.1.100
 
 ### Probleem 2: "API konteiner crashib"
 
-**Diagnoos:**
+Diagnoos:
 ```bash
 docker-compose logs api
 ```
 
-**Kui näed:** "Cannot connect to database"
+Kui näed: "Cannot connect to database"
 
-**Lahendus:**
+Lahendus:
 ```bash
 # Restart API (andmebaas võtab kauem käivituda)
 docker-compose restart api
@@ -1395,14 +1343,12 @@ docker-compose restart api
 
 ### Probleem 3: "Frontend shows blank page"
 
-**Diagnoos:**
-```bash
-# Ava browser console (F12)
-# Vaata Network tab
-# Kas API päringud ebaõnnestuvad?
-```
+Diagnoos:
+- Ava browser console (F12)
+- Vaata Network tab
+- Kas API päringud ebaõnnestuvad?
 
-**Lahendus 1:** nginx konfiguratsioon on vale
+Lahendus 1: nginx konfiguratsioon on vale
 ```bash
 # Kontrolli nginx.conf
 cat nginx/nginx.conf
@@ -1411,7 +1357,7 @@ cat nginx/nginx.conf
 docker-compose restart nginx
 ```
 
-**Lahendus 2:** Frontend build failed
+Lahendus 2: Frontend build failed
 ```bash
 # Vaata frontend logisid
 docker-compose logs frontend
@@ -1449,61 +1395,9 @@ ports:
   - "8080:80"
 ```
 
-### Probleem 6: "Cannot build - out of disk space"
-
-```bash
-# Kontrolli ruumi
-df -h
-
-# Puhasta vanad Docker andmed
-docker system prune -a --volumes
-
-# HOIATUS: See kustutab KÕIK kasutamata image'd ja volume'd
-```
-
-### Probleem 7: "npm install fails in container"
-
-```bash
-# Kontrolli internet ühendust VM-is
-ping google.com
-
-# Kui ei tööta, kontrolli VM network settings
-# NAT või Bridged peab olema seadistatud
-```
-
 ---
 
-## Debugimise käsud
-
-```bash
-# Sisene konteinerisse
-docker-compose exec api sh
-docker-compose exec database psql -U todouser -d tododb
-
-# Kontrolli võrke
-docker network ls
-docker network inspect todo-app_backend
-
-# Kontrolli volume'id
-docker volume ls
-docker volume inspect todo-app_postgres_data
-
-# Restart üks teenus
-docker-compose restart api
-
-# Stop ja remove kõik
-docker-compose down
-
-# Remove ka volumes (KUSTUTAB ANDMED!)
-docker-compose down -v
-
-# Rebuild image'd
-docker-compose build --no-cache
-```
-
----
-
-## Peatamine ja cleanup
+## 13. Peatamine ja cleanup
 
 ```bash
 # Peata konteinerid (andmed jäävad)
@@ -1521,25 +1415,25 @@ docker system prune -a --volumes
 
 ---
 
-## Mida me õppisime?
+## 14. Mida me õppisime?
 
-### 1. Containerization põhitõed
-- **Isolatsioon**: Iga teenus eraldi konteineris
-- **Portsööd**: Kuidas portid kaardistuvad (80:80)
-- **Võrgud**: Kuidas konteinerid omavahel räägivad
+### Containerization põhitõed
+- Isolatsioon: Iga teenus eraldi konteineris
+- Portsööd: Kuidas portid kaardistuvad (80:80)
+- Võrgud: Kuidas konteinerid omavahel räägivad
 
-### 2. Docker Compose
-- **Orkestreerimine**: Mitme konteineri haldamine koos
-- **Sõltuvused**: `depends_on` ja `healthcheck`
-- **Volumes**: Andmete püsimine
+### Docker Compose
+- Orkestreerimine: Mitme konteineri haldamine koos
+- Sõltuvused: `depends_on` ja `healthcheck`
+- Volumes: Andmete püsimine
 
-### 3. Multi-tier arhitektuur
-- **Database tier**: PostgreSQL
-- **Application tier**: Node.js API
-- **Presentation tier**: React frontend
-- **Proxy tier**: Nginx
+### Multi-tier arhitektuur
+- Database tier: PostgreSQL
+- Application tier: Node.js API
+- Presentation tier: React frontend
+- Proxy tier: Nginx
 
-### 4. Praktilised oskused
+### Praktilised oskused
 - Dockerfile'ide kirjutamine
 - docker-compose.yml konfigureerimine
 - Debugging ja troubleshooting
@@ -1551,7 +1445,7 @@ docker system prune -a --volumes
 
 Kui see töötab, proovi:
 
-1. **Lisa Redis** cache'iks:
+1. Lisa Redis cache'iks:
 ```yaml
 redis:
   image: redis:alpine
@@ -1559,13 +1453,13 @@ redis:
     - backend
 ```
 
-2. **Lisa environment file** (.env):
+2. Lisa environment file (.env):
 ```yaml
 env_file:
   - .env
 ```
 
-3. **Development mode** - hot reload:
+3. Development mode - hot reload:
 ```yaml
 api:
   volumes:
@@ -1574,23 +1468,12 @@ api:
   command: npm run dev
 ```
 
-4. **Scaling** - mitme API instantsi:
+4. Scaling - mitme API instantsi:
 ```bash
 docker-compose up --scale api=3
 ```
 
-5. **Monitoring** - lisa Prometheus ja Grafana
-
----
-
-## Kokkuvõte
-
- Ehitasime töötava multi-container rakenduse  
- Õppisime Docker Compose põhitõdesid  
- Mõistame kuidas konteinerid suhtlevad  
- Oskame debugida ja probleeme lahendada  
-
-**Palju õnne! Sa oled nüüd Docker Compose ekspert! **
+5. Monitoring - lisa Prometheus ja Grafana
 
 ---
 
@@ -1604,7 +1487,7 @@ docker-compose up --scale api=3
 
 ---
 
-## Lisa: Kasulikud käsud kokkuvõte
+## Kasulikud käsud kokkuvõte
 
 ```bash
 # EHITAMINE JA KÄIVITAMINE

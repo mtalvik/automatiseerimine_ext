@@ -1,417 +1,585 @@
 # Ansible Lisapraktika
 
-**Eeltingimused:** Ansible põhiteadmised, SSH setup, YAML
+Need täiendavad harjutused on mõeldud neile, kes soovivad süvendada oma Ansible oskusi. Iga harjutus keskendub ühele edasijõudnud tehnikale, mida vajate produktsioonikeskkondades. Harjutused ehitatakse järk-järgult keerulisemaks.
+
+**Eeldused:** Ansible põhitõed, playbook'ide kirjutamine, muutujad ja template'd
 
 ---
 
-##  Ülevaade
+## 1. Dünaamilised Nginx konfiguratsioonid Jinja2'ga
 
-See fail sisaldab lisapraktikaid Ansible mooduli jaoks, sealhulgas advanced playbooks, complex Jinja2, custom facts, ja troubleshooting techniques.
+### 1.1 Probleem
 
----
+Labori käigus õppisite looma lihtsaid Jinja2 template'eid, kus asendati mõned muutujad. Aga kui teil on keeruline nginx konfiguratsioon mitme rakendusega, erinevatele keskkondadele, ning vajate tingimuslikku loogikat ja tsükleid? Lihtne muutujate asendamine ei ole piisav.
 
-## Õpiväljundid
+Reaalses maailmas võib teil olla:
+- 5-10 erinevat rakendust (backend services)
+- Igal rakendusel 2-5 koopiat (replicas) erinevatele IP-dele
+- Erinevad seadistused dev vs production keskkondades
+- SSL lubatud ainult production'is
+- Health check path'd, mis erinevad rakenduste vahel
 
-Pärast lisapraktikat oskate:
+Kui kirjutate kõik käsitsi, tekib vigu. Kui kopeerite-kleebitakse, on kood kordav ja raske hooldada. Template'id Jinja2 filtrite ja tsüklitega lahendavad selle elegantsel viisil.
 
-- Kirjutada keerulisi Jinja2 template'eid filters ja loops'iga
-- Kasutada advanced Ansible modules (lineinfile, blockinfile, replace)
-- Custom facts ja dynamic inventory
-- Error handling ja retry logic
-- Performance optimization (async, forks)
+### 1.2 Lahendus
 
----
+Jinja2 pakub võimsaid funktsioone, mis muudavad template'd programmeeritavaks. Kasutame filtreid andmete transformeerimiseks, tsükleid korduvate plokide genereerimiseks ja tingimusi keskkonna-põhise konfiguratsiooni jaoks.
 
-##  Advanced Jinja2 Templates
-
-### Filters
+Näide dünaamilisest nginx konfiguratsioonist:
 
 ```yaml
-- name: "Advanced Jinja2 filters"
-  debug:
-    msg: |
-      Uppercase: {{ "hello" | upper }}
-      Default: {{ undefined_var | default("fallback") }}
-      Join list: {{ ['a', 'b', 'c'] | join('-') }}
-      Random: {{ ['red', 'blue', 'green'] | random }}
-      Unique: {{ [1, 2, 2, 3] | unique }}
-      JSON: {{ my_dict | to_json }}
-      YAML: {{ my_dict | to_yaml }}
-```
-
-### Loops in Templates
-
-```jinja
-{# nginx upstream config #}
-upstream backend {
-  {% for server in backend_servers %}
-  server {{ server.ip }}:{{ server.port }} weight={{ server.weight | default(1) }};
-  {% endfor %}
-}
-
-{# Conditional blocks #}
-server {
-  listen 80;
-  {% if enable_ssl %}
-  listen 443 ssl;
-  ssl_certificate {{ ssl_cert }};
-  ssl_certificate_key {{ ssl_key }};
-  {% endif %}
+# playbooks/advanced_nginx.yml
+---
+- name: "Deploy dynamic nginx configuration"
+  hosts: webservers
+  become: yes
+  vars:
+    environment: "production"
+    enable_ssl: true
+    ssl_cert: "/etc/ssl/certs/mysite.crt"
+    ssl_key: "/etc/ssl/private/mysite.key"
+    
+    backend_apps:
+      - name: "api"
+        port: 8080
+        health_path: "/health"
+        replicas:
+          - { ip: "10.0.1.10", weight: 3 }
+          - { ip: "10.0.1.11", weight: 2 }
+          - { ip: "10.0.1.12", weight: 1 }
+      
+      - name: "web"
+        port: 3000
+        health_path: "/status"
+        replicas:
+          - { ip: "10.0.2.10", weight: 1 }
+          - { ip: "10.0.2.11", weight: 1 }
   
-  {% for domain in domains %}
-  server_name {{ domain }};
-  {% endfor %}
-}
-```
-
-### Complex Logic
-
-```jinja
-{# Generate different configs per environment #}
-{% if ansible_hostname starts with 'prod' %}
-log_level = ERROR
-max_connections = 1000
-{% elif ansible_hostname starts with 'staging' %}
-log_level = WARNING
-max_connections = 500
-{% else %}
-log_level = DEBUG
-max_connections = 100
-{% endif %}
-
-{# Math operations #}
-Total memory: {{ ansible_memtotal_mb }} MB
-Cache size: {{ (ansible_memtotal_mb * 0.25) | int }} MB
-```
-
-### Ülesanne 1: Dynamic Nginx Config Generator
-
-Loo playbook, mis genereerib nginx config:
-- Variables: list of apps (name, port, replicas, health_check_path)
-- Template: upstream blocks, server blocks, health checks
-- Kasuta filters: `default`, `reject`, `map`
-
----
-
-## Advanced File Manipulation
-
-### lineinfile - Täpne Rea Muutmine
-
-```yaml
-- name: "Ensure SSH port is 2222"
-  lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: '^#?Port '
-    line: 'Port 2222'
-    validate: '/usr/sbin/sshd -t -f %s'
-  notify: restart sshd
-
-- name: "Add custom setting if not exists"
-  lineinfile:
-    path: /etc/myapp.conf
-    line: 'custom_setting = enabled'
-    insertafter: '^# Custom settings'
-    state: present
-```
-
-### blockinfile - Multi-Line Blocks
-
-```yaml
-- name: "Add custom Apache config block"
-  blockinfile:
-    path: /etc/apache2/sites-available/mysite.conf
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - SSL"
-    block: |
-      SSLEngine on
-      SSLCertificateFile /etc/ssl/certs/mysite.crt
-      SSLCertificateKeyFile /etc/ssl/private/mysite.key
-      SSLProtocol all -SSLv2 -SSLv3
-```
-
-### replace - Regex Replace
-
-```yaml
-- name: "Replace all occurrences"
-  replace:
-    path: /etc/hosts
-    regexp: 'old\.domain\.com'
-    replace: 'new.domain.com'
-```
-
-### Ülesanne 2: Configuration Migration
-
-Loo playbook, mis:
-- Loeb olemasoleva config faili
-- Asendab deprecated settings uutega (regex)
-- Lisab uusi settings plokke
-- Validates syntax enne commit'i
-- Backup original file
-
----
-
-##  Loops ja Conditionals
-
-### Loop Over Complex Structures
-
-```yaml
-- name: "Create users with specific settings"
-  user:
-    name: "{{ item.name }}"
-    groups: "{{ item.groups | join(',') }}"
-    shell: "{{ item.shell | default('/bin/bash') }}"
-    state: present
-  loop:
-    - { name: 'alice', groups: ['sudo', 'docker'], shell: '/bin/zsh' }
-    - { name: 'bob', groups: ['docker'] }
-    - { name: 'charlie', groups: ['www-data'], shell: '/bin/bash' }
-  when: item.name != 'root'
-```
-
-### Loop with Conditions
-
-```yaml
-- name: "Install packages per OS"
-  package:
-    name: "{{ item }}"
-    state: present
-  loop: "{{ packages[ansible_os_family] }}"
-  when: packages[ansible_os_family] is defined
-
-vars:
-  packages:
-    Debian: ['nginx', 'postgresql', 'redis-server']
-    RedHat: ['nginx', 'postgresql-server', 'redis']
-```
-
-### Nested Loops
-
-```yaml
-- name: "Create directory structure"
-  file:
-    path: "/var/www/{{ item.0.name }}/{{ item.1 }}"
-    state: directory
-  with_nested:
-    - "{{ websites }}"
-    - ['public', 'logs', 'backups']
-```
-
----
-
-## Error Handling
-
-### Block/Rescue/Always
-
-```yaml
-- name: "Try to deploy app"
-  block:
-    - name: "Stop service"
+  tasks:
+    - name: "Deploy nginx config from template"
+      template:
+        src: ../templates/nginx_advanced.conf.j2
+        dest: /etc/nginx/sites-available/apps.conf
+        validate: 'nginx -t -c %s'
+      notify: reload nginx
+  
+  handlers:
+    - name: reload nginx
       service:
-        name: myapp
-        state: stopped
+        name: nginx
+        state: reloaded
+```
+
+Template fail `templates/nginx_advanced.conf.j2`:
+
+```jinja2
+# Generated by Ansible - DO NOT EDIT MANUALLY
+# Environment: {{ environment | upper }}
+
+{% for app in backend_apps %}
+# Upstream for {{ app.name }}
+upstream {{ app.name }}_backend {
+    {% for replica in app.replicas %}
+    server {{ replica.ip }}:{{ app.port }} weight={{ replica.weight | default(1) }};
+    {% endfor %}
     
-    - name: "Deploy new version"
-      copy:
-        src: app-v2.0.tar.gz
-        dest: /opt/myapp/
+    # Health check
+    check interval=3000 rise=2 fall=3 timeout=1000;
+    check_http_send "GET {{ app.health_path }} HTTP/1.0\r\n\r\n";
+    check_http_expect_alive http_2xx http_3xx;
+}
+
+{% endfor %}
+
+# Main server block
+server {
+    listen 80;
+    server_name {{ inventory_hostname }};
     
-    - name: "Extract and configure"
-      unarchive:
-        src: /opt/myapp/app-v2.0.tar.gz
-        dest: /opt/myapp/
+    {% if enable_ssl and environment == 'production' %}
+    # SSL Configuration (production only)
+    listen 443 ssl http2;
+    ssl_certificate {{ ssl_cert }};
+    ssl_certificate_key {{ ssl_key }};
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    
+    # Redirect HTTP to HTTPS
+    if ($scheme = http) {
+        return 301 https://$server_name$request_uri;
+    }
+    {% endif %}
+    
+    {% for app in backend_apps %}
+    # Location for {{ app.name }}
+    location /{{ app.name }}/ {
+        proxy_pass http://{{ app.name }}_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        
+        {% if environment == 'production' %}
+        # Production settings
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 10s;
+        proxy_read_timeout 10s;
+        {% else %}
+        # Development settings - longer timeouts for debugging
+        proxy_connect_timeout 30s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        {% endif %}
+    }
+    
+    {% endfor %}
+    
+    # Logging
+    access_log /var/log/nginx/apps_access.log combined;
+    error_log /var/log/nginx/apps_error.log {{ 'warn' if environment == 'production' else 'debug' }};
+}
+```
+
+Kuidas see töötab:
+- `{% for app in backend_apps %}` - tsükkel üle kõigi rakenduste
+- `{{ replica.weight | default(1) }}` - filter mis annab vaikeväärtuse kui weight puudub
+- `{% if enable_ssl and environment == 'production' %}` - tingimus ainult production'i jaoks
+- `{{ 'warn' if environment == 'production' else 'debug' }}` - inline conditional
+
+### 1.3 Harjutus: Multi-tier rakenduse konfiguratsioon
+
+Looge playbook ja template, mis genereerib nginx konfiguratsiooni kolme keskkonna jaoks (dev, staging, production).
+
+**Nõuded:**
+
+- [ ] Template kasutab vähemalt 3 erinevat filtrit (default, upper, join)
+- [ ] Tsükkel backend serverite üle, iga serveril erinev weight
+- [ ] SSL on lubatud ainult staging ja production keskkondades
+- [ ] Log level varieerub keskkonna järgi (debug/info/warn)
+- [ ] Health check path on konfigureeritav iga rakenduse jaoks
+- [ ] Validate nginx config enne rakendamist (validate parameter)
+
+**Näpunäiteid:**
+
+- Alustage lihtsast template'ist ja lisage järk-järgult keerukust
+- Kasutage `ansible-playbook --check --diff` et näha genereeritud konfiguratsiooni
+- Testide nginx config süntaksit: `nginx -t`
+- Filtrite dokumentatsioon: https://jinja.palletsprojects.com/en/3.0.x/templates/
+
+**Testimine:**
+
+```bash
+# Käivita playbook
+ansible-playbook playbooks/advanced_nginx.yml --check --diff
+
+# Vaata genereeritud konfiguratsiooni
+ansible webservers -m shell -a "cat /etc/nginx/sites-available/apps.conf"
+
+# Testi nginx süntaksit
+ansible webservers -m shell -a "nginx -t" --become
+```
+
+**Boonus:**
+
+- Lisage rate limiting production keskkonda
+- Genereerige eraldi upstream plokk iga keskkonna jaoks
+- Kasutage custom Jinja2 filtrit IP aadresside transformeerimiseks
+
+---
+
+## 2. Konfiguratsioonifailide automaatne migratsioon
+
+### 2.1 Probleem
+
+Tarkvara uuenduste käigus muutuvad sageli konfiguratsioonifailide formaadid. Näiteks:
+- Vana parameeter nimetatakse ümber või muutub deprecated
+- Uus versioon nõuab uusi kohustuslikke parameetreid
+- Vanad vaikeväärtused ei sobi enam
+
+Käsitsi muutmine 50 serveris on aeganõudev ja vigadele kalduv. Kui unustate ühe serveri või teete vea, võib rakendus kokku kukkuda.
+
+Ansible pakub kolm võimsat moodulit failide täpseks muutmiseks:
+- `lineinfile` - täpselt ühe rea muutmine/lisamine
+- `blockinfile` - mitme rea ploki lisamine
+- `replace` - regex-põhine asendamine kogu failis
+
+Kuid kuidas kasutada neid turvaliselt? Kuidas tagada, et muudatused ei riku konfiguratsiooni? Kuidas teha backup enne muutmist?
+
+### 2.2 Lahendus
+
+Kasutame kombinatsiooni `lineinfile`, `blockinfile` ja `replace` moodulitest koos valideerimise ja backup'iga. Näitame, kuidas migreerida SSH konfiguratsioon turvalisemaks.
+
+```yaml
+# playbooks/config_migration.yml
+---
+- name: "Migrate SSH configuration to secure settings"
+  hosts: all
+  become: yes
   
-  rescue:
-    - name: "Rollback on failure"
+  tasks:
+    - name: "Backup original sshd_config"
       copy:
-        src: /opt/myapp/backup/
-        dest: /opt/myapp/
+        src: /etc/ssh/sshd_config
+        dest: /etc/ssh/sshd_config.backup.{{ ansible_date_time.epoch }}
         remote_src: yes
     
-    - name: "Notify failure"
+    - name: "Disable deprecated protocol 1"
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?Protocol '
+        line: 'Protocol 2'
+        validate: '/usr/sbin/sshd -t -f %s'
+        backup: yes
+    
+    - name: "Change SSH port from 22 to 2222"
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?Port '
+        line: 'Port 2222'
+        validate: '/usr/sbin/sshd -t -f %s'
+    
+    - name: "Disable password authentication"
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication '
+        line: 'PasswordAuthentication no'
+        validate: '/usr/sbin/sshd -t -f %s'
+    
+    - name: "Add custom security block"
+      blockinfile:
+        path: /etc/ssh/sshd_config
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - Security"
+        block: |
+          # Security hardening
+          PermitRootLogin no
+          MaxAuthTries 3
+          MaxSessions 2
+          ClientAliveInterval 300
+          ClientAliveCountMax 2
+        validate: '/usr/sbin/sshd -t -f %s'
+    
+    - name: "Replace old cipher list"
+      replace:
+        path: /etc/ssh/sshd_config
+        regexp: 'Ciphers aes.*'
+        replace: 'Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com'
+        validate: '/usr/sbin/sshd -t -f %s'
+    
+    - name: "Remove all Match User blocks (deprecated)"
+      replace:
+        path: /etc/ssh/sshd_config
+        regexp: '^Match User.*\n(.*\n)*?(?=^[A-Z]|\Z)'
+        replace: ''
+        validate: '/usr/sbin/sshd -t -f %s'
+      when: ansible_distribution_version is version('20.04', '>=')
+    
+    - name: "Verify configuration is valid"
+      command: /usr/sbin/sshd -t
+      changed_when: false
+      register: sshd_test
+    
+    - name: "Show validation result"
       debug:
-        msg: "Deployment failed! Rolled back to previous version."
-  
-  always:
-    - name: "Start service"
+        msg: "SSH config is valid!"
+      when: sshd_test.rc == 0
+    
+    - name: "Restart SSH service"
       service:
-        name: myapp
-        state: started
+        name: sshd
+        state: restarted
+      when: sshd_test.rc == 0
 ```
 
-### Retry Logic
+Olulised punktid:
+- `validate` parameeter testib konfiguratsiooni enne salvestamist
+- `backup: yes` loob automaatse varukoopia
+- `regexp` võimaldab leida õige rea isegi kui see on kommenteeritud
+- `blockinfile` lisab ploki ainult üks kord, ei tee duplikaate
+- `replace` kasutab regex'i kõigi vastetega asendamiseks
 
-```yaml
-- name: "Wait for service to be healthy"
-  uri:
-    url: "http://localhost:8080/health"
-    status_code: 200
-  register: health_check
-  until: health_check.status == 200
-  retries: 10
-  delay: 5
-  failed_when: false  # Don't fail immediately
+### 2.3 Harjutus: Apache konfiguratsiooni migratsioon
+
+Looge playbook, mis migrееrib Apache konfiguratsiooni vanast formaadist (Apache 2.2) uuele (Apache 2.4).
+
+**Nõuded:**
+
+- [ ] Asendage `Order allow,deny` → `Require all granted`
+- [ ] Asendage `Allow from all` → `Require all granted`
+- [ ] Lisage uus security plokk (ServerTokens, ServerSignature)
+- [ ] Muutke deprecated DirectoryIndex direktiivi
+- [ ] Backup iga konfiguratsiooni faili enne muutmist
+- [ ] Valideeri Apache config pärast iga muudatust: `apachectl configtest`
+
+**Näpunäiteid:**
+
+- Testige esmalt ühe faili peal, seejärel laiendage kõigile
+- Kasutage `--check` režiimi et näha muudatusi enne rakendamist
+- `validate` parameeter võib salvestada elu - kasutage seda alati
+- Backup failid võite kustutada pärast edukast migratsiooni (eraldi task)
+
+**Testimine:**
+
+```bash
+# Kuiv käivitus
+ansible-playbook playbooks/apache_migration.yml --check --diff
+
+# Päris käivitus
+ansible-playbook playbooks/apache_migration.yml
+
+# Kontrolli Apache konfiguratsiooni
+ansible webservers -m shell -a "apachectl configtest" --become
+
+# Vaata backup faile
+ansible webservers -m shell -a "ls -la /etc/apache2/*.backup*"
 ```
+
+**Boonus:**
+
+- Lisage rollback funktsioon kui validatsioon ebaõnnestub
+- Looge CSV raport kõigist tehtud muudatustest
+- Slackisse või emailiga teavitus pärast migratsiooni
 
 ---
 
-## Performance Optimization
+## 3. Deployment error handling ja rollback
 
-### Async Tasks
+### 3.1 Probleem
 
-```yaml
-- name: "Long running backup (async)"
-  command: /usr/local/bin/backup.sh
-  async: 3600  # Timeout 1h
-  poll: 0      # Fire and forget
-  register: backup_job
+Labori käigus käivitasite playbook'e, mis enamasti õnnestusid. Aga produktsioonis läheb asjad valesti:
+- Võrk katkeb deployment'i ajal
+- Uus versioon ei käivitu
+- Database migration ebaõnnestub
+- Kettal pole ruumi
 
-- name: "Do other stuff while backup runs"
-# ... other tasks ...
+Kui deployment ebaõnnestub poolel teel, on teie rakendus katki. Kasutajad ei saa teenust kasutada. Vajate viisi, kuidas:
+- Tuvastada vigu kohe
+- Automaatselt tagasi rullida eelmisele versioonile
+- Säilitada teenuse kättesaadavus
+- Logida kõik tegevused
 
-- name: "Check backup status"
-  async_status:
-    jid: "{{ backup_job.ansible_job_id }}"
-  register: backup_result
-  until: backup_result.finished
-  retries: 60
-  delay: 10
-```
+Ansible `block/rescue/always` konstruktsioon võimaldab kirjutada vastupidavaid playbook'e, mis käsitlevad vigu gracefully.
 
-### Parallel Execution
+### 3.2 Lahendus
+
+Kasutame `block/rescue/always` struktuuri koos retry loogikaga ja health check'idega. Näitame, kuidas teha zero-downtime deployment'i rollback võimalusega.
 
 ```yaml
-# ansible.cfg
-[defaults]
-forks = 20            # Run on 20 hosts simultaneously
-gathering = smart     # Cache facts
-fact_caching = jsonfile
-fact_caching_connection = /tmp/ansible_facts
-fact_caching_timeout = 3600
-```
-
-### Disable Fact Gathering
-
-```yaml
-- name: "Quick playbook"
-  hosts: all
-  gather_facts: no  # Saves 2-5 seconds per host!
+# playbooks/safe_deployment.yml
+---
+- name: "Safe application deployment with rollback"
+  hosts: webservers
+  become: yes
+  vars:
+    app_name: "myapp"
+    app_version: "2.0.0"
+    app_path: "/opt/{{ app_name }}"
+    backup_path: "{{ app_path }}/backup"
+    health_url: "http://localhost:8080/health"
+  
   tasks:
-    - name: "Quick task"
-      command: echo "hello"
+    - name: "Deployment block with error handling"
+      block:
+        - name: "Create backup directory"
+          file:
+            path: "{{ backup_path }}"
+            state: directory
+            mode: '0755'
+        
+        - name: "Backup current version"
+          synchronize:
+            src: "{{ app_path }}/current/"
+            dest: "{{ backup_path }}/{{ ansible_date_time.epoch }}/"
+          delegate_to: "{{ inventory_hostname }}"
+        
+        - name: "Stop application gracefully"
+          service:
+            name: "{{ app_name }}"
+            state: stopped
+          register: app_stop
+          failed_when: false
+        
+        - name: "Download new version"
+          get_url:
+            url: "https://releases.example.com/{{ app_name }}-{{ app_version }}.tar.gz"
+            dest: "/tmp/{{ app_name }}-{{ app_version }}.tar.gz"
+            timeout: 30
+          register: download
+          until: download is succeeded
+          retries: 3
+          delay: 10
+        
+        - name: "Extract new version"
+          unarchive:
+            src: "/tmp/{{ app_name }}-{{ app_version }}.tar.gz"
+            dest: "{{ app_path }}/current/"
+            remote_src: yes
+        
+        - name: "Run database migrations"
+          command: "{{ app_path }}/current/bin/migrate.sh"
+          register: migration
+          changed_when: migration.stdout | regex_search('Applied [0-9]+ migrations')
+        
+        - name: "Start application"
+          service:
+            name: "{{ app_name }}"
+            state: started
+        
+        - name: "Wait for application to start"
+          wait_for:
+            port: 8080
+            delay: 5
+            timeout: 60
+        
+        - name: "Health check with retry"
+          uri:
+            url: "{{ health_url }}"
+            status_code: 200
+            timeout: 5
+          register: health
+          until: health.status == 200
+          retries: 12
+          delay: 5
+        
+        - name: "Smoke test critical endpoints"
+          uri:
+            url: "http://localhost:8080{{ item }}"
+            status_code: 200
+          loop:
+            - "/api/status"
+            - "/api/version"
+            - "/api/db-check"
+          register: smoke_tests
+      
+      rescue:
+        - name: "Deployment failed - starting rollback"
+          debug:
+            msg: "ERROR: Deployment failed. Rolling back to previous version..."
+        
+        - name: "Stop broken version"
+          service:
+            name: "{{ app_name }}"
+            state: stopped
+          failed_when: false
+        
+        - name: "Find latest backup"
+          find:
+            paths: "{{ backup_path }}"
+            file_type: directory
+          register: backups
+        
+        - name: "Restore from backup"
+          synchronize:
+            src: "{{ (backups.files | sort(attribute='mtime', reverse=true) | first).path }}/"
+            dest: "{{ app_path }}/current/"
+          delegate_to: "{{ inventory_hostname }}"
+          when: backups.matched > 0
+        
+        - name: "Start application (rollback version)"
+          service:
+            name: "{{ app_name }}"
+            state: started
+        
+        - name: "Verify rollback health"
+          uri:
+            url: "{{ health_url }}"
+            status_code: 200
+          register: rollback_health
+          until: rollback_health.status == 200
+          retries: 10
+          delay: 5
+        
+        - name: "Send failure notification"
+          debug:
+            msg: |
+              DEPLOYMENT FAILED!
+              Server: {{ inventory_hostname }}
+              Version: {{ app_version }}
+              Rolled back successfully.
+          
+        - name: "Fail playbook after rollback"
+          fail:
+            msg: "Deployment failed. System rolled back to previous version."
+      
+      always:
+        - name: "Cleanup temp files"
+          file:
+            path: "/tmp/{{ app_name }}-{{ app_version }}.tar.gz"
+            state: absent
+        
+        - name: "Log deployment attempt"
+          lineinfile:
+            path: "/var/log/{{ app_name }}-deployments.log"
+            line: "{{ ansible_date_time.iso8601 }} | {{ app_version }} | {{ 'SUCCESS' if health.status == 200 else 'FAILED' }} | {{ inventory_hostname }}"
+            create: yes
 ```
 
----
+Kuidas see töötab:
+- `block` - kõik deployment sammud
+- `rescue` - käivitub kui mõni block'i task ebaõnnestub
+- `always` - käivitub alati (cleanup, logging)
+- `until/retries/delay` - retry loogika health check'ide jaoks
+- `failed_when: false` - ei faili kohe, proovi edasi
 
-## Custom Facts
+### 3.3 Harjutus: Database migration rollback
 
-### Create Custom Fact
+Looge playbook, mis teeb PostgreSQL schema migration'i koos automaatse rollback'iga.
 
-```yaml
-- name: "Create custom fact"
-  copy:
-    dest: /etc/ansible/facts.d/myapp.fact
-    content: |
-      [deployment]
-      version=2.1.0
-      deployed_by=ansible
-      deployed_at={{ ansible_date_time.iso8601 }}
-    mode: '0755'
+**Nõuded:**
 
-- name: "Reload facts"
-  setup:
+- [ ] Block: create database backup, apply migration, verify schema
+- [ ] Rescue: restore from backup, rollback migration
+- [ ] Always: cleanup temp files, log attempt
+- [ ] Retry logic health check'ile (3 korda, 10 sek delay)
+- [ ] Database backup nimega: `db_backup_TIMESTAMP.sql`
+- [ ] Kui migration ebaõnnestub, restore backup automaatselt
 
-- name: "Use custom fact"
-  debug:
-    msg: "App version: {{ ansible_local.myapp.deployment.version }}"
-```
+**Näpunäiteid:**
 
-### Dynamic Facts Script
+- Kasutage `postgresql_db` moodulit backup'i tegemiseks
+- `postgresql_query` moodul migration skriptide käivitamiseks
+- Kontrollige schema versiooni: `SELECT version FROM schema_migrations`
+- Testige esmalt test andmebaasiga
+
+**Testimine:**
 
 ```bash
-#!/bin/bash
-# /etc/ansible/facts.d/app_status.fact
+# Testi kuivas režiimis
+ansible-playbook playbooks/db_migration.yml --check
 
-echo "{
-  \"status\": \"$(systemctl is-active myapp)\",
-  \"uptime\": \"$(systemctl show -p ActiveEnterTimestamp myapp --value)\",
-  \"memory\": \"$(ps aux | grep myapp | awk '{sum+=$6} END {print sum}')\"
-}"
+# Testi fail migration'iga (simulatsioon)
+ansible-playbook playbooks/db_migration.yml -e "simulate_failure=true"
+
+# Päris migration
+ansible-playbook playbooks/db_migration.yml
+
+# Kontrolli backup faile
+ansible dbservers -m shell -a "ls -lh /var/backups/postgres/"
 ```
 
----
+**Boonus:**
 
-##  Challenge: Full Stack Deployment
-
-**Ülesanne:** Loo täielik 3-tier deployment playbook
-
-**Requirements:**
-- [ ] Load balancer setup (nginx)
-- [ ] Application servers (3x replicas)
-- [ ] Database setup (PostgreSQL with replication)
-- [ ] Redis cache
-- [ ] SSL certificates (Let's Encrypt simulation)
-- [ ] Monitoring agents (node_exporter)
-- [ ] Backup cron jobs
-- [ ] Health checks ja rolling updates
-- [ ] Error handling ja rollback
-- [ ] Custom facts for deployment info
-- [ ] Performance optimized (async, parallelism)
-
-**Bonus:**
-- [ ] Zero-downtime deployment
-- [ ] Blue-green deployment logic
-- [ ] Automated testing after deployment
-- [ ] Slack/email notifications
-
----
-
-## Troubleshooting Tips
-
-### Debug Output
-
-```yaml
-- name: "Debug complex variable"
-  debug:
-    var: my_complex_dict
-    verbosity: 2  # Only with -vv
-
-- name: "Debug with formatting"
-  debug:
-    msg: |
-      Host: {{ inventory_hostname }}
-      IP: {{ ansible_default_ipv4.address }}
-      OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
-```
-
-### Dry Run
-
-```bash
-# Check mode (no changes)
-ansible-playbook playbook.yml --check
-
-# Diff mode (show what would change)
-ansible-playbook playbook.yml --check --diff
-```
-
-### Step-by-Step Execution
-
-```bash
-# Ask before each task
-ansible-playbook playbook.yml --step
-
-# Start from specific task
-ansible-playbook playbook.yml --start-at-task="Deploy application"
-```
+- Blue-green deployment: migration uude andmebaasi, seejärel switch
+- Parallel execution: backup ja migration erinevates serveritest
+- Slack notification: saada teade kui rollback toimus
+- Retention policy: kustuta vanad backup'd (üle 7 päeva)
 
 ---
 
 ## Kasulikud Ressursid
 
-- **Ansible Docs**: https://docs.ansible.com/
-- **Jinja2 Docs**: https://jinja.palletsprojects.com/
-- **Best Practices**: https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html
-- **Module Index**: https://docs.ansible.com/ansible/latest/collections/index_module.html
+**Dokumentatsioon:**
+- [Ansible Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
+- [Jinja2 Template Designer](https://jinja.palletsprojects.com/en/3.0.x/templates/)
+- [Ansible Error Handling](https://docs.ansible.com/ansible/latest/user_guide/playbooks_error_handling.html)
+- [Ansible Modules Index](https://docs.ansible.com/ansible/latest/collections/index_module.html)
 
----
+**Tööriistad:**
+- **ansible-lint** - playbook'ide kvaliteedi kontroll: `pip install ansible-lint`
+- **yamllint** - YAML süntaksi kontroll: `pip install yamllint`
+- **Ansible Tower** - GUI Ansible'i haldamiseks (kommertsiline)
+- **AWX** - Ansible Tower tasuta versioon
 
-**Edu advanced Ansible'iga!** 
+**Näited:**
+- [Ansible Examples GitHub](https://github.com/ansible/ansible-examples)
+- [Ansible Galaxy Roles](https://galaxy.ansible.com/)
 
+Need harjutused on mõeldud süvendama teie Ansible oskusi. Alustage esimesest ja liikuge järk-järgult keerulisemate poole.

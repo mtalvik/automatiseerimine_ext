@@ -1,17 +1,18 @@
-# Terraform Kodutöö: Lihtne Infrastruktuur (Alternatiiv)
+#  Terraform Kodutöö: Lihtne Infrastruktuur (Alternatiiv)
 
 **Tähtaeg:** Järgmise nädala alguseks  
+
 **Raskusaste:** Lihtne
 
 ---
 
-## Ülesande kirjeldus
+##  Ülesande kirjeldus
 
 Lihtsam alternatiiv Terraform kodutööle. Fookus on Terraform'i ja Infrastructure as Code'i õppimisel kohalikus keskkonnas lihtsama ülesandega!
 
 ---
 
-## **Projekt: Kohalik Infrastruktuur Terraform'iga**
+##  **Projekt: Kohalik Infrastruktuur Terraform'iga**
 
 ### Mis on see projekt?
 
@@ -123,7 +124,7 @@ resource "local_file" "app_config" {
 # Käivitamise skript
 resource "local_file" "startup_script" {
   content = <<-EOF
-#!/bin/bash
+    #!/bin/bash
     echo "======================================"
     echo "Tere tulemast ${var.project_name} projekti!"
     echo "======================================"
@@ -146,7 +147,7 @@ resource "local_file" "startup_script" {
 # Puhastamise skript
 resource "local_file" "cleanup_script" {
   content = <<-EOF
-#!/bin/bash
+    #!/bin/bash
     echo "Puhastan ${var.project_name} projekti..."
     echo "Kustutan ajutised failid..."
     rm -f *.tmp *.log
@@ -166,7 +167,7 @@ resource "local_file" "example_files" {
   count = var.file_count
   
   content = <<-EOF
-# Näidisfail ${count.index + 1}
+    # Näidisfail ${count.index + 1}
     
     Projekti nimi: ${var.project_name}
     Keskkond: ${var.environment}
@@ -184,13 +185,13 @@ resource "local_file" "example_files" {
 # README fail
 resource "local_file" "readme" {
   content = <<-EOF
-# ${var.project_name}
+    # ${var.project_name}
     
-## Kirjeldus
+    ## Kirjeldus
     
     See projekt on loodud Terraform'i abil demonstreerima Infrastructure as Code põhimõtteid.
     
-## Struktuuri
+    ## Struktuuri
     
     ```
     ${var.project_name}/
@@ -200,19 +201,19 @@ resource "local_file" "readme" {
     └── README.md       # See fail
     ```
     
-## Kasutamine
+    ## Kasutamine
     
     1. Käivita projekt: `./scripts/startup.sh`
     2. Vaata konfiguratsioone: `cat config/project.json`
     3. Puhasta projekt: `./scripts/cleanup.sh`
     
-## Keskkond
+    ## Keskkond
     
     - Keskkond: ${var.environment}
     - Versioon: 1.0.0
     - Loodud: ${timestamp()}
     
-## Terraform info
+    ## Terraform info
     
     See projekt loodi kasutades:
     - Local provider
@@ -452,9 +453,9 @@ terraform destroy
 
 ---
 
-## **Boonusülesanded (valikuline)**
+##  **Boonusülesanded (valikuline)**
 
-### 1. Tingimused ja tsüklid
+## 1. Tingimused ja tsüklid
 
 ```hcl
 # Loo backup failid ainult production keskkonnas
@@ -479,7 +480,7 @@ resource "local_file" "app_configs" {
 }
 ```
 
-### 2. Locals ja funktsioonid
+## 2. Locals ja funktsioonid
 
 ```hcl
 locals {
@@ -500,7 +501,7 @@ resource "local_file" "metadata" {
 }
 ```
 
-### 3. Moodulite struktuuri ettevalmistamine
+## 3. Moodulite struktuuri ettevalmistamine
 
 ```bash
 mkdir -p modules/file-generator
@@ -509,7 +510,7 @@ mkdir -p modules/file-generator
 
 ---
 
-## **Kokkuvõte**
+##  **Kokkuvõte**
 
 Täna õppisite:
 - **Terraform'i põhitõdesid** - kuidas kirjutada HCL koodi

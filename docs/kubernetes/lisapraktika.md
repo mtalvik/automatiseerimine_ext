@@ -1,160 +1,166 @@
 # Kubernetes Lisapraktika
 
-Täiendavad ülesanded Kubernetes'e oskuste süvendamiseks.
+Need harjutused katavad keerukamaid Kubernetes teemasid, mis lähevad kaugemale põhilaborist. Iga harjutus on ehitatud 30-45 minutiks ja õpetab ühte fokuseeritud advanced kontseptsiooni, mida kasutatakse päris produktsioonis.
 
-**Eeldused:** Põhilabor läbitud, Pods/Deployments/Services selged
-
----
-
-## Enne alustamist
-
-Need ülesanded on valikulised ja mõeldud neile, kes:
-
-- Lõpetasid põhilabori ära
-- Mõistavad Pods, Deployments, Services
-- Tahavad õppida advanced Kubernetes
-- Valmistuvad päris cluster'i haldamiseks
+**Eeldused:** Kubernetes põhitõed (Pods, Deployments, Services), kubectl baaskäsud, YAML süntaks, loeng.md ja labor.md läbitud
 
 ---
 
-## Väljakutse 1: Horizontal Pod Autoscaler
+## 1. Horizontal Pod Autoscaler
 
+### 1.1 Probleem
 
-### Mida õpid?
-- Horizontal Pod Autoscaler (HPA)
-- Metrics Server
-- Resource limits ja requests
-- Load testing
+Käsitsi pod'ide arvu muutmine on aeglane ja ebaefektiivne. Kui liiklus järsku kasvab kell 20:00, võib rakendus kokku kukkuda enne kui jõuate `kubectl scale` käivitada. Kui hoiate ööseks 10 pod'i käimas aga liiklus on null, raiskate raha.
 
-### Sammud:
+Produktsioonis muutub koormus pidevalt - Black Friday võib tuua 100x rohkem liiklust. Staatilise replica arvu puhul kas raiskate ressursse või kannatate downtime'i. Vajate automaatset skaleerimist, mis reageerib real-time metrics'itele.
 
-1. **Installi Metrics Server:**
-   ```bash
-   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-   
-# Minikube'is:
-   minikube addons enable metrics-server
-   
-# Kontrolli:
-   kubectl top nodes
-   kubectl top pods
-   ```
+### 1.2 Lahendus
 
-2. **Loo deployment koos resource limits:**
-   ```yaml
-# deployment-with-resources.yaml
-   apiVersion: apps/v1
-   kind: Deployment
-   metadata:
-     name: php-apache
-   spec:
-     replicas: 1
-     selector:
-       matchLabels:
-         app: php-apache
-     template:
-       metadata:
-         labels:
-           app: php-apache
-       spec:
-         containers:
-         - name: php-apache
-           image: registry.k8s.io/hpa-example
-           ports:
-           - containerPort: 80
-           resources:
-             requests:
-               cpu: 200m
-               memory: 128Mi
-             limits:
-               cpu: 500m
-               memory: 256Mi
-   ```
+Horizontal Pod Autoscaler (HPA) jälgib metrics'eid ja muudab automaatselt replicate arvu. HPA töötab tsüklis - iga 15 sekundi tagant kontrollib pod'ide keskmist CPU/memory kasutust ja võrdleb target'iga. Kui keskmine on üle target'i, skaleerib üles. Kui alla, skaleerib alla (5 min cooldown).
 
-3. **Loo HPA:**
-   ```yaml
-# hpa.yaml
-   apiVersion: autoscaling/v2
-   kind: HorizontalPodAutoscaler
-   metadata:
-     name: php-apache
-   spec:
-     scaleTargetRef:
-       apiVersion: apps/v1
-       kind: Deployment
-       name: php-apache
-     minReplicas: 1
-     maxReplicas: 10
-     metrics:
-     - type: Resource
-       resource:
-         name: cpu
-         target:
-           type: Utilization
-           averageUtilization: 50
-     - type: Resource
-       resource:
-         name: memory
-         target:
-           type: Utilization
-           averageUtilization: 70
-   ```
+HPA vajab Metrics Server'it, mis kogub ressursi kasutust kõigist node'idest. Minikube'is: `minikube addons enable metrics-server`.
 
-4. **Test load:**
-   ```bash
-# Loo load generator
-   kubectl run -i --tty load-generator --rm --image=busybox --restart=Never -- /bin/sh
-   
-# Container sees:
-   while true; do wget -q -O- http://php-apache; done
-   
-# Teises terminal'is vaata scaling'u:
-   kubectl get hpa php-apache --watch
-   kubectl get pods --watch
-   ```
+**Kuidas HPA töötab:**
+- Deployment määrab `resources.requests.cpu: 200m`
+- HPA määrab target: `averageUtilization: 50`
+- Kui pod'id kasutavad keskmiselt 80% CPU → HPA loob uusi pod'e
+- Kui koormus langeb alla 50% → HPA kustutab pod'e (5 min pärast)
 
-###  Boonus:
-- Lisa custom metrics (application-specific)
-- Kasuta KEDA (Kubernetes Event-Driven Autoscaling)
-- Loo scaling based on external metrics (queue length)
-- Implementeeri predictive autoscaling
+**Loe veel:**
+- loeng.md - pole veel selles loengus, aga deployment'i ja resource limits't leiad seal
+- labor.md - "## 2. Multi-tier rakendus" näitab deployment'i struktuuri
+- [Kubernetes HPA dokumentatsioon](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
+- [Metrics Server](https://github.com/kubernetes-sigs/metrics-server)
 
----
-
-## Väljakutse 2: StatefulSets ja Persistent Storage
-
-
-### Mida õpid?
-- StatefulSets vs Deployments
-- Persistent Volumes (PV) ja Claims (PVC)
-- Headless Services
-- Init Containers
-
-### Ülesanne: MySQL Cluster
+**Minimaalne näide:**
 
 ```yaml
-# mysql-statefulset.yaml
+# HPA põhistruktuur
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: minu-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: minu-app              # Millise deployment'i skaleerib
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50  # Target CPU %
+```
+
+### 1.3 Harjutus: Autoscaling Test
+
+**SINU ÜLESANNE - ehita need failid:**
+
+**Nõuded:**
+- [ ] Luba Metrics Server (`minikube addons enable metrics-server`)
+- [ ] Loo `deployment.yaml`: kasuta image `registry.k8s.io/hpa-example`, port 80
+- [ ] Lisa deployment'i: `resources.requests.cpu: 200m` ja `limits.cpu: 500m`
+- [ ] Loo `service.yaml`: ClusterIP, port 80
+- [ ] Loo `hpa.yaml`: skaleerib 1-10 pod'i kui CPU > 50%
+- [ ] Rakenda kõik failid: `kubectl apply -f ...`
+- [ ] Genereeri load busybox'iga ja vaata kuidas pod'id skaleeruvad
+- [ ] Dokumenteeri: screenshot või log kus näha pod'ide arvu kasv
+
+**Näpunäiteid:**
+- Metrics Server vajab 30-60 sekundit enne kui metrics'id ilmuvad
+- Kontrolli metrics: `kubectl top nodes` ja `kubectl top pods`
+- HPA vaatamiseks: `kubectl get hpa --watch`
+- Load generator: `kubectl run load-generator --image=busybox --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://SINU-SERVICE:80; done"`
+- Scale-down võtab ~5 minutit (cooldown periood)
+
+**Testimine:**
+
+```bash
+# 1. Kontrolli et Metrics Server töötab
+kubectl top nodes
+
+# 2. Vaata HPA staatust
+kubectl get hpa
+
+# 3. Käivita load generator (uus terminal)
+kubectl run load-generator --image=busybox --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://SINU-SERVICE:80; done"
+
+# 4. Jälgi scaling'ut
+kubectl get hpa --watch
+kubectl get pods --watch
+
+# 5. Peata load
+kubectl delete pod load-generator
+
+# 6. Vaata scale-down
+kubectl get hpa --watch
+```
+
+**Boonus:**
+- Lisa memory-based scaling (targetAverageUtilization: 70)
+- Muuda scale-down kiiremaks: lisa `behavior.scaleDown.stabilizationWindowSeconds: 60`
+- Proovi erinevaid CPU target väärtusi (30%, 80%)
+
+---
+
+## 2. StatefulSets ja Persistent Storage
+
+### 2.1 Probleem
+
+Deployment'id on head stateless rakendustele, aga andmebaasid vajavad hoopis teistsugust lähenemist. Kui Deployment pod restart'ib, saab ta uue nime (`myapp-abc123` → `myapp-xyz789`), uue IP aadressi, ja pole garantiid et sama volume mount'itakse.
+
+Andmebaasi master peab alati olema `mysql-0`, mitte random nimi. Kui pod kukub, peab uus `mysql-0` kasutama täpselt sama PersistentVolume'd - data ei tohi kaduda. Samuti peab master käivituma enne replica'sid. Deployment ei garanteeri midagi sellest.
+
+### 2.2 Lahendus
+
+StatefulSet garanteerib stabiilse identiteedi. Iga pod saab indeksi (0, 1, 2) mis ei muutu kunagi. Pod'id luuakse järjekorras (0 → 1 → 2) ja kustutatakse vastupidises järjekorras (2 → 1 → 0).
+
+StatefulSet kasutab Headless Service'i (`clusterIP: None`), mis annab igale pod'ile DNS kirje: `mysql-0.mysql.default.svc.cluster.local`. VolumeClaimTemplate loob automaatselt PVC iga pod'i jaoks - kui `mysql-0` kustutatakse ja uuesti luuakse, mount'ib Kubernetes sama PVC nimega `data-mysql-0`.
+
+**Peamised erinevused Deployment'ist:**
+
+| Aspekt | Deployment | StatefulSet |
+|--------|-----------|-------------|
+| Pod nimi | random (myapp-abc123) | stabiilne (mysql-0) |
+| DNS | ei garanteeri | mysql-0.mysql.svc |
+| PVC | shared või ei ole | iga pod'il oma PVC |
+| Järjekord | parallel | sequential (0→1→2) |
+| Kasutus | Stateless apps | Andmebaasid, queue'id |
+
+**Loe veel:**
+- loeng.md - "## 5. Storage ja ConfigMaps" - PVC ja volume'id
+- labor.md - "## 4. PostgreSQL Andmebaas" - näide StatefulSet'ist
+- [Kubernetes StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
+- [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+
+**Minimaalne näide:**
+
+```yaml
+# Headless Service (clusterIP: None)
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql
-  labels:
-    app: mysql
 spec:
-  ports:
-  - port: 3306
-    name: mysql
-  clusterIP: None  # Headless service
+  clusterIP: None      # Headless!
   selector:
     app: mysql
+  ports:
+  - port: 3306
+
 ---
+# StatefulSet põhistruktuur
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql
 spec:
-  serviceName: mysql
-  replicas: 3
+  serviceName: mysql   # Headless service nimi
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -163,545 +169,319 @@ spec:
       labels:
         app: mysql
     spec:
-      initContainers:
-      - name: init-mysql
-        image: mysql:8.0
-        command:
-        - bash
-        - "-c"
-        - |
-          set -ex
-# Generate server-id from pod ordinal index
-          [[ $(hostname) =~ -([0-9]+)$ ]] || exit 1
-          ordinal=${BASH_REMATCH[1]}
-          echo [mysqld] > /mnt/conf.d/server-id.cnf
-          echo server-id=$((100 + $ordinal)) >> /mnt/conf.d/server-id.cnf
-        volumeMounts:
-        - name: conf
-          mountPath: /mnt/conf.d
       containers:
       - name: mysql
         image: mysql:8.0
         env:
         - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-secret
-              key: password
-        ports:
-        - containerPort: 3306
-          name: mysql
+          value: "password"
         volumeMounts:
         - name: data
           mountPath: /var/lib/mysql
-        - name: conf
-          mountPath: /etc/mysql/conf.d
-        livenessProbe:
-          exec:
-            command: ["mysqladmin", "ping"]
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          exec:
-            command: ["mysql", "-h", "127.0.0.1", "-e", "SELECT 1"]
-          initialDelaySeconds: 5
-          periodSeconds: 2
-      volumes:
-      - name: conf
-        emptyDir: {}
-  volumeClaimTemplates:
+  volumeClaimTemplates:    # Loob PVC iga pod'i jaoks
   - metadata:
       name: data
     spec:
       accessModes: ["ReadWriteOnce"]
       resources:
         requests:
-          storage: 10Gi
+          storage: 1Gi
 ```
 
-### Test StatefulSet:
+### 2.3 Harjutus: Data Persistence Test
+
+**SINU ÜLESANNE - ehita need failid:**
+
+**Nõuded:**
+- [ ] Loo `mysql-secret.yaml`: parool base64 formaadis (echo -n 'rootpass' | base64)
+- [ ] Loo `mysql-statefulset.yaml`: MySQL 8.0, kasuta secret'i parooliks
+- [ ] Lisa StatefulSet'i: volumeClaimTemplate 1Gi storage'iga
+- [ ] Lisa StatefulSet'i: liveness ja readiness probe'id
+- [ ] Loo Headless Service: `clusterIP: None`, port 3306
+- [ ] Rakenda kõik ja oota kuni pod valmis
+- [ ] Loo andmebaas ja tabel pod'i sees
+- [ ] Lisa andmeid tabelisse
+- [ ] Kustuta pod: `kubectl delete pod mysql-0`
+- [ ] Kontrolli et andmed on ALLES pärast pod'i restart'i
+
+**Näpunäiteid:**
+- Base64 encoding: `echo -n 'password' | base64`
+- MySQL probe näide: `exec.command: ["mysqladmin", "ping"]`
+- Ühenda pod'iga: `kubectl exec -it mysql-0 -- mysql -p`
+- Pod võtab 30-60 sek enne kui valmis (MySQL init)
+- PVC jääb alles isegi kui pod kustutatakse
+
+**Testimine:**
+
 ```bash
-# Deploy
+# 1. Rakenda kõik failid
+kubectl apply -f mysql-secret.yaml
 kubectl apply -f mysql-statefulset.yaml
 
-# Vaata pod'e
-kubectl get pods -l app=mysql --watch
+# 2. Oota valmis
+kubectl wait --for=condition=ready pod/mysql-0 --timeout=120s
 
-# Vaata PVCs
+# 3. Ühenda ja loo andmed
+kubectl exec -it mysql-0 -- mysql -p
+
+# MySQL shell'is:
+CREATE DATABASE testdb;
+USE testdb;
+CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(50));
+INSERT INTO users VALUES (1, 'Alice'), (2, 'Bob');
+SELECT * FROM users;
+exit;
+
+# 4. Kontrolli PVC'd
 kubectl get pvc
+# Peaksid nägema: data-mysql-0
 
-# Connect to pod
-kubectl exec -it mysql-0 -- mysql -u root -p
-
-# Test persistent storage
+# 5. Kustuta pod
 kubectl delete pod mysql-0
-kubectl get pod mysql-0  # Uus pod, sama data!
+
+# 6. Oota uus pod
+kubectl wait --for=condition=ready pod/mysql-0 --timeout=120s
+
+# 7. Kontrolli andmeid
+kubectl exec -it mysql-0 -- mysql -p -e "USE testdb; SELECT * FROM users;"
+
+# Alice ja Bob peavad olema alles!
 ```
 
-###  Boonus:
-- Loo automated backup system
-- Implementeeri MySQL replication
-- Lisa monitoring (Prometheus MySQL exporter)
-- Loo database migration job
+**Boonus:**
+- Loo 3-replica StatefulSet (mysql-0, mysql-1, mysql-2)
+- Lisa init container: genereeri unikaalne server-id iga pod'i jaoks
+- Implementeeri MySQL master-replica setup
+- Loo CronJob automated backup'ideks
 
 ---
 
-## Väljakutse 3: ConfigMaps, Secrets ja Security
+## 3. Helm Charts
 
+### 3.1 Probleem
 
-### Mida õpid?
-- ConfigMaps best practices
-- Secrets encryption at rest
-- RBAC (Role-Based Access Control)
-- Pod Security Standards
+Kui teil on 10 YAML faili (Deployment, Service, ConfigMap, Secret, Ingress, HPA, PVC...), siis nende haldamine muutub keeruliseks. Kuidas deployda sama rakendust development, staging ja production keskkonnas erinevate seadetega? Kas kopeerite kõik YAML failid ja muudate käsitsi?
 
-### Sammud:
+Kuidas hallata versioone? Kui deployment fail muutub, kuidas tagada et kõik seotud ressursid muutuvad samuti? Kuidas teha rollback kui midagi läheb valesti? Kui teil on 50 mikroteenust, siis 500 YAML faili käsitsi haldamine on võimatu.
 
-1. **Loo ConfigMap erinevatel viisidel:**
-   ```yaml
-# From literal
-   kubectl create configmap app-config \
-     --from-literal=APP_ENV=production \
-     --from-literal=LOG_LEVEL=info
-   
-# From file
-   kubectl create configmap nginx-config \
-     --from-file=nginx.conf
-   
-# From YAML
-   apiVersion: v1
-   kind: ConfigMap
-   metadata:
-     name: app-config
-   data:
-     app.properties: |
-       database.host=postgres
-       database.port=5432
-     config.json: |
-       {
-         "feature_flags": {
-           "new_ui": true
-         }
-       }
-   ```
+### 3.2 Lahendus
 
-2. **Kasuta ConfigMap deployment'is:**
-   ```yaml
-   apiVersion: apps/v1
-   kind: Deployment
-   metadata:
-     name: myapp
-   spec:
-     template:
-       spec:
-         containers:
-         - name: app
-           image: myapp
-# As environment variables
-           envFrom:
-           - configMapRef:
-               name: app-config
-# As volume
-           volumeMounts:
-           - name: config
-             mountPath: /etc/config
-         volumes:
-         - name: config
-           configMap:
-             name: app-config
-   ```
+Helm on "package manager" Kubernetes'i jaoks (nagu apt/yum Linux'is). Helm Chart on bundle YAML template'idest, mida saab konfigureerida ühe `values.yaml` failiga. Template'id kasutavad Go templating'ut - saate kasutada muutujaid, if/else, loops.
 
-3. **Loo ja kasuta Secrets:**
-   ```yaml
-# Loo Secret
-   kubectl create secret generic db-credentials \
-     --from-literal=username=admin \
-     --from-literal=password=super-secret
-   
-# Use in Deployment
-   apiVersion: apps/v1
-   kind: Deployment
-   metadata:
-     name: myapp
-   spec:
-     template:
-       spec:
-         containers:
-         - name: app
-           image: myapp
-           env:
-           - name: DB_USER
-             valueFrom:
-               secretKeyRef:
-                 name: db-credentials
-                 key: username
-           - name: DB_PASS
-             valueFrom:
-               secretKeyRef:
-                 name: db-credentials
-                 key: password
-   ```
+Üks chart, mitu environment'i: development kasutab `values-dev.yaml` (1 replica, väikesed resources), production kasutab `values-prod.yaml` (5 replicas, suured resources). Helm jälgib versioone - saate teha rollback ühe käsuga. Helm teeb ka dependency management'i - kui teie app vajab PostgreSQL'i, võite lisada PostgreSQL chart'i dependency'na.
 
-4. **Implementeeri RBAC:**
-   ```yaml
-# Service Account
-   apiVersion: v1
-   kind: ServiceAccount
-   metadata:
-     name: app-reader
-   ---
-# Role (namespace-specific)
-   apiVersion: rbac.authorization.k8s.io/v1
-   kind: Role
-   metadata:
-     name: pod-reader
-   rules:
-   - apiGroups: [""]
-     resources: ["pods"]
-     verbs: ["get", "watch", "list"]
-   ---
-# RoleBinding
-   apiVersion: rbac.authorization.k8s.io/v1
-   kind: RoleBinding
-   metadata:
-     name: read-pods
-   subjects:
-   - kind: ServiceAccount
-     name: app-reader
-   roleRef:
-     kind: Role
-     name: pod-reader
-     apiGroup: rbac.authorization.k8s.io
-   ```
+**Helm põhikontseptsioonid:**
+- **Chart**: Package YAML template'idest (nagu npm package)
+- **Release**: Chart'i installitud instance (nt. myapp-dev, myapp-prod)
+- **Values**: Konfiguratsioon (values.yaml, values-dev.yaml)
+- **Template**: YAML kus on muutujad (`{{ .Values.replicaCount }}`)
 
-###  Boonus:
-- Encrypt Secrets at rest (enable in cluster)
-- Kasuta External Secrets Operator (AWS Secrets Manager)
-- Implementeeri Pod Security Admission
-- Loo Network Policies
+**Chart struktuur:**
 
----
+```
+myapp/
+├── Chart.yaml              # Metadata (nimi, versioon)
+├── values.yaml             # Default väärtused
+├── templates/              # YAML template'id
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── _helpers.tpl        # Helper funktsioonid
+└── charts/                 # Dependencies
+```
 
-## Väljakutse 4: Helm Charts
+**Loe veel:**
+- loeng.md - YAML struktuurid (deployment, service)
+- labor.md - näed kuidas Deployment ja Service töötavad
+- [Helm dokumentatsioon](https://helm.sh/docs/)
+- [Helm Best Practices](https://helm.sh/docs/chart_best_practices/)
 
+**Template näide:**
 
-### Mida õpid?
-- Helm chart structure
-- Templating
-- Values files
-- Chart dependencies
-
-### Sammud:
-
-1. **Loo chart:**
-   ```bash
-   helm create myapp
-   cd myapp/
-   ```
-
-2. **Chart struktuuri:**
-   ```
-   myapp/
-   ├── Chart.yaml          # Chart metadata
-   ├── values.yaml         # Default values
-   ├── templates/
-   │   ├── deployment.yaml
-   │   ├── service.yaml
-   │   ├── ingress.yaml
-   │   ├── _helpers.tpl    # Template helpers
-   │   └── NOTES.txt       # Post-install notes
-   └── charts/             # Dependencies
-   ```
-
-3. **values.yaml:**
-   ```yaml
-   replicaCount: 2
-   
-   image:
-     repository: myapp
-     tag: "1.0.0"
-     pullPolicy: IfNotPresent
-   
-   service:
-     type: ClusterIP
-     port: 80
-   
-   resources:
-     limits:
-       cpu: 500m
-       memory: 512Mi
-     requests:
-       cpu: 250m
-       memory: 256Mi
-   
-   autoscaling:
-     enabled: true
-     minReplicas: 2
-     maxReplicas: 10
-     targetCPUUtilizationPercentage: 80
-   ```
-
-4. **Template with values:**
-   ```yaml
+```yaml
 # templates/deployment.yaml
-   apiVersion: apps/v1
-   kind: Deployment
-   metadata:
-     name: {{ include "myapp.fullname" . }}
-   spec:
-     replicas: {{ .Values.replicaCount }}
-     selector:
-       matchLabels:
-         {{- include "myapp.selectorLabels" . | nindent 8 }}
-     template:
-       metadata:
-         labels:
-           {{- include "myapp.selectorLabels" . | nindent 10 }}
-       spec:
-         containers:
-         - name: {{ .Chart.Name }}
-           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-           ports:
-           - containerPort: 80
-           resources:
-             {{- toYaml .Values.resources | nindent 12 }}
-   ```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-app    # Muutuja Chart.yaml'ist
+spec:
+  replicas: {{ .Values.replicaCount }}    # Muutuja values.yaml'ist
+  template:
+    spec:
+      containers:
+      - name: app
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}    # Kopeeri terve YAML block
+```
 
-5. **Install ja upgrade:**
-   ```bash
+```yaml
+# values.yaml
+replicaCount: 2
+image:
+  repository: nginx
+  tag: "alpine"
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+```
+
+**Helm käsud:**
+
+```bash
+# Loo chart
+helm create myapp
+
 # Install
-   helm install myapp ./myapp
-   
+helm install myrelease ./myapp
+
+# Install teise values failiga
+helm install myrelease ./myapp -f values-prod.yaml
+
 # Upgrade
-   helm upgrade myapp ./myapp --set replicaCount=5
-   
-# Override with file
-   helm upgrade myapp ./myapp -f values-prod.yaml
-   
+helm upgrade myrelease ./myapp --set replicaCount=5
+
 # Rollback
-   helm rollback myapp 1
-   ```
+helm rollback myrelease 1
 
-###  Boonus:
-- Loo multi-environment values (values-dev.yaml, values-prod.yaml)
-- Lisa chart dependencies (PostgreSQL, Redis)
-- Publish chart to Helm repository
-- Loo automated chart testing (helm test)
+# Uninstall
+helm uninstall myrelease
+```
 
----
+### 3.3 Harjutus: Multi-Environment Deployment
 
-## Väljakutse 5: Service Mesh (Istio)
+**SINU ÜLESANNE:**
 
+**Nõuded:**
+- [ ] Loo Helm chart: `helm create myshop`
+- [ ] Muuda `Chart.yaml`: pane oma nimi, versioon 1.0.0, description
+- [ ] Muuda `values.yaml`: nginx image, 2 replicas, ClusterIP service
+- [ ] Vaata `templates/deployment.yaml` - kuidas see kasutab values'eid
+- [ ] Loo `values-dev.yaml`: 1 replica, cpu: 100m, memory: 128Mi
+- [ ] Loo `values-prod.yaml`: 3 replicas, cpu: 500m, memory: 512Mi
+- [ ] Install DEV: `helm install myshop-dev ./myshop -f values-dev.yaml`
+- [ ] Install PROD: `helm install myshop-prod ./myshop -f values-prod.yaml`
+- [ ] Kontrolli et DEV'il on 1 pod, PROD'il 3 pod'i
+- [ ] Tee upgrade: muuda `values.yaml` image tag → "latest"
+- [ ] Upgrade DEV: `helm upgrade myshop-dev ./myshop -f values-dev.yaml`
+- [ ] Vaata ajalugu: `helm history myshop-dev`
+- [ ] Rollback: `helm rollback myshop-dev 1`
 
-### Mida õpid?
-- Service mesh concepts
-- Traffic management
-- Observability
-- Security (mTLS)
+**Näpunäiteid:**
+- `helm create` genereerib valmis template'id - ära kirjuta üle, kasuta neid!
+- Dry-run testimiseks: `helm install --dry-run --debug myshop ./myshop`
+- Template rendering vaatamiseks: `helm template myshop ./myshop`
+- Kui muudad template faile, pead tegema `helm upgrade`
+- `helm list` näitab kõiki release'e
+- `helm uninstall` kustutab kõik ressursid (Deployment, Service, jne)
 
-### Sammud:
+**Testimine:**
 
-1. **Installi Istio:**
-   ```bash
-# Download Istio
-   curl -L https://istio.io/downloadIstio | sh -
-   cd istio-*
-   export PATH=$PWD/bin:$PATH
-   
-# Install
-   istioctl install --set profile=demo -y
-   
-# Enable sidecar injection
-   kubectl label namespace default istio-injection=enabled
-   ```
+```bash
+# 1. Loo chart
+helm create myshop
+cd myshop/
 
-2. **Deploy app with Istio:**
-   ```yaml
-# Istio automaatselt inject'ib sidecar proxy
-   apiVersion: apps/v1
-   kind: Deployment
-   metadata:
-     name: myapp
-   spec:
-     template:
-       spec:
-         containers:
-         - name: app
-           image: myapp
-   ---
-# Virtual Service for traffic routing
-   apiVersion: networking.istio.io/v1beta1
-   kind: VirtualService
-   metadata:
-     name: myapp
-   spec:
-     hosts:
-     - myapp
-     http:
-     - match:
-       - headers:
-           user-agent:
-             regex: ".*Chrome.*"
-       route:
-       - destination:
-           host: myapp
-           subset: v2
-     - route:
-       - destination:
-           host: myapp
-           subset: v1
-   ```
+# 2. Kontrolli Chart.yaml
+cat Chart.yaml
 
-3. **Canary deployment:**
-   ```yaml
-   apiVersion: networking.istio.io/v1beta1
-   kind: VirtualService
-   metadata:
-     name: myapp-canary
-   spec:
-     hosts:
-     - myapp
-     http:
-     - match:
-       - headers:
-           canary:
-             exact: "true"
-       route:
-       - destination:
-           host: myapp
-           subset: v2
-     - route:
-       - destination:
-           host: myapp
-           subset: v1
-         weight: 90
-       - destination:
-           host: myapp
-           subset: v2
-         weight: 10  # 10% traffic to v2
-   ```
+# 3. Muuda values.yaml (näide)
+cat > values.yaml << 'EOF'
+replicaCount: 2
+image:
+  repository: nginx
+  tag: "alpine"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 80
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+EOF
 
-###  Boonus:
-- Loo circuit breaker
-- Implementeeri retry policies
-- Lisa distributed tracing (Jaeger)
-- Loo traffic mirroring (shadow deployment)
+# 4. Loo values-dev.yaml
+cat > values-dev.yaml << 'EOF'
+replicaCount: 1
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+EOF
 
----
+# 5. Loo values-prod.yaml
+cat > values-prod.yaml << 'EOF'
+replicaCount: 3
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+EOF
 
-## Väljakutse 6: CI/CD GitOps (ArgoCD)
+# 6. Test dry-run
+helm install --dry-run --debug myshop-dev . -f values-dev.yaml
 
+# 7. Install DEV
+helm install myshop-dev . -f values-dev.yaml
 
-### Mida õpid?
-- GitOps principles
-- ArgoCD
-- Declarative deployments
-- Automated sync
+# 8. Install PROD
+helm install myshop-prod . -f values-prod.yaml
 
-### Sammud:
+# 9. Kontrolli
+kubectl get pods -l app.kubernetes.io/instance=myshop-dev
+kubectl get pods -l app.kubernetes.io/instance=myshop-prod
+helm list
 
-1. **Installi ArgoCD:**
-   ```bash
-   kubectl create namespace argocd
-   kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-   
-# Get admin password
-   kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
-   
-# Port forward
-   kubectl port-forward svc/argocd-server -n argocd 8080:443
-   ```
+# 10. Upgrade DEV
+helm upgrade myshop-dev . -f values-dev.yaml --set image.tag=latest
 
-2. **Loo Git repo struktuur:**
-   ```
-   myapp-k8s/
-   ├── base/
-   │   ├── deployment.yaml
-   │   ├── service.yaml
-   │   └── kustomization.yaml
-   ├── overlays/
-   │   ├── dev/
-   │   │   └── kustomization.yaml
-   │   └── prod/
-   │       └── kustomization.yaml
-   └── argocd/
-       └── application.yaml
-   ```
+# 11. Vaata ajalugu
+helm history myshop-dev
 
-3. **ArgoCD Application:**
-   ```yaml
-# argocd/application.yaml
-   apiVersion: argoproj.io/v1alpha1
-   kind: Application
-   metadata:
-     name: myapp
-     namespace: argocd
-   spec:
-     project: default
-     source:
-       repoURL: https://github.com/yourusername/myapp-k8s
-       targetRevision: HEAD
-       path: overlays/prod
-     destination:
-       server: https://kubernetes.default.svc
-       namespace: myapp
-     syncPolicy:
-       automated:
-         prune: true
-         selfHeal: true
-   ```
+# 12. Rollback
+helm rollback myshop-dev 1
 
-4. **Deploy via Git:**
-   ```bash
-# Commit changes to Git
-   git add .
-   git commit -m "Update deployment"
-   git push
-   
-# ArgoCD automaatselt sync'ib!
-# Vaata ArgoCD UI's:
-   open http://localhost:8080
-   ```
+# 13. Cleanup
+helm uninstall myshop-dev
+helm uninstall myshop-prod
+```
 
-###  Boonus:
-- Loo multi-cluster setup
-- Implementeeri progressive delivery (Argo Rollouts)
-- Lisa automated testing (Argo Events)
-- Loo notification system (Slack/Discord)
+**Boonus:**
+- Lisa conditional Ingress: `{{- if .Values.ingress.enabled }}`
+- Loo `values-staging.yaml` kolmanda environment'i jaoks
+- Lisa HorizontalPodAutoscaler template
+- Implementeeri chart dependency: lisa PostgreSQL chart
 
 ---
 
-## Täiendavad ressursid
+## Kasulikud Ressursid
 
-### Dokumentatsioon:
-- [Kubernetes Docs](https://kubernetes.io/docs/home/)
-- [Helm Docs](https://helm.sh/docs/)
-- [Istio Docs](https://istio.io/latest/docs/)
-- [ArgoCD Docs](https://argo-cd.readthedocs.io/)
+**Dokumentatsioon:**
+- [Kubernetes HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
+- [StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
+- [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+- [Helm Documentation](https://helm.sh/docs/)
+- [Helm Chart Best Practices](https://helm.sh/docs/chart_best_practices/)
 
-### Tööriistad:
-- **k9s:** Terminal UI for Kubernetes
-- **kubectx/kubens:** Context and namespace switching
-- **stern:** Multi-pod log tailing
-- **kube-ps1:** Kubernetes prompt info
-- **popeye:** Cluster sanity checker
+**Tööriistad:**
+- **k9s** - Terminal UI Kubernetes'ile: `brew install k9s` või `snap install k9s`
+- **kubectx/kubens** - Kiire context/namespace switching: `brew install kubectx`
+- **stern** - Multi-pod log tailing: `brew install stern`
+- **Lens** - Desktop GUI Kubernetes'ile: https://k8slens.dev/
 
-### Õppimisressursid:
-- [Kubernetes By Example](https://kubernetesbyexample.com/)
-- [Play with Kubernetes](https://labs.play-with-k8s.com/)
-- [KillerCoda K8s Playground](https://killercoda.com/playgrounds/scenario/kubernetes)
+**Näited:**
+- [Kubernetes Examples](https://github.com/kubernetes/examples)
+- [Helm Charts Repository](https://github.com/helm/charts)
+- [Artifact Hub](https://artifacthub.io/) - Helm charts'i otsing
 
----
-
-## Näpunäited
-
-1. **Start small:** Alusta lihtsamatest väljakutsetest ja liikudes keerulisemate poole.
-2. **Use namespaces:** Hoia oma eksperimendid eraldi namespace'ides.
-3. **Clean up:** `kubectl delete namespace <name>` kustutab kõik ressursid.
-4. **Learn kubectl:** Õpi lühendeid ja trikke - `kubectl get po`, `kubectl describe`, `kubectl logs -f`.
-5. **Read errors carefully:** Kubernetes error messages on tavaliselt informatiivsed.
-
----
-
-**Edu ja head orkestreerimist!** 
-
+Need harjutused on mõeldud süvendama teie Kubernetes oskusi. Alustage esimesest ja liikuge järk-järgult keerulisemate poole.

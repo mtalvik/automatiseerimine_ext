@@ -1,372 +1,793 @@
-# Ansible vs Puppet Kodutöö: Võrdlev Analüüs
+# Ansible vs Puppet Kodutöö: Võrdlev Infrastruktuuri Automatiseerimine
 
-**Tähtaeg:** Järgmise nädala alguseks  
+Ehitate sama veebiserveri infrastruktuuri kahel erineval viisil - Ansible'i (push-based) ja Puppet'iga (pull-based). Võtab umbes 4-6 tundi, sõltuvalt kogemusest ja kui põhjalikku võrdlust teostate. Projekt simuleerib reaalset olukorda, kus peate valima automatiseerimistehnoloogia ettevõtte jaoks ja põhjendama valikut.
 
----
-
-## Ülesande kirjeldus
-
-Ehitage sama infrastruktuur nii Ansible kui ka Puppet'iga, et mõista erinevusi ja sarnasusi automatiseerimise tööriistades.
+**Eeldused:** Ansible rollide labor läbitud, Vagrant kogemus, Git kasutamine  
+**Esitamine:** GitHub avalik repositoorium, sisaldab nii Ansible kui Puppet lahendust, README.md ja COMPARISON.md  
+**Tähtaeg:** Järgmise nädala algus
 
 ---
 
-##  Ülevaade
+Ettevõtted seisavad tihti automatiseerimistehnoloogia valiku ees. Ansible on populaarne oma lihtsuse tõttu. Puppet on tugev suurte infrastruktuuride haldamisel. Mõlemad suudavad sama tulemust, aga erinevate meetoditega. See projekt õpetab teil mõista nende erinevusi praktikas, mitte ainult teooriast.
 
-**Ehitate:**
-- Nginx + SSL + virtual hosts
-- PostgreSQL + algne skeem  
-- Monitoring + logid
+## 1. Projekti Ülevaade
 
-**Õpite:**
-- Push-based (Ansible) vs pull-based (Puppet) erinevused
-- Agentless vs agent-based arhitektuurid
-- Deployment strateegiate praktilised aspektid
+Loote täieliku veebiserveri seadistuse, mis sisaldab:
+- Nginx veebiserver koos SSL sertifikaatidega
+- Kaks virtual host'i (test.local ja demo.local)
+- PostgreSQL andmebaas koos esialse schema'ga
+- Põhiline monitoring (health check script)
+- Logide rotatsioon
 
----
+Kõik see tehakse kahel viisil - esmalt Ansible'iga, seejärel Puppet'iga. Lõpptulemus peab mõlemal juhul olema identne, aga implementatsioon erineb.
 
-## Setup
+## 2. Keskkonna Seadistamine
+
+Kasutate Vagrant'i kahte isoleeritud VM'i jaoks. Üks Ansible'i jaoks, teine Puppet'i jaoks. See võimaldab õiglast võrdlust - mõlemad algavad puhtalt lehelt.
+
+### Git repositooriumi loomine
 
 ```bash
-# Klooni starter repo
-git clone [teacher-repo]/ansible-puppet-comparison.git
+mkdir ansible-puppet-comparison
 cd ansible-puppet-comparison
-git checkout -b homework-[nimi]
-
-# Repository struktuur
-ls -la
-# ansible/ - poolik Ansible kood (puudub SSL ja virtual hosts)
-# puppet/ - poolik Puppet kood (puudub SSL ja monitoring)
-# vagrant/ - test VM-id (isoleeritud keskkonnad)
+git init
 ```
 
-**Starter kood:** Repository sisaldab põhifunktsionaalsust, kuid SSL, virtual hosts ja monitoring vajate ise lisada. See võimaldab keskenduda praktilisele võrdlusele.
+Looge README.md esmase struktuuriga:
 
+```markdown
+# Ansible vs Puppet: Practical Comparison
+
+Comparative infrastructure automation project implementing identical web server setup using both Ansible and Puppet.
+
+## Project Goal
+
+Understand practical differences between push-based (Ansible) and pull-based (Puppet) automation approaches.
+
+## Infrastructure Components
+
+- Nginx with SSL
+- Virtual hosts (test.local, demo.local)
+- PostgreSQL database
+- Health monitoring
+- Log rotation
+
+## Repository Structure
+
+```
+ansible/          - Ansible implementation
+puppet/           - Puppet implementation
+vagrant/          - VM configurations
+COMPARISON.md     - Detailed comparison
+```
+
+## Setup Instructions
+
+[Täidetakse hiljem]
+```
+
+### Vagrantfile loomine
+
+```ruby
+# vagrant/Vagrantfile
+Vagrant.configure("2") do |config|
+  
+  # Ansible VM
+  config.vm.define "ansible" do |ansible|
+    ansible.vm.box = "ubuntu/focal64"
+    ansible.vm.hostname = "ansible-test"
+    ansible.vm.network "private_network", ip: "192.168.56.10"
+    ansible.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+  end
+  
+  # Puppet VM
+  config.vm.define "puppet" do |puppet|
+    puppet.vm.box = "ubuntu/focal64"
+    puppet.vm.hostname = "puppet-test"
+    puppet.vm.network "private_network", ip: "192.168.56.11"
+    puppet.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+  end
+end
+```
+
+Commit esmane struktuur:
+
+```bash
+git add .
+git commit -m "Initial project structure"
+```
+
+## 3. Ansible Implementatsioon
+
+Ansible osa kasutab rolle, mida laboris õppisite. Loote kolm rolli: nginx, postgresql, monitoring. Iga roll on modulaarne ja taaskasutatav.
+
+### Ansible projekti struktuur
+
+```bash
+mkdir -p ansible/{roles,group_vars,inventory}
+cd ansible
+```
+
+### Inventory ja variables
+
+```ini
+# inventory/hosts
+[webservers]
+ansible-test ansible_host=192.168.56.10 ansible_user=vagrant
+```
+
+```yaml
+# group_vars/webservers.yml
 ---
+# Nginx configuration
+nginx_ssl_enabled: true
+nginx_vhosts:
+  - name: test.local
+    root: /var/www/test
+    ssl: true
+  - name: demo.local
+    root: /var/www/demo
+    ssl: true
 
-## Ansible osa
+# PostgreSQL configuration
+postgresql_version: "12"
+postgresql_databases:
+  - name: webapp
+postgresql_users:
+  - name: webuser
+    password: "changeme123"
+    db: webapp
 
-### VM käivitamine
-```bash
-cd vagrant/
-vagrant up ansible-vm
-vagrant ssh ansible-vm
+# Monitoring
+monitoring_enabled: true
+health_check_interval: "*/5"
 ```
 
-**Vagrant kasutamine:** Isoleeritud testikeskkond, mis ei mõjuta teie põhisüsteemi. Saate eksperimenteerida turvaliselt.
+### Nginx role loomine
 
-### Lisa puuduvad osad
 ```bash
-cd ../ansible/
-cat requirements.md  # täpne nimekiri, mis lisada
+cd roles
+ansible-galaxy init nginx
 ```
 
-**SSL lisamine:**
+Nginx tasks (lühendatud näide):
+
+```yaml
+# roles/nginx/tasks/main.yml
+---
+- name: "Install Nginx"
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: "Setup SSL certificates"
+  include_tasks: ssl.yml
+  when: nginx_ssl_enabled
+
+- name: "Configure virtual hosts"
+  include_tasks: vhosts.yml
+
+- name: "Ensure nginx is running"
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+```
+
 ```yaml
 # roles/nginx/tasks/ssl.yml
-- name: Create SSL directory
-  file:
-    path: /etc/nginx/ssl
-    state: directory
-    mode: '0755'
-
-- name: Generate self-signed SSL certificate  
-  command: openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt -subj "/C=EE/CN=localhost"
-  args:
-    creates: /etc/nginx/ssl/nginx.crt
-```
-
-**Ise-allkirjastatud sertifikaadid:** Testimiseks piisav, produktsioonis kasutaksite CA-st saadud sertifikaate.
-
-**Virtual hosts konfiguratsioon:**
-```yaml
-- name: Create virtual host directories
-  file:
-    path: /var/www/{{ item }}
-    state: directory
-    owner: www-data
-    mode: '0755'
-  loop: [site1, site2]
-
-- name: Create site content
-  copy:
-    content: "<h1>{{ item }}</h1><p>Virtual host content</p>"
-    dest: /var/www/{{ item }}/index.html
-  loop: [site1, site2]
-```
-
-**Virtual hosts:** Võimaldab ühel serveril mitut erinevat veebisaiti. Ressursi säästlik ja praktikas levinud lahendus.
-
-### Test ja commit
-```bash
-ansible-playbook site.yml --ask-become-pass
-curl -k https://localhost  # SSL testimine
-curl -k https://localhost/site1  # Virtual host testimine
-git add . && git commit -m "Ansible SSL + vhosts töötab"
-```
-
-**Testimine:** Kontrollige nii SSL funktsionaalsust kui ka virtual hosts'e. `-k` flag ignoreerib ise-allkirjastatud sertifikaadi hoiatusi.
-
 ---
+- name: "Create SSL directories"
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /etc/ssl/certs
+    - /etc/ssl/private
 
-## Puppet osa
-
-### VM vahetamine
-```bash
-vagrant destroy ansible-vm
-vagrant up puppet-vm  
-vagrant ssh puppet-vm
+- name: "Generate self-signed certificate"
+  command: >
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048
+    -keyout /etc/ssl/private/nginx.key
+    -out /etc/ssl/certs/nginx.crt
+    -subj "/C=EE/O=ITS24/CN={{ ansible_fqdn }}"
+  args:
+    creates: /etc/ssl/certs/nginx.crt
 ```
 
-**Eraldi VM:** Puhas keskkond Puppet'i jaoks. Võimaldab objektiivselt võrrelda mõlemat lähenemist.
+### PostgreSQL role
 
-### Lisa samad funktsioonid Puppet'iga
-```bash
-cd ../puppet/
-cat requirements.md  # sama funktsionaalsus, erinev süntaks
+```yaml
+# roles/postgresql/tasks/main.yml
+---
+- name: "Install PostgreSQL"
+  apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+      - python3-psycopg2
+    state: present
+
+- name: "Ensure PostgreSQL is running"
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: "Create databases"
+  postgresql_db:
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ postgresql_databases }}"
+  become_user: postgres
+
+- name: "Create users"
+  postgresql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    db: "{{ item.db }}"
+    priv: ALL
+  loop: "{{ postgresql_users }}"
+  become_user: postgres
 ```
 
-**SSL Puppet'is:**
+### Monitoring role
+
+```yaml
+# roles/monitoring/tasks/main.yml
+---
+- name: "Deploy health check script"
+  template:
+    src: health-check.sh.j2
+    dest: /usr/local/bin/health-check.sh
+    mode: '0755'
+
+- name: "Setup cron for health checks"
+  cron:
+    name: "nginx health check"
+    minute: "{{ health_check_interval }}"
+    job: "/usr/local/bin/health-check.sh >> /var/log/health-check.log 2>&1"
+```
+
+```bash
+# roles/monitoring/templates/health-check.sh.j2
+#!/bin/bash
+# Health check script managed by Ansible
+
+DATE=$(date '+%Y-%m-%d %H:%M:%S')
+
+# Check Nginx
+if systemctl is-active --quiet nginx; then
+    echo "$DATE - Nginx: OK"
+else
+    echo "$DATE - Nginx: FAILED"
+fi
+
+# Check PostgreSQL
+if systemctl is-active --quiet postgresql; then
+    echo "$DATE - PostgreSQL: OK"
+else
+    echo "$DATE - PostgreSQL: FAILED"
+fi
+```
+
+### Main playbook
+
+```yaml
+# site.yml
+---
+- name: "Deploy web infrastructure"
+  hosts: webservers
+  become: yes
+  
+  roles:
+    - nginx
+    - postgresql
+    - monitoring
+```
+
+### Testimine ja deploy
+
+```bash
+cd vagrant && vagrant up ansible
+cd ../ansible
+ansible-playbook -i inventory/hosts site.yml
+```
+
+Validation:
+
+```bash
+ansible webservers -i inventory/hosts -m command -a "systemctl status nginx"
+ansible webservers -i inventory/hosts -m command -a "systemctl status postgresql"
+curl -k https://192.168.56.10
+```
+
+Commit:
+
+```bash
+git add ansible/
+git commit -m "Complete Ansible implementation with nginx, postgresql, monitoring"
+```
+
+## 4. Puppet Implementatsioon
+
+Puppet kasutab erinevat struktuuri ja süntaksi. Agent töötab serveris ja küsib perioodiliselt konfiguratsiooni. Selles projektis kasutate masterless setup'i - agent apply rakendab manifeste lokaalal.
+
+### Puppet projekti struktuur
+
+```bash
+mkdir -p puppet/{manifests,modules}
+cd puppet
+```
+
+### Puppet modules loomine
+
+```bash
+cd modules
+puppet module generate its24-nginx
+puppet module generate its24-postgresql
+puppet module generate its24-monitoring
+```
+
+### Nginx module
+
+```puppet
+# modules/nginx/manifests/init.pp
+class nginx (
+  Boolean $ssl_enabled = true,
+  Array[Hash] $vhosts = [],
+) {
+  
+  package { 'nginx':
+    ensure => installed,
+  }
+  
+  if $ssl_enabled {
+    include nginx::ssl
+  }
+  
+  file { '/etc/nginx/sites-enabled/default':
+    ensure => absent,
+    notify => Service['nginx'],
+  }
+  
+  $vhosts.each |Hash $vhost| {
+    nginx::vhost { $vhost['name']:
+      root => $vhost['root'],
+      ssl  => $vhost['ssl'],
+    }
+  }
+  
+  service { 'nginx':
+    ensure     => running,
+    enable     => true,
+    hasrestart => true,
+    require    => Package['nginx'],
+  }
+}
+```
+
 ```puppet
 # modules/nginx/manifests/ssl.pp
 class nginx::ssl {
-  file { '/etc/nginx/ssl':
-    ensure => 'directory',
+  
+  file { '/etc/ssl/certs':
+    ensure => directory,
+  }
+  
+  file { '/etc/ssl/private':
+    ensure => directory,
     mode   => '0755',
   }
   
   exec { 'generate-ssl-cert':
-    command => 'openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt -subj "/C=EE/CN=localhost"',
-    creates => '/etc/nginx/ssl/nginx.crt',
-    path    => '/usr/bin',
-    require => File['/etc/nginx/ssl'],
-  }
-}
-```
-
-**Puppet süntaks:** Ruby-põhine, deklaratiivne. `require` määrab sõltuvuste järjekorra.
-
-**Monitoring lisamine:**
-```puppet
-# modules/monitoring/manifests/health.pp
-class monitoring::health {
-  file { '/usr/local/bin/health-check.sh':
-    content => template('monitoring/health-check.sh.erb'),
-    mode    => '0755',
+    command => 'openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx.key -out /etc/ssl/certs/nginx.crt -subj "/C=EE/O=ITS24/CN=$(hostname -f)"',
+    creates => '/etc/ssl/certs/nginx.crt',
+    path    => ['/usr/bin', '/bin'],
+    require => File['/etc/ssl/private'],
   }
   
-  cron { 'nginx-health-check':
-    command => '/usr/local/bin/health-check.sh >> /var/log/health.log',
-    minute  => '*/5',
+  file { '/etc/ssl/private/nginx.key':
+    ensure  => file,
+    mode    => '0600',
+    require => Exec['generate-ssl-cert'],
   }
 }
 ```
 
-**Monitoring:** Automaatne teenuste tervise kontroll. Cron käivitab skripti iga 5 minuti tagant.
+```puppet
+# modules/nginx/manifests/vhost.pp
+define nginx::vhost (
+  String $root,
+  Boolean $ssl = true,
+) {
+  
+  file { $root:
+    ensure => directory,
+    owner  => 'www-data',
+    mode   => '0755',
+  }
+  
+  file { "${root}/index.html":
+    ensure  => file,
+    content => "<h1>${name}</h1><p>Managed by Puppet</p>",
+    owner   => 'www-data',
+  }
+  
+  file { "/etc/nginx/sites-available/${name}.conf":
+    ensure  => file,
+    content => epp('nginx/vhost.conf.epp', {
+      'name' => $name,
+      'root' => $root,
+      'ssl'  => $ssl,
+    }),
+    notify  => Service['nginx'],
+  }
+  
+  file { "/etc/nginx/sites-enabled/${name}.conf":
+    ensure => link,
+    target => "/etc/nginx/sites-available/${name}.conf",
+    notify => Service['nginx'],
+  }
+}
+```
 
-### Test ja commit
+### PostgreSQL module
+
+```puppet
+# modules/postgresql/manifests/init.pp
+class postgresql (
+  String $version = '12',
+  Array[Hash] $databases = [],
+  Array[Hash] $users = [],
+) {
+  
+  package { ['postgresql', 'postgresql-contrib']:
+    ensure => installed,
+  }
+  
+  service { 'postgresql':
+    ensure  => running,
+    enable  => true,
+    require => Package['postgresql'],
+  }
+  
+  $databases.each |Hash $db| {
+    postgresql::database { $db['name']:
+      require => Service['postgresql'],
+    }
+  }
+  
+  $users.each |Hash $user| {
+    postgresql::user { $user['name']:
+      password => $user['password'],
+      database => $user['db'],
+      require  => Postgresql::Database[$user['db']],
+    }
+  }
+}
+```
+
+### Monitoring module
+
+```puppet
+# modules/monitoring/manifests/init.pp
+class monitoring (
+  String $interval = '*/5',
+) {
+  
+  file { '/usr/local/bin/health-check.sh':
+    ensure  => file,
+    mode    => '0755',
+    content => epp('monitoring/health-check.sh.epp'),
+  }
+  
+  cron { 'health-check':
+    command => '/usr/local/bin/health-check.sh >> /var/log/health-check.log 2>&1',
+    minute  => $interval,
+    require => File['/usr/local/bin/health-check.sh'],
+  }
+}
+```
+
+### Site manifest
+
+```puppet
+# manifests/site.pp
+node 'puppet-test' {
+  
+  class { 'nginx':
+    ssl_enabled => true,
+    vhosts      => [
+      {
+        'name' => 'test.local',
+        'root' => '/var/www/test',
+        'ssl'  => true,
+      },
+      {
+        'name' => 'demo.local',
+        'root' => '/var/www/demo',
+        'ssl'  => true,
+      },
+    ],
+  }
+  
+  class { 'postgresql':
+    version   => '12',
+    databases => [
+      { 'name' => 'webapp' },
+    ],
+    users     => [
+      {
+        'name'     => 'webuser',
+        'password' => 'changeme123',
+        'db'       => 'webapp',
+      },
+    ],
+  }
+  
+  class { 'monitoring':
+    interval => '*/5',
+  }
+}
+```
+
+### Puppet apply
+
 ```bash
-sudo puppet apply --modulepath=modules manifests/site.pp
-curl -k https://localhost  # sama tulemus kui Ansible'iga
-sudo /usr/local/bin/health-check.sh  # monitoring test
-git add . && git commit -m "Puppet sama tulemus"
+cd vagrant && vagrant up puppet
+vagrant ssh puppet
+
+# Puppet VM'is
+sudo puppet module install puppetlabs-postgresql --version 6.0.0
+sudo puppet apply --modulepath=/vagrant/puppet/modules /vagrant/puppet/manifests/site.pp
 ```
 
-**Puppet agent:** Pull-based arhitektuur. Agent küsib konfiguratsiooni serverilt ja rakendab muudatused.
+Validation:
 
----
-
-## Võrdlus
-
-### Praktilised erinevused
-
-**Ansible (Push-based):**
-- YAML süntaks - inimesele loetav
-- SSH ühendus vajalik - agentless
-- Kiire seadistamine väikestele projektidele
-- Suurepärane ad-hoc taskide jaoks
-
-**Puppet (Pull-based):**  
-- Ruby süntaks - rohkem programmeerimislik
-- Agent töötab serveris - autonoomne
-- Keerukamate infrastruktuuride jaoks
-- Tugev state management
-
-### Deployment mudelid
-
-**Ansible execution flow:**
-```
-Control node → SSH → Target servers → Execute tasks → Report back
+```bash
+systemctl status nginx postgresql
+curl -k https://localhost
+cat /var/log/health-check.log
 ```
 
-**Puppet execution flow:**
-```
-Puppet master ← Agent checks in ← Target servers ← Apply catalog ← Report status
+Commit:
+
+```bash
+git add puppet/
+git commit -m "Complete Puppet implementation with nginx, postgresql, monitoring"
 ```
 
-### README.md näide
+## 5. Võrdlev Analüüs
+
+Looge COMPARISON.md fail, mis dokumenteerib põhjaliku võrdluse. See on projekti kõige olulisem osa - näitab et mõistate mitte ainult kuidas, vaid miks.
+
 ```markdown
-# Ansible vs Puppet Praktika
+# Ansible vs Puppet: Detailed Comparison
 
-## Ehitatud funktsionaalsus
-- SSL sertifikaadid ja HTTPS konfiguratsioon
-- Virtual hosts mitme saidi jaoks
-- Automaatne monitoring ja health checks
-- Mõlemaga identne lõpptulemus
+## Architecture Comparison
 
-## Praktilised tähelepanekud
+### Ansible (Push-based)
+- Control node SSH'ib target'itele
+- Agentless - ainult Python vajalik target'il
+- Sequential execution (default)
+- Immediate changes
 
-### Ansible kogemus
-- Süntaks oli intuitiivne ja kiiresti omandatav
-- Debug oli lihtne verbose flag'idega
-- SSH seadistamine võttis aega alguses
+### Puppet (Pull-based)
+- Agent küsib config'i serverilt (meie projektis masterless)
+- Agent daemon töötab target'is
+- Catalog compilation on server side
+- Periodic convergence
 
-### Puppet kogemus
-- Ruby süntaks nõudis rohkem harjutamist
-- Resource dependencies olid võimsad
-- Agent-based lähenemine tundus robuutsem
+## Syntax Comparison
 
-## Eelistus
-[Vali ja põhjenda 2-3 lausega konkreetse kasutusstsenaariumi põhjal]
-
-## Omandatud oskused
-- SSL konfiguratsioon mõlemas tööriistas
-- Virtual hosting seadistamine
-- Monitoring implementeerimine
-- Debug ja troubleshooting tehnikad
+### Ansible (YAML + Jinja2)
+```yaml
+- name: "Install nginx"
+  apt:
+    name: nginx
+    state: present
 ```
 
----
+Plussid:
+- YAML on intuitiivne
+- Jinja2 on võimas templating
+- Procedural ja declarative mix
+
+Miinused:
+- YAML indentation errors
+- Loops ja conditionals võivad olla verbose
+
+### Puppet (DSL - Domain Specific Language)
+```puppet
+package { 'nginx':
+  ensure => installed,
+}
+```
+
+Plussid:
+- Puhtalt declarative
+- Type system on range
+- Resource dependencies on explicit
+
+Miinused:
+- DSL süntaks on unikaalne
+- Steep learning curve
+- Ruby knowledge helps but not required
+
+## Development Experience
+
+### Ansible
+- Kiirem arendus väikestele projektidele
+- Debugging on lihtne --verbose flagidega
+- Lokaalne testimine on straightforward
+- Ad-hoc tasks on lihtsad
+
+### Puppet
+- Aeglasem algne setup
+- Catalog compilation errors võivad olla cryptic
+- Rspec-puppet testimine on võimas
+- Resource relationships nõuavad planeerimist
+
+## Performance
+
+### Ansible
+- SSH overhead iga connection kohta
+- Parallelization võimalik (forks)
+- Idempotence checks võivad olla slow
+- Good: <100 nodes
+
+### Puppet
+- Agent cache minimeerib network traffic
+- Catalog compilation on intensive
+- Resources puhtalt declarative
+- Scales: 1000+ nodes
+
+## Use Case Recommendations
+
+### Kasuta Ansible kui:
+- Väike infrastruktuur (<50 nodes)
+- Kiired deployment'id vajalikud
+- Team on suured Python/YAML kogemusega
+- Ad-hoc management on priority
+- Cloud provisioning + config management
+
+### Kasuta Puppet kui:
+- Suur infrastruktuur (100+ nodes)
+- Strong compliance requirements
+- Complex resource dependencies
+- Team on Ruby background
+- Long-term configuration drift prevention
+
+## Personal Reflection
+
+[Sinu kogemus selle projektiga - mida õppisid, mis oli raske, mis oli huvitav]
+
+## Conclusion
+
+Mõlemad tööriistad on võimekad. Valik sõltub:
+- Infrastruktuuri suurusest
+- Team skill set'ist
+- Workflow preferences (push vs pull)
+- Existing tooling ecosystem
+
+Ansible võidab lihtsuses ja kiiruses.
+Puppet võidab scale'is ja robustsuses.
+```
 
 ## Esitamine
 
-```bash
-git add .
-git commit -m "Mõlemad deployment'id lõpetatud ja testitud"
-git push origin homework-[nimi]
+### Repositooriumi viimistlemine
+
+Veenduge et repositoorium sisaldab:
+
+```
+ansible-puppet-comparison/
+├── README.md                    # Projekti ülevaade, setup juhend
+├── COMPARISON.md                # Detailne võrdlus
+├── ansible/
+│   ├── inventory/
+│   ├── group_vars/
+│   ├── roles/
+│   │   ├── nginx/
+│   │   ├── postgresql/
+│   │   └── monitoring/
+│   └── site.yml
+├── puppet/
+│   ├── manifests/
+│   │   └── site.pp
+│   └── modules/
+│       ├── nginx/
+│       ├── postgresql/
+│       └── monitoring/
+└── vagrant/
+    └── Vagrantfile
 ```
 
-**Repository kontrollimine:**
-- Mõlemad deployment'id annavad identse tulemuse
-- README.md sisaldab praktilist võrdlust
-- Commit ajalugu näitab progressi
+### Kontrollnimekiri
 
----
+- [ ] Mõlemad lahendused (Ansible ja Puppet) on valmis
+- [ ] Nginx töötab mõlemas VM'is koos SSL'iga
+- [ ] PostgreSQL on paigaldatud ja konfigureeritud
+- [ ] Virtual hosts test.local ja demo.local töötavad
+- [ ] Monitoring health checks käivituvad
+- [ ] README.md sisaldab setup juhendeid
+- [ ] COMPARISON.md sisaldab põhjalikku analüüsi
+- [ ] Git commit history on clean ja descriptive
+- [ ] Repository on avalik GitHubis
 
-## Debug näpunäited
+### GitHub esitamine
 
-**Ansible troubleshooting:**
 ```bash
-ansible-playbook site.yml --check  # kuiv käik
-ansible-playbook site.yml -v       # verbose väljund
-ansible-lint .                     # koodi kvaliteet
+# Create GitHub repo (via web interface)
+
+git remote add origin https://github.com/yourusername/ansible-puppet-comparison.git
+git branch -M main
+git push -u origin main
 ```
 
-**Puppet troubleshooting:**
-```bash
-sudo puppet apply manifests/site.pp --noop  # kuiv käik
-sudo puppet apply manifests/site.pp --debug # debug info
-puppet-lint modules/                         # koodi kvaliteet
-```
+## Refleksioon
 
-**SSL testimine:**
-```bash
-openssl x509 -in /etc/nginx/ssl/nginx.crt -text -noout  # sertifikaadi info
-curl -vk https://localhost  # detailne SSL handshake
-```
+Lisa README.md lõppu "## Reflection" peatükk ja vasta jäsugmistele küsimustele (2-3 lauset iga küsimuse kohta):
 
-**Teenuste kontroll:**
-```bash
-systemctl status nginx postgresql  # teenuste olek
-journalctl -u nginx -f            # nginx logid reaalajas
-netstat -tlnp | grep :443         # SSL port kontroll
-```
+### Milline tööriist oli sulle mugavam (Ansible või Puppet) ja miks?
 
----
+Näide: "Ansible oli mulle mugavam, sest YAML süntaks oli tuttav Dockerist ja Jinja2 template'd meenutasid Flask'i. Puppet DSL oli esialgu segaduses, eriti resource dependencies define'imine."
 
-##  Refleksioon (kirjuta README.md lõppu)
+### Mis oli kõige suurem erinevus Ansible ja Puppet vahel?
 
-Lisa oma README.md faili lõppu peatükk **"## Refleksioon ja Võrdlus"** ja vasta järgmistele küsimustele:
+Näide: "Push vs pull arhitektuur. Ansible'is sa kontrolid millal muudatused juhtuvad, Puppet'is agent otsustab. See muutis debugging'i - Ansible'is näed kohe tulemust, Puppet'is pead ootama agent run'i."
 
-### Küsimused (vasta 2-3 lausega igaühele):
+### Millises olukorras kasutaksid Ansible'i ja millises Puppet'it?
 
-1. **Milline tööriist oli sulle mugavam (Ansible või Puppet) ja miks?**
-   - Näide: "Mulle meeldis Ansible rohkem, sest YAML on lihtsam lugeda kui Puppet DSL. Aga Puppet'i agent-based arhitektuur oli huvitav!"
+Näide: "Ansible väikestele projektidele ja one-off deployment'idele. Puppet kui mul oleks 100+ serverit ja vaja compliance monitoring'u. Näiteks startup - Ansible. Enterprise banking - Puppet."
 
-2. **Mis oli kõige suurem erinevus Ansible ja Puppet vahel?**
-   - Näide: "Push-based vs pull-based! Ansible'is ma käsitsi trigger'in, Puppet'is agent küsib ise uuendusi."
+### Mis oli selle projekti juures kõige raskem ja kuidas sa selle lahendasid?
 
-3. **Millises olukorras kasutaksid Ansible'i ja millises Puppet'it?**
-   - Näide: "Ansible väikestele projektidele ja kiireks deployment'iks. Puppet suurele infrastruktuurile, kus on vaja pidevat automatiseerimist."
+Näide: "Puppet resource dependencies olid keerulised. Näiteks nginx virtual host vajas SSL cert'i, mis vajas directory't. Otsisin Puppet docs'ist resource ordering ja kasutasin require attribute'e. Trial-and-error koos puppet apply --debug flag'iga aitas."
 
-4. **Mis oli selle projekti juures kõige raskem ja kuidas sa selle lahendasid?**
-   - Näide: "SSL sertifikaatide seadistamine oli raske. Otsisin dokumentatsioonist ja kasutasin `openssl` käsku testimiseks."
+### Mis oli selle projekti juures kõige huvitavam või lõbusam osa?
 
-5. **Mis oli selle projekti juures kõige huvitavam või lõbusam osa?**
-   - Näide: "Mulle meeldis näha, kuidas sama infrastruktuur töötab kahel erineval viisil! Nagu võrrelda kahte erinevat keelt."
+Näide: "Kõige ägedam oli näha sama tulemust kahel erineval viisil. Nagu lahendada matemaatikaülesanne algebraliselt vs geomeetriliselt - vastus sama, lähenemine erinev. Sain aru miks DevOps tööriistad pole 'one size fits all'."
 
----
-
-## Kontrollnimekiri (enne esitamist)
-
-**Kontrolli need asjad:**
-
-- [ ] GitHubis on avalik repositoorium
-- [ ] Ansible osa töötab (Nginx + SSL + virtual hosts + PostgreSQL + monitoring)
-- [ ] Puppet osa töötab (Nginx + SSL + virtual hosts + PostgreSQL + monitoring)
-- [ ] Comparison.md sisaldab põhjalikku võrdlust
-- [ ] README.md sisaldab:
-  - [ ] Projekti kirjeldus
-  - [ ] Kuidas seadistada (Ansible ja Puppet eraldi)
-  - [ ] Kuidas käivitada
-  - [ ] Refleksioon (5 küsimuse vastused)
-- [ ] Kõik muudatused on GitHubi push'itud
-
----
-
-##  Hindamiskriteeriumid
+## Hindamiskriteeriumid
 
 | Kriteerium | Punktid | Kirjeldus |
 |------------|---------|-----------|
-| **Ansible osa** | 30% | Nginx + SSL + virtual hosts + PostgreSQL + monitoring töötavad |
-| **Puppet osa** | 30% | Nginx + SSL + virtual hosts + PostgreSQL + monitoring töötavad |
-| **Comparison.md** | 15% | Põhjalik võrdlus, näited, selge argumentatsioon |
-| **Kood kvaliteet** | 10% | Struktuur, nimed, kommentaarid, best practices |
-| **README** | 5% | Projekti kirjeldus, käivitamisjuhend, selge |
-| **Refleksioon** | 10% | 5 küsimust vastatud, sisukas, näitab mõistmist |
+| Ansible implementatsioon | 25% | Nginx, PostgreSQL, monitoring töötavad; rollid struktureeritud |
+| Puppet implementatsioon | 25% | Nginx, PostgreSQL, monitoring töötavad; moodulid struktureeritud |
+| Võrdlev analüüs | 20% | COMPARISON.md on põhjalik, sisaldab code näiteid, use case soovitusi |
+| Dokumentatsioon | 15% | README.md selge setup juhendiga, commit messages kirjeldavad muudatusi |
+| Koodiqualiteet | 10% | Idempotence, DRY principle, proper variable usage |
+| Refleksioon | 5% | 5 küsimust vastatud, näitab mõistmist, isiklik perspective |
 
 **Kokku: 100%**
 
----
+## Boonus
 
-## Abimaterjalid ja lugemine
+Valikulised täiendused (kuni +15%):
 
-**Ansible:**
-- [Ansible Roles Docs](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html)
-- [Ansible Galaxy](https://galaxy.ansible.com/)
-- [Jinja2 Templates](https://docs.ansible.com/ansible/latest/user_guide/playbooks_templating.html)
+### Docker Deployment (+5%)
+Käivita mõlemad lahendused Docker container'ites, mitte Vagrant VM'ides. Näitab container automation'i oskust.
 
-**Puppet:**
-- [Puppet Language Basics](https://puppet.com/docs/puppet/latest/lang_summary.html)
-- [Puppet Modules](https://puppet.com/docs/puppet/latest/modules_fundamentals.html)
-- [Puppet Forge](https://forge.puppet.com/)
+### CI/CD Pipeline (+5%)
+Lisa GitHub Actions, mis testib mõlemat lahendust pull request'i kohta. Automaatne validation.
 
-**Kui abi vaja:**
-1. Vaata `lisapraktika.md` faili täiendavate näidete jaoks
-2. Kasuta `ansible-playbook --check` ja `puppet apply --noop` kuivaks käiguks
-3. Küsi klassikaaslaselt või õpetajalt
+### Performance Benchmark (+5%)
+Mõõda deployment aega, resource usage, network traffic. Loo comparison chart.
 
----
+### Multi-Environment Support (+3%)
+Lisa dev/staging/prod environment tugi. Näita kuidas environment-specific variables töötavad.
 
-## Boonus (valikuline, +10%)
-
-**Kui tahad ekstra punkte, tee üks või mitu neist:**
-
-1. **Docker deployment:** Käivita mõlemad lahendused Docker container'ites
-2. **CI/CD pipeline:** Lisa GitHub Actions, mis testib mõlemat lahendust
-3. **Molecule testing:** Lisa Ansible Molecule test suite
-4. **Performance testing:** Võrdle deployment kiirust (time command)
-5. **Multi-environment:** Dev vs Prod konfiguratsioonid mõlemas tööriistas
+### Advanced Monitoring (+2%)
+Lisa Prometheus või Grafana. Real-time metrics collection.
 
 ---
 
-**Edu ja head võrdlemist!** 
+Edu ja head automatiseerimist! See projekt õpetab tegelikke skills'e, mida kasutate DevOps töös.

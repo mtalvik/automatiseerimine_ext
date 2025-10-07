@@ -1,34 +1,36 @@
 # Docker Kodutöö: Chat Bot Container
 
+Pärast seda kodutööd oskad luua Docker container'eid, kirjutada Dockerfile'e ja publitseerida image'id Docker Hub'is. Kodutöö võtab umbes 2 tundi.
+
+**Eeldused:** Labor läbitud, Docker installitud  
+**Esitamine:** GitHub repository URL + Docker Hub repository URL  
 **Tähtaeg:** Järgmise nädala algus
 
 ---
 
-## Mis sa teed?
+## 1. Ülesande Kirjeldus
 
-Ehita lihtne Flask/Node chat bot Docker container'is! See on nagu sinu esimene "päris" Dockeri projekt – näita, et oskad konteinereid teha nagu professionaal! 
+Loote lihtsa Flask chat bot'i, mis töötab Docker container'is. See demonstreerib järgmisi oskusi:
 
----
+- Dockerfile loomine ja image ehitamine
+- Docker Compose mitme teenuse orkestreerimiseks
+- Image publitseerimine Docker Hub'is
+- Projekti dokumenteerimine
 
-##  Samm-sammult juhend
-
-### Ülesanne (soovituslik ajakava)
-- 0–30 min: Loo Python/Node rakendus (chat bot API)
-- 30–60 min: Kirjuta Dockerfile ja `.dockerignore`
-- 60–90 min: Build image, testi container, kirjuta README refleksiooniga
+Soovitatav ajakava: 0-30 min (rakenduse loomine), 30-60 min (Dockerfile), 60-90 min (testimine), 90-120 min (dokumentatsioon ja publitseerimine).
 
 ---
 
-# SAMM 1: Flask API Loomine
+## 2. Flask API Loomine
 
-## Looge töökaust
+### 2.1 Töökaust
 
 ```bash
 mkdir docker-chatbot
 cd docker-chatbot
 ```
 
-## Looge Python API
+### 2.2 Python Rakendus
 
 Looge fail `app.py`:
 
@@ -40,10 +42,9 @@ import os
 
 app = Flask(__name__)
 
-# Chat bot vastused
 RESPONSES = {
     "tere": ["Tere!", "Tsau!", "Mis toimub?"],
-    "kuidas": ["Hästi läheb!", "Olen container'is!", "Docker on äge!"],
+    "kuidas": ["Hästi läheb!", "Olen container'is!", "Docker on praktiline!"],
     "kes": ["Olen chat bot", "Container bot", "Sinu Docker assistent"],
     "aeg": [f"Praegu on {datetime.datetime.now().strftime('%H:%M')}"],
     "info": ["Töötab Docker'is", "Python + Flask", "Port 5000"]
@@ -57,7 +58,6 @@ def home():
 def chat():
     user_message = request.json.get('message', '').lower()
     
-# Leia vastus
     response = "Ei saa aru... Proovi: tere, kuidas, kes, aeg, info"
     for keyword, replies in RESPONSES.items():
         if keyword in user_message:
@@ -74,16 +74,16 @@ def chat():
 def stats():
     return jsonify({
         'uptime': 'Docker container töötab',
-        'python_version': '3.9',
+        'python_version': '3.11',
         'framework': 'Flask',
         'container_id': os.environ.get('HOSTNAME', 'unknown')
     })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
 ```
 
-## Looge HTML template
+### 2.3 HTML Template
 
 Looge kaust ja fail `templates/index.html`:
 
@@ -100,101 +100,74 @@ mkdir templates
     <title>Docker Chat Bot</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        
         .chat-container {
             width: 400px;
             height: 600px;
             background: white;
-            border-radius: 20px;
+            border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
-        
         .chat-header {
             background: #667eea;
             color: white;
             padding: 20px;
             text-align: center;
+            border-radius: 10px 10px 0 0;
         }
-        
         .chat-messages {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
             background: #f8f9fa;
         }
-        
         .message {
             margin: 10px 0;
             padding: 10px 15px;
             border-radius: 18px;
             max-width: 80%;
-            word-wrap: break-word;
         }
-        
         .user-message {
             background: #667eea;
             color: white;
-            align-self: flex-end;
             margin-left: auto;
         }
-        
         .bot-message {
             background: #e9ecef;
             color: #333;
         }
-        
         .chat-input {
             display: flex;
             padding: 20px;
             background: white;
+            border-radius: 0 0 10px 10px;
         }
-        
-#messageInput {
+        input {
             flex: 1;
-            padding: 10px 15px;
+            padding: 10px;
             border: 2px solid #e9ecef;
-            border-radius: 25px;
+            border-radius: 20px;
             outline: none;
-            font-size: 14px;
         }
-        
-#sendButton {
+        button {
             margin-left: 10px;
             padding: 10px 20px;
             background: #667eea;
             color: white;
             border: none;
-            border-radius: 25px;
+            border-radius: 20px;
             cursor: pointer;
-            font-weight: bold;
         }
-        
-#sendButton:hover {
-            background: #5a6fd8;
-        }
-        
-        .info-box {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 10px;
-            font-size: 12px;
-        }
-        
+        button:hover { background: #5568d3; }
         .container-info {
             position: absolute;
             top: 10px;
@@ -210,109 +183,87 @@ mkdir templates
 </head>
 <body>
     <div class="container-info" id="containerInfo">Loading...</div>
-    
     <div class="chat-container">
         <div class="chat-header">
-            <h2> Docker Chat Bot</h2>
-            <p>Tudeng: <strong>[SINU NIMI]</strong></p>
+            <h2>Docker Chat Bot</h2>
+            <p>Tudeng: <strong>[TEIE NIMI]</strong></p>
         </div>
-        
         <div class="chat-messages" id="chatMessages">
             <div class="message bot-message">
                 Tere! Olen Docker container'is töötav chat bot. 
-                Proovi kirjutada: "tere", "kuidas", "kes", "aeg", "info"
-            </div>
-            <div class="info-box">
-                 See rakendus töötab Python Flask serveris Docker container'is!
+                Proovi: "tere", "kuidas", "kes", "aeg", "info"
             </div>
         </div>
-        
         <div class="chat-input">
-            <input type="text" id="messageInput" placeholder="Kirjuta sõnum..." 
+            <input type="text" id="messageInput" placeholder="Kirjuta sõnum..."
                    onkeypress="if(event.key==='Enter') sendMessage()">
-            <button id="sendButton" onclick="sendMessage()">Saada</button>
+            <button onclick="sendMessage()">Saada</button>
         </div>
     </div>
-
     <script>
-        // Load container info
         fetch('/api/stats')
-            .then(response => response.json())
-            .then(data => {
+            .then(r => r.json())
+            .then(d => {
                 document.getElementById('containerInfo').innerText = 
-                    `Container: ${data.container_id}`;
+                    `Container: ${d.container_id}`;
             });
 
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
-            
             if (!message) return;
             
-            // Add user message
             addMessage(message, 'user-message');
             input.value = '';
             
-            // Send to API
             fetch('/api/chat', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: message })
             })
-            .then(response => response.json())
-            .then(data => {
-                addMessage(data.response, 'bot-message');
-            })
-            .catch(error => {
-                addMessage('Viga: Server ei vasta', 'bot-message');
-            });
+            .then(r => r.json())
+            .then(d => addMessage(d.response, 'bot-message'))
+            .catch(() => addMessage('Viga: Server ei vasta', 'bot-message'));
         }
         
         function addMessage(text, className) {
-            const messagesDiv = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${className}`;
-            messageDiv.textContent = text;
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            const div = document.createElement('div');
+            div.className = `message ${className}`;
+            div.textContent = text;
+            document.getElementById('chatMessages').appendChild(div);
+            div.scrollIntoView();
         }
-        
-        // Auto-focus input
-        document.getElementById('messageInput').focus();
     </script>
 </body>
 </html>
 ```
 
-## Looge requirements fail
+Asendage `[TEIE NIMI]` oma nimega.
+
+### 2.4 Requirements
 
 Looge fail `requirements.txt`:
 
 ```
-Flask==2.3.3
+Flask==3.0.0
 ```
 
 ---
 
-# SAMM 2: Dockerfile
+## 3. Dockerfile Loomine
 
 Looge fail `Dockerfile`:
 
 ```dockerfile
-FROM python:3.9-alpine
+FROM python:3.11-alpine
 
 WORKDIR /app
 
-# Copy requirements first (better caching)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
 COPY . .
 
-# Create non-root user
 RUN adduser -D -s /bin/sh appuser
 USER appuser
 
@@ -321,29 +272,44 @@ EXPOSE 5000
 CMD ["python", "app.py"]
 ```
 
+Dockerfile selgitus:
+- `python:3.11-alpine` - väike base image
+- `COPY requirements.txt` - dependencies enne koodi (cache)
+- `pip install --no-cache-dir` - ei salvesta cache'i
+- `adduser` - non-root kasutaja turvalisuseks
+- `USER appuser` - lülitub non-root kasutajale
+
 ---
 
-# SAMM 3: Ehitamine ja Testimine
+## 4. Ehitamine ja Testimine
+
+### 4.1 Image Ehitamine
 
 ```bash
-# Build image
 docker build -t chatbot-app .
+```
 
-# Run container
+### 4.2 Container Käivitamine
+
+```bash
 docker run -d --name chatbot -p 5000:5000 chatbot-app
+```
 
-# Test API
+### 4.3 Testimine
+
+```bash
+# API testimine
 curl http://localhost:5000/api/stats
 
-# Test brauseris
+# Brauseris
 echo "Avage: http://localhost:5000"
 ```
 
-Nüüd saate chat bot'iga rääkida!
+Proovige chat bot'iga rääkida - sisestage "tere", "kuidas", "kes".
 
 ---
 
-# SAMM 4: Docker Compose
+## 5. Docker Compose
 
 Looge fail `docker-compose.yml`:
 
@@ -364,7 +330,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - chatbot
 ```
@@ -399,28 +365,24 @@ Käivitage:
 docker-compose up -d
 ```
 
-Nüüd töötab nginx reverse proxy port 80 peal!
+Nüüd töötab nginx reverse proxy port 80 peal: `http://localhost`
 
 ---
 
-# SAMM 6: Docker Hub Publishing
+## 6. Docker Hub Publitseerimine
 
-## Looge Docker Hub konto
+### 6.1 Docker Hub Konto
 
-1. Minge https://hub.docker.com/
-2. Registreeruge (tasuta konto)
-3. Kinnitage email
+Looge konto: https://hub.docker.com (tasuta, kinnitage email)
 
-## Logige sisse
+### 6.2 Login
 
 ```bash
-# Login Docker Hub'i
 docker login
-
 # Sisestage username ja password
 ```
 
-## Tagige ja pushige image
+### 6.3 Tag ja Push
 
 ```bash
 # Tag image oma username'iga
@@ -432,7 +394,17 @@ docker push [teie-username]/chatbot-app:latest
 docker push [teie-username]/chatbot-app:v1.0
 ```
 
-## Testinge public image'i
+Asendage `[teie-username]` oma Docker Hub username'iga.
+
+### 6.4 Repository Seadistused
+
+Docker Hub'is:
+1. Minge oma repository'sse
+2. Settings tab
+3. Tehke repository **Public**
+4. Lisage kirjeldus: "Docker homework - Chat bot API"
+
+### 6.5 Public Image Testimine
 
 ```bash
 # Kustutage local image
@@ -443,104 +415,109 @@ docker rmi [teie-username]/chatbot-app:latest
 docker pull [teie-username]/chatbot-app:latest
 
 # Käivitage public image
-docker run -d --name public-chatbot -p 5003:5000 [teie-username]/chatbot-app:latest
-```
-
-## Repository seadistused
-
-Docker Hub'is:
-1. Minge oma repository'sse
-2. Settings tab
-3. Tehke repository **Public**
-4. Lisage kirjeldus: "Docker Fundamentals homework - Chat bot API"
-
----
-
-# SAMM 7: Podman Alternatiiv
-
-```bash
-# Install Podman
-sudo apt install podman
-
-# Build sama image
-podman build -t chatbot-podman .
-
-# Run different port
-podman run -d --name chatbot-podman -p 5001:5000 chatbot-podman
+docker run -d --name public-chatbot -p 5001:5000 [teie-username]/chatbot-app:latest
 
 # Test
 curl http://localhost:5001/api/stats
 ```
 
-Nüüd teil töötab:
-- Docker: http://localhost:5000
-- Podman: http://localhost:5001  
-- Nginx proxy: http://localhost:80
+---
+
+## 7. README.md Kirjutamine
+
+Looge fail `README.md` järgmise struktuuriga:
+
+```markdown
+# Docker Chat Bot
+
+Lihtne chat bot Docker container'is, mis demonstreerib Docker põhiteadmisi.
+
+## Autor
+
+[Teie Nimi]
+
+## Kirjeldus
+
+Flask-põhine chat bot, mis vastab lihtsatele küsimustele. Demonstreerib:
+- Dockerfile kirjutamist
+- Multi-container setup (Docker Compose)
+- Nginx reverse proxy
+- Image publitseerimist Docker Hub'is
+
+## Käivitamine
+
+### Lokaalselt
+
+\```bash
+docker run -d -p 5000:5000 [username]/chatbot-app:latest
+\```
+
+Avage: http://localhost:5000
+
+### Docker Compose
+
+\```bash
+docker-compose up -d
+\```
+
+Avage: http://localhost
+
+## API Endpoints
+
+- `GET /` - HTML interface
+- `POST /api/chat` - Chat API
+- `GET /api/stats` - Container statistika
+
+## Tehnoloogiad
+
+- Python 3.11
+- Flask 3.0
+- Docker
+- Nginx (reverse proxy)
+
+## Docker Hub
+
+Image: https://hub.docker.com/r/[username]/chatbot-app
+```
 
 ---
 
-# SAMM 8: Lisafunktsioonid
+## 8. Refleksioon
 
-## Chat logi salvestamine
+Lisage README.md lõppu peatükk **"## Refleksioon"**. Vastake järgmistele küsimustele (2-3 lauset igale):
 
-Lisage `app.py` faili:
+### 8.1 Mis oli kõige raskem?
 
-```python
-import json
-from datetime import datetime
+Kirjeldage, milline osa kodutööst oli kõige väljakutsuvam ja kuidas selle lahendasite.
 
-# Chat log
-chat_log = []
+### 8.2 Suurim õppetund
 
-@app.route('/api/chat', methods=['POST'])
-def chat():
-    user_message = request.json.get('message', '').lower()
-    
-# ... existing code ...
-    
-# Save to log
-    chat_log.append({
-        'user': user_message,
-        'bot': response,
-        'timestamp': datetime.now().isoformat(),
-        'container': os.environ.get('HOSTNAME', 'unknown')
-    })
-    
-    return jsonify({
-        'response': response,
-        'timestamp': datetime.now().isoformat(),
-        'container_id': os.environ.get('HOSTNAME', 'unknown')
-    })
+Milline Docker kontseptsioon või käsk oli teile kõige suurem avastus ja miks?
 
-@app.route('/api/logs')
-def get_logs():
-    return jsonify(chat_log[-10:])  # Last 10 messages
-```
+### 8.3 Kuidas kasutada tulevikus?
 
-## Environment variables
+Kuidas saaksite Docker'i kasutada oma teistes projektides või koolitöödes?
 
-```bash
-# Run with custom environment
-docker run -d --name chatbot-custom \
-    -p 5002:5000 \
-    -e BOT_NAME="DockerBot" \
-    -e BOT_MOOD="happy" \
-    chatbot-app
-```
+### 8.4 Selgitus sõbrale
+
+Kui peaksite sõbrale selgitama, mis on Docker ja miks see on kasulik, siis mida ütleksite?
+
+### 8.5 Kõige huvitavam osa
+
+Mis oli selle projekti juures kõige meeldivam või huvitavam?
 
 ---
 
-# Esitamine
+## Esitamine
 
-## Nõuded
-
-Teie repository peab sisaldama:
+### 9.1 Repository Struktuur
 
 ```
 docker-chatbot/
 ├── app.py
-├── requirements.txt  
+├── requirements.txt
 ├── Dockerfile
+├── .dockerignore
 ├── docker-compose.yml
 ├── nginx.conf
 ├── templates/
@@ -548,145 +525,99 @@ docker-chatbot/
 └── README.md
 ```
 
-**Docker Hub nõuded:**
-- Image pushed Docker Hub'i: `[teie-username]/chatbot-app:latest`
-- Repository on **public**
-- Tag'itud ka versiooniga: `[teie-username]/chatbot-app:v1.0`
+### 9.2 .dockerignore
 
-## Esitamise viis
+Looge fail `.dockerignore`:
 
-1. **GitHub repository link** esitage õppetoolis
-2. **Docker Hub repository link** esitage samuti
-3. **Mõlemad peavad olema avalikud**
-4. **Kõik failid commit'itud**
-5. **Chat bot peab töötama**
-
-## Testimine
-
-Hindaja testib:
-- GitHub repository clone
-- Docker Hub image pull ja run
-- http://localhost:5000 - Flask app
-- http://localhost:80 - Nginx proxy  
-- Chat bot functionality
-- API endpoints
-
-**Docker Hub test:**
-```bash
-docker pull [teie-username]/chatbot-app:latest
-docker run -d -p 5000:5000 [teie-username]/chatbot-app:latest
-curl http://localhost:5000/api/stats
+```
+__pycache__/
+*.pyc
+*.pyo
+*.log
+.git/
+.env
+venv/
+.vscode/
+.idea/
 ```
 
----
+### 9.3 Esitamise Viis
 
-##  Refleksioon (kirjuta README.md lõppu)
+1. **GitHub repository link** - esitage õppetoolis
+2. **Docker Hub repository link** - esitage samuti
+3. Mõlemad peavad olema **avalikud**
+4. Kõik failid peavad olema commit'itud
+5. Chat bot peab töötama
 
-Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
+### 9.4 Kontroll Enne Esitamist
 
-### Küsimused (vasta 2-3 lausega igaühele):
-
-1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
-   - Näide: "Kõige raskem oli mõista, kuidas port mapping töötab. Aitasin end sellest välja, et joonistasin diagrammi."
-
-2. **Milline Docker kontseptsioon või käsk oli sulle kõige suurem "ahaa!"-elamus ja miks?**
-   - Näide: "Docker cache oli mulle suur avastus – esimene build võttis 5 min, teine ainult 10 sekundit!"
-
-3. **Kuidas saaksid Docker'i kasutada oma teistes projektides või koolitöödes?**
-   - Näide: "Võiksin Docker'i kasutada oma veebirakenduste testimiseks, et nad töötaksid sõprade arvutites ka."
-
-4. **Kui peaksid oma sõbrale selgitama, mis on Docker ja miks see on kasulik, siis mida ütleksid?**
-   - Näide: "Docker on nagu miniatuurne virtuaalmasin – super kiire ja töötab kõikjal ühesuguselt!"
-
-5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
-   - Näide: "Mulle meeldis, et ma sain oma rakenduse Docker Hub'i panna ja nüüd saavad teised seda kasutada!"
-
----
-
-## Kontrollnimekiri (enne esitamist)
-
-**Kontrolli need asjad:**
-
-- [ ] GitHub repos on avalik ja sisaldab kõiki vajalikke faile
-- [ ] `Dockerfile` on olemas ja töötab (image build'ub ilma vigadeta)
-- [ ] `.dockerignore` on olemas (ignoreeri `__pycache__/`, `*.pyc`, `venv/`)
+- [ ] GitHub repository on avalik ja sisaldab kõiki vajalikke faile
+- [ ] Dockerfile on olemas ja töötab (image build'ub)
+- [ ] `.dockerignore` on olemas
 - [ ] `docker-compose.yml` on olemas ja töötab
 - [ ] Image on Docker Hub'i push'itud ja avalik
-- [ ] Container käivitub ja on ligipääsetav (port mapping töötab)
-- [ ] Chat bot vastab küsimustele õigesti
+- [ ] Container käivitub ja on ligipääsetav
+- [ ] Chat bot vastab küsimustele
 - [ ] README.md sisaldab:
-  - [ ] Projekti kirjeldus (mis see on?)
-  - [ ] Kuidas käivitada (Docker käsud)
-  - [ ] Kuidas kasutada (API endpoints)
-  - [ ] Refleksioon (5 küsimuse vastused, 2-3 lauset igaüks)
+  - [ ] Projekti kirjeldus
+  - [ ] Käivitamisjuhend
+  - [ ] API endpoints
+  - [ ] Refleksioon (5 küsimust, 2-3 lauset igaüks)
 
 ---
 
-##  Hindamiskriteeriumid
+## Hindamiskriteeriumid
 
-| Kriteerium | Punktid | Kirjeldus |
+| Kriteerium | Osakaal | Kirjeldus |
 |------------|---------|-----------|
-| **Dockerfile kvaliteet** | 25% | Dockerfile toimib, kasutab best practices (cache, väike image) |
+| **Dockerfile kvaliteet** | 25% | Toimib, kasutab best practices (cache, väike image) |
 | **Container töötab** | 25% | Image build'ub ja container käivitub õigesti |
 | **Funktsioon** | 20% | Chat bot vastab küsimustele, API töötab |
-| **Docker Hub** | 10% | Image on Docker Hub'i push'itud ja avalik |
+| **Docker Hub** | 10% | Image on push'itud ja avalik |
 | **README** | 10% | Projekti kirjeldus, käivitamisjuhend, selge |
 | **Refleksioon** | 10% | 5 küsimust vastatud, sisukas, näitab mõistmist |
 
-**Kokku: 100%**
-
 ---
 
-## Abimaterjalid ja lugemine (enne kodutöö tegemist)
+## Abimaterjalid
 
-**Kiirviited:**
+**Dokumentatsioon:**
 - [Dockerfile Best Practices](https://docs.docker.com/develop/dev-best-practices/)
-- [Docker CLI Cheat Sheet](https://docs.docker.com/get-started/docker_cheatsheet.pdf)
+- [Docker CLI Reference](https://docs.docker.com/engine/reference/commandline/cli/)
 - [Docker Hub dokumentatsioon](https://docs.docker.com/docker-hub/)
 
-**Video tutor'id (valikuline):**
-- [Docker in 100 Seconds](https://www.youtube.com/watch?v=Gjnup-PuquQ) (inglise keeles)
-- [Learn Docker in 7 Easy Steps](https://www.youtube.com/watch?v=gAkwW2tuIqE) (inglise keeles)
-
 **Kui abi vaja:**
-1. Vaata lab'i materjalide (`labor.md`) näiteid
-2. Kasuta `docker --help` või `docker <käsk> --help`
-3. Küsi klassikaaslaselt või õpetajalt
-4. Stack Overflow: search "docker [sinu probleem]"
+1. Vaadake labor'i materjale
+2. Kasutage `docker --help` või `docker <käsk> --help`
+3. Küsige klassikaaslaselt või õpetajalt
 
 ---
 
-## Boonus (valikuline, +10%)
+## Boonus (Valikuline, +10%)
 
-**Kui tahad ekstra punkte, tee üks või mitu neist:**
+### 10.1 Health Check
 
-1. **Lisa health check Dockerfile'i:**
-   ```dockerfile
-   HEALTHCHECK --interval=30s --timeout=3s \
-     CMD curl -f http://localhost:5000/api/stats || exit 1
-   ```
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:5000/api/stats || exit 1
+```
 
-2. **Multi-stage build:** Optimeeri Dockerfile'i kasutades multi-stage build'i
-   ```dockerfile
-   FROM python:3.9 AS builder
-# build steps
-   FROM python:3.9-slim
-   COPY --from=builder ...
-   ```
+### 10.2 Multi-Stage Build
 
-3. **Docker Compose environment variables:** Lisa `.env` fail ja kasuta environment variables
-   ```yaml
-   services:
-     app:
-       environment:
-         - API_KEY=${API_KEY}
-         - DEBUG=${DEBUG:-False}
-   ```
+Optimeerige Dockerfile'i kasutades multi-stage build'i.
 
-4. **Monitoring:** Lisa Prometheus metrics endpoint või lihtne `/health` endpoint
+### 10.3 Environment Variables
 
----
+Lisage `.env` fail ja kasutage environment variable'eid:
 
-**Edu ja head Docker'itamist!** 
+```yaml
+services:
+  chatbot:
+    environment:
+      - BOT_NAME=${BOT_NAME:-DefaultBot}
+      - DEBUG=${DEBUG:-False}
+```
 
-**P.S.** Pärast kodutöö esitamist võid jätkata projekti arendamist – see on sinu portfoolio! Näiteks: lisa autentimine, andmebaas (PostgreSQL container), või frontend (React container). 
+### 10.4 Monitoring
+
+Lisage `/health` endpoint, mis kontrollib rakenduse seisundit.

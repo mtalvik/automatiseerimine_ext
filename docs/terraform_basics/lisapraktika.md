@@ -1,4 +1,4 @@
-# Terraform Lisapraktika
+#  Terraform Lisapraktika
 
 **Eeltingimused:** Terraform põhiteadmised, HCL süntaks
 
@@ -10,7 +10,7 @@ See fail sisaldab lisapraktikaid Terraform mooduli jaoks, sealhulgas advanced HC
 
 ---
 
-## Õpiväljundid
+##  Õpiväljundid
 
 Pärast lisapraktikat oskate:
 
@@ -71,7 +71,7 @@ Loo Terraform kood, mis genereerib:
 
 ---
 
-## Data Sources
+##  Data Sources
 
 ### Existing Resources
 
@@ -130,13 +130,13 @@ variable "ports" {
 }
 
 locals {
-# Merge lists
+  # Merge lists
   all_ports = concat(var.ports, [9090, 3000])
   
-# Filter
+  # Filter
   secure_ports = [for p in var.ports : p if p > 443]
   
-# Transform
+  # Transform
   port_strings = [for p in var.ports : tostring(p)]
 }
 ```
@@ -154,11 +154,11 @@ locals {
     env = "prod"
   }
   
-# Merge (overrides win)
+  # Merge (overrides win)
   config = merge(local.defaults, local.overrides)
-# Result: { region = "eu-west-1", env = "prod" }
+  # Result: { region = "eu-west-1", env = "prod" }
   
-# Lookup with default
+  # Lookup with default
   timeout = lookup(var.settings, "timeout", 30)
 }
 ```
@@ -296,13 +296,13 @@ resource "local_file" "important" {
   content  = var.content
   
   lifecycle {
-# Ära kunagi kustuta (even if removed from code)
+    # Ära kunagi kustuta (even if removed from code)
     prevent_destroy = true
     
-# Ignoreeri content muudatusi
+    # Ignoreeri content muudatusi
     ignore_changes = [content]
     
-# Loo uus enne vana kustutamist
+    # Loo uus enne vana kustutamist
     create_before_destroy = true
   }
 }
@@ -400,9 +400,11 @@ projects:
 - [ ] Conditional logic
 - [ ] Outputs summary
 
+
+
 ---
 
-## Kasulikud Ressursid
+##  Kasulikud Ressursid
 
 - **HCL Syntax**: https://developer.hashicorp.com/terraform/language/syntax
 - **Functions**: https://developer.hashicorp.com/terraform/language/functions

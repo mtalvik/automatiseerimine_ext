@@ -1,194 +1,245 @@
 # Lõpuprojekt Labor: Projekti Alustamine
 
+**Eeldused:** Git põhiteadmised, Docker basics, YAML süntaks, Linux CLI  
+**Platvorm:** GitHub, Docker Desktop/Podman, oma valik (Kubernetes/Terraform/Ansible)
 
 ---
 
-## Õpiväljundid
+## Õpivälјundid
 
 Pärast laborit oskate:
-- Valida sobiva projekti teema
-- Planeerida projekti arhitektuuri
-- Seadistada repository struktuuri
-- Alustada dokumentatsiooni kirjutamist
-- Seadistada põhilise CI/CD pipeline'i
+- Loob struktureeritud projekti repository ja dokumentatsiooni
+- Seadistab lihtsa CI/CD pipeline'i GitHub Actions'iga
+- Käivitab Docker-põhise arenduskeskkonna
+- Dokumenteerib esimesed tehnilised otsused
+- Alustab tööd valitud tööriistadega
 
 ---
 
-##  Samm 1: Projekti Valik
+## 1. Projekti ja Tööriistade Valik
 
-### 1.1 Projekti valik
+Valige üks tööriistakomplekt ja projektitüüp. Ärge kulutage rohkem kui 15 minutit otsustamisele - saate hiljem muuta.
 
-Valige üks järgmistest projektidest või tehke oma ettepanek:
+### Tööriistakomplektid
 
-**Valik A: Lihtne Veebirakendus**
-- Komponendid: Frontend, Backend API, Andmebaas
-- Funktsioonid: CRUD operatsioonid, kasutajad
-- Tehnoloogiad: HTML/CSS/JS või React, Node.js/Python, SQLite/PostgreSQL
+**Kombinatsioon A: Docker + Kubernetes**
+- Konteinerite orkestreerimise stack
+- Kõrge õppimiskõver, industry standard
 
-**Valik B: API Teenus**
-- Komponendid: API server, Andmebaas, Dokumentatsioon
-- Funktsioonid: REST API, andmete haldamine
-- Tehnoloogiad: Node.js/Python, PostgreSQL, Swagger
+**Kombinatsioon B: Terraform + Ansible**
+- Infrastruktuuri automatiseerimise stack
+- Server-based projektidele
 
-**Valik C: Monitoring Dashboard**
-- Komponendid: Dashboard, Data API, Andmebaas
-- Funktsioonid: Andmete visualiseerimine, graafikud
-- Tehnoloogiad: React/Vue.js, Python, SQLite
+**Kombinatsioon C: Docker + CI/CD**
+- Lihtsustatud arenduse stack
+- Madalam kompleksus, kiire alustamine
 
-### 1.2 Tööriistade valik
+**Kombinatsioon D: Kubernetes + Monitoring**
+- Operatsioonide ja observability stack
+- Prometheus + Grafana fookus
 
-Valige 2-3 tööriista, mida soovite kasutada:
+### Projektitüübid
 
-**Valik A: Docker + Kubernetes**
-- Docker: Konteineriseerimine
-- Kubernetes: Deployment ja scaling
-- CI/CD: Automatiseerimine
+**Veebirakendus:** Frontend + Backend + DB  
+**REST API:** API server + DB + dokumentatsioon  
+**Monitoring Dashboard:** Metrics collector + visualisatsioon
 
-**Valik B: Terraform + Ansible**
-- Terraform: Infrastruktuuri automatiseerimine
-- Ansible: Serverite konfigureerimine
-- CI/CD: Deployment automatiseerimine
+Kirjutage üles:
+```
+Minu valik: [Kombinatsioon X + Projektitüüp Y]
+Põhjus: [1 lause]
+```
 
-**Valik C: Docker + CI/CD**
-- Docker: Konteineriseerimine
-- CI/CD: Build ja deploy automatiseerimine
-- Testing: Automatiseeritud testimine
-
-**Valik D: Kubernetes + Monitoring**
-- Kubernetes: Rakenduse orkestreerimine
-- Monitoring: Prometheus, Grafana
-- Alerting: Hoiatused
-
-### 1.3 Projekti kirjeldus
-
-Kirjutage lühike kirjeldus (2-3 lauset):
-- Mis probleemi lahendab?
-- Kes on sihtrühm?
-- Millised on peamised funktsioonid?
-- Millised tööriistad kasutate?
+**Validatsioon:**
+- [ ] Olete valinud ühe kombinatsiooni
+- [ ] Olete valinud ühe projektitüübi
+- [ ] Oskate ühes lauses selgitada miks
 
 ---
 
-##  Samm 2: Arhitektuuri Planeerimine
+## 2. Repository ja Dokumentatsiooni Loomine
 
-### 2.1 Arhitektuuridiagramm
+Loome minimaalse struktuuri millega saab alustada.
 
-Joonistage lihtne arhitektuuridiagramm, mis näitab:
-
-**Komponendid:**
-- Frontend (kasutajaliides)
-- Backend API (äriloogika)
-- Database (andmete salvestamine)
-- Cache (jõudluse parandamine)
-- File storage (failide hoidmine)
-
-**Ühendused:**
-- Kuidas komponendid suhtlevad?
-- Millised on andmevoogud?
-- Kus on turvalisuse punktid?
-
-### 2.2 Tehnilised otsused
-
-Dokumenteerige otsused:
-
-**Infrastructure:**
-- Millist pilve kasutate? (AWS, Azure, GCP, local)
-- Kuidas deploy'ite? (Kubernetes, Docker Swarm, VMs)
-- Kuidas hallate konfiguratsiooni? (Ansible, Terraform)
-
-**Development:**
-- Millised keeled ja framework'id?
-- Kuidas testite? (Unit, Integration, E2E)
-- Kuidas hallate sõltuvusi? (Package managers)
-
-**Operations:**
-- Kuidas monitorite? (Prometheus, Grafana)
-- Kuidas logite? (ELK, Fluentd)
-- Kuidas backup'ite? (Automated backups)
-
----
-
-##  Samm 3: Repository Seadistamine
-
-### 3.1 GitHub repository
+### 2.1 Põhistruktuur
 
 ```bash
-# Loo uus repository
+# Loo directory ja initialiseeri Git
 mkdir lopuprojekt-[teie-nimi]
 cd lopuprojekt-[teie-nimi]
 git init
+git branch -M main
 
-# Loo põhistruktuur
-mkdir -p docs infrastructure application kubernetes ci-cd monitoring
-mkdir -p application/frontend application/backend application/docker
-mkdir -p infrastructure/terraform infrastructure/ansible
+# Loo põhiline struktuur
+mkdir -p docs
+mkdir -p infrastructure
+mkdir -p application
+mkdir -p .github/workflows
 ```
 
-### 3.2 Põhifailid
+### 2.2 README.md
 
-**README.md:**
-```markdown
+```bash
+cat > README.md << 'EOF'
 # [Projekti Nimi]
 
-## Kirjeldus
-[Lühike kirjeldus]
+[Ühe lause kirjeldus]
 
-## Arhitektuur
-[Põhiteemad]
+## Ülevaade
 
-## Kiire alustamine
-[Deploy'imise juhend]
+- **Mis:** [Mida see teeb]
+- **Kellele:** [Kes seda kasutab]
+- **Kuidas:** [Peamised tehnoloogiad]
 
-## Dokumentatsioon
-- [Arhitektuur](docs/architecture.md)
-- [Tehnilised otsused](docs/decisions.md)
-- [Deploy'imine](docs/deployment.md)
+## Kiire Alustamine
+
+```bash
+# Klooni ja käivita
+git clone [url]
+cd lopuprojekt-[nimi]
+docker-compose up
 ```
 
-**docs/architecture.md:**
+## Dokumentatsioon
+
+- [Arhitektuur](architecture.md)
+- [Tehnilised Otsused](decisions.md)
+EOF
+```
+
+### 2.3 Esimesed Dokumendid
+
+**architecture.md:**
+
 ```markdown
 # Arhitektuur
 
-## Ülevaade
-[Põhiteemad]
-
 ## Komponendid
-[Iga komponendi kirjeldus]
+
+### [Komponendi Nimi]
+- **Tehnoloogia:** [Tech]
+- **Roll:** [Mida teeb]
+- **Port:** [Kui on]
 
 ## Andmevoog
-[Kuidas andmed liiguvad]
 
-## Turvalisus
-[Turvalisuse aspektid]
+```
+Kasutaja → Frontend → Backend → Database
 ```
 
-### 3.3 Git seadistamine
+## Järgmised Sammud
+
+- [ ] Lisa diagramm
+- [ ] Täpsusta komponente
+```
+
+**decisions.md:**
+
+```markdown
+# Tehnilised Otsused
+
+## 2024-XX-XX: [Otsuse Nimi]
+
+**Probleem:** [Mis vajab lahendamist]
+
+**Otsus:** [Mida valisime]
+
+**Miks:**
+- [Põhjus 1]
+- [Põhjus 2]
+
+**Trade-off:**
+- [Mis jäi kaotsi]
+```
+
+**Validatsioon:**
 
 ```bash
-# Lisa failid
-git add .
-git commit -m "Initial project setup"
+# Kontrolli struktuuri
+tree -L 2
 
-# Loo branch'id
-git checkout -b develop
-git checkout -b feature/infrastructure
-git checkout -b feature/application
-git checkout -b feature/monitoring
-
-# Tagasi main branch'i
-git checkout main
+# Peaks näitama:
+# ├── README.md
+# ├── docs/
+# │   ├── architecture.md
+# │   └── decisions.md
+# ├── .github/workflows/
+# ├── application/
+# └── infrastructure/
 ```
 
 ---
 
-##  Samm 4: CI/CD Alustamine
+## 3. Git Workflow ja Esimene Commit
 
-### 4.1 GitHub Actions
+```bash
+# Loo .gitignore
+cat > .gitignore << 'EOF'
+# Dependencies
+node_modules/
+venv/
+__pycache__/
 
-Loo `.github/workflows/ci.yml`:
+# Environment
+.env
+*.env
+
+# Build
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# Terraform
+.terraform/
+*.tfstate*
+
+# Logs
+*.log
+EOF
+
+# Lisa failid
+git add .
+
+# Esimene commit
+git commit -m "chore: initial project structure
+
+- Create directory layout
+- Add README and docs templates
+- Configure gitignore"
+
+# Loo develop branch
+git checkout -b develop
+```
+
+**GitHub'i üles:**
+
+```bash
+# Loo GitHub'is repository, siis:
+git remote add origin https://github.com/[username]/lopuprojekt-[nimi].git
+git push -u origin main
+git push -u origin develop
+```
+
+**Validatsioon:**
+- [ ] Repository on GitHub'is
+- [ ] Main ja develop branch'id on olemas
+- [ ] Kõik failid on commit'itud
+
+---
+
+## 4. Lihtne CI/CD Pipeline
+
+Loome minimaalse pipeline'i mis kontrollib et kood compilerib.
+
+### 4.1 GitHub Actions Workflow
+
+`.github/workflows/ci.yml:`
 
 ```yaml
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
@@ -197,154 +248,284 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-    
-    - name: Install dependencies
-      run: npm install
-    
-    - name: Run tests
-      run: npm test
-    
-    - name: Build application
-      run: npm run build
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  infrastructure:
+      - name: Verify structure
+        run: |
+          echo "Checking project structure..."
+          test -f README.md
+          test -d docs
+          test -f architecture.md
+          test -f decisions.md
+          echo "✅ Structure OK"
+
+      - name: Check documentation
+        run: |
+          echo "Checking docs are not empty..."
+          [ -s README.md ] || exit 1
+          [ -s architecture.md ] || exit 1
+          echo "✅ Documentation OK"
+
+  docker:
     runs-on: ubuntu-latest
-    needs: test
+    if: github.ref == 'refs/heads/main'
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-    
-    - name: Terraform Init
-      run: terraform init
-    
-    - name: Terraform Plan
-      run: terraform plan
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Dockerfile exists
+        run: |
+          if [ -f Dockerfile ]; then
+            echo "✅ Dockerfile found"
+            docker build -t test .
+          else
+            echo "⚠️  No Dockerfile yet"
+          fi
 ```
 
-### 4.2 Docker alustamine
+See on minimaalne pipeline - ta ainult kontrollib et failid on olemas. Kui projekt kasvab, lisame teste ja build'e.
 
-Loo `application/docker/Dockerfile`:
+**Commit ja push:**
+
+```bash
+git add .github/workflows/ci.yml
+git commit -m "ci: add basic GitHub Actions workflow"
+git push
+```
+
+**Validatsioon:**
+
+Minge GitHub'i → Actions tab → peaks nägema CI run'i.
+
+---
+
+## 5. Docker Setup (Kui Valisite Docker'iga Kombinatsiooni)
+
+Ainult kui teie kombinatsioon kasutab Docker'it.
+
+### 5.1 Lihtne Dockerfile
 
 ```dockerfile
-FROM node:18-alpine
+# Dockerfile
+FROM node:20-alpine
 
 WORKDIR /app
 
+# Placeholder - asendage oma rakendusega
 COPY package*.json ./
-RUN npm install
+RUN npm install || echo "No package.json yet"
 
 COPY . .
 
-RUN npm run build
-
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["node", "-e", "console.log('Replace with your app'); process.exit(0)"]
 ```
 
----
+### 5.2 Docker Compose Local Development'ile
 
-##  Samm 5: Dokumentatsiooni Alustamine
+```yaml
+# docker-compose.yml
+version: '3.8'
 
-### 5.1 Tehnilised otsused
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - db
 
-Loo `docs/decisions.md`:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: devpass
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 
-```markdown
-# Tehnilised Otsused
-
-## 2024-XX-XX: Frontend Framework
-
-**Otsus:** Kasutame React'it
-
-**Põhjendus:**
-- Suur kogukond
-- Palju komponente
-- Hea TypeScript tugi
-
-**Alternatiivid:**
-- Vue.js (lihtsam, vähem funktsioone)
-- Angular (keerulisem, rohkem funktsioone)
-
-## 2024-XX-XX: Database
-
-**Otsus:** PostgreSQL
-
-**Põhjendus:**
-- ACID tugi
-- Hea jõudlus
-- Rikad funktsioonid
-
-**Alternatiivid:**
-- MongoDB (NoSQL, kiirem arendamine)
-- MySQL (lihtsam, vähem funktsioone)
+volumes:
+  pgdata:
 ```
 
-### 5.2 Deploy'imise juhend
+**Test:**
 
-Loo `docs/deployment.md`:
-
-```markdown
-# Deploy'imise Juhend
-
-## Eeltingimused
-- Docker installitud
-- kubectl seadistatud
-- Terraform installitud
-
-## Kohalik arendamine
 ```bash
-# Klooni repository
-git clone [repository-url]
-cd lopuprojekt-[nimi]
+# Build image
+docker-compose build
 
-# Käivita rakendus
+# Käivita (exitib kohe kuna placeholder app)
 docker-compose up
+
+# Kui näete "Replace with your app" - töötab! ✅
 ```
 
-## Production deploy'imine
+**Validatsioon:**
+- [ ] Dockerfile on loodud
+- [ ] docker-compose.yml on loodud
+- [ ] Image ehitub ilma erroriteta
+- [ ] Container käivitub (isegi kui exitib kohe)
+
+---
+
+## 6. Esimene Tehniline Otsus
+
+Dokumenteerige oma esimene oluline otsus `decisions.md` failis.
+
+**Näide:**
+
+```markdown
+## 2024-10-07: Docker kui Konteineriseerimise Platvorm
+
+**Probleem:**
+Vajame viisi tagada et rakendus töötab ühtemoodi development, staging ja production keskkondades.
+
+**Valikud:**
+1. Docker - industry standard, suur ökosüsteem
+2. Podman - daemon-less, turvalinem
+3. Otsest VM'e - lihtsam, aga raskem skaleerida
+
+**Otsus:**
+Valime Docker'i.
+
+**Miks:**
+- Meeskond tunneb seda juba
+- Suur kogukond = lihtsam leida abi
+- Hea integratsioon Kubernetes'ega (võimalik tulevikus)
+- Industry standard = kasulik CV'le
+
+**Trade-off:**
+- Docker daemon vajab root õigusi (turvaoht)
+- Vendor lock-in (aga OCI standard leevendab)
+- Õppimiskõver neile kes pole varem kasutanud
+
+---
+
+## 2024-10-07: [Teie Teine Otsus]
+
+[Dokumenteerige järgmine oluline valik]
+```
+
+**Dokumenteerige vähemalt 2 otsust:**
+1. Konteineriseerimise/infrastruktuuri tööriist
+2. CI/CD platvorm (GitHub Actions/GitLab CI/jne)
+
+**Validatsioon:**
+- [ ] decisions.md sisaldab vähemalt 2 otsust
+- [ ] Iga otsus on dateeritud
+- [ ] Iga otsus sisaldab probleem/valikud/otsus/põhjendus
+
+---
+
+## 7. Kontrollnimekiri
+
+Enne labori lõpetamist kontrollige:
+
+### Struktuur
+- [ ] Repository on GitHub'is
+- [ ] README.md on täidetud
+- [ ] docs/ kaust sisaldab architecture.md ja decisions.md
+- [ ] .gitignore on seadistatud
+
+### Git
+- [ ] Main ja develop branch'id olemas
+- [ ] Vähemalt 2 commit'i tehtud
+- [ ] Commit messages on kirjeldavad
+
+### CI/CD
+- [ ] .github/workflows/ci.yml on olemas
+- [ ] CI pipeline jookseb GitHub'is
+- [ ] Pipeline näitab rohelist checkmarki
+
+### Docker (Kui Kasutate)
+- [ ] Dockerfile on loodud
+- [ ] docker-compose.yml on loodud
+- [ ] `docker-compose build` töötab
+
+### Dokumentatsioon
+- [ ] architecture.md sisaldab komponente
+- [ ] decisions.md sisaldab 2+ otsust
+- [ ] README selgitab projekti eesmärki
+
+---
+
+## Troubleshooting
+
+### GitHub Actions ei käivitu
+
 ```bash
-# Deploy'i infrastruktuuri
-cd infrastructure/terraform
-terraform init
-terraform apply
+# Kontrolli workflow file'i asukohta
+ls -la .github/workflows/ci.yml
 
-# Deploy'i rakenduse
-kubectl apply -f kubernetes/
+# Kontrolli YAML syntax'it
+cat .github/workflows/ci.yml
+
+# Commit ja push
+git add .github/workflows/
+git commit -m "ci: fix workflow"
+git push
 ```
+
+### Docker build failib
+
+```bash
+# Kontrolli Docker'i staatust
+docker info
+
+# Restart Docker (Mac/Windows - restart app, Linux:)
+sudo systemctl restart docker
+
+# Proovi uuesti
+docker build -t test .
+```
+
+### "Permission denied" error
+
+```bash
+# Lisa executable õigused
+chmod +x scripts/*.sh
+
+# Või käivita bash'iga
+bash scripts/setup.sh
 ```
 
 ---
 
-## Labori Kokkuvõte
+## Järgmised Sammud
 
-Pärast seda laborit on teil:
+Nüüd kui põhistruktuur on paigas:
 
-- [ ] Projekti teema valitud
-- [ ] Arhitektuur planeeritud
-- [ ] Repository seadistatud
-- [ ] Põhiline dokumentatsioon kirjutatud
-- [ ] CI/CD pipeline alustatud
-- [ ] Docker konfiguratsioon loodud
+**Nädalaks 2:**
+1. Implementeeri põhiline rakendus
+2. Lisa testid
+3. Täienda CI/CD pipeline'i build ja test jobidega
 
-### Järgmised sammud:
+**Nädalaks 3:**
+1. Setup infrastructure (Terraform/Kubernetes/Ansible)
+2. Lisa deployment stage CI/CD'sse
+3. Dokumenteeri deployment protsessi
 
-1. **Infrastruktuur** - Loo Terraform konfiguratsioon
-2. **Rakendus** - Alusta koodi kirjutamist
-3. **Kubernetes** - Seadista deployment'id
-4. **Monitoring** - Lisa Prometheus ja Grafana
-5. **Testimine** - Kirjuta testid
-6. **Dokumentatsioon** - Täienda dokumentatsiooni
+**Nädalaks 4:**
+1. Lisa monitoring (kui kasutate)
+2. Performance tuning
+3. Täienda dokumentatsiooni
+4. Valmista ette esitlust
 
-**Edu projekti jätkamisel!** 
+**KodutÃ¶Ã¶ks (vt kodutoo.md):**
+- Implementeeri valitud projektitüübi põhifunktsioonid
+- Seadista valitud tööriistakomplekt
+- Dokumenteeri arhitektuur detailselt
+- Lisa automated tests
+
+Edu projekti jätkamisel!

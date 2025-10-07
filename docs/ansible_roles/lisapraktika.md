@@ -1,443 +1,387 @@
 # Ansible Rollid Lisapraktika
 
-Täiendavad ülesanded Ansible rollide professionaalseks kasutamiseks.
+Need harjutused on mõeldud kogenud õppijatele, kes soovivad süvendada Ansible rollide oskusi produktsioonitaseme tehnikatega. Iga harjutus võtab 30-45 minutit ja õpetab praktilist tehnikat, mida DevOps insenerid igapäevaselt kasutavad.
 
-**Eeldused:** Põhilabor läbitud, rollide struktuur selge
-
----
-
-## Enne alustamist
-
-Need ülesanded on valikulised ja mõeldud neile, kes:
-
-- Lõpetasid põhilabori ära
-- Mõistavad Ansible rollide struktuuri
-- Tahavad õppida advanced funktsioone
-- Valmistuvad tõeliseks DevOps tööks
+**Eeldused:** Ansible rollide labor ja kodutöö läbitud, Galaxy standardiga tuttavus, variables ja templates valdamine
 
 ---
 
-## Väljakutse 1: Multi-OS Role
+## 1. Multi-OS Rollide Implementatsioon
 
+### 1.1 Probleem
 
-### Mida õpid?
-- OS-spetsiifilised muutujad (`vars/`)
-- Conditional tasks (`when:`)
-- Package manager abstraktsioon
-- OS detection (`ansible_facts`)
+Laboris loodud nginx roll töötab ainult Ubuntu/Debian süsteemides. Ettevõtetes on infrastruktuur heterogeenne - osa servereid on Ubuntu, osa CentOS, mõned võivad olla Amazon Linux. Iga OS jaoks eraldi rolli loomine tooks duplikatsiooni ja hoolduskoormust.
 
-### Ülesanne:
+OS'ide erinevused pole triviasalsed. Paketihaldur on erinev (apt vs yum vs dnf). Paketinimed erinevad (nginx vs httpd). Konfiguratsioonifailide asukohad erinevad (/etc/nginx/sites-available vs /etc/nginx/conf.d). Service'i nimed võivad erineda. Iga erisus nõuab eraldi käsitlemist.
+
+### 1.2 Lahendus
+
+Lahendus kasutab Ansible facts'e OS tuvastamiseks ja conditional logic'ut õige konfiguratsiooni valimiseks. Facts nagu `ansible_os_family`, `ansible_distribution` ja `ansible_distribution_major_version` võimaldavad rolli käitumist dünaamiliselt kohandada.
+
+Loome OS-spetsiifilised variables failid vars kaustas. Include_vars direktiiv laadib õige faili runtime'il. Tasks kasutavad when conditionals OS-spetsiifiliste operatsioonide jaoks.
+
 ```yaml
-# roles/nginx-multiplatform/
-# - Installeerib nginx Ubuntu'le (apt), CentOS'le (yum)
-# - Kasutab OS-spetsiifilisi config template'eid
-# - Tagab teenuse töötab kõikides OS'ides
+# vars/Debian.yml
+---
+nginx_package_name: "nginx"
+nginx_service_name: "nginx"
+nginx_config_path: "/etc/nginx"
+nginx_sites_available: "{{ nginx_config_path }}/sites-available"
+nginx_sites_enabled: "{{ nginx_config_path }}/sites-enabled"
+nginx_user: "www-data"
+
+# vars/RedHat.yml
+---
+nginx_package_name: "nginx"
+nginx_service_name: "nginx"
+nginx_config_path: "/etc/nginx"
+nginx_conf_d: "{{ nginx_config_path }}/conf.d"
+nginx_user: "nginx"
 ```
 
-### Sammud:
-1. **Loo role struktuuri:**
-   ```bash
-   ansible-galaxy init roles/nginx-multiplatform
-   ```
+Tasks failis laadime õiged variables:
 
-2. **Lisa OS-spetsiifilised muutujad:**
-   ```yaml
-# vars/Ubuntu.yml
-   nginx_package: nginx
-   nginx_service: nginx
-   nginx_config_path: /etc/nginx/nginx.conf
-   
-# vars/CentOS.yml
-   nginx_package: nginx
-   nginx_service: nginx
-   nginx_config_path: /etc/nginx/nginx.conf
-   ```
-
-3. **Lisa dynamic variable loading:**
-   ```yaml
+```yaml
 # tasks/main.yml
-   - name: Load OS-specific variables
-     include_vars: "{{ ansible_os_family }}.yml"
-   
-   - name: Install nginx
-     package:
-       name: "{{ nginx_package }}"
-       state: present
-   ```
+---
+- name: "Load OS-specific variables"
+  include_vars: "{{ ansible_os_family }}.yml"
 
-4. **Testi mitmes OS'is:**
-   ```bash
-# Vajad erinevaid VM'e või container'eid
-   ansible-playbook -i inventory site.yml
-   ```
+- name: "Install nginx (Debian-based)"
+  apt:
+    name: "{{ nginx_package_name }}"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
 
-###  Boonus:
-- Lisa support Arch Linux'ile
-- Kasuta `block` ja `rescue` error handling'uks
-- Loo automated tests Molecule'iga
+- name: "Install nginx (RedHat-based)"
+  yum:
+    name: "{{ nginx_package_name }}"
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: "Deploy config (Debian style)"
+  include_tasks: debian_config.yml
+  when: ansible_os_family == "Debian"
+
+- name: "Deploy config (RedHat style)"
+  include_tasks: redhat_config.yml
+  when: ansible_os_family == "RedHat"
+```
+
+OS-agnostic alternatiiv on package moodul, mis automaatselt valib õige package manager'i:
+
+```yaml
+- name: "Install nginx (OS-agnostic)"
+  package:
+    name: "{{ nginx_package_name }}"
+    state: present
+```
+
+### 1.3 Harjutus: Universal Nginx Role
+
+Kohandage oma laboris loodud nginx rolli töötama nii Ubuntu kui CentOS süsteemides.
+
+**Nõuded:**
+
+- [ ] Role töötab Ubuntu 20.04 ja CentOS 8 VM'ides
+- [ ] OS-spetsiifilised variables on eraldatud vars/ kausta
+- [ ] Package paigaldamine kasutab package moodulit
+- [ ] Config deployment kohandub OS struktuurile (sites-available vs conf.d)
+- [ ] Service management töötab mõlemas OS'is
+- [ ] Molecule test suite testib mõlemat OS'i
+
+**Näpunäiteid:**
+
+- Kasutage `ansible_os_family` fakti, mitte `ansible_distribution` - see on üldisem
+- RedHat süsteemides pole sites-available/sites-enabled struktuuri - kasuta conf.d
+- SELinux võib CentOS'is blokeerida nginx'i - lisa tasks SELinux konteksti seadistamiseks
+- Molecule võimaldab testida mitut platvormi Docker container'ites
+
+**Testimine:**
+
+```bash
+# Ubuntu VM
+ansible-playbook -i ubuntu_host, site.yml
+
+# CentOS VM
+ansible-playbook -i centos_host, site.yml
+
+# Molecule multi-platform test
+molecule test
+```
+
+**Boonus:**
+
+Lisa support Arch Linux'ile (pacman package manager). Kasuta block/rescue error handling'ut graceful failure'ks tundmatus OS'is.
 
 ---
 
-## Väljakutse 2: Role Dependencies ja Composition
+## 2. Dynamic Environments ja Configuration Layering
 
+### 2.1 Probleem
 
-### Mida õpid?
-- Role dependencies (`meta/main.yml`)
-- Role composition patterns
-- Dependency ordering
-- Shared variables across roles
+Produktsiooni infrastruktuuris on mitu environment'i: development, staging, production. Iga environment vajab erinevat konfiguratsiooni. Development vajab debug logging'u ja madalamat performance optimeerimist. Staging on production'ile sarnane, aga väiksema scale'iga. Production vajab maksimaalset performance'i, minimaalset logging'u, tugevat turvalisust.
 
-### Ülesanne:
-```
-# Loo täielik web stack:
-# - common (base packages, users, firewall)
-# - database (PostgreSQL)
-# - backend (Node.js API)
-# - frontend (Nginx reverse proxy)
-# - monitoring (Prometheus + Grafana)
-```
+Halvim lähenemine on luua kolm erinevat rolli või kolm koopiat samast konfiguratsioonist. See toob duplikatsiooni - bug fix peab rakendama kolmes kohas. Parem on üks roll, mis kohandub environment'ile.
 
-### Sammud:
-1. **Loo iga component eraldi role'ina:**
-   ```bash
-   ansible-galaxy init roles/common
-   ansible-galaxy init roles/database
-   ansible-galaxy init roles/backend
-   ansible-galaxy init roles/frontend
-   ansible-galaxy init roles/monitoring
-   ```
+### 2.2 Lahendus
 
-2. **Määra dependencies:**
-   ```yaml
-# roles/frontend/meta/main.yml
-   dependencies:
-     - role: common
-     - role: backend
-   
-# roles/backend/meta/main.yml
-   dependencies:
-     - role: common
-     - role: database
-   ```
+Lahendus on variables layering - mitmetasandiline muutujate süsteem, kus üldised defaults kirjutatakse üle environment-specific variables'iga. Ansible variables precedence order võimaldab seda loomulikult.
 
-3. **Share variables across roles:**
-   ```yaml
-# group_vars/all/shared.yml
-   app_user: webapp
-   app_port: 3000
-   db_name: myapp
-   db_user: webapp
-   ```
+Defaults määravad base configuration. Group_vars kirjeldavad environment'i. Extra_vars lubavad runtime override'e. Iga kiht lisab või kirjutab üle eelmist.
 
-4. **Loo orchestration playbook:**
-   ```yaml
-# playbooks/deploy_stack.yml
-   - hosts: webservers
-     roles:
-       - frontend  # See automaatselt deployb kõik dependencies
-   ```
-
-###  Boonus:
-- Lisa health checks
-- Loo rollback strategy
-- Lisa automated backup role
-- Kasuta Ansible Tower/AWX
-
+```yaml
+# defaults/main.yml - Base configuration
 ---
+nginx_worker_processes: 2
+nginx_worker_connections: 1024
+nginx_log_level: "warn"
+nginx_access_log_enabled: true
+nginx_error_log_enabled: true
+nginx_gzip_enabled: true
+nginx_gzip_level: 6
 
-## Väljakutse 3: Dynamic Role Behavior
+# group_vars/development.yml
+---
+environment: "development"
+nginx_worker_processes: 1
+nginx_log_level: "debug"
+nginx_access_log_format: "combined"  # Verbose
+debug_mode: true
 
-
-### Mida õpid?
-- Environment-based logic
-- Template conditionals
-- Ansible facts advanced usage
-- Performance optimization
-
-### Ülesanne:
+# group_vars/production.yml
+---
+environment: "production"
+nginx_worker_processes: "{{ ansible_processor_vcpus }}"
+nginx_worker_connections: 4096
+nginx_log_level: "error"
+nginx_access_log_enabled: false  # Performance
+nginx_gzip_level: 9  # Max compression
+ssl_stapling: true
+ssl_session_cache: "shared:SSL:10m"
 ```
-# Loo nginx role, mis:
-# - Dev: debug mode, slow performance, detailed logging
-# - Staging: medium performance, moderate logging
-# - Prod: max performance, minimal logging, security hardened
-```
 
-### Sammud:
-1. **Loo environment detection:**
-   ```yaml
-# defaults/main.yml
-   environment: "{{ lookup('env', 'ENVIRONMENT') | default('dev') }}"
-   ```
+Template kasutab conditionals environment-specific käitumiseks:
 
-2. **Loo environment-specific configs:**
-   ```yaml
-# vars/dev.yml
-   nginx_worker_processes: 1
-   nginx_worker_connections: 512
-   nginx_log_level: debug
-   nginx_cache_enabled: false
-   
-# vars/prod.yml
-   nginx_worker_processes: auto
-   nginx_worker_connections: 4096
-   nginx_log_level: error
-   nginx_cache_enabled: true
-   nginx_ssl_enabled: true
-   ```
-
-3. **Kasuta dynamic templates:**
-   ```jinja2
+```jinja2
 # templates/nginx.conf.j2
-   worker_processes {{ nginx_worker_processes }};
-   
-   {% if nginx_ssl_enabled %}
-   ssl_protocols TLSv1.2 TLSv1.3;
-   ssl_ciphers HIGH:!aNULL:!MD5;
-   {% endif %}
-   
-   {% if environment == 'dev' %}
-# Development-specific settings
-   error_log /var/log/nginx/error.log debug;
-   {% else %}
-   error_log /var/log/nginx/error.log {{ nginx_log_level }};
-   {% endif %}
-   ```
+worker_processes {{ nginx_worker_processes }};
 
-4. **Test erinevates environment'ides:**
-   ```bash
-   ENVIRONMENT=dev ansible-playbook site.yml
-   ENVIRONMENT=prod ansible-playbook site.yml
-   ```
+events {
+    worker_connections {{ nginx_worker_connections }};
+}
 
-###  Boonus:
-- Lisa A/B testing support
-- Loo canary deployment
-- Lisa feature flags
-- Integreeri Consul service discovery'ga
+http {
+    {% if environment == 'development' %}
+    # Development-specific settings
+    error_log /var/log/nginx/error.log {{ nginx_log_level }};
+    access_log /var/log/nginx/access.log {{ nginx_access_log_format }};
+    {% else %}
+    # Production-optimized logging
+    error_log /var/log/nginx/error.log {{ nginx_log_level }};
+    {% if nginx_access_log_enabled %}
+    access_log /var/log/nginx/access.log;
+    {% else %}
+    access_log off;
+    {% endif %}
+    {% endif %}
+    
+    {% if environment == 'production' and ssl_stapling is defined %}
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    ssl_session_cache {{ ssl_session_cache }};
+    {% endif %}
+}
+```
 
----
+### 1.3 Harjutus: Environment-Aware Deployment
 
-## Väljakutse 4: Ansible Galaxy Publication
+Implementeerige kolme environment'i tugi oma nginx rollile: dev, staging, prod.
 
+**Nõuded:**
 
-### Mida õpid?
-- Ansible Galaxy best practices
-- Role documentation
-- Semantic versioning
-- Community contribution
+- [ ] Kolm inventory group'i: development, staging, production
+- [ ] Iga environment omab group_vars faili
+- [ ] Development: debug mode, üks worker, max logging
+- [ ] Staging: production-like config, medium logging
+- [ ] Production: auto-detect CPU, minimal logging, max performance
+- [ ] Playbook deploy'b õigesse environment'i ansible-playbook -i inventory/production site.yml
+- [ ] SSL on mandatory production'is, optional dev/staging'us
 
-### Sammud:
-1. **Valmista role ette publikatsiooniks:**
-   ```yaml
-# meta/main.yml - täida kõik väljad
-   galaxy_info:
-     author: your_name
-     description: Professional Nginx role with SSL and caching
-     license: MIT
-     min_ansible_version: 2.9
-     platforms:
-       - name: Ubuntu
-         versions:
-           - focal
-           - jammy
-     galaxy_tags:
-       - nginx
-       - webserver
-       - ssl
-   ```
+**Näpunäiteid:**
 
-2. **Kirjuta hea README:**
-   ```markdown
-# Ansible Role: nginx-pro
-   
-## Description
-   Professional-grade Nginx role...
-   
-## Requirements
-   - Ansible 2.9+
-   - Ubuntu 20.04+
-   
-## Role Variables
-   ...
-   
-## Example Playbook
-   ...
-   
-## License
-   MIT
-   ```
+- Kasutage assert moodulit valideerimaks et production environment omab SSL'i
+- Environment tuvastamiseks kasuta inventory_hostname või group_names
+- Template'is lisa {% if environment == 'production' %} blocks kriitiliste security seadete jaoks
+- Loo Makefile või wrapper script kergeks environment switch'imiseks
 
-3. **Lisa tests (Molecule):**
-   ```bash
-   pip install molecule molecule-docker
-   molecule init scenario
-   molecule test
-   ```
+**Testimine:**
 
-4. **Publish Galaxy'sse:**
-   ```bash
-   ansible-galaxy login
-   ansible-galaxy import your_github_username your_role_repo
-   ```
+```bash
+# Deploy development
+ansible-playbook -i inventory/development site.yml
+curl http://dev-server  # Should work
 
-###  Boonus:
-- Loo CI/CD pipeline (GitHub Actions)
-- Lisa automated testing erinevates OS'ides
-- Kirjuta contribution guidelines
-- Lisa badges README'sse (build status, downloads, rating)
+# Deploy production
+ansible-playbook -i inventory/production site.yml
+curl https://prod-server  # Should work with SSL
+curl http://prod-server   # Should redirect to HTTPS
+```
+
+**Boonus:**
+
+Lisa canary deployment tugi - võimalus deploy'da production environment'is ainult 10% serveritest, testida, siis rollout ülejäänutele. Kasuta serial parameter playbook'is ja custom inventory groups.
 
 ---
 
-## Väljakutse 5: Ansible Vault Integration
+## 3. Ansible Vault Integratsioon Rollidega
 
+### 3.1 Probleem
 
-### Mida õpid?
-- Vault best practices roles kontekstis
-- Encrypted variables in roles
-- Vault password strategies
-- Secret rotation
+Rollid sisaldavad tihti sensitiivset infot - SSL private key'sid, API token'eid, andmebaasi paroole. Neid ei tohi commit'ida Git repositoorysse plain text'ina. Aga kuidas jagada neid turvaliselt meeskonnaga? Kuidas deployment käivitada CI/CD pipeline'is ilma paroole käsitsi sisestamata?
 
-### Sammud:
-1. **Loo vault structure:**
-   ```bash
-# roles/nginx-secure/
-   ├── defaults/
-   │   └── main.yml          # Public defaults
-   ├── vars/
-   │   └── vault.yml         # Encrypted secrets
-   └── tasks/
-       └── main.yml
-   ```
+Mõned proovivad eraldi secrets management süsteeme (HashiCorp Vault, AWS Secrets Manager), mis lisab komplekssust. Teised hoiavad secrets'e väljaspool repositooryt, mis raskendab deployment'i. Ansible Vault pakub built-in lahendust.
 
-2. **Encrypt sensitive variables:**
-   ```bash
-   ansible-vault create roles/nginx-secure/vars/vault.yml
-   ```
-   
-   ```yaml
-# vars/vault.yml (encrypted)
-   vault_ssl_key: |
-     -----BEGIN PRIVATE KEY-----
-     ...
-     -----END PRIVATE KEY-----
-   vault_api_token: "super-secret-token"
-   vault_db_password: "very-secret-password"
-   ```
+### 3.2 Lahendus
 
-3. **Reference vault variables:**
-   ```yaml
-# defaults/main.yml (references)
-   ssl_private_key: "{{ vault_ssl_key }}"
-   api_token: "{{ vault_api_token }}"
-   db_password: "{{ vault_db_password }}"
-   ```
+Ansible Vault krüpteerib faile või üksikuid muutujaid AES256 krüpteerimisega. Vault'itud failid on turvalised commit'ida Git'i. Deployment'i ajal Ansible dekrüpteerib need vault password'iga.
 
-4. **Use in playbook:**
-   ```bash
-   ansible-playbook --ask-vault-pass site.yml
-# või
-   ansible-playbook --vault-password-file ~/.vault_pass site.yml
-   ```
+Rolli struktuuris loome eraldi vault.yml faili vars kaustas, krüpteerime selle, ja viitame krüpteeritud muutujatele defaults'ist.
 
-###  Boonus:
-- Kasuta multiple vault passwords (vault-id)
-- Integreeri HashiCorp Vault'iga
-- Loo automated secret rotation
-- Lisa vault rekey automation
+```bash
+# Loo vault fail
+cat > roles/nginx/vars/vault.yml << 'EOF'
+---
+vault_ssl_private_key: |
+  -----BEGIN PRIVATE KEY-----
+  MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC7...
+  -----END PRIVATE KEY-----
+
+vault_api_token: "sk-1234567890abcdef"
+vault_db_password: "super_secret_password_123"
+EOF
+
+# Krüpteeri
+ansible-vault encrypt roles/nginx/vars/vault.yml
+# Küsib vault password'i
+
+# Vault.yml on nüüd krüpteeritud
+cat roles/nginx/vars/vault.yml
+# $ANSIBLE_VAULT;1.1;AES256
+# 616234656...
+```
+
+Defaults viitab vault muutujatele:
+
+```yaml
+# defaults/main.yml
+---
+ssl_private_key: "{{ vault_ssl_private_key }}"
+api_token: "{{ vault_api_token }}"
+db_password: "{{ vault_db_password }}"
+```
+
+Tasks kasutab neid nagu tavalist muutujat:
+
+```yaml
+# tasks/ssl.yml
+---
+- name: "Deploy SSL private key"
+  copy:
+    content: "{{ ssl_private_key }}"
+    dest: /etc/ssl/private/nginx.key
+    mode: '0600'
+  no_log: true  # Ei logi sensitiivset sisu
+```
+
+Playbook käivitamine vault password'iga:
+
+```bash
+# Küsi interactively
+ansible-playbook site.yml --ask-vault-pass
+
+# Kasuta password file'i
+echo "my_vault_password" > .vault_pass
+chmod 600 .vault_pass
+ansible-playbook site.yml --vault-password-file .vault_pass
+
+# Kasuta environment variable'it
+export ANSIBLE_VAULT_PASSWORD_FILE=.vault_pass
+ansible-playbook site.yml
+```
+
+### 3.3 Harjutus: Secure Secrets Management
+
+Lisage oma nginx rollile Ansible Vault tugi SSL private key'de ja API token'ite jaoks.
+
+**Nõuded:**
+
+- [ ] Loo vars/vault.yml krüpteeritud failiga
+- [ ] Vault sisaldab SSL private key, API token, DB password
+- [ ] Defaults/main.yml viitab vault muutujatele
+- [ ] Tasks kasutavad no_log: true sensitiivsetele operatsioonidele
+- [ ] README dokumenteerib vault usage'i
+- [ ] .gitignore sisaldab .vault_pass
+- [ ] CI/CD pipeline kasutab encrypted vault password'i (GitHub Secrets)
+
+**Näpunäiteid:**
+
+- Hoia vault password .vault_pass failis lokaalseks arendusleks
+- CI/CD pipeline'is kasuta GitHub Secrets või GitLab CI Variables
+- ansible-vault edit vault.yml võimaldab muuta krüpteeritud faili
+- ansible-vault rekey vault.yml muudab vault password'i
+- Kaasluge ansible.cfg default vault_password_file path
+
+**Testimine:**
+
+```bash
+# Krüpteeri vault
+ansible-vault create roles/nginx/vars/vault.yml
+
+# Vaata krüpteeritud faili
+cat roles/nginx/vars/vault.yml
+# $ANSIBLE_VAULT;1.1;AES256...
+
+# Edit vault'i
+ansible-vault edit roles/nginx/vars/vault.yml
+
+# Deploy'i kasutades vault'i
+ansible-playbook site.yml --vault-password-file .vault_pass
+
+# Valideeri et secrets ei lokaalu
+ansible-playbook site.yml --vault-password-file .vault_pass -v
+# Check output ei näita private key sisu
+```
+
+**Boonus:**
+
+Implementeerige multiple vault passwords (vault-id feature). Erinev password development ja production secrets'te jaoks. Lisa automated secret rotation script, mis genereerib uued passwords, re-encrypt'ib vault'id, deploy'b muudatused.
 
 ---
 
-## Väljakutse 6: Performance Optimization
+## Kasulikud Ressursid
 
+**Dokumentatsioon:**
 
-### Mida õpid?
-- Ansible performance tuning
-- Parallel execution strategies
-- Fact caching
-- Playbook optimization
+- [Ansible Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html) - Ametlik guide role struktureerimiseks
+- [Ansible Vault](https://docs.ansible.com/ansible/latest/user_guide/vault.html) - Secrets management dokumentatsioon
+- [Galaxy Role Development](https://docs.ansible.com/ansible/latest/dev_guide/developing_galaxy.html) - Role'ide jagamine ja parimad praktikad
+- [Jinja2 Templates](https://jinja.palletsprojects.com/en/3.1.x/templates/) - Template süntaks ja filters
 
-### Tehnikad:
-1. **Strategy optimization:**
-   ```yaml
-# roles/fast-deploy/meta/main.yml
-   - hosts: webservers
-     strategy: free  # Don't wait for slowest host
-     gather_facts: false  # Skip if not needed
-   ```
+**Tööriistad:**
 
-2. **Fact caching:**
-   ```ini
-# ansible.cfg
-   [defaults]
-   gathering = smart
-   fact_caching = jsonfile
-   fact_caching_connection = /tmp/ansible_facts
-   fact_caching_timeout = 3600
-   ```
+- **Molecule** - Role testing framework: `pip install molecule molecule-docker`
+- **Ansible Lint** - Code quality checker: `pip install ansible-lint`
+- **Yamllint** - YAML syntax validator: `pip install yamllint`
+- **pre-commit** - Git hooks automated testing'uks: `pip install pre-commit`
 
-3. **Task optimization:**
-   ```yaml
-# Use async for long-running tasks
-   - name: Install packages
-     package:
-       name: "{{ item }}"
-     loop: "{{ packages }}"
-     async: 300
-     poll: 0
-     register: install_async
-   
-   - name: Wait for installation
-     async_status:
-       jid: "{{ item.ansible_job_id }}"
-     loop: "{{ install_async.results }}"
-     register: install_result
-     until: install_result.finished
-     retries: 30
-   ```
+**Näited:**
 
-4. **Pipelining:**
-   ```ini
-# ansible.cfg
-   [ssh_connection]
-   pipelining = True
-   ```
-
-###  Boonus:
-- Profile playbook execution (`ANSIBLE_PROFILE_TASKS=1`)
-- Use `mitogen` for faster execution
-- Implement connection pooling
-- Optimize template rendering
+- [Geerlingguy Roles](https://github.com/geerlingguy) - Jeff Geerling'i produktsioonitaseme rollid (nginx, postgresql, docker)
+- [Ansible for DevOps](https://www.ansiblefordevops.com/) - Jeff Geerling'i raamat praktiliste näidetega
+- [Ansible Galaxy](https://galaxy.ansible.com/) - Tuhandeid community rolle uurimiseks ja õppimiseks
 
 ---
 
-## Täiendavad ressursid
-
-### Dokumentatsioon:
-- [Ansible Galaxy Best Practices](https://docs.ansible.com/ansible/latest/dev_guide/developing_galaxy.html)
-- [Role Development Tips](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html)
-- [Ansible Performance Tuning](https://docs.ansible.com/ansible/latest/user_guide/playbooks_strategies.html)
-
-### Tööriistad:
-- **Molecule:** Role testing framework
-- **Ansible Lint:** Code quality checker
-- **Ansible Tower/AWX:** Enterprise automation platform
-
-### Community:
-- [Ansible Galaxy](https://galaxy.ansible.com/) - Browse existing roles
-- [Ansible GitHub](https://github.com/ansible) - Source code and examples
-- [r/ansible](https://reddit.com/r/ansible) - Community discussions
-
----
-
-## Näpunäited
-
-1. **Alusta lihtsast:** Ära ürita kõike korraga. Vali üks väljakutse ja keskendu sellele.
-2. **Testi, testi, testi:** Iga muudatus peaks olema testitud enne production'i.
-3. **Kasuta versioonikontrolli:** Iga role peaks olema Git repo's.
-4. **Dokumenteeri:** Hea README on pool võitu.
-5. **Õpi teistelt:** Vaata populaarseid Galaxy rolle ja õpi nende struktuurist.
-
----
-
-**Edu ja head automatiseerimist!** 
-
+Need harjutused on mõeldud süvendama teie Ansible rollide oskusi. Alustage esimesest ja liikuge järk-järgult keerulisemate poole.

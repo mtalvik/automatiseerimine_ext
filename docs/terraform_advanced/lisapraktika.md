@@ -1,186 +1,177 @@
 # Terraform Edasijõudnud Lisapraktika
 
-Täiendavad ülesanded Terraform'i enterprise patterns'i õppimiseks.
+Need harjutused on valikulised ja mõeldud neile, kes soovivad süvendada oma Terraform oskusi pärast põhilabori ja kodutöö tegemist.
 
-**Eeldused:** Põhilabor läbitud, Terraform resources/variables/state selged
-
----
-
-## Enne alustamist
-
-Need ülesanded on valikulised ja mõeldud neile, kes:
-
-- Lõpetasid põhilabori ära
-- Mõistavad Terraform põhitõdesid (resources, variables, state)
-- Tahavad õppida advanced Terraform patterns
-- Valmistuvad päris cloud infrastructure haldamiseks
-
-** OLULINE:** Need harjutused kasutavad päris pilve (AWS/Azure). **Ära unusta `terraform destroy`!**
+**Eeldused:** Labor ja kodutöö lõpetatud, vähemalt 1 päeva paus ja reflektsioon vahepeal
 
 ---
 
-## Väljakutse 1: Terraform Modules Library
+## 1. Workspaces ja Keskkondade Haldamine
 
+### 1.1 Probleem
 
-### Mida õpid?
-- Module design patterns
-- Input/output variables
-- Module composition
-- Versioning
+Pärast kodutöö tegemist on teil üks keskkond. Aga päris elus on vaja mitut: development (katsetamiseks), staging (testimiseks) ja production (tõeline kasutamine). Kui loote iga keskkonna jaoks eraldi Terraform projekti, muutub kood duplikaadiks ja maintainance korraks.
 
-### Projekt struktuur:
-```
-terraform-modules/
-├── modules/
-│   ├── vpc/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   ├── outputs.tf
-│   │   └── README.md
-│   ├── ec2-instance/
-│   ├── rds-postgres/
-│   └── s3-bucket/
-└── examples/
-    ├── simple-vpc/
-    └── full-stack/
-```
+### 1.2 Lahendus
 
-### VPC Module näide:
+Terraform workspaces võimaldavad sama koodi kasutada mitme eraldatud keskkonna loomiseks. Iga workspace'il on oma state fail, seega ressursid ei kattu.
+
 ```hcl
-# modules/vpc/main.tf
-resource "aws_vpc" "main" {
-  cidr_block           = var.cidr_block
-  enable_dns_hostnames = var.enable_dns_hostnames
-  enable_dns_support   = var.enable_dns_support
+# variables.tf lisage:
+variable "environment_config" {
+  description = "Configuration per environment"
+  type = map(object({
+    instance_type = string
+    instance_count = number
+    enable_monitoring = bool
+  }))
+  
+  default = {
+    development = {
+      instance_type     = "t2.micro"
+      instance_count    = 1
+      enable_monitoring = false
+    }
+    staging = {
+      instance_type     = "t2.small"
+      instance_count    = 1
+      enable_monitoring = true
+    }
+    production = {
+      instance_type     = "t2.medium"
+      instance_count    = 2
+      enable_monitoring = true
+    }
+  }
+}
 
+# main.tf-is kasutage:
+locals {
+  env_config = var.environment_config[terraform.workspace]
+  
+  common_tags = {
+    Environment = terraform.workspace
+    ManagedBy   = "Terraform"
+    Project     = var.project_name
+  }
+}
+
+resource "aws_instance" "app" {
+  count = local.env_config.instance_count
+  
+  ami           = data.aws_ami.amazon_linux_2023.id
+  instance_type = local.env_config.instance_type
+  
   tags = merge(
-    var.tags,
+    local.common_tags,
     {
-      Name = var.name
+      Name = "${var.project_name}-app-${count.index + 1}"
     }
   )
 }
 
-resource "aws_subnet" "public" {
-  count             = length(var.public_subnet_cidrs)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.public_subnet_cidrs[count.index]
-  availability_zone = var.availability_zones[count.index]
-
-  tags = merge(
-    var.tags,
-    {
-      Name = "${var.name}-public-${count.index + 1}"
-      Type = "public"
-    }
-  )
-}
-
-# modules/vpc/variables.tf
-variable "name" {
-  description = "Name prefix for VPC resources"
-  type        = string
-}
-
-variable "cidr_block" {
-  description = "CIDR block for VPC"
-  type        = string
-  validation {
-    condition     = can(cidrhost(var.cidr_block, 0))
-    error_message = "Must be valid IPv4 CIDR."
+# Monitoring ainult kui lubatud
+resource "aws_cloudwatch_metric_alarm" "cpu" {
+  count = local.env_config.enable_monitoring ? local.env_config.instance_count : 0
+  
+  alarm_name          = "${var.project_name}-cpu-${count.index}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "80"
+  
+  dimensions = {
+    InstanceId = aws_instance.app[count.index].id
   }
-}
-
-variable "public_subnet_cidrs" {
-  description = "List of public subnet CIDRs"
-  type        = list(string)
-  default     = []
-}
-
-# modules/vpc/outputs.tf
-output "vpc_id" {
-  description = "ID of the VPC"
-  value       = aws_vpc.main.id
-}
-
-output "public_subnet_ids" {
-  description = "IDs of public subnets"
-  value       = aws_subnet.public[*].id
 }
 ```
 
-### Module kasutamine:
-```hcl
-# examples/simple-vpc/main.tf
-module "vpc" {
-  source = "../../modules/vpc"
+### 1.3 Harjutus: Multi-Environment Deployment
 
-  name       = "my-app"
-  cidr_block = "10.0.0.0/16"
-  
-  public_subnet_cidrs = [
-    "10.0.1.0/24",
-    "10.0.2.0/24"
-  ]
-  
-  availability_zones = [
-    "us-east-1a",
-    "us-east-1b"
-  ]
+Võtke oma kodutöö projekt ja tehke sellest multi-environment:
 
-  tags = {
-    Environment = "dev"
-    Project     = "myapp"
-  }
-}
+**Nõuded:**
+- [ ] Looge 3 workspace'i: `dev`, `staging`, `prod`
+- [ ] Iga keskkond kasutab erinevat instance type'i (vaata configist ülalpool)
+- [ ] Production on 2 instance'iga, teised 1'ga
+- [ ] Ainult staging ja prod-il on CloudWatch alarms
+- [ ] Kõik ressursid on taggeditud keskkonnaga
+- [ ] VPC CIDR on erinev igale keskkonnale (dev: 10.0.x.x, staging: 10.1.x.x, prod: 10.2.x.x)
 
-output "vpc_id" {
-  value = module.vpc.vpc_id
-}
+**Näpunäiteid:**
+- Alustage workspace'ide loomisega: `terraform workspace new dev`
+- Kasutage `terraform.workspace` muutujat CIDR valiku jaoks
+- Kui workspace on "dev", kasutage 10.0.0.0/16, kui "staging", siis 10.1.0.0/16 jne
+- Testige iga workspace'i eraldi: `terraform workspace select dev && terraform apply`
+
+**Testimine:**
+```bash
+# Dev keskkond
+terraform workspace select dev
+terraform apply
+terraform output
+
+# Staging keskkond
+terraform workspace select staging
+terraform apply
+terraform output
+
+# Vaadake AWS konsoolist, et mõlemad eraldatud
 ```
 
-###  Boonus:
-- Publish modules to Terraform Registry
-- Loo automated module testing (Terratest)
-- Lisa module versioning (Git tags)
-- Loo module documentation generator
+**Boonus:**
+- Lisage workspace-põhine DNS naming
+- Kasutage erinevaid availability zone'e eri keskkondades
+- Looge workspace-spetsiifilised S3 bucket'id
 
 ---
 
-## Väljakutse 2: Remote State Management
+## 2. Remote State ja Team Collaboration
 
+### 2.1 Probleem
 
-### Mida õpid?
-- Remote backends (S3, Azure Blob)
-- State locking
-- State collaboration
-- State migration
+Praegu on teie state fail arvutis. Kui töökolleeg tahab same projekti kallal tööd teha, ei tea ta, mis ressursid juba eksisteerivad. Kui mõlemad jooksutavad `terraform apply` samaaegselt, võib state korruptsiooni tekkida.
 
-### S3 Backend setup:
+### 2.2 Lahendus
+
+Remote state S3'is koos DynamoDB lockinguga lahendab need probleemid.
+
 ```hcl
-# backend.tf
+# 1. Looge S3 bucket ja DynamoDB tabel (tehke see eraldi projektina!)
+# s3-backend/main.tf
 terraform {
-  backend "s3" {
-    bucket         = "myapp-terraform-state"
-    key            = "prod/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "terraform-state-lock"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
   }
 }
 
-# Create S3 bucket for state
-resource "aws_s3_bucket" "terraform_state" {
-  bucket = "myapp-terraform-state"
+provider "aws" {
+  region = "eu-west-1"
+}
 
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "minu-terraform-state-${random_string.suffix.result}"
+  
   lifecycle {
     prevent_destroy = true
   }
 }
 
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
 resource "aws_s3_bucket_versioning" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
-
+  
   versioning_configuration {
     status = "Enabled"
   }
@@ -188,7 +179,7 @@ resource "aws_s3_bucket_versioning" "terraform_state" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
-
+  
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
@@ -196,452 +187,312 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" 
   }
 }
 
-# DynamoDB for state locking
+resource "aws_s3_bucket_public_access_block" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+  
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 resource "aws_dynamodb_table" "terraform_locks" {
-  name         = "terraform-state-lock"
+  name         = "terraform-state-locks"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
-
+  
   attribute {
     name = "LockID"
     type = "S"
   }
 }
+
+output "bucket_name" {
+  value = aws_s3_bucket.terraform_state.bucket
+}
+
+output "dynamodb_table" {
+  value = aws_dynamodb_table.terraform_locks.name
+}
+
+# 2. Nüüd oma põhiprojektis kasutage seda
+# backend.tf põhiprojektis
+terraform {
+  backend "s3" {
+    bucket         = "minu-terraform-state-abc12345"  # Asendage oma bucket'iga!
+    key            = "myproject/terraform.tfstate"
+    region         = "eu-west-1"
+    encrypt        = true
+    dynamodb_table = "terraform-state-locks"
+  }
+}
 ```
 
-### State operations:
+### 1.3 Harjutus: Shared State Setup
+
+Seadistage remote state ja testige locking'ut.
+
+**Nõuded:**
+- [ ] Looge S3 bucket state'i jaoks (krüpteeritud!)
+- [ ] Looge DynamoDB tabel locking'u jaoks
+- [ ] Migreerige lokaalne state S3'i
+- [ ] Testige, et kaks terminali ei saa samaaegselt apply'da
+- [ ] Enable state versioning S3'is
+- [ ] Lisage .gitignore, et state fails ei läheks Giti
+
+**Näpunäiteid:**
+- Alustage eraldi projektiga S3 + DynamoDB loomiseks
+- Salvestage bucket nimi ja DynamoDB tabeli nimi
+- Lisage backend konfiguratsioon põhiprojekti
+- Käivitage `terraform init -migrate-state`
+- Lokaalne state fail jääb alles backup'ina - ärge kustutage kohe
+
+**Testimine:**
 ```bash
-# Initialize with backend
-terraform init
+# Terminalis 1
+terraform plan
+# Hoidke plani oodates...
 
-# View current state
-terraform state list
-
-# Show specific resource
-terraform state show aws_instance.web
-
-# Move resource
-terraform state mv aws_instance.web aws_instance.app
-
-# Remove from state (but don't destroy)
-terraform state rm aws_instance.old
-
-# Import existing resource
-terraform import aws_instance.web i-1234567890abcdef0
-
-# Pull remote state
-terraform state pull > terraform.tfstate.backup
-
-# Push local state to remote
-terraform state push terraform.tfstate
+# Terminalis 2 (sama kataloog)
+terraform plan
+# Peaks nägema: "Error locking state: state currently locked..."
 ```
 
-###  Boonus:
-- Loo automated state backup
-- Implementeeri state file encryption
-- Lisa state access logging
-- Loo state disaster recovery plan
+**Boonus:**
+- Kasutage erinevaid S3 key'sid erinevate workspace'ide jaoks
+- Lisage lifecycle policy S3 state versioning'u jaoks (hoia 30 päeva)
+- Looge IAM policy, mis lubab ainult read-only ligipääsu production state'ile
 
 ---
 
-## Väljakutse 3: Dynamic Infrastructure
+## 3. Terraform Modules ja Taaskasutatavus
 
+### 3.1 Probleem
 
-### Mida õpid?
-- `for_each` vs `count`
-- Dynamic blocks
-- Conditional resources
-- Data sources
+Teie kodutöö kood töötab, aga on spetsiifiline ühele projektile. Kui peaksite looma teise projekti sama VPC struktuuri-ga, peaksite kogu koodi kopeerima ja muutma. See on DRY (Don't Repeat Yourself) printsiibi rikkumine.
 
-### Dynamic blocks näide:
+### 3.2 Lahendus
+
+Terraform modules võimaldavad luua taaskasutatavaid infrastruktuuri komponente.
+
+```
+terraform-modules/
+├── modules/
+│   └── aws-vpc/
+│       ├── main.tf
+│       ├── variables.tf
+│       ├── outputs.tf
+│       └── README.md
+└── projects/
+    ├── project-a/
+    │   └── main.tf
+    └── project-b/
+        └── main.tf
+```
+
+Module näide:
+
 ```hcl
-# Dynamic security group rules
-variable "ingress_rules" {
-  type = list(object({
-    from_port   = number
-    to_port     = number
-    protocol    = string
-    cidr_blocks = list(string)
-    description = string
-  }))
-  default = [
+# modules/aws-vpc/variables.tf
+variable "project_name" {
+  description = "Project name for resource naming"
+  type        = string
+}
+
+variable "cidr_block" {
+  description = "VPC CIDR block"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "public_subnets" {
+  description = "List of public subnet CIDR blocks"
+  type        = list(string)
+}
+
+variable "availability_zones" {
+  description = "List of availability zones"
+  type        = list(string)
+}
+
+variable "tags" {
+  description = "Additional tags"
+  type        = map(string)
+  default     = {}
+}
+
+# modules/aws-vpc/main.tf
+resource "aws_vpc" "main" {
+  cidr_block           = var.cidr_block
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  
+  tags = merge(
     {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "HTTP"
+      Name = "${var.project_name}-vpc"
     },
-    {
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "HTTPS"
-    }
-  ]
-}
-
-resource "aws_security_group" "web" {
-  name   = "web-sg"
-  vpc_id = aws_vpc.main.id
-
-  dynamic "ingress" {
-    for_each = var.ingress_rules
-    content {
-      from_port   = ingress.value.from_port
-      to_port     = ingress.value.to_port
-      protocol    = ingress.value.protocol
-      cidr_blocks = ingress.value.cidr_blocks
-      description = ingress.value.description
-    }
-  }
-}
-
-# for_each with maps
-variable "instances" {
-  type = map(object({
-    instance_type = string
-    ami           = string
-    subnet_id     = string
-  }))
-  default = {
-    web = {
-      instance_type = "t3.micro"
-      ami           = "ami-12345678"
-      subnet_id     = "subnet-abc123"
-    }
-    api = {
-      instance_type = "t3.small"
-      ami           = "ami-12345678"
-      subnet_id     = "subnet-abc123"
-    }
-  }
-}
-
-resource "aws_instance" "app" {
-  for_each = var.instances
-
-  ami           = each.value.ami
-  instance_type = each.value.instance_type
-  subnet_id     = each.value.subnet_id
-
-  tags = {
-    Name = each.key
-  }
-}
-
-# Conditional resources
-variable "enable_monitoring" {
-  type    = bool
-  default = false
-}
-
-resource "aws_cloudwatch_dashboard" "main" {
-  count = var.enable_monitoring ? 1 : 0
-
-  dashboard_name = "my-dashboard"
-  dashboard_body = jsonencode({
-    widgets = []
-  })
-}
-```
-
-###  Boonus:
-- Loo environment-specific resources
-- Implementeeri feature flags
-- Lisa cost optimization conditionals
-- Loo self-documenting infrastructure
-
----
-
-## Väljakutse 4: Testing ja Validation
-
-
-### Mida õpid?
-- Terratest
-- Pre-commit hooks
-- Policy as code (OPA/Sentinel)
-- Cost estimation
-
-### Terratest näide (Go):
-```go
-// test/vpc_test.go
-package test
-
-import (
-	"testing"
-	"github.com/gruntwork-io/terratest/modules/terraform"
-	"github.com/stretchr/testify/assert"
-)
-
-func TestVPCModule(t *testing.T) {
-	t.Parallel()
-
-	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		TerraformDir: "../examples/simple-vpc",
-		Vars: map[string]interface{}{
-			"name":       "test-vpc",
-			"cidr_block": "10.0.0.0/16",
-		},
-	})
-
-	defer terraform.Destroy(t, terraformOptions)
-
-	terraform.InitAndApply(t, terraformOptions)
-
-	vpcID := terraform.Output(t, terraformOptions, "vpc_id")
-	assert.NotEmpty(t, vpcID)
-}
-```
-
-### Pre-commit hooks (.pre-commit-config.yaml):
-```yaml
-repos:
-  - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.83.0
-    hooks:
-      - id: terraform_fmt
-      - id: terraform_validate
-      - id: terraform_docs
-      - id: terraform_tflint
-      - id: terraform_tfsec
-      - id: terraform_checkov
-```
-
-### OPA Policy näide:
-```rego
-# policy/require_tags.rego
-package terraform.required_tags
-
-import input as tfplan
-
-required_tags = ["Environment", "Project", "Owner"]
-
-deny[msg] {
-  resource := tfplan.resource_changes[_]
-  resource.type == "aws_instance"
-  
-  tags := object.get(resource.change.after, "tags", {})
-  missing_tags := {tag | tag := required_tags[_]; not tags[tag]}
-  
-  count(missing_tags) > 0
-  
-  msg := sprintf(
-    "Instance %s is missing required tags: %v",
-    [resource.address, missing_tags]
+    var.tags
   )
 }
-```
 
-### Infracost integration:
-```yaml
-# .gitlab-ci.yml
-cost_estimate:
-  stage: plan
-  script:
-    - terraform init
-    - terraform plan -out=plan.cache
-    - terraform show -json plan.cache > plan.json
-    - infracost breakdown --path plan.json
-    - infracost diff --path plan.json --compare-to latest
-```
-
-###  Boonus:
-- Loo automated security scanning
-- Lisa compliance checking (CIS benchmarks)
-- Implementeeri drift detection
-- Loo cost budget alerts
-
----
-
-## Väljakutse 5: Multi-Cloud Deployment
-
-
-### Mida õpid?
-- Multi-cloud strategies
-- Provider abstraction
-- Cross-cloud resources
-- Disaster recovery
-
-### Multi-provider setup:
-```hcl
-# providers.tf
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = var.aws_region
-}
-
-provider "azurerm" {
-  features {}
-}
-
-# main.tf
-variable "cloud_provider" {
-  type    = string
-  default = "aws"
+resource "aws_subnet" "public" {
+  count = length(var.public_subnets)
   
-  validation {
-    condition     = contains(["aws", "azure", "both"], var.cloud_provider)
-    error_message = "Must be 'aws', 'azure', or 'both'"
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnets[count.index]
+  availability_zone       = var.availability_zones[count.index]
+  map_public_ip_on_launch = true
+  
+  tags = merge(
+    {
+      Name = "${var.project_name}-public-${count.index + 1}"
+      Type = "public"
+    },
+    var.tags
+  )
+}
+
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+  
+  tags = merge(
+    {
+      Name = "${var.project_name}-igw"
+    },
+    var.tags
+  )
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+  
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+  
+  tags = merge(
+    {
+      Name = "${var.project_name}-public-rt"
+    },
+    var.tags
+  )
+}
+
+resource "aws_route_table_association" "public" {
+  count = length(aws_subnet.public)
+  
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
+# modules/aws-vpc/outputs.tf
+output "vpc_id" {
+  description = "ID of the VPC"
+  value       = aws_vpc.main.id
+}
+
+output "vpc_cidr" {
+  description = "CIDR block of the VPC"
+  value       = aws_vpc.main.cidr_block
+}
+
+output "public_subnet_ids" {
+  description = "IDs of public subnets"
+  value       = aws_subnet.public[*].id
+}
+
+output "internet_gateway_id" {
+  description = "ID of the Internet Gateway"
+  value       = aws_internet_gateway.main.id
+}
+
+# Projekts kasutab module'it
+# projects/project-a/main.tf
+module "vpc" {
+  source = "../../modules/aws-vpc"
+  
+  project_name       = "my-app"
+  cidr_block         = "10.0.0.0/16"
+  public_subnets     = ["10.0.1.0/24", "10.0.2.0/24"]
+  availability_zones = ["eu-west-1a", "eu-west-1b"]
+  
+  tags = {
+    Environment = "production"
+    Team        = "platform"
   }
 }
 
-# AWS resources
-resource "aws_instance" "app" {
-  count = var.cloud_provider == "aws" || var.cloud_provider == "both" ? 1 : 0
-
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
-}
-
-# Azure resources
-resource "azurerm_linux_virtual_machine" "app" {
-  count = var.cloud_provider == "azure" || var.cloud_provider == "both" ? 1 : 0
-
-  name                = "app-vm"
-  resource_group_name = azurerm_resource_group.main[0].name
-  location            = azurerm_resource_group.main[0].location
-  size                = "Standard_B1s"
-
-  admin_username = "adminuser"
-
-  network_interface_ids = [
-    azurerm_network_interface.main[0].id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
-}
-```
-
-###  Boonus:
-- Loo abstraction layer modules
-- Implementeeri cross-cloud networking (VPN)
-- Lisa multi-cloud monitoring
-- Loo failover strategy
-
----
-
-## Väljakutse 6: Terraform Cloud/Enterprise
-
-
-### Mida õpid?
-- Terraform Cloud workspaces
-- Remote execution
-- Private registry
-- Team collaboration
-
-### Terraform Cloud setup:
-```hcl
-# backend.tf
-terraform {
-  cloud {
-    organization = "myorg"
-    
-    workspaces {
-      tags = ["app:myapp", "env:prod"]
-    }
-  }
-}
-
-# Workspace variables via API
-resource "tfe_workspace" "myapp_prod" {
-  name         = "myapp-prod"
-  organization = "myorg"
-
-  vcs_repo {
-    identifier     = "myorg/myapp-infrastructure"
-    oauth_token_id = var.oauth_token_id
-  }
-
-  auto_apply = false  # Manual approval for prod
-}
-
-resource "tfe_variable" "database_url" {
-  key          = "database_url"
-  value        = "postgres://..."
-  category     = "terraform"
-  workspace_id = tfe_workspace.myapp_prod.id
-  sensitive    = true
-}
-```
-
-### Sentinel Policy:
-```hcl
-# policies/enforce-instance-types.sentinel
-import "tfplan/v2" as tfplan
-
-allowed_types = ["t3.micro", "t3.small", "t3.medium"]
-
-main = rule {
-  all tfplan.resource_changes as _, rc {
-    rc.type is "aws_instance" implies
-      rc.change.after.instance_type in allowed_types
+# Kasutage module outpute
+resource "aws_instance" "web" {
+  ami           = "ami-0d71ea30463e0ff8d"
+  instance_type = "t2.micro"
+  subnet_id     = module.vpc.public_subnet_ids[0]  # Esimene subnet
+  
+  tags = {
+    Name = "web-server"
   }
 }
 ```
 
-###  Boonus:
-- Loo private module registry
-- Implementeeri policy sets
-- Lisa cost estimation policies
-- Loo team-based access controls
+### 3.3 Harjutus: VPC Module Creation
+
+Looge taaskasutatav VPC module ja kasutage seda kahes erinevas projektis.
+
+**Nõuded:**
+- [ ] Module struktuur: `modules/aws-vpc/` koos `main.tf`, `variables.tf`, `outputs.tf`
+- [ ] Module loob VPC, subnet'id, IGW, route table'id
+- [ ] Module on parameetritega konfigureeritav (CIDR, subnet count, AZ'id)
+- [ ] Looge 2 eraldatud projekti, mis kasutavad sama module'it
+- [ ] Ühes projektis on 2 public subnet'i, teises 3
+- [ ] Module README.md dokumentatsiooniga
+
+**Näpunäiteid:**
+- Alustage module failide loomisega eraldi kataloogis
+- Testige module'it kõigepealt ühes projektis
+- Lisage validation variable'itele (näiteks CIDR must be valid)
+- Kasutage `count` või `for_each` subnet'ide loomiseks
+- Dokumenteerige inputs, outputs ja kasutamisnäide README'sse
+
+**Testimine:**
+```bash
+# Projekt A
+cd projects/project-a
+terraform init
+terraform apply
+
+# Projekt B
+cd ../project-b
+terraform init
+terraform apply
+
+# Kontrollige AWS konsoolist, et mõlemad VPC'd eksisteerivad
+```
+
+**Boonus:**
+- Lisa module'ile private subnet'ide tugi koos NAT Gateway'ga
+- Versiooni module (kasutades Git tag'e)
+- Publish module Terraform Registry'sse (public või private)
+- Lisa automated testing module'ile (Terratest või kitchen-terraform)
 
 ---
 
-## Täiendavad ressursid
+## Kasulikud Ressursid
 
-### Dokumentatsioon:
-- [Terraform Docs](https://www.terraform.io/docs)
-- [Terraform Registry](https://registry.terraform.io/)
-- [Terraform Cloud](https://www.terraform.io/cloud)
-- [Terratest](https://terratest.gruntwork.io/)
+**Dokumentatsioon:**
+- [Terraform Workspaces](https://developer.hashicorp.com/terraform/language/state/workspaces)
+- [Terraform Backend Configuration](https://developer.hashicorp.com/terraform/language/settings/backends/s3)
+- [Terraform Modules](https://developer.hashicorp.com/terraform/language/modules)
 
-### Tööriistad:
-- **terraform-docs:** Generate documentation
-- **tflint:** Linter for Terraform
-- **tfsec:** Security scanner
-- **checkov:** Policy as code scanner
-- **Infracost:** Cost estimation
+**Tööriistad:**
+- **terraform-docs** - Generate module documentation: `brew install terraform-docs`
+- **tflint** - Linter for Terraform: `brew install tflint`
+- **tfsec** - Security scanner: `brew install tfsec`
 
-### Näited:
-- [Gruntwork Infrastructure Library](https://gruntwork.io/)
-- [Terraform AWS Modules](https://github.com/terraform-aws-modules)
-- [Azure Verified Modules](https://aka.ms/avm)
+**Näited:**
+- [AWS VPC Terraform Module](https://github.com/terraform-aws-modules/terraform-aws-vpc)
+- [Gruntwork Infrastructure Library](https://gruntwork.io/infrastructure-as-code-library/)
 
 ---
 
-## Näpunäited
-
-1. ** ALWAYS destroy resources:** `terraform destroy` pärast testing'u!
-2. **Use version constraints:** Pin provider versions production'is
-3. **Never commit secrets:** Kasuta variables ja secrets management
-4. **Test changes:** Alati `terraform plan` enne `apply`
-5. **Document modules:** Hea README on pool võitu
-
----
-
-**Edu ja head IaC'itamist!** 
-
+Need harjutused on mõeldud süvendama teie Terraform oskusi. Alustage esimesest ja liikuge järk-järgult keerulisemate poole.

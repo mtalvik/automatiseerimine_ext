@@ -1,238 +1,537 @@
-# Git Kodutöö: Minu Git Portfolio
+# Git Kodutöö: Isiklik Projekt Repositoorium
 
-**Tähtaeg:** Järgmise nädala algus  
+See kodutöö võtab umbes 1.5-2 tundi ja nõuab labori ajal õpitud Git oskuste rakendamist väikeses projektis. Loote GitHub repositooriumi ja rakendate põhilist Git workflow'i.
 
----
-
-## Mis sa teed?
-
-Loo GitHubis oma avalik repositoorium nimega `git-portfolio` (või muu nimi, mis sulle meeldib). See on nagu sinu CV, aga koodis – näita, et oskad Git'i kasutada nagu proff! 
+**Eeldused:** Git Labor läbitud, GitHub konto olemas, SSH seadistatud  
+**Esitamine:** GitHub repositooriumi URL e-posti või Moodle kaudu  
+**Tähtaeg:** Nädal pärast laborit
 
 ---
 
-##  Samm-sammult juhend
+## 1. Ülesande Kirjeldus
 
-### Osa 1: Ettevalmistus (0–15 min)
+Loote avaliku GitHub repositooriumi, mis sisaldab väikest projekti või skriptide kogumit. See ei pea olema keeruline - fookus on Git'i õigel kasutamisel, mitte programmeerimise keerukusel.
 
-1. **Loo GitHubis uus avalik repositoorium:**
-   - Nimi: `git-portfolio` (või `minu-esimene-git-projekt`)
-   - Avalik (public)
-   - Lisa **README.md** kohe (linnuke)
-   - Lisa **.gitignore** (vali Python, Node, või muu, mis sobib)
-   - Lisa **MIT License** (linnuke)
+Minimaalse nõuded:
+- Avalik GitHub repositoorium
+- Vähemalt 5 tähenduslikku commit'i
+- README.md koos projekti kirjelduse ja refleksiooniga
+- .gitignore fail
+- Vähemalt 3 erinevat faili projektis
 
-2. **Klooni oma arvutisse:**
-   ```bash
-   git clone https://github.com/SINU-KASUTAJANIMI/git-portfolio.git
-   cd git-portfolio
-   ```
-
-3. **Kontrolli, et töötab:**
-   ```bash
-   git status
-   git log --oneline
-   ```
+Valige üks projektitüüp allpool või pakkuge välja oma idee (lihtne variant).
 
 ---
 
-### Osa 2: Projekt ja commit'id (15–60 min)
+## 2. Repositooriumi Loomine
 
-**Vali üks projektitüüp:**
+### 2.1 GitHub Setup
 
-**Variant A: Python kalkulaator**
-- `calculator.py` – lihtne kalkulaator (add, subtract, multiply, divide)
-- `README.md` – kuidas kasutada
-- `.gitignore` – ignoreeri `*.pyc`, `__pycache__/`
+Logige GitHub'i ja looge uus repositoorium:
 
-**Variant B: HTML/CSS veebileht**
-- `index.html` – lihtne portfolio leht
-- `style.css` – disain
-- `README.md` – kuidas avada
-- `.gitignore` – ignoreeri `.DS_Store`, `Thumbs.db`
+- Nimi: `git-homework` või kirjeldav nimi
+- Kirjeldus: Lühike kokkuvõte
+- **Public** (avalik)
+- EI lisa README ega .gitignore (loote ise)
+- Lisa MIT License
 
-**Variant C: Bash/Python skriptid**
-- `backup.sh` või `backup.py` – faili varukoopia skript
-- `cleanup.sh` või `cleanup.py` – temp failide puhastus
-- `README.md` – kuidas kasutada
-- `.gitignore` – ignoreeri `*.log`, `*.tmp`
+### 2.2 Kloonimine ja Initsiaalseadistamine
 
-**Vaba variant:** Tee midagi enda huvitavat! (väike mäng, script, veebileht, jne)
-
----
-
-**Tee vähemalt 5 commit'i:**
-
-Näited headest commit-sõnumitest:
 ```bash
+git clone git@github.com:TEIE-KASUTAJANIMI/git-homework.git
+cd git-homework
+```
+
+Kontrollige:
+
+```bash
+git status
+git remote -v
+```
+
+---
+
+## 3. Projekti Valik
+
+Valige ÜKS järgnevatest. Ärge üle keeruliseks tehke - fookus on Git'il, mitte koodil.
+
+### Variant A: Python Kalkulaator (Lihtne)
+
+Looge 2 faili:
+
+**calculator.py:**
+```python
+def add(a, b):
+    """Liida kaks arvu."""
+    return a + b
+
+def subtract(a, b):
+    """Lahuta."""
+    return a - b
+
+def multiply(a, b):
+    """Korruta."""
+    return a * b
+
+def divide(a, b):
+    """Jaga."""
+    if b == 0:
+        return "Error: jagamine nulliga"
+    return a / b
+
+if __name__ == "__main__":
+    print("2 + 3 =", add(2, 3))
+    print("5 - 2 =", subtract(5, 2))
+    print("4 * 3 =", multiply(4, 3))
+    print("10 / 2 =", divide(10, 2))
+```
+
+**.gitignore:**
+```
+__pycache__/
+*.pyc
+.vscode/
+.DS_Store
+```
+
+### Variant B: HTML Lihtne Leht
+
+Looge 3 faili:
+
+**index.html:**
+```html
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <title>Minu Leht</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Tere! Mina olen [Sinu Nimi]</h1>
+    <p>See on minu Git kodutöö projekt.</p>
+    
+    <h2>Oskused</h2>
+    <ul>
+        <li>Git ja GitHub</li>
+        <li>HTML/CSS põhitõed</li>
+    </ul>
+</body>
+</html>
+```
+
+**style.css:**
+```css
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: #333;
+}
+
+ul {
+    list-style-type: square;
+}
+```
+
+**.gitignore:**
+```
+.DS_Store
+Thumbs.db
+.vscode/
+```
+
+### Variant C: Bash Skriptid
+
+Looge 2 skripti:
+
+**backup.sh:**
+```bash
+#!/bin/bash
+# Lihtne varundusskript
+
+SOURCE_DIR="${1:-.}"
+BACKUP_DIR="./backups"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+mkdir -p "$BACKUP_DIR"
+tar -czf "$BACKUP_DIR/backup_$DATE.tar.gz" "$SOURCE_DIR"
+
+echo "Backup created: $BACKUP_DIR/backup_$DATE.tar.gz"
+```
+
+**cleanup.sh:**
+```bash
+#!/bin/bash
+# Puhasta ajutised failid
+
+echo "Cleaning temporary files..."
+find . -name "*.log" -delete
+find . -name "*.tmp" -delete
+echo "Cleanup complete!"
+```
+
+**.gitignore:**
+```
+*.log
+*.tmp
+backups/
+.DS_Store
+```
+
+Tee skriptid käivitatavaks:
+```bash
+chmod +x backup.sh cleanup.sh
+```
+
+---
+
+## 4. Git Workflow - 5 Commit'i
+
+Tehke vähemalt 5 commit'i järgmises stiilis. Iga commit teeb ÜHE loogilise asja.
+
+### Commit 1: Algstruktuur
+
+```bash
+touch README.md
 git add README.md
-git commit -m "Lisa README projekti kirjeldusega"
+git commit -m "Initial commit: create README"
+git push origin main
+```
 
-git add calculator.py
-git commit -m "Lisa põhilised matemaatilised funktsioonid (add, subtract)"
+### Commit 2: Lisa .gitignore
 
-git add calculator.py
-git commit -m "Lisa multiply ja divide funktsioonid"
-
+```bash
+# Loo .gitignore fail (vali variant projektile)
 git add .gitignore
-git commit -m "Lisa .gitignore Python cache failide jaoks"
-
-git add README.md
-git commit -m "Täienda README kasutamisjuhendiga ja näidetega"
+git commit -m "Add .gitignore for [Python/Web/Bash] project"
+git push origin main
 ```
 
- **Halvad näited (ära tee nii):**
+### Commit 3: Lisa põhifail
+
 ```bash
-git commit -m "fix"
-git commit -m "update"
-git commit -m "asdf"
-git commit -m "WIP"
+# Loo põhifail (calculator.py, index.html või backup.sh)
+git add calculator.py  # või teine fail
+git commit -m "Add main calculator functions"
+git push origin main
+```
+
+### Commit 4: Lisa teine komponent
+
+```bash
+# Loo teine fail (style.css, cleanup.sh vms)
+git add style.css  # või teine fail
+git commit -m "Add [description of what this file does]"
+git push origin main
+```
+
+### Commit 5: Täienda README
+
+```bash
+# Kirjuta README.md (vt sektsioon 5)
+git add README.md
+git commit -m "Add project documentation and usage instructions"
+git push origin main
+```
+
+**Oluline:** Iga commit sõnum peab olema kirjeldav ja selgitama MIKS.
+
+**Head näited:**
+```
+Add calculator module with basic operations
+Fix division by zero error handling
+Add CSS styling for better readability
+Update README with installation instructions
+```
+
+**Halvad näited (ära kasuta):**
+```
+update
+fix
+asdf
+wip
+changes
 ```
 
 ---
 
-**Näpunäiteid:**
+## 5. README.md Dokumentatsioon
 
-- Tee `git status` enne iga commit'i – vaata, mis on muutunud
-- Kasuta `git log --oneline` – vaata oma ajalugu
-- Kasuta `git diff` – vaata täpselt, mida muutsid
-- Iga commit peaks olema **üks loogiline muudatus**, mitte kõik korraga
+Teie README.md peab sisaldama järgmisi sektsioone:
+
+```markdown
+# Projekti Nimi
+
+Lühike kirjeldus 1-2 lausega.
+
+## Kirjeldus
+
+2-3 lõiku, mis selgitavad:
+- Mis see projekt on
+- Miks te selle tegite
+- Mida see teeb
+
+## Kasutamine
+
+### Nõuded
+- Python 3.x (või muud nõuded)
+- Git
+
+### Paigaldamine
+
+```bash
+git clone git@github.com:KASUTAJANIMI/git-homework.git
+cd git-homework
+```
+
+### Käivitamine
+
+```bash
+python calculator.py
+# või
+open index.html
+# või
+./backup.sh
+```
+
+## Failide Struktuur
+
+```
+git-homework/
+├── calculator.py  (või teised failid)
+├── README.md
+├── .gitignore
+└── LICENSE
+```
+
+## Autor
+
+[Teie Nimi]  
+GitHub: [@teie-kasutajanimi](https://github.com/teie-kasutajanimi)
+
+## Litsents
+
+MIT License
+
+## Refleksioon
+
+(Vasta allpool olevatele küsimustele)
+```
+
+Lisage README.md lõppu "## Refleksioon" sektsioon.
 
 ---
 
-### Osa 3: Push ja viimistlus (60–90 min)
+## 6. Refleksioon
 
-1. **Push'i oma muudatused GitHubi:**
-   ```bash
-   git push origin main
-   ```
+Lisage README.md lõppu vastused järgmistele küsimustele. Iga vastus 2-3 lauset.
 
-2. **Kontrolli GitHubis:**
-   - Kas kõik failid on nähtavad?
-   - Kas commit-sõnumid on loetavad?
-   - Kas `.gitignore` töötab? (temp failid ei ole repos)
+### 1. Mis oli kõige raskem ja kuidas lahendasid?
 
-3. **Täienda README.md:**
-   Lisa oma README.md faili lõppu **refleksioon** (vastused küsimustele):
+Kirjeldage ühte konkreetset väljakutset (tehnilise või kontseptuaalse) ja kuidas selle lahendasite. Kas kasutasite dokumentatsiooni? Küsisite abi? Proovisite erinevaid lähenemisi?
+
+### 2. Milline Git kontseptsioon oli suurim "ahaa!" hetk?
+
+Nimetage üks Git käsk või kontseptsioon, mis muutis teie arusaamist versioonihaldusest. Miks see oli oluline?
+
+### 3. Kuidas kasutaksid Git'i tulevikus?
+
+Andke 2 konkreetset näidet, kuidas saaksite Git'i kasutada teistes koolitöödes, isiklikes projektides või tulevases töös.
+
+### 4. Kuidas selgitaksid sõbrale, mis on Git?
+
+Seletage Git'i väärtust lihtsas keeles ilma tehnilise žargoonita. Kasutage analooge, mida mittetehnilisele inimesele on arusaadav.
+
+### 5. Mis oli kõige huvitavam osa?
+
+Mis aspekt oli kõige õpetlikum või huvitavam? Miks?
+
+**Näide refleksioonist:**
+
+```markdown
+## Refleksioon
+
+### 1. Mis oli kõige raskem?
+
+Kõige raskem oli mõista erinevust `git add` ja `git commit` vahel. 
+Esialgu tundus, et need teevad sama asja. Aitasin end välja 
+dokumentatsiooni lugemisega ja mõistsin, et `add` paneb failid 
+"staging area'sse" ja `commit` salvestab need ajalukku.
+
+### 2. Ahaa! hetk
+
+`git status` oli minu suurim avastus. Esimest korda sain aru, 
+mida Git täpselt jälgib. See käsk näitas mulle, millised failid 
+on muutunud, mis on staging area's ja mis on committitud.
+
+### 3. Tulevikukasutus
+
+Kasutan Git'i kindlasti kõigis programmeerimisprojektides. Samuti 
+võiksin seda kasutada oma lõputöö jaoks - saaksin jälgida, kuidas 
+minu dokument areneb. Meeskonnatöö projektides oleks Git eriti 
+kasulik konfli ktide vältimiseks.
+
+### 4. Seletus sõbrale
+
+Git on nagu ajamasin sinu failidele. Kujuta ette, et saad teha 
+"salvestuspunkti" iga kord, kui teed midagi olulist. Kui hiljem 
+midagi katki läheb, saad alati tagasi minna. Ei ole enam 
+"dokument_final_v2_REAL.docx" probleemi!
+
+### 5. Kõige huvitavam
+
+Kõige huvitavam oli näha oma projekti ajalugu `git log` käsuga. 
+See oli nagu vaadata oma töö "filmilinti" - nägin täpselt, mis 
+järjekorras asju tegin. See aitas mõista, et Git ei ole lihtsalt 
+varundussüsteem, vaid dokumenteerib kogu arendusprotsessi.
+```
 
 ---
 
-##  Refleksioon (kirjuta README.md lõppu)
+## 7. Esitamine
 
-Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
+### Kontroll Enne Esitamist
 
-### Küsimused (vasta 2-3 lausega igaühele):
+Kontrollige, et olete kõik teinud:
 
-1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
-   - Näide: "Kõige raskem oli mõista, mis vahe on `git add` ja `git commit` vahel. Aitasin end sellest välja, et lugesin dokumentatsiooni ja tegin mitu testkorda."
+- [ ] Repositoorium on avalik (public)
+- [ ] Vähemalt 5 commit'i (vaadake: `git log --oneline`)
+- [ ] Commit sõnumid on kirjeldavad ja selged
+- [ ] README.md sisaldab kõiki sektsioone
+- [ ] Refleksioon on täielik (5 küsimust, 2-3 lauset igaüks)
+- [ ] .gitignore fail on olemas
+- [ ] Projekt töötab (saab käivitada)
+- [ ] Kõik on push'itud GitHub'i
 
-2. **Milline Git käsk või kontseptsioon oli sulle kõige suurem "ahaa!"-elamus ja miks?**
-   - Näide: "Git log --oneline oli mulle suur avastus, sest nägin esimest korda oma projekti ajalugu nagu ajajoont!"
+### Esitamise Formaat
 
-3. **Kuidas saaksid Git'i kasutada oma teistes koolitöödes või isiklikes projektides?**
-   - Näide: "Võiksin Git'i kasutada oma matemaatika kodutööde jaoks, et jälgida, kuidas mu lahendused arenevad."
+Esitage järgmine informatsioon:
 
-4. **Kui peaksid oma sõbrale selgitama, mis on Git ja miks see on kasulik, siis mida ütleksid?**
-   - Näide: "Git on nagu Ctrl+Z aga superjõul – saad alati tagasi minna ja vaadata, mis sa tegid!"
+**E-mail teema:** Git Kodutöö - [Teie Nimi]
 
-5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
-   - Näide: "Mulle meeldis, et ma sain oma koodi GitHubi panna ja nüüd saavad teised seda näha!"
+**E-mail sisu:**
+```
+Tere,
 
----
+Esitan Git kodutöö:
 
-## Kontrollnimekiri (enne esitamist)
+Repository URL: https://github.com/teie-kasutajanimi/git-homework
+Projekti tüüp: [Python kalkulaator / HTML leht / Bash skriptid]
+Commit'ide arv: [number]
 
-**Kontrolli need asjad:**
-
-- [ ] GitHubis on avalik repositoorium `git-portfolio` (või muu nimi)
-- [ ] Repos on vähemalt 3 erinevat faili (README, projekt, .gitignore)
-- [ ] Ajalugu sisaldab **vähemalt 5 tähenduslikku commit'i**
-- [ ] Iga commit-sõnum on selge ja kirjeldab **MIKS** sa selle muudatuse tegid
-- [ ] `.gitignore` fail on olemas ja töötab (temp failid ei ole repos)
-- [ ] README.md sisaldab:
-  - [ ] Projekti kirjeldus (mis see on?)
-  - [ ] Kuidas kasutada (käivitamise juhend)
-  - [ ] Refleksioon (5 küsimuse vastused, 2-3 lauset igaüks)
-- [ ] Kõik muudatused on GitHubi push'itud
-- [ ] Repository on **avalik** ja ligipääsetav
+Parimate soovidega,
+[Teie Nimi]
+```
 
 ---
 
-##  Hindamiskriteeriumid
+## 8. Hindamiskriteeriumid
 
 | Kriteerium | Punktid | Kirjeldus |
-|------------|---------|-----------|
-| **Repo struktuur** | 15% | Repo on korras, `.gitignore` töötab, failid organiseeritud |
-| **Commit kvaliteet** | 40% | ≥5 commit'i; sõnumid selged, kirjeldavad ja põhjendavad |
-| **Töövoog** | 15% | `add → commit → push` õigesti kasutatud; `status`/`log` nähtav |
-| **README** | 15% | Projekti kirjeldus, kasutamisjuhend, selge ja informatiivne |
-| **Refleksioon** | 15% | 5 küsimust vastatud, sisukas, näitab mõistmist (2-3 lauset/küsimus) |
+|-----------|---------|-----------|
+| **Repositooriumi Struktuur** | 20% | Loogiline failide paigutus; .gitignore olemas ja töötab (ei ole soovimatud failid nagu `__pycache__`, `.DS_Store`); Projekt on korrektne struktuuriga |
+| **Commit Kvaliteet** | 30% | Vähemalt 5 commit'i; Commit sõnumid on kirjeldavad ja selgitavad MIKS (mitte lihtsalt "update"); Iga commit teeb üht loogilist asja; Ajalugu on loogiline |
+| **Git Workflow** | 15% | `add → commit → push` õigesti kasutatud; `git status`, `git log` kasutamise märgid; Ei ole segadust workflow'ga |
+| **Projekt Funktsionaalsus** | 10% | Projekt käivitub ilma vigadeta; Teeb seda, mida kirjeldus ütleb; Kood/HTML on loetav |
+| **README Dokumentatsioon** | 10% | Projekti kirjeldus on selge; Kasutamise juhised on täielikud; Struktuur on korras |
+| **Refleksioon** | 15% | Kõik 5 küsimust vastatud; Iga vastus 2-3 lauset; Vastused on sisukad ja ausad; Näitavad mõistmist |
 
 **Kokku: 100%**
 
 ---
 
-## Abimaterjalid ja lugemine (enne kodutöö tegemist)
+## Boonus (Valikuline, +10%)
 
-**Kiirviited:**
-- [Git Cheat Sheet (PDF)](https://education.github.com/git-cheat-sheet-education.pdf)
-- [Kuidas kirjutada head commit-sõnumit?](../reference/commit_guide.md)
-- [`.gitignore` näited](https://github.com/github/gitignore)
+**Git Branch (+5%):** Tee üks feature branch, arenda seal, merge tagasi main'i.
 
-**Video tutor'id (valikuline):**
-- [Git in 15 minutes](https://www.youtube.com/watch?v=USjZcfj8yxE) (inglise keeles)
-- [GitHub for Beginners](https://www.youtube.com/watch?v=RGOj5yH7evk) (inglise keeles)
-
-**Kui abi vaja:**
-1. Vaata `lisapraktika.md` faili täiendavate näidete jaoks
-2. Kasuta `git --help` või `git <käsk> --help`
-3. Küsi klassikaaslaselt või õpetajalt
-
----
-
-## Boonus (valikuline, +10%)
-
-**Kui tahad ekstra punkte, tee üks või mitu neist:**
-
-1. **Lisa Git tag:** Märgi oma "1.0 versioon" tag'iga
-   ```bash
-   git tag -a v1.0 -m "Esimene töötav versioon"
-   git push origin v1.0
-   ```
-
-2. **Lisa GitHub README badge:** Näiteks "Made with " või "License: MIT"
-   - [Shields.io](https://shields.io/) badge generaator
-
-3. **Tee branch ja merge:** Loo `feature/new-feature` branch, tee muudatus, merge main'i
-   ```bash
-   git checkout -b feature/lisafunktsioon
+```bash
+git checkout -b feature/new-function
 # tee muudatus
-   git add .
-   git commit -m "Lisa uus funktsioon"
-   git checkout main
-   git merge feature/lisafunktsioon
-   git push origin main
-   ```
+git add .
+git commit -m "Add new feature"
+git checkout main
+git merge feature/new-function
+git push origin main
+```
 
-4. **Paranda oma GitHub profiil:** Lisa profile README (vaata [neid näiteid](https://github.com/abhisheknaiidu/awesome-github-profile-readme))
+**GitHub README Badge (+5%):** Lisa README.md'sse badge (näiteks litsents või tähed).
 
----
+```markdown
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+```
 
-## Esitamine
-
-**Kuidas esitada:**
-
-1. Veendu, et repositoorium on **avalik** (public)
-2. Mine oma GitHub repo lehele
-3. Kopeeri URL (näiteks: `https://github.com/SINU-KASUTAJANIMI/git-portfolio`)
-4. Esita see link õpetajale (e-mail või õppeplatvorm)
-
-**Alternatiiv (kui ei saa GitHubi kasutada):**
-- Tee `.zip` fail oma projektist
-- Lisa juurde `git_log.txt` fail: `git log --oneline > git_log.txt`
-- Esita ZIP fail
+Vaata: https://shields.io/
 
 ---
 
-**Edu ja head Git'itamist!** 
+## Abimaterjalid
 
-**P.S.** Pärast kodutöö esitamist võid jätkata projekti arendamist ja lisada sinna rohkem asju – see on sinu enda portfoolio!  
+**Dokumentatsioon:**
+- [Git Cheat Sheet](https://education.github.com/git-cheat-sheet-education.pdf)
+- [GitHub .gitignore templates](https://github.com/github/gitignore)
+- [Markdown Guide](https://www.markdownguide.org/basic-syntax/)
+
+**Kursuseomane:**
+- `loeng.md` - Git põhitõed
+- `labor.md` - Käed-külge harjutused
+- `lisapraktika.md` - Edasijõudnud tehnikad
+
+**Troubleshooting:**
+
+Levinud probleemid:
+
+**Probleem:** Unustasin midagi commit'ist välja jätta.
+
+**Lahendus:**
+```bash
+# Lisa fail ja muuda viimast commit'i
+git add forgotten-file.txt
+git commit --amend --no-edit
+git push --force-with-lease origin main
+```
+
+**Probleem:** Committisin .env faili kogemata.
+
+**Lahendus:**
+```bash
+# Lisa .gitignore'sse
+echo ".env" >> .gitignore
+
+# Eemalda repos'ist, säilita kohalikult
+git rm --cached .env
+git commit -m "Remove .env from repository"
+git push origin main
+```
+
+**Probleem:** Commit sõnum on vale.
+
+**Lahendus:**
+```bash
+# Muuda viimast commit sõnumit
+git commit --amend -m "Parandatud sõnum"
+git push --force-with-lease origin main
+```
+
+---
+
+## Näpunäited
+
+**Aeg:** Ärge kulutage rohkem kui 2 tundi. Kui projekt keeruline, lihtsustage. Fookus on Git'il, mitte koodil.
+
+**Commit sagedus:** Ärge tehke kõike ühes commit'is. Tehke väikeseid samme: loo fail → commit, muuda faili → commit.
+
+**README:** Kirjutage README nii, nagu selgitaksite projektist kellelegi, kes seda esimest korda näeb.
+
+**Refleksioon:** Olge ausad. Ei pea olema perfektne. Näidake, et mõtlesite asjade üle.
+
+**Abi:** Kui kinni jääte, vaadake `labor.md` või küsige klassikaaslastelt/õpetajalt.
+
+---
+
+Edu! Meeles pidage: see ei ole ainult hinne, vaid oskus, mida kasutate kogu oma IT karjääri vältel.
