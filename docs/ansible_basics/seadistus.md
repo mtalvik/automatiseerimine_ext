@@ -17,28 +17,33 @@ Vagrant on tööriist virtuaalmasinate haldamiseks läbi käsurea. See loeb Vagr
 
 ## 1. Tarkvara paigaldamine
 
-### Windows```powershell
+### Windows
+```powershell
 # Paigalda VirtualBox
 winget install Oracle.VirtualBox
 
 # Paigalda Vagrant
 winget install Hashicorp.Vagrant
 
-# OLULINE: Taaskäivita Windows pärast installimist```
+# OLULINE: Taaskäivita Windows pärast installimist
+```
 
 Alternatiiv - käsitsi allalaadimine:
 - VirtualBox: https://virtualbox.org/wiki/Downloads
 - Vagrant: https://developer.hashicorp.com/vagrant/downloads
 
-### macOS```bash
+### macOS
+```bash
 # Paigalda Homebrew kui pole veel
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Paigalda VirtualBox ja Vagrant
 brew install --cask virtualbox
-brew install --cask vagrant```
+brew install --cask vagrant
+```
 
-### Linux (Ubuntu/Debian)```bash
+### Linux (Ubuntu/Debian)
+```bash
 # VirtualBox
 sudo apt update
 sudo apt install virtualbox -y
@@ -47,24 +52,29 @@ sudo apt install virtualbox -y
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt update
-sudo apt install vagrant -y```
+sudo apt install vagrant -y
+```
 
-### Kontrollimine```bash
+### Kontrollimine
+```bash
 # Kontrolli versioone
 VBoxManage --version
 # Peaks näitama: 7.0.x või 6.1.x
 
 vagrant --version
-# Peaks näitama: Vagrant 2.3.x või uuem```
+# Peaks näitama: Vagrant 2.3.x või uuem
+```
 
 ---
 
 ## 2. Projekti seadistamine
 
-### 2.1. Projekti kausta loomine```bash
+### 2.1. Projekti kausta loomine
+```bash
 # Loo projekti kaust
 mkdir ansible-lab
-cd ansible-lab```
+cd ansible-lab
+```
 
 ### 2.2. Vagrantfile allalaadimine
 
@@ -78,12 +88,14 @@ Vagrantfile seadistab:
 - Passwordless sudo
 - SSH parooliga autentimine (initial setup jaoks)
 
-### 2.3. Projekti struktuuri kontrollimine```bash
+### 2.3. Projekti struktuuri kontrollimine
+```bash
 # Kontrolli et Vagrantfile on olemas
 ls -la
 
 # Peaks nägema:
-# Vagrantfile```
+# Vagrantfile
+```
 
 ---
 
@@ -91,7 +103,8 @@ ls -la
 
 ### 3.1. Esimene käivitamine
 
-Esimene käivitamine võtab 5-10 minutit, sest Vagrant peab alla laadima Ubuntu base image (umbes 700MB) ja provisioning'i teostama.```bash
+Esimene käivitamine võtab 5-10 minutit, sest Vagrant peab alla laadima Ubuntu base image (umbes 700MB) ja provisioning'i teostama.
+```bash
 # Käivita mõlemad VM-id
 vagrant up
 
@@ -101,16 +114,19 @@ vagrant up
 # ==> controller: Importing base box 'ubuntu/jammy64'...
 # ...
 # Controller ready! IP: 192.168.56.10
-# Web server ready! IP: 192.168.56.11```
+# Web server ready! IP: 192.168.56.11
+```
 
-### 3.2. Staatuse kontrollimine```bash
+### 3.2. Staatuse kontrollimine
+```bash
 # Kontrolli VM-ide staatust
 vagrant status
 
 # Väljund:
 # Current machine states:
 # controller                running (virtualbox)
-# webserver                 running (virtualbox)```
+# webserver                 running (virtualbox)
+```
 
 ---
 
@@ -118,31 +134,37 @@ vagrant status
 
 ### 4.1. Vagrant SSH abil
 
-Kõige lihtsam viis on kasutada Vagrant sisseehitatud SSH-d:```bash
+Kõige lihtsam viis on kasutada Vagrant sisseehitatud SSH-d:
+```bash
 # Ühenda controller'iga
 vagrant ssh controller
 
 # Näed:
 # Welcome to Ubuntu 22.04.x LTS
-# ansible@ansible-controller:~$```
+# ansible@ansible-controller:~$
+```
 
-Teises terminaliaknas:```bash
+Teises terminaliaknas:
+```bash
 # Ühenda webserver'iga
 vagrant ssh webserver
 
 # Näed:
-# ansible@web-server:~$```
+# ansible@web-server:~$
+```
 
 ### 4.2. SSH kliendi abil
 
-Alternatiivina saate kasutada tavalist SSH klienti (PuTTY, OpenSSH):```bash
+Alternatiivina saate kasutada tavalist SSH klienti (PuTTY, OpenSSH):
+```bash
 # Controller
 ssh ansible@192.168.56.10
 # Parool: ansible123
 
 # Web server
 ssh ansible@192.168.56.11
-# Parool: ansible123```
+# Parool: ansible123
+```
 
 ### 4.3. Kasutajad
 
@@ -159,7 +181,8 @@ Mõlemas VM-is on kaks kasutajat:
 
 ### 5.1. SSH võtmete seadistamine
 
-Controller VM-is, ansible kasutajana:```bash
+Controller VM-is, ansible kasutajana:
+```bash
 # Ühenda controller'iga
 vagrant ssh controller
 
@@ -183,9 +206,11 @@ ssh ansible@192.168.56.11
 # Kui õnnestus, oled webserver'is
 hostname
 # Peaks näitama: web-server
-exit```
+exit
+```
 
-### 5.2. Inventory faili loomine```bash
+### 5.2. Inventory faili loomine
+```bash
 # Controller VM-is, ansible kasutajana
 cd ~
 mkdir ansible_tutorial
@@ -205,9 +230,11 @@ webservers
 EOF
 
 # Kontrolli faili
-cat inventory.ini```
+cat inventory.ini
+```
 
-### 5.3. Esimene Ansible test```bash
+### 5.3. Esimene Ansible test
+```bash
 # Testi ühendust kõigi serveritega
 ansible -i inventory.ini all -m ping
 
@@ -219,7 +246,8 @@ ansible -i inventory.ini all -m ping
 # web1 | SUCCESS => {
 #     "changed": false,
 #     "ping": "pong"
-# }```
+# }
+```
 
 Kui näete SUCCESS mõlemal serveril, on Ansible korrektselt seadistatud!
 
@@ -229,7 +257,8 @@ Kui näete SUCCESS mõlemal serveril, on Ansible korrektselt seadistatud!
 
 Teie projekti kaust (kus Vagrantfile asub) on automaatselt jagatud mõlemasse VM-i kausta `/vagrant`.
 
-### Windows/macOS/Linux```bash
+### Windows/macOS/Linux
+```bash
 # Teie hostis (Windows/macOS/Linux)
 cd ansible-lab
 echo "test content" > shared-file.txt
@@ -239,7 +268,8 @@ ls /vagrant/
 # Näed: shared-file.txt Vagrantfile
 
 # Kopeeri fail ansible kasutaja kausta
-cp /vagrant/shared-file.txt ~/```
+cp /vagrant/shared-file.txt ~/
+```
 
 See on kasulik:
 - Playbook'ide kirjutamiseks host masinas (IDE/teksteditor)
@@ -250,7 +280,8 @@ See on kasulik:
 
 ## 7. Vagrant põhikäsud
 
-### Käivitamine ja peatamine```bash
+### Käivitamine ja peatamine
+```bash
 # Käivita mõlemad VM-id
 vagrant up
 
@@ -265,9 +296,11 @@ vagrant halt
 vagrant reload
 
 # Taaskäivita koos provisioning'iga (kui muutsid Vagrantfile)
-vagrant reload --provision```
+vagrant reload --provision
+```
 
-### Staatuse ja info```bash
+### Staatuse ja info
+```bash
 # Vaata VM-ide staatust
 vagrant status
 
@@ -275,16 +308,20 @@ vagrant status
 vagrant ssh-config
 
 # Vaata VirtualBox GUI-s (optional)
-VBoxManage list vms```
+VBoxManage list vms
+```
 
-### Pause ja resume```bash
+### Pause ja resume
+```bash
 # Pause VM-id (suspend)
 vagrant suspend
 
 # Jätka VM-ide tööd
-vagrant resume```
+vagrant resume
+```
 
-### Puhastamine```bash
+### Puhastamine
+```bash
 # Kustuta VM-id täielikult (HOIATUS: kaob kõik andmed VM-ides!)
 vagrant destroy
 
@@ -292,7 +329,8 @@ vagrant destroy
 vagrant destroy controller
 
 # Kustuta ilma kinnitust küsimata
-vagrant destroy -f```
+vagrant destroy -f
+```
 
 ---
 
@@ -306,9 +344,11 @@ Windows kasutajad, installige Git Bash parem terminali kogemus saamiseks:
 
 ### Windows Terminal
 
-Windows 11 kasutajad, kasutage Windows Terminal mitme tab'i jaoks:```powershell
+Windows 11 kasutajad, kasutage Windows Terminal mitme tab'i jaoks:
+```powershell
 # Installi Windows Terminal
-winget install Microsoft.WindowsTerminal```
+winget install Microsoft.WindowsTerminal
+```
 
 ### VS Code Remote SSH
 
@@ -323,7 +363,8 @@ Nüüd saad editeerida faile VM-is otse VS Code'is!
 
 ### Snapshot'id
 
-Salvesta VM-i olek enne eksperimenteerimist:```bash
+Salvesta VM-i olek enne eksperimenteerimist:
+```bash
 # Loo snapshot
 vagrant snapshot save controller before-experiment
 
@@ -334,7 +375,8 @@ vagrant snapshot restore controller before-experiment
 vagrant snapshot list
 
 # Kustuta snapshot
-vagrant snapshot delete controller before-experiment```
+vagrant snapshot delete controller before-experiment
+```
 
 ---
 
@@ -342,24 +384,29 @@ vagrant snapshot delete controller before-experiment```
 
 ### VirtualBox konflikt Hyper-V'ga (Windows)
 
-Kui saad vea "VirtualBox can't operate in Hyper-V mode":```powershell
+Kui saad vea "VirtualBox can't operate in Hyper-V mode":
+```powershell
 # Käivita PowerShell administraatorina
 bcdedit /set hypervisorlaunchtype off
 
 # Taaskäivita Windows
 # Pärast taaskäivitamist proovi uuesti
-vagrant up```
+vagrant up
+```
 
-### VM ei käivitu```bash
+### VM ei käivitu
+```bash
 # Kontrolli VirtualBox staatust
 VBoxManage list vms
 VBoxManage list runningvms
 
 # Kustuta ja loo uuesti
 vagrant destroy -f
-vagrant up```
+vagrant up
+```
 
-### SSH ühenduse probleemid```bash
+### SSH ühenduse probleemid
+```bash
 # Vaata SSH konfiguratsiooni
 vagrant ssh-config
 
@@ -369,11 +416,13 @@ ssh -F ssh-config controller
 
 # Kui ikka ei tööta, regenereri SSH võtmed
 ssh-keygen -R 192.168.56.10
-ssh-keygen -R 192.168.56.11```
+ssh-keygen -R 192.168.56.11
+```
 
 ### Võrgu probleemid
 
-Kui IP aadressid ei tööta:```bash
+Kui IP aadressid ei tööta:
+```bash
 # Kontrolli VirtualBox network adapter'it
 VBoxManage list hostonlyifs
 
@@ -381,9 +430,11 @@ VBoxManage list hostonlyifs
 VBoxManage hostonlyif create
 
 # Vagrantfile'is proovi teist IP range'i
-# Muuda: 192.168.56.x -> 192.168.33.x```
+# Muuda: 192.168.56.x -> 192.168.33.x
+```
 
-### Provisioning ebaõnnestub```bash
+### Provisioning ebaõnnestub
+```bash
 # Käivita provisioning uuesti
 vagrant provision
 
@@ -393,7 +444,8 @@ vagrant reload --provision
 # Kontrolli VM-is käsitsi
 vagrant ssh controller
 sudo apt update
-sudo apt install ansible -y```
+sudo apt install ansible -y
+```
 
 ### Windows Firewall
 
@@ -408,16 +460,19 @@ Windows võib blokeerida ühendusi. Lisa erand:
 
 ### Ajutine peatamine
 
-Kui soovid jätkata hiljem:```bash
+Kui soovid jätkata hiljem:
+```bash
 # Peata VM-id
 vagrant halt
 
 # Järgmisel korral käivita uuesti
-vagrant up```
+vagrant up
+```
 
 ### Andmete salvestamine
 
-Salvesta oma töö enne VM-ide kustutamist:```bash
+Salvesta oma töö enne VM-ide kustutamist:
+```bash
 # Controller VM-is
 cd ~/ansible_tutorial
 tar -czf ansible_work.tar.gz .
@@ -425,9 +480,11 @@ tar -czf ansible_work.tar.gz .
 # Kopeeri /vagrant kausta (jagatud kaust)
 cp ansible_work.tar.gz /vagrant/
 
-# Nüüd fail on ka teie host masinas ansible-lab kaustas```
+# Nüüd fail on ka teie host masinas ansible-lab kaustas
+```
 
-### Täielik puhastamine```bash
+### Täielik puhastamine
+```bash
 # Kustuta VM-id
 vagrant destroy -f
 
@@ -436,7 +493,8 @@ vagrant box remove ubuntu/jammy64
 
 # Kustuta projekti kaust (optional)
 cd ..
-rm -rf ansible-lab```
+rm -rf ansible-lab
+```
 
 ---
 

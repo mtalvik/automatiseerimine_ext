@@ -17,7 +17,8 @@ Kui kasutate pilve (AWS EC2, Azure VM, DigitalOcean):
    - AWS: `t2.micro` või `t3.micro` (Free Tier)
    - Azure: `B1s`
    - DigitalOcean: $6/month droplet
-3. KUSTUTAGE serverid pärast testimist```bash
+3. KUSTUTAGE serverid pärast testimist
+```bash
 # AWS
 aws ec2 terminate-instances --instance-ids i-xxxxx
 
@@ -25,12 +26,15 @@ aws ec2 terminate-instances --instance-ids i-xxxxx
 az vm delete --name myvm --resource-group mygroup --yes
 
 # Terraform
-terraform destroy```
+terraform destroy
+```
 
-Kohalike VM'ide kasutamine:```bash
+Kohalike VM'ide kasutamine:
+```bash
 vagrant up
 ansible-playbook -i inventory site.yml
-vagrant destroy  # pärast testimist```
+vagrant destroy  # pärast testimist
+```
 
 ---
 
@@ -66,7 +70,8 @@ Valige keerukus:
 
 ## 2. Vault Nõuded (15%)
 
-Looge Ansible Vault fail vähemalt 5 krüpteeritud muutujaga:```bash
+Looge Ansible Vault fail vähemalt 5 krüpteeritud muutujaga:
+```bash
 # Loo vault fail
 ansible-vault create group_vars/all/vault.yml
 
@@ -74,18 +79,23 @@ ansible-vault create group_vars/all/vault.yml
 ansible-vault view group_vars/all/vault.yml
 
 # Käivita playbook
-ansible-playbook site.yml --ask-vault-pass```
+ansible-playbook site.yml --ask-vault-pass
+```
 
-Vault failis:```yaml
+Vault failis:
+```yaml
 vault_db_password: "tugevParool123"
 vault_admin_user: "administrator"
 vault_admin_password: "veel_tugevam"
 vault_api_key: "secret_key_1234"
-vault_ssl_cert_password: "cert_pass"```
+vault_ssl_cert_password: "cert_pass"
+```
 
-Kasutamine template'ides:```jinja2
+Kasutamine template'ides:
+```jinja2
 database_password: {{ vault_db_password }}
-admin_user: {{ vault_admin_user }}```
+admin_user: {{ vault_admin_user }}
+```
 
 Nõuded:
 - [ ] Vähemalt 5 krüpteeritud muutujat
@@ -98,7 +108,8 @@ Nõuded:
 
 Looge vähemalt 2 Jinja2 template'i, mis kasutavad `{% if %}` tingimusi.
 
-Apache vhost template (vhost.conf.j2):```jinja2
+Apache vhost template (vhost.conf.j2):
+```jinja2
 <VirtualHost *:{{ http_port }}>
     ServerName {{ server_name }}
     DocumentRoot {{ document_root }}
@@ -116,9 +127,11 @@ Apache vhost template (vhost.conf.j2):```jinja2
         AllowOverride All
         Require all granted
     </Directory>
-</VirtualHost>```
+</VirtualHost>
+```
 
-DB konfiguratsioon (my.cnf.j2):```jinja2
+DB konfiguratsioon (my.cnf.j2):
+```jinja2
 [client]
 user = {{ vault_db_user }}
 password = {{ vault_db_password }}
@@ -131,7 +144,8 @@ innodb_buffer_pool_size = 1G
 {% else %}
 max_connections = 50
 innodb_buffer_pool_size = 256M
-{% endif %}```
+{% endif %}
+```
 
 Nõuded:
 - [ ] Vähemalt 2 template'i
@@ -142,7 +156,8 @@ Nõuded:
 
 ## 4. Handler'ite Nõuded (15%)
 
-Looge vähemalt 2 handler'it teenuste haldamiseks.```yaml
+Looge vähemalt 2 handler'it teenuste haldamiseks.
+```yaml
 tasks:
   - name: Deploy Apache vhost
     template:
@@ -165,7 +180,8 @@ handlers:
   - name: reload mysql
     service:
       name: mysql
-      state: reloaded```
+      state: reloaded
+```
 
 Nõuded:
 - [ ] Vähemalt 2 handler'it
@@ -174,7 +190,8 @@ Nõuded:
 
 ---
 
-## 5. Projekti Struktuur (15%)```
+## 5. Projekti Struktuur (15%)
+```
 teie-projekt/
 ├── inventory/
 │   └── hosts.yml
@@ -196,9 +213,11 @@ teie-projekt/
 │   ├── vault_encrypted.png
 │   ├── playbook_success.png
 │   └── app_running.png
-└── README.md```
+└── README.md
+```
 
-Inventory näide (hosts.yml):```yaml
+Inventory näide (hosts.yml):
+```yaml
 all:
   children:
     dev:
@@ -213,7 +232,8 @@ all:
         prod-server:
           ansible_host: 192.168.56.20
           ansible_user: ubuntu
-          env_type: production```
+          env_type: production
+```
 
 Nõuded:
 - [ ] Failid õigesti organiseeritud
@@ -225,7 +245,8 @@ Nõuded:
 
 ## 6. Esitamine
 
-README.md peab sisaldama:```markdown
+README.md peab sisaldama:
+```markdown
 # [Projekti Nimi]
 
 ## Autor
@@ -251,14 +272,20 @@ README.md peab sisaldama:```markdown
 
 ## Kasutamine
 
-### Esimene käivitus```bash
-ansible-playbook playbooks/site.yml --ask-vault-pass```
+### Esimene käivitus
+```bash
+ansible-playbook playbooks/site.yml --ask-vault-pass
+```
 
-### Dev keskkond```bash
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l dev```
+### Dev keskkond
+```bash
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l dev
+```
 
-### Production keskkond```bash
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l production```
+### Production keskkond
+```bash
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l production
+```
 
 ## Testimine
 [Kuidas kontrollida, et töötab]
@@ -267,7 +294,8 @@ ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l production```
 [Lisa screenshot]
 
 ## Probleemid ja lahendused
-[Mis raskused, kuidas lahendasid]```
+[Mis raskused, kuidas lahendasid]
+```
 
 ### Kontroll Enne Esitamist
 
@@ -286,7 +314,8 @@ ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l production```
   - [ ] Refleksioon (5 küsimust)
 - [ ] Kõik muudatused push'itud
 
-Valideerimine:```bash
+Valideerimine:
+```bash
 # Vault krüpteeritud?
 file group_vars/all/vault.yml
 
@@ -297,7 +326,8 @@ ansible-playbook site.yml --syntax-check
 ansible-playbook site.yml --check --ask-vault-pass
 
 # Screenshots olemas?
-ls screenshots/```
+ls screenshots/
+```
 
 ---
 
@@ -379,7 +409,8 @@ Valikulised täiendused lisapunktide saamiseks:
 
 ### Dynamic inventory (+3%)
 
-Kasuta dynamic inventory AWS EC2 või Azure VM'idega:```yaml
+Kasuta dynamic inventory AWS EC2 või Azure VM'idega:
+```yaml
 # aws_ec2.yml
 plugin: aws_ec2
 regions:
@@ -387,7 +418,8 @@ regions:
 filters:
   tag:Environment:
     - dev
-    - production```
+    - production
+```
 
 ### Ansible Tower/AWX (+3%)
 
@@ -395,38 +427,50 @@ Deploy projekti Tower/AWX'i ja loo job template.
 
 ### Molecule testing (+2%)
 
-Lisa Molecule test suite:```bash
+Lisa Molecule test suite:
+```bash
 molecule init scenario
-molecule test```
+molecule test
+```
 
 ### Multiple environments (+2%)
 
-Kolm keskkonda: Dev, Staging, Production (erinevad vault failid igaühele).```
+Kolm keskkonda: Dev, Staging, Production (erinevad vault failid igaühele).
+```
 group_vars/
   dev/vault.yml
   staging/vault.yml
-  production/vault.yml```
+  production/vault.yml
+```
 
 ### CI/CD integration (+2%)
 
-Lisa GitLab CI või GitHub Actions pipeline:```yaml
+Lisa GitLab CI või GitHub Actions pipeline:
+```yaml
 # .gitlab-ci.yml
 deploy:
   script:
-    - ansible-playbook playbooks/site.yml --ask-vault-pass```
+    - ansible-playbook playbooks/site.yml --ask-vault-pass
+```
 
 ---
 
 ## 12. Debugimine
 
-Verbose režiim:```bash
-ansible-playbook site.yml -vvv```
+Verbose režiim:
+```bash
+ansible-playbook site.yml -vvv
+```
 
-Kuiv käivitus:```bash
-ansible-playbook site.yml --check```
+Kuiv käivitus:
+```bash
+ansible-playbook site.yml --check
+```
 
-Vaata diff'i:```bash
-ansible-playbook site.yml --diff```
+Vaata diff'i:
+```bash
+ansible-playbook site.yml --diff
+```
 
 ---
 

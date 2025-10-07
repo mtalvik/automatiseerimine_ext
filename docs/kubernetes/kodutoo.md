@@ -19,7 +19,8 @@ Laboris tegime e-poe kus kood oli ConfigMap'is. See on halb praktika. Nüüd tee
 
 ### 1.1 Backend Docker Image
 
-#### Samm 1: Kopeeri kood laborist```bash
+#### Samm 1: Kopeeri kood laborist
+```bash
 # Loo kaustad
 mkdir -p ~/kodutoo/docker/backend
 cd ~/kodutoo/docker/backend
@@ -36,10 +37,16 @@ nano server.js
 # Kopeeri package.json sisu
 nano package.json
 # Kopeeri ConfigMap'ist package.json sisu
-# { "name": "shop-backend", ... }```
+# { "name": "shop-backend", ... }
+```
 
-#### Samm 2: Loo Dockerfile```bash
-nano Dockerfile``````dockerfile
+#### Samm 2: Loo Dockerfile
+```bash
+nano Dockerfile
+`
+`
+`
+```dockerfile
 FROM node:18-alpine
 WORKDIR /app
 COPY package.json ./
@@ -47,9 +54,11 @@ RUN npm install --production
 COPY server.js ./
 USER node
 EXPOSE 3000
-CMD ["node", "server.js"]```
+CMD ["node", "server.js"]
+```
 
-#### Samm 3: Build ja Push```bash
+#### Samm 3: Build ja Push
+```bash
 # Docker Hub konto vaja!
 # Mine https://hub.docker.com → Sign Up
 # Username: valixyz (jäta meelde!)
@@ -67,11 +76,13 @@ docker run -p 3000:3000 valixyz/shop-backend:v1.0
 # Ctrl+C stop
 
 # Push Docker Hub'i
-docker push valixyz/shop-backend:v1.0```
+docker push valixyz/shop-backend:v1.0
+```
 
 ### 1.2 Frontend Docker Image
 
-#### Samm 1: Kopeeri kood```bash
+#### Samm 1: Kopeeri kood
+```bash
 cd ~/kodutoo/docker/frontend
 
 # Vaata ConfigMap
@@ -84,23 +95,35 @@ nano index.html
 # Kopeeri nginx config
 kubectl get configmap nginx-config -o yaml
 nano nginx.conf
-# Kopeeri server { ... } osa```
+# Kopeeri server { ... } osa
+```
 
-#### Samm 2: Dockerfile```bash
-nano Dockerfile``````dockerfile
+#### Samm 2: Dockerfile
+```bash
+nano Dockerfile
+`
+`
+`
+```dockerfile
 FROM nginx:alpine
 COPY index.html /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80```
+EXPOSE 80
+```
 
-#### Samm 3: Build ja Push```bash
+#### Samm 3: Build ja Push
+```bash
 docker build -t valixyz/shop-frontend:v1.0 .
-docker push valixyz/shop-frontend:v1.0```
+docker push valixyz/shop-frontend:v1.0
+```
 
-### 1.3 Uuenda Kubernetes Deployments```bash
-cd ~/kodutoo/kubernetes```
+### 1.3 Uuenda Kubernetes Deployments
+```bash
+cd ~/kodutoo/kubernetes
+```
 
-**backend-deployment.yaml:**```yaml
+**backend-deployment.yaml:**
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -140,9 +163,11 @@ spec:
   selector:
     app: backend
   ports:
-  - port: 3000```
+  - port: 3000
+```
 
-**frontend-deployment.yaml:**```yaml
+**frontend-deployment.yaml:**
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -173,9 +198,11 @@ spec:
     app: frontend
   ports:
   - port: 80
-  type: NodePort```
+  type: NodePort
+```
 
-### 1.4 Deploy ja Test```bash
+### 1.4 Deploy ja Test
+```bash
 # Deploy PostgreSQL (sama mis laboris)
 kubectl apply -f ~/k8s-lab/postgres/
 
@@ -190,7 +217,8 @@ kubectl get pods
 # Test
 kubectl port-forward service/frontend-service 8080:80
 # Ava brauser: http://localhost:8080
-# Peaksid nägema e-poodi!```
+# Peaksid nägema e-poodi!
+```
 
 ---
 
@@ -198,14 +226,16 @@ kubectl port-forward service/frontend-service 8080:80
 
 Dashboard näitab mis klastris toimub. See on GUI kubectl'i asemel.
 
-### Enable Dashboard```bash
+### Enable Dashboard
+```bash
 # Minikube'is lihtne
 minikube dashboard
 
 # VÕI käsitsi
 kubectl proxy
 # Ava brauser:
-# http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/```
+# http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+```
 
 ### Mida Vaadata (tee screenshots!)
 
@@ -227,13 +257,18 @@ kubectl proxy
 
 ### Valik A: Auto-Scaling (HPA)
 
-HPA skaleerib pod'e automaatselt kui koormus kasvab. Näiteks kui CPU > 50%, lisab pod'e. Kui koormus langeb, vähendab pod'e. See säästab ressursse ja hoiab app'i töös.```bash
+HPA skaleerib pod'e automaatselt kui koormus kasvab. Näiteks kui CPU > 50%, lisab pod'e. Kui koormus langeb, vähendab pod'e. See säästab ressursse ja hoiab app'i töös.
+```bash
 # 1. Enable metrics
 minikube addons enable metrics-server
 # Oota 2 min
 
 # 2. Loo HPA
-nano hpa.yaml``````yaml
+nano hpa.yaml
+`
+`
+`
+```yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -251,7 +286,11 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 50``````bash
+        averageUtilization: 50
+`
+`
+`
+```bash
 # 3. Apply
 kubectl apply -f hpa.yaml
 
@@ -262,11 +301,13 @@ while true; do wget -q -O- http://backend-service:3000/api/products; done
 
 # 5. Vaata Dashboard'is
 # Workloads → Replica Sets
-# Peaksid nägema pod'ide arvu kasvamas```
+# Peaksid nägema pod'ide arvu kasvamas
+```
 
 ### Valik B: Blue-Green Deployment
 
-Blue-Green tähendab 2 versiooni korraga. Blue töötab, Green on uuendus. Saad vahetada ilma katkestuseta. Kui Green on katki, vaheta tagasi Blue.```bash
+Blue-Green tähendab 2 versiooni korraga. Blue töötab, Green on uuendus. Saad vahetada ilma katkestuseta. Kui Green on katki, vaheta tagasi Blue.
+```bash
 # 1. Tee 2 erinevat frontend versiooni
 cd ~/kodutoo/docker/frontend
 
@@ -284,7 +325,11 @@ nano index.html
 
 # Build green
 docker build -t valixyz/shop-frontend:green .
-docker push valixyz/shop-frontend:green``````yaml
+docker push valixyz/shop-frontend:green
+`
+`
+`
+```yaml
 # 2. blue-green.yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -336,7 +381,11 @@ spec:
     version: blue  # SIIN VAHETAD!
   ports:
   - port: 80
-  type: NodePort``````bash
+  type: NodePort
+`
+`
+`
+```bash
 # 3. Deploy mõlemad
 kubectl apply -f blue-green.yaml
 
@@ -351,11 +400,13 @@ kubectl patch service frontend-service -p '{"spec":{"selector":{"version":"green
 # Näed: v2.0 GREEN
 
 # 7. Tagasi blue'le kui vaja
-kubectl patch service frontend-service -p '{"spec":{"selector":{"version":"blue"}}}'```
+kubectl patch service frontend-service -p '{"spec":{"selector":{"version":"blue"}}}'
+```
 
 ### Valik C: Helm Chart
 
-Helm on nagu package manager. Ühe käsuga saad installida/uuendada/kustutada kogu app'i. Values.yaml's saad muuta seadeid. Hea kui on dev/test/prod environment'id.```bash
+Helm on nagu package manager. Ühe käsuga saad installida/uuendada/kustutada kogu app'i. Values.yaml's saad muuta seadeid. Hea kui on dev/test/prod environment'id.
+```bash
 # 1. Install Helm
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
@@ -364,7 +415,11 @@ cd ~/kodutoo
 helm create eshop
 
 # 3. Muuda values
-nano eshop/values.yaml``````yaml
+nano eshop/values.yaml
+`
+`
+`
+```yaml
 backend:
   image: valixyz/shop-backend:v1.0
   replicas: 2
@@ -376,9 +431,17 @@ frontend:
     type: NodePort
 
 postgres:
-  enabled: true``````yaml
+  enabled: true
+`
+`
+`
+```yaml
 # 4. Muuda template
-nano eshop/templates/backend.yaml``````yaml
+nano eshop/templates/backend.yaml
+`
+`
+`
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -397,7 +460,11 @@ spec:
       - name: backend
         image: {{ .Values.backend.image }}
         ports:
-        - containerPort: 3000``````bash
+        - containerPort: 3000
+`
+`
+`
+```bash
 # 5. Install
 helm install myshop ./eshop
 
@@ -408,11 +475,13 @@ helm upgrade myshop ./eshop --set backend.replicas=5
 # Peaks nägema 5 backend pod'i
 
 # 8. Uninstall
-helm uninstall myshop```
+helm uninstall myshop
+```
 
 ---
 
-## README.md Mall```markdown
+## README.md Mall
+```markdown
 # Kubernetes E-Shop Production
 
 ## Autor: [Sinu Nimi]
@@ -454,11 +523,13 @@ helm uninstall myshop```
 - ConfigMap koodile on ainult õppimiseks
 - Production = Docker images
 - Dashboard on kasulik monitoring'uks
-- [Feature] aitab production'is sest...```
+- [Feature] aitab production'is sest...
+```
 
 ---
 
-## Esitamine```
+## Esitamine
+```
 kodutoo/
 ├── README.md           (kirjeldus)
 ├── docker/
@@ -477,7 +548,8 @@ kodutoo/
 └── screenshots/
     ├── dashboard-deployments.png
     ├── dashboard-pods.png
-    └── feature-working.png```
+    └── feature-working.png
+```
 
 **Tähtaeg:** 1 nädal
 
@@ -563,15 +635,19 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 **Kui tahad ekstra punkte, tee üks või mitu neist:**
 
 1. **Horizontal Pod Autoscaler:** Automaatne scaling CPU kasutuse põhjal
-   ```bash
+   
+```bash
    kubectl autoscale deployment backend --cpu-percent=50 --min=2 --max=10
-   ```
+   
+```
 
 2. **Helm Chart:** Pakenda rakendus Helm chart'iks
-   ```bash
+   
+```bash
    helm create myapp
    helm install myapp ./myapp
-   ```
+   
+```
 
 3. **Monitoring:** Lisa Prometheus + Grafana monitoring
 4. **Persistent Volumes:** Kasuta PV ja PVC andmete säilitamiseks

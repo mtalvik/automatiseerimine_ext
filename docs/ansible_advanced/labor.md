@@ -82,13 +82,16 @@ Kui alustate väikese projektiga, võib kõik failid hoida ühes kaustas, kuid r
 
 **Loome professionaalse struktuuri sammhaaval:**
 
-1. Looge peakaust:```bash
+1. Looge peakaust:
+```bash
 mkdir -p ~/ansible-advanced
-cd ~/ansible-advanced```
+cd ~/ansible-advanced
+```
 
 See loob teie projekti juurkausta, kus kogu töö toimub. Kasutame `-p` lippu, et vältida viga kui kaust juba eksisteerib.
 
-2. Looge kõik vajalikud kaustad:```bash
+2. Looge kõik vajalikud kaustad:
+```bash
 # Põhistruktuur
 mkdir -p {inventory,group_vars,host_vars,roles,playbooks,templates,files}
 
@@ -96,16 +99,20 @@ mkdir -p {inventory,group_vars,host_vars,roles,playbooks,templates,files}
 mkdir -p group_vars/{all,webservers,dbservers}
 
 # Host-spetsiifilised muutujad
-mkdir -p host_vars/{web1,web2,db1}```
+mkdir -p host_vars/{web1,web2,db1}
+```
 
 Iga kaust täidab kindlat rolli - `templates` hoiab konfiguratsioonimalle, `group_vars` hoiab servergruppide muutujaid. See struktuur järgib Ansible best practice'eid, mida tunneb ära iga kogenud DevOps insener.
 
-3. Kontrollige struktuuri:```bash
-tree .  # või ls -la kui tree ei ole installitud```
+3. Kontrollige struktuuri:
+```bash
+tree .  # või ls -la kui tree ei ole installitud
+```
 
 Kontrollimine kinnitab, et kõik kaustad on loodud õigesti. Kui `tree` käsk puudub, saate selle installida `apt install tree` käsuga.
 
-Peaks näitama:```
+Peaks näitama:
+```
 .
 ├── files/
 ├── group_vars/
@@ -119,7 +126,8 @@ Peaks näitama:```
 ├── inventory/
 ├── playbooks/
 ├── roles/
-└── templates/```
+└── templates/
+```
 
 ---
 
@@ -131,13 +139,16 @@ Inventory on Ansible'i süda - see määrab, milliste serveritega töötate ja k
 
 **Loome inventory faili sammhaaval:**
 
-1. Looge põhi inventory fail:```bash
+1. Looge põhi inventory fail:
+```bash
 touch inventory/hosts.yml
-nano inventory/hosts.yml```
+nano inventory/hosts.yml
+```
 
 YAML formaat on loetavam kui vana INI formaat ning võimaldab keerukamaid struktuure. See fail saab olema teie infrastruktuuri kaart.
 
-2. Lisage täielik inventory konfiguratsioon:```yaml
+2. Lisage täielik inventory konfiguratsioon:
+```yaml
 all:
   children:
     webservers:
@@ -155,9 +166,11 @@ all:
       vars:
         http_port: 80
         https_port: 443
-        web_root: "/var/www/html"```
+        web_root: "/var/www/html"
+```
 
-Siin defineerime kaks veebiserveri, kus `web1` on primaarne ja `web2` sekundaarne. Kasutame `localhost` testimiseks, kuid tootmises oleksid siin päris IP-aadressid. Grupimuutujad `vars` all kehtivad kõigile selle grupi serveritele.```yaml
+Siin defineerime kaks veebiserveri, kus `web1` on primaarne ja `web2` sekundaarne. Kasutame `localhost` testimiseks, kuid tootmises oleksid siin päris IP-aadressid. Grupimuutujad `vars` all kehtivad kõigile selle grupi serveritele.
+```yaml
     dbservers:
       hosts:
         db1:
@@ -167,9 +180,11 @@ Siin defineerime kaks veebiserveri, kus `web1` on primaarne ja `web2` sekundaarn
           mysql_role: master
       vars:
         mysql_port: 3306
-        mysql_data_dir: "/var/lib/mysql"```
+        mysql_data_dir: "/var/lib/mysql"
+```
 
-Andmebaasiserver on eraldi grupis koos MySQL-spetsiifiliste muutujatega. See võimaldab rakendada andmebaasi-spetsiifilisi seadistusi ainult neile serveritele, mis seda vajavad.```yaml
+Andmebaasiserver on eraldi grupis koos MySQL-spetsiifiliste muutujatega. See võimaldab rakendada andmebaasi-spetsiifilisi seadistusi ainult neile serveritele, mis seda vajavad.
+```yaml
     development:
       children:
         webservers:
@@ -186,7 +201,8 @@ Andmebaasiserver on eraldi grupis koos MySQL-spetsiifiliste muutujatega. See võ
       vars:
         app_env: "production"
         debug_mode: false
-        ssl_enabled: true```
+        ssl_enabled: true
+```
 
 Keskkonna grupid (`development` ja `production`) võimaldavad sama playbook'i kasutada erinevates keskkondades. Arenduskeskkonnas on debug mode sisse lülitatud ja SSL välja, tootmises vastupidi. See lähenemine tagab, et tootmises ei unune kunagi turvaseadistusi sisse lülitada.
 
@@ -202,42 +218,61 @@ Ansible'is kehtib muutujate hierarhia - spetsiifilisemad muutujad kirjutavad ül
 
 **Loome muutujate hierarhia sammhaaval:**
 
-1. Globaalsed muutujad (group_vars/all/vars.yml):```bash
+1. Globaalsed muutujad (group_vars/all/vars.yml):
+```bash
 touch group_vars/all/vars.yml
-nano group_vars/all/vars.yml``````yaml
+nano group_vars/all/vars.yml
+`
+`
+`
+```yaml
 # Kõikidele serveritele ühised seadistused
 app_name: "advanced-lamp"
 app_version: "1.0.0"
-admin_email: "admin@company.com"```
+admin_email: "admin@company.com"
+```
 
-Need on põhilised muutujad, mida kasutab kogu infrastruktuur. Kuna need on `all` grupis, pääsevad kõik serverid neile ligi.```yaml
+Need on põhilised muutujad, mida kasutab kogu infrastruktuur. Kuna need on `all` grupis, pääsevad kõik serverid neile ligi.
+```yaml
 # OS-spetsiifilised paketid (dünaamilised)
 apache_package: "{% if ansible_os_family == 'Debian' %}apache2{% else %}httpd{% endif %}"
-mysql_package: "{% if ansible_os_family == 'Debian' %}mysql-server{% else %}mariadb-server{% endif %}"```
+mysql_package: "{% if ansible_os_family == 'Debian' %}mysql-server{% else %}mariadb-server{% endif %}"
+```
 
-See on tark viis toetada erinevaid Linux distributsioone - Debian/Ubuntu kasutab `apache2` nime, RedHat/CentOS kasutab `httpd`. Ansible tuvastab OS-i automaatselt ja valib õige paketi nime.```yaml
+See on tark viis toetada erinevaid Linux distributsioone - Debian/Ubuntu kasutab `apache2` nime, RedHat/CentOS kasutab `httpd`. Ansible tuvastab OS-i automaatselt ja valib õige paketi nime.
+```yaml
 # Keskkonna sõltuvad seadistused
 backup_enabled: "{{ app_env == 'production' }}"
 monitoring_enabled: "{{ app_env == 'production' }}"
-log_level: "{% if debug_mode %}DEBUG{% else %}INFO{% endif %}"```
+log_level: "{% if debug_mode %}DEBUG{% else %}INFO{% endif %}"
+```
 
 Need seadistused kohanduvad automaatselt vastavalt keskkonnale. Tootmises lülitatakse automaatselt sisse backup ja monitooring, arenduses mitte - see säästab ressursse seal, kus neid ei vajata.
 
-2. Webserverite muutujad (group_vars/webservers/vars.yml):```bash
+2. Webserverite muutujad (group_vars/webservers/vars.yml):
+```bash
 touch group_vars/webservers/vars.yml
-nano group_vars/webservers/vars.yml``````yaml
+nano group_vars/webservers/vars.yml
+`
+`
+`
+```yaml
 # Apache/Nginx seadistused
 max_workers: "{{ ansible_processor_vcpus * 2 }}"
 max_connections: 1000
-keepalive_timeout: 65```
+keepalive_timeout: 65
+```
 
-Apache worker'ite arv arvutatakse dünaamiliselt serveri CPU tuumade järgi. Kui serveril on 4 tuuma, saab Apache automaatselt 8 worker'it. See tagab optimaalse jõudluse igal serveril.```yaml
+Apache worker'ite arv arvutatakse dünaamiliselt serveri CPU tuumade järgi. Kui serveril on 4 tuuma, saab Apache automaatselt 8 worker'it. See tagab optimaalse jõudluse igal serveril.
+```yaml
 # PHP seadistused
 php_version: "7.4"
 php_memory_limit: "{% if ansible_memtotal_mb > 4096 %}512M{% else %}256M{% endif %}"
-php_max_execution_time: 30```
+php_max_execution_time: 30
+```
 
-PHP mälupiirang kohandub serveri RAM-i järgi - võimsamad serverid saavad rohkem mälu. See on oluline, sest liiga väike mälulimiit põhjustab vigu, liiga suur raiskab ressursse.```yaml
+PHP mälupiirang kohandub serveri RAM-i järgi - võimsamad serverid saavad rohkem mälu. See on oluline, sest liiga väike mälulimiit põhjustab vigu, liiga suur raiskab ressursse.
+```yaml
 # Virtual hosts
 virtual_hosts:
   - name: "{{ app_name }}.local"
@@ -245,35 +280,48 @@ virtual_hosts:
     ssl_enabled: "{{ ssl_enabled }}"
   - name: "api.{{ app_name }}.local"
     document_root: "{{ web_root }}/api"
-    ssl_enabled: "{{ ssl_enabled }}"```
+    ssl_enabled: "{{ ssl_enabled }}"
+```
 
 Virtual host'ide nimekiri võimaldab hallata mitut veebisaiti ühel serveril. SSL seadistus tuleb keskkonna muutujast - tootmises on see automaatselt sisse lülitatud.
 
-3. Database serverite muutujad (group_vars/dbservers/vars.yml):```bash
+3. Database serverite muutujad (group_vars/dbservers/vars.yml):
+```bash
 touch group_vars/dbservers/vars.yml
-nano group_vars/dbservers/vars.yml``````yaml
+nano group_vars/dbservers/vars.yml
+`
+`
+`
+```yaml
 # MySQL konfigureerimine
 mysql_root_user: "root"
 mysql_bind_address: "127.0.0.1"
-mysql_max_connections: 100```
+mysql_max_connections: 100
+```
 
-Need on MySQL põhiseadistused, mis kehtivad kõigile andmebaasiserveritele. Bind address `127.0.0.1` tähendab, et MySQL kuulab ainult localhost'i - see on turvalisem.```yaml
+Need on MySQL põhiseadistused, mis kehtivad kõigile andmebaasiserveritele. Bind address `127.0.0.1` tähendab, et MySQL kuulab ainult localhost'i - see on turvalisem.
+```yaml
 # Dünaamiline buffer pool arvutamine
-mysql_innodb_buffer_pool_size: "{{ (ansible_memtotal_mb * 0.7) | int }}M"```
+mysql_innodb_buffer_pool_size: "{{ (ansible_memtotal_mb * 0.7) | int }}M"
+```
 
-InnoDB buffer pool on MySQL jõudluse võti - see hoiab andmeid mälus kiireks ligipääsuks. Kasutame 70% serveri mälust, mis on MySQL-i soovituslik praktika. Filter `| int` tagab, et saame täisarvu.```yaml
+InnoDB buffer pool on MySQL jõudluse võti - see hoiab andmeid mälus kiireks ligipääsuks. Kasutame 70% serveri mälust, mis on MySQL-i soovituslik praktika. Filter `| int` tagab, et saame täisarvu.
+```yaml
 # Andmebaasid
 mysql_databases:
   - name: "{{ app_name }}_{{ app_env }}"
     encoding: "utf8mb4"
-    collation: "utf8mb4_unicode_ci"```
+    collation: "utf8mb4_unicode_ci"
+```
 
-Andmebaasi nimi sisaldab keskkonna nime (nt `advanced-lamp_production`), mis hoiab erinevate keskkondade andmed eraldi. UTF8MB4 toetab ka emoji'sid ja teisi 4-baidiseid Unicode märke.```yaml
+Andmebaasi nimi sisaldab keskkonna nime (nt `advanced-lamp_production`), mis hoiab erinevate keskkondade andmed eraldi. UTF8MB4 toetab ka emoji'sid ja teisi 4-baidiseid Unicode märke.
+```yaml
 mysql_users:
   - name: "{{ app_name }}_user"
     host: "localhost"
     priv: "{{ app_name }}_{{ app_env }}.*:ALL"
-    # Parool tuleb vault'ist```
+    # Parool tuleb vault'ist
+```
 
 Andmebaasi kasutaja õigused on piiratud ainult vajaliku andmebaasiga. Parool hoitakse krüpteeritult Vault'is, mitte tavalises tekstifailis.
 
@@ -292,24 +340,29 @@ Template'id on nagu vormid, kuhu saate sisestada erinevaid andmeid ja saada väl
 
 **Loome Apache virtual host template'i sammhaaval:**
 
-1. Looge template fail:```bash
+1. Looge template fail:
+```bash
 touch templates/apache_vhost.conf.j2
-nano templates/apache_vhost.conf.j2```
+nano templates/apache_vhost.conf.j2
+```
 
 Faililaiend `.j2` näitab, et tegemist on Jinja2 template'iga. See aitab kohe aru saada, et fail sisaldab muutujaid ja loogikat.
 
-2. Alustage põhistruktuuriga:```apache
+2. Alustage põhistruktuuriga:
+```apache
 # {{ ansible_managed }}
 # Virtual Host for {{ item.name }}
 # Generated on {{ ansible_date_time.iso8601 }}
 
 <VirtualHost *:{{ http_port }}>
     ServerName {{ item.name }}
-    DocumentRoot {{ item.document_root }}```
+    DocumentRoot {{ item.document_root }}
+```
 
 Kommentaarid faili alguses näitavad, et fail on automaatselt genereeritud ja millal. `ansible_managed` muutuja lisab hoiatuse, et faili ei tohiks käsitsi muuta. Iga virtual host saab oma serveri nime ja document root'i.
 
-3. Lisage conditionals:```apache
+3. Lisage conditionals:
+```apache
     # Logging configuration
     {% if debug_mode %}
     LogLevel debug
@@ -318,11 +371,13 @@ Kommentaarid faili alguses näitavad, et fail on automaatselt genereeritud ja mi
     {% endif %}
     
     ErrorLog ${APACHE_LOG_DIR}/{{ item.name }}_error.log
-    CustomLog ${APACHE_LOG_DIR}/{{ item.name }}_access.log combined```
+    CustomLog ${APACHE_LOG_DIR}/{{ item.name }}_access.log combined
+```
 
 Debug režiimis logitakse kõik detailselt, tootmises ainult hoiatused ja vead. Iga virtual host saab oma logifailid, mis lihtsustab probleemide lahendamist. Logifailide nimed sisaldavad virtual host'i nime, et neid oleks lihtne eristada.
 
-4. Lisage keskkonna-spetsiifilised seadistused:```apache
+4. Lisage keskkonna-spetsiifilised seadistused:
+```apache
     <Directory {{ item.document_root }}>
         Options Indexes FollowSymLinks
         AllowOverride All
@@ -335,11 +390,13 @@ Debug režiimis logitakse kõik detailselt, tootmises ainult hoiatused ja vead. 
         Header always set X-XSS-Protection "1; mode=block"
         {% endif %}
     </Directory>
-</VirtualHost>```
+</VirtualHost>
+```
 
 Tootmiskeskkonnas lisatakse automaatselt turvapäised, mis kaitsevad clickjacking'u ja XSS rünnakute eest. Need päised pole arenduskeskkonnas vajalikud ja võivad isegi segada testimist. Directory seadistused määravad, kuidas Apache käsitleb faile selles kaustas.
 
-5. Lisage SSL support (conditional):```apache
+5. Lisage SSL support (conditional):
+```apache
 {% if item.ssl_enabled and ssl_enabled %}
 <IfModule mod_ssl.c>
 # SSL Virtual Host
@@ -356,7 +413,8 @@ Tootmiskeskkonnas lisatakse automaatselt turvapäised, mis kaitsevad clickjackin
     SSLCertificateKeyFile {{ ssl_key_path | default('/etc/ssl/private/server.key') }}
 </VirtualHost>
 </IfModule>
-{% endif %}```
+{% endif %}
+```
 
 SSL konfiguratsioon lisatakse ainult siis, kui see on lubatud nii virtual host'i kui keskkonna tasemel. TLS 1.2 ja 1.3 on ainsad turvalised protokollid - vanemad versioonid on haavatavad. Sertifikaadi teed tulevad vault'ist, kuid on ka vaikeväärtused testimiseks.
 
@@ -370,11 +428,14 @@ SSL konfiguratsioon lisatakse ainult siis, kui see on lubatud nii virtual host'i
 
 MySQL vajab hoolikat häälestamist optimaalse jõudluse saavutamiseks. Template võimaldab automaatselt kohandada seadistusi serveri ressursside ja keskkonna järgi. Näiteks arenduskeskkonnas eelistame kiirust turvalisusele, tootmises vastupidi.
 
-1. Looge MySQL template:```bash
+1. Looge MySQL template:
+```bash
 touch templates/mysql.cnf.j2
-nano templates/mysql.cnf.j2```
+nano templates/mysql.cnf.j2
+```
 
-2. Lisage dünaamiline konfiguratsioon:```ini
+2. Lisage dünaamiline konfiguratsioon:
+```ini
 # {{ ansible_managed }}
 # MySQL Configuration for {{ inventory_hostname }}
 # Environment: {{ app_env }}
@@ -382,14 +443,18 @@ nano templates/mysql.cnf.j2```
 [mysqld]
 # Basic settings
 port = {{ mysql_port }}
-bind-address = {{ mysql_bind_address }}```
+bind-address = {{ mysql_bind_address }}
+```
 
-Päis näitab, millisele serverile ja keskkonnale konfiguratsioon kuulub. See on eriti kasulik, kui teil on palju servereid ja peate kiiresti aru saama, millist faili vaatate.```ini
+Päis näitab, millisele serverile ja keskkonnale konfiguratsioon kuulub. See on eriti kasulik, kui teil on palju servereid ja peate kiiresti aru saama, millist faili vaatate.
+```ini
 # Performance tuning based on available memory
 innodb_buffer_pool_size = {{ mysql_innodb_buffer_pool_size }}
-max_connections = {{ mysql_max_connections }}```
+max_connections = {{ mysql_max_connections }}
+```
 
-Buffer pool suurus arvutatakse dünaamiliselt serveri mälu järgi - see on MySQL jõudluse kõige olulisem parameeter. Liiga väike buffer pool aeglustab päringuid, liiga suur võib põhjustada mälu puudumise.```ini
+Buffer pool suurus arvutatakse dünaamiliselt serveri mälu järgi - see on MySQL jõudluse kõige olulisem parameeter. Liiga väike buffer pool aeglustab päringuid, liiga suur võib põhjustada mälu puudumise.
+```ini
 # Environment-specific settings
 {% if app_env == 'production' %}
 # Production optimizations
@@ -399,9 +464,11 @@ sync_binlog = 1
 # Development settings (faster but less safe)
 innodb_flush_log_at_trx_commit = 2
 sync_binlog = 0
-{% endif %}```
+{% endif %}
+```
 
-Tootmises kirjutatakse iga transaktsioon kohe kettale (aeglasem aga turvalisem), arenduses puhverdatakse kirjutamised (kiirem aga andmed võivad kaduda krahhi korral). See kompromiss on mõistlik, sest arenduses pole andmete kaotus kriitiline.```ini
+Tootmises kirjutatakse iga transaktsioon kohe kettale (aeglasem aga turvalisem), arenduses puhverdatakse kirjutamised (kiirem aga andmed võivad kaduda krahhi korral). See kompromiss on mõistlik, sest arenduses pole andmete kaotus kriitiline.
+```ini
 # Logging
 {% if debug_mode %}
 general_log = 1
@@ -409,7 +476,8 @@ general_log_file = /var/log/mysql/general.log
 slow_query_log = 1
 slow_query_log_file = /var/log/mysql/slow.log
 long_query_time = 1
-{% endif %}```
+{% endif %}
+```
 
 Debug režiimis logitakse kõik päringud ja eraldi aeglased päringud (üle 1 sekundi). See aitab tuvastada jõudlusprobleeme, kuid tootmises lülitame välja, sest logimine aeglustab andmebaasi.
 
@@ -421,40 +489,51 @@ Debug režiimis logitakse kõik päringud ja eraldi aeglased päringud (üle 1 s
 
 PHP-FPM (FastCGI Process Manager) haldab PHP protsesse efektiivsemalt kui traditsiooniline mod_php. Template võimaldab automaatselt häälestada protsesside arvu vastavalt serveri võimsusele. Liiga vähe protsesse põhjustab ootejärjekordi, liiga palju raiskab mälu.
 
-1. Looge PHP template:```bash
+1. Looge PHP template:
+```bash
 touch templates/php-fpm.conf.j2
-nano templates/php-fpm.conf.j2```
+nano templates/php-fpm.conf.j2
+```
 
-2. Lisage dünaamilised seadistused:```ini
+2. Lisage dünaamilised seadistused:
+```ini
 # {{ ansible_managed }}
 # PHP-FPM pool configuration
 
 [{{ app_name }}]
 user = www-data
-group = www-data```
+group = www-data
+```
 
-Iga rakendus saab oma PHP pool'i, mis võimaldab isolatsiooni ja erinevaid seadistusi. Pool'i nimi on rakenduse nimi, mis lihtsustab identifitseerimist.```ini
+Iga rakendus saab oma PHP pool'i, mis võimaldab isolatsiooni ja erinevaid seadistusi. Pool'i nimi on rakenduse nimi, mis lihtsustab identifitseerimist.
+```ini
 listen = /var/run/php/php{{ php_version }}-fpm-{{ app_name }}.sock
 listen.owner = www-data
 listen.group = www-data
-listen.mode = 0660```
+listen.mode = 0660
+```
 
-Unix socket on kiirem kui TCP port localhost'is suhtlemiseks. Socket'i fail sisaldab PHP versiooni ja rakenduse nime, et vältida konflikte mitme rakenduse korral.```ini
+Unix socket on kiirem kui TCP port localhost'is suhtlemiseks. Socket'i fail sisaldab PHP versiooni ja rakenduse nime, et vältida konflikte mitme rakenduse korral.
+```ini
 # Process management
 pm = dynamic
 pm.max_children = {{ ansible_processor_vcpus * 4 }}
 pm.start_servers = {{ ansible_processor_vcpus }}
 pm.min_spare_servers = {{ ansible_processor_vcpus }}
-pm.max_spare_servers = {{ ansible_processor_vcpus * 2 }}```
+pm.max_spare_servers = {{ ansible_processor_vcpus * 2 }}
+```
 
-Protsesside arv skaleerub automaatselt CPU tuumade arvuga - 4-tuumaline server saab kuni 16 PHP protsessi. Dynamic PM tähendab, et PHP käivitab ja peatab protsesse vastavalt koormusele. See tagab ressursside efektiivse kasutuse.```ini
+Protsesside arv skaleerub automaatselt CPU tuumade arvuga - 4-tuumaline server saab kuni 16 PHP protsessi. Dynamic PM tähendab, et PHP käivitab ja peatab protsesse vastavalt koormusele. See tagab ressursside efektiivse kasutuse.
+```ini
 # PHP settings
 php_admin_value[memory_limit] = {{ php_memory_limit }}
 php_admin_value[max_execution_time] = {{ php_max_execution_time }}
 php_admin_value[upload_max_filesize] = 32M
-php_admin_value[post_max_size] = 32M```
+php_admin_value[post_max_size] = 32M
+```
 
-PHP seadistused tulevad muutujatest, mis omakorda kohanduvad serveri ressursside järgi. Upload ja POST piirangud on seatud 32MB peale, mis on piisav enamiku rakenduste jaoks.```ini
+PHP seadistused tulevad muutujatest, mis omakorda kohanduvad serveri ressursside järgi. Upload ja POST piirangud on seatud 32MB peale, mis on piisav enamiku rakenduste jaoks.
+```ini
 {% if app_env == 'development' %}
 # Development settings
 php_admin_flag[display_errors] = on
@@ -463,7 +542,8 @@ php_admin_value[error_reporting] = E_ALL
 # Production settings
 php_admin_flag[display_errors] = off
 php_admin_value[error_reporting] = E_ERROR
-{% endif %}```
+{% endif %}
+```
 
 Arenduses näitame kõiki PHP vigu otse brauseris, mis kiirendab silumist. Tootmises peidame vead kasutajate eest (turvakaalutlused) ja logime ainult kriitilised vead. See hoiab ära tundliku info lekke.
 
@@ -477,36 +557,45 @@ Handler'id on Ansible'i viis teenuste tõhusaks haldamiseks - nad käivituvad ai
 
 **Loome täiustatud playbook'i sammhaaval:**
 
-1. Looge põhi playbook:```bash
+1. Looge põhi playbook:
+```bash
 touch playbooks/site.yml
-nano playbooks/site.yml```
+nano playbooks/site.yml
+```
 
-2. Lisage playbook struktuur:```yaml
+2. Lisage playbook struktuur:
+```yaml
 ---
 - name: "LAMP Stack Deployment with Advanced Configuration"
   hosts: all
   become: yes
-  gather_facts: yes```
+  gather_facts: yes
+```
 
-Playbook nimi peaks kirjeldama, mida see teeb. `become: yes` tähendab sudo kasutamist, `gather_facts` kogub infot serverite kohta (OS, mälu, CPU jne).```yaml
+Playbook nimi peaks kirjeldama, mida see teeb. `become: yes` tähendab sudo kasutamist, `gather_facts` kogub infot serverite kohta (OS, mälu, CPU jne).
+```yaml
   tasks:
     - name: "Update package cache"
       package:
         update_cache: yes
-      when: ansible_os_family == "Debian"```
+      when: ansible_os_family == "Debian"
+```
 
 Debian/Ubuntu süsteemides uuendame paketi nimekirju enne installimist. `when` tingimus tagab, et see käivitatakse ainult Debian põhistel süsteemidel.
 
-3. Lisage Apache seadistamine handlers'itega:```yaml
+3. Lisage Apache seadistamine handlers'itega:
+```yaml
     - name: "Install Apache"
       package:
         name: "{{ apache_package }}"
         state: present
       notify:
         - "start apache"
-        - "enable apache"```
+        - "enable apache"
+```
 
-Apache installimisel teavitame handler'eid, et teenus tuleb käivitada ja lubada. Handler'id käivituvad playbook'i lõpus, mitte kohe.```yaml
+Apache installimisel teavitame handler'eid, et teenus tuleb käivitada ja lubada. Handler'id käivituvad playbook'i lõpus, mitte kohe.
+```yaml
     - name: "Create virtual host directories"
       file:
         path: "{{ item.document_root }}"
@@ -515,9 +604,11 @@ Apache installimisel teavitame handler'eid, et teenus tuleb käivitada ja lubada
         group: www-data
         mode: '0755'
       loop: "{{ virtual_hosts }}"
-      when: virtual_hosts is defined```
+      when: virtual_hosts is defined
+```
 
-Loop käib läbi kõik virtual host'id ja loob igaühele oma kausta. `when` tingimus kaitseb vea eest, kui virtual_hosts muutuja pole defineeritud. Õigused 755 tähendavad, et omanik saab kõike teha, teised ainult lugeda ja siseneda.```yaml
+Loop käib läbi kõik virtual host'id ja loob igaühele oma kausta. `when` tingimus kaitseb vea eest, kui virtual_hosts muutuja pole defineeritud. Õigused 755 tähendavad, et omanik saab kõike teha, teised ainult lugeda ja siseneda.
+```yaml
     - name: "Generate virtual host configurations"
       template:
         src: apache_vhost.conf.j2
@@ -525,20 +616,24 @@ Loop käib läbi kõik virtual host'id ja loob igaühele oma kausta. `when` ting
         backup: yes
       loop: "{{ virtual_hosts }}"
       notify: "reload apache"
-      when: virtual_hosts is defined```
+      when: virtual_hosts is defined
+```
 
-Template task genereerib iga virtual host'i jaoks eraldi konfiguratsioonifaili. `backup: yes` teeb varukoopia enne ülekirjutamist - see on päästerõngas, kui midagi läheb valesti.```yaml
+Template task genereerib iga virtual host'i jaoks eraldi konfiguratsioonifaili. `backup: yes` teeb varukoopia enne ülekirjutamist - see on päästerõngas, kui midagi läheb valesti.
+```yaml
     - name: "Enable virtual hosts"
       command: "a2ensite {{ item.name }}"
       args:
         creates: "/etc/apache2/sites-enabled/{{ item.name }}.conf"
       loop: "{{ virtual_hosts }}"
       notify: "reload apache"
-      when: virtual_hosts is defined```
+      when: virtual_hosts is defined
+```
 
 `a2ensite` on Apache'i käsk virtual host'i lubamiseks. `creates` argument ütleb Ansible'ile, et kui fail juba eksisteerib, pole vaja käsku uuesti käivitada - see teeb playbook'i idempotentseks.
 
-4. Lisage handlers sektsioon:```yaml
+4. Lisage handlers sektsioon:
+```yaml
   handlers:
     - name: "start apache"
       service:
@@ -548,9 +643,11 @@ Template task genereerib iga virtual host'i jaoks eraldi konfiguratsioonifaili. 
     - name: "enable apache"
       service:
         name: "{{ apache_package }}"
-        enabled: yes```
+        enabled: yes
+```
 
-Need handler'id käivitavad ja lubavad Apache teenuse. `enabled: yes` tähendab, et Apache käivitub automaatselt serveri taaskäivitumisel.```yaml
+Need handler'id käivitavad ja lubavad Apache teenuse. `enabled: yes` tähendab, et Apache käivitub automaatselt serveri taaskäivitumisel.
+```yaml
     - name: "reload apache"
       service:
         name: "{{ apache_package }}"
@@ -559,7 +656,8 @@ Need handler'id käivitavad ja lubavad Apache teenuse. `enabled: yes` tähendab,
     - name: "restart apache"
       service:
         name: "{{ apache_package }}"
-        state: restarted```
+        state: restarted
+```
 
 Reload laeb konfiguratsiooni uuesti ilma ühendusi katkestamata, restart peatab ja käivitab teenuse täielikult. Eelistame reload'i, kui võimalik, et vältida teenuse katkestusi.
 
@@ -573,18 +671,24 @@ Reload laeb konfiguratsiooni uuesti ilma ühendusi katkestamata, restart peatab 
 
 Testimine on kriitiline osa automatiseerimisest - parem leida vead testimisel kui tootmises. Ansible pakub mitmeid viise playbook'i testimiseks enne päris käivitamist. Alati testige muudatusi arenduskeskkonnas enne tootmisse viimist.
 
-1. Syntax check:```bash
-ansible-playbook --syntax-check playbooks/site.yml```
+1. Syntax check:
+```bash
+ansible-playbook --syntax-check playbooks/site.yml
+```
 
 Kontrollib YAML süntaksit ja Ansible konstruktide õigsust. See leiab kirjavead ja süntaksivead, kuid ei kontrolli loogikat.
 
-2. Kuiv käivitus:```bash
-ansible-playbook --check -i inventory/hosts.yml playbooks/site.yml```
+2. Kuiv käivitus:
+```bash
+ansible-playbook --check -i inventory/hosts.yml playbooks/site.yml
+```
 
 Check mode näitab, mida Ansible teeks, kuid ei tee tegelikke muudatusi. See on nagu eelvaade - näete, mis muutuks ilma midagi lõhkumata.
 
-3. Template'i testimine:```bash
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags "config" -v```
+3. Template'i testimine:
+```bash
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags "config" -v
+```
 
 Verbose mode (`-v`) näitab detailset väljundit, mis aitab mõista, mida Ansible teeb. Saate kasutada ka `-vv` või `-vvv` veel detailsema info jaoks.
 
@@ -596,50 +700,70 @@ Verbose mode (`-v`) näitab detailset väljundit, mis aitab mõista, mida Ansibl
 
 Vault on Ansible'i vastus turvalisuse probleemile - kuidas hoida paroole ja API võtmeid versioonikontrollis ilma neid paljastamata. Vault krüpteerib failid AES-256 algoritmiga, mis on panga-tasemel krüpteering. Ilma paroolita on võimatu faile dekrüpteerida.
 
-1. Looge vault fail group_vars jaoks:```bash
-ansible-vault create group_vars/all/vault.yml```
+1. Looge vault fail group_vars jaoks:
+```bash
+ansible-vault create group_vars/all/vault.yml
+```
 
 Käsk küsib vault parooli - valige tugev parool ja hoidke see turvaliselt. See parool on ainus viis failile ligi pääseda.
 
-2. Lisage tundlikud andmed:```yaml
+2. Lisage tundlikud andmed:
+```yaml
 # Database credentials
 vault_mysql_root_password: "SecureRootPassword123!"
-vault_mysql_app_password: "AppPassword456!"```
+vault_mysql_app_password: "AppPassword456!"
+```
 
-Kõik paroolid peavad olema tugevad - kasutage suuri ja väikesi tähti, numbreid ja erimärke. Reaalses keskkonnas kasutage parooligeneraatorit.```yaml
+Kõik paroolid peavad olema tugevad - kasutage suuri ja väikesi tähti, numbreid ja erimärke. Reaalses keskkonnas kasutage parooligeneraatorit.
+```yaml
 # SSL certificates paths
 vault_ssl_cert_path: "/etc/ssl/certs/company.crt"
-vault_ssl_key_path: "/etc/ssl/private/company.key"```
+vault_ssl_key_path: "/etc/ssl/private/company.key"
+```
 
-SSL sertifikaatide teed on tundlikud, sest näitavad teie infrastruktuuri struktuuri. Privaatne võti on eriti kriitiline - selle lekkimine kompromiteerib kogu HTTPS turvalisuse.```yaml
+SSL sertifikaatide teed on tundlikud, sest näitavad teie infrastruktuuri struktuuri. Privaatne võti on eriti kriitiline - selle lekkimine kompromiteerib kogu HTTPS turvalisuse.
+```yaml
 # API keys
 vault_backup_api_key: "backup_api_key_here"
-vault_monitoring_token: "monitoring_token_here"```
+vault_monitoring_token: "monitoring_token_here"
+```
 
-API võtmed on nagu paroolid väliste teenuste jaoks. Nende lekkimine võib põhjustada teenuse väärkasutust või andmeleket.```yaml
+API võtmed on nagu paroolid väliste teenuste jaoks. Nende lekkimine võib põhjustada teenuse väärkasutust või andmeleket.
+```yaml
 # Admin passwords
-vault_admin_password: "AdminSecurePass789!"```
+vault_admin_password: "AdminSecurePass789!"
+```
 
 Administraatori parool annab täieliku kontrolli süsteemi üle. See peaks olema kõige tugevam parool ja regulaarselt vahetatud.
 
-3. Looge production-spetsiifiline vault:```bash
-ansible-vault create group_vars/production/vault.yml``````yaml
+3. Looge production-spetsiifiline vault:
+```bash
+ansible-vault create group_vars/production/vault.yml
+`
+`
+`
+```yaml
 # Production SSL certificates
 vault_ssl_cert_content: |
   -----BEGIN CERTIFICATE-----
   [certificate content here]
-  -----END CERTIFICATE-----```
+  -----END CERTIFICATE-----
+```
 
-Tootmise sertifikaat on teie ettevõtte identiteet internetis. YAML-i `|` süntaks säilitab mitmerealise teksti formaadi, mis on vajalik sertifikaatide jaoks.```yaml
+Tootmise sertifikaat on teie ettevõtte identiteet internetis. YAML-i `|` süntaks säilitab mitmerealise teksti formaadi, mis on vajalik sertifikaatide jaoks.
+```yaml
 vault_ssl_key_content: |
   -----BEGIN PRIVATE KEY-----
   [private key content here]
-  -----END PRIVATE KEY-----```
+  -----END PRIVATE KEY-----
+```
 
-Privaatvõti on kõige tundlikum osa - see PEAB olema krüpteeritud. Kui keegi saab kätte teie privaatvõtme, saab ta teeskleda olevat teie server.```yaml
+Privaatvõti on kõige tundlikum osa - see PEAB olema krüpteeritud. Kui keegi saab kätte teie privaatvõtme, saab ta teeskleda olevat teie server.
+```yaml
 # Production database settings
 vault_production_db_host: "prod-db.company.com"
-vault_production_db_password: "ProdDbPass123!"```
+vault_production_db_password: "ProdDbPass123!"
+```
 
 Tootmise andmebaasi mandaadid on eraldi, et vältida kogemata arenduse paroolide kasutamist tootmises. See on oluline turvalisuse kiht.
 
@@ -651,26 +775,38 @@ Tootmise andmebaasi mandaadid on eraldi, et vältida kogemata arenduse paroolide
 
 Vault muutujad ei ole otse kasutatavad - need tuleb "mappida" tavalistele muutujatele. See eraldus võimaldab vahetada vault faile ilma põhi konfiguratsiooni muutmata. See on kasulik, kui teil on erinevad paroolid erinevates keskkondades.
 
-1. Uuendage group_vars/all/vars.yml:```bash
-nano group_vars/all/vars.yml``````yaml
+1. Uuendage group_vars/all/vars.yml:
+```bash
+nano group_vars/all/vars.yml
+`
+`
+`
+```yaml
 # Lisage vault viited
 mysql_root_password: "{{ vault_mysql_root_password }}"
 mysql_app_password: "{{ vault_mysql_app_password }}"
 ssl_cert_path: "{{ vault_ssl_cert_path }}"
 ssl_key_path: "{{ vault_ssl_key_path }}"
-admin_password: "{{ vault_admin_password }}"```
+admin_password: "{{ vault_admin_password }}"
+```
 
 Need muutujad viitavad vault muutujatele. Kui Ansible laeb muutujaid, asendab ta need väärtustega vault failist.
 
-2. Uuendage MySQL template'i:```bash
-nano templates/mysql.cnf.j2``````ini
+2. Uuendage MySQL template'i:
+```bash
+nano templates/mysql.cnf.j2
+`
+`
+`
+```ini
 # Lisage vault-põhised seadistused
 {% if app_env == 'production' %}
 # Production SSL settings
 ssl-ca={{ vault_ssl_cert_path }}
 ssl-cert={{ vault_ssl_cert_path }}
 ssl-key={{ vault_ssl_key_path }}
-{% endif %}```
+{% endif %}
+```
 
 Tootmises lubame MySQL SSL-i, kasutades vault'ist tulevaid sertifikaate. See krüpteerib andmebaasi ühendused, kaitstes andmeid võrgus.
 
@@ -682,25 +818,33 @@ Tootmises lubame MySQL SSL-i, kasutades vault'ist tulevaid sertifikaate. See kr�
 
 Vault failidega töötamine nõuab teadmisi erinevatest käskudest. Need käsud on teie igapäevased tööriistad tundlike andmete haldamiseks. Harjutage neid arenduskeskkonnas, enne kui kasutate tootmises.
 
-1. Vaata vault faili:```bash
-ansible-vault view group_vars/all/vault.yml```
+1. Vaata vault faili:
+```bash
+ansible-vault view group_vars/all/vault.yml
+```
 
 View käsk näitab faili sisu ilma dekrüpteeritud faili kettale kirjutamata. See on turvalisem kui edit, kui tahate ainult kontrollida väärtusi.
 
-2. Muuda vault faili:```bash
-ansible-vault edit group_vars/production/vault.yml```
+2. Muuda vault faili:
+```bash
+ansible-vault edit group_vars/production/vault.yml
+```
 
 Edit käsk dekrüpteerib faili ajutiselt mälus, avab redaktoris ja krüpteerib uuesti peale salvestamist. Faili ei kirjutata kunagi dekrüpteeritult kettale.
 
-3. Käivita playbook vault'iga:```bash
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml --ask-vault-pass```
+3. Käivita playbook vault'iga:
+```bash
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml --ask-vault-pass
+```
 
 `--ask-vault-pass` küsib parooli interaktiivselt. See on turvaline viis ühekordseks käivitamiseks, sest parool ei jää käsurea ajalukku.
 
-4. Või kasuta vault password faili:```bash
+4. Või kasuta vault password faili:
+```bash
 echo "your_vault_password" > .vault_pass
 chmod 600 .vault_pass
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml --vault-password-file .vault_pass```
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml --vault-password-file .vault_pass
+```
 
 Paroolifail on mugav automatiseeritud käivitusteks (nt CI/CD). Õigused 600 tähendavad, et ainult omanik saab faili lugeda - see on kriitiline turvalisuse jaoks.
 

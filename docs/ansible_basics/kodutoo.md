@@ -24,25 +24,32 @@ Seadistage vähemalt 2 virtuaalmasinat:
 
 OLULINE: Lahendus PEAB olema konfigureeritav. Õpetaja testib teie lahendust muutes ainult inventory.ini ja group_vars/all/main.yml faile.
 
-Näide kuidas õpetaja testib:```bash
+Näide kuidas õpetaja testib:
+```bash
 # Õpetaja muudab ainult:
 # 1. inventory.ini - oma IP-d
 # 2. group_vars/all/main.yml - oma kasutajanimi
 
 # Ja käivitab:
-ansible-playbook playbooks/site.yml```
+ansible-playbook playbooks/site.yml
+```
 
-Näide inventory.ini failist:```ini
+Näide inventory.ini failist:
+```ini
 [lamp_servers]
-server1 ansible_host=192.168.1.100 ansible_user=student```
+server1 ansible_host=192.168.1.100 ansible_user=student
+```
 
-Näide group_vars/all/main.yml failist:```yaml
+Näide group_vars/all/main.yml failist:
+```yaml
 # Muudetavad muutujad
 student_username: "jaan.tamm"
 server_ip: "192.168.1.100"
-domain_name: "lamp.local"```
+domain_name: "lamp.local"
+```
 
-VALE lähenemine - hardcoded väärtused:```yaml
+VALE lähenemine - hardcoded väärtused:
+```yaml
 - name: "Create user"
   user:
 name:
@@ -53,16 +60,19 @@ name:
   copy:
 dest:
 - "/home/jaan.tamm/file"  # VALE
-- hardcoded path```
+- hardcoded path
+```
 
-ÕIGE lähenemine - muutujatega:```yaml
+ÕIGE lähenemine - muutujatega:
+```yaml
 - name: "Create user"
   user:
     name: "{{ student_username }}"  # ÕIGE
     
 - name: "Copy file"
   copy:
-    dest: "/home/{{ student_username }}/file"  # ÕIGE```
+    dest: "/home/{{ student_username }}/file"  # ÕIGE
+```
 
 ---
 
@@ -96,7 +106,8 @@ Uurige:
 - Mis on `a2ensite` ja `a2enmod` käsud?
 - Millal kasutada `notify` ja `handlers`?
 
-Template näidis (vhost.conf.j2):```apache
+Template näidis (vhost.conf.j2):
+```apache
 <VirtualHost *:80>
     ServerName {{ domain_name }}
     ServerAdmin {{ server_admin }}
@@ -110,7 +121,8 @@ Template näidis (vhost.conf.j2):```apache
     
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
-</VirtualHost>```
+</VirtualHost>
+```
 
 ---
 
@@ -128,7 +140,8 @@ Nõuded:
 - Python MySQL moodul peab olema installitud (pymysql)
 - Andmebaasi nimi ja kasutaja peavad olema muutujad
 
-MySQL paroolide käsitlemine vars_prompt abil:```yaml
+MySQL paroolide käsitlemine vars_prompt abil:
+```yaml
 vars_prompt:
   - name: mysql_root_password
     prompt: "Enter MySQL root password"
@@ -136,7 +149,8 @@ vars_prompt:
     
   - name: mysql_app_password
     prompt: "Enter application database password"
-    private: yes```
+    private: yes
+```
 
 Uurige järgmisi mooduleid:
 - `mysql_db` - andmebaasi haldus
@@ -159,7 +173,8 @@ Test leht peab sisaldama:
 - PHP versiooni kuvamist
 - Dünaamilist sisu Ansible muutujatest
 
-Template näidis (index.php.j2):```php
+Template näidis (index.php.j2):
+```php
 <?php
 // Server info
 echo "<h1>LAMP Stack Test</h1>";
@@ -178,7 +193,8 @@ try {
 } catch(PDOException $e) {
     echo "<p style='color:red'>MySQL connection: FAILED</p>";
 }
-?>```
+?>
+```
 
 ---
 
@@ -186,7 +202,8 @@ try {
 
 OLULINE: Failid PEAVAD olema õigesti organiseeritud. Labor oli õppimiseks kus kõik oli ühes failis. Kodutöös peab järgima professionaalset struktuuri.
 
-Nõutud failide struktuur:```
+Nõutud failide struktuur:
+```
 ansible_lamp/
 ├── inventory.ini
 ├── ansible.cfg
@@ -204,7 +221,8 @@ ansible_lamp/
 │   │   └── main.yml     # Globaalsed muutujad
 │   └── lamp_servers/
 │       └── main.yml     # LAMP serverite muutujad
-└── README.md```
+└── README.md
+```
 
 MITTE LUBATUD:
 - Kõik muutujad playbook'i sees vars: sektsioonis
@@ -217,7 +235,8 @@ NÕUTUD:
 - Templates templates/ kaustas
 - Master playbook (site.yml) kasutab import_playbook
 
-VALE struktuuri näide:```yaml
+VALE struktuuri näide:
+```yaml
 # HALB - kõik ühes failis
 - name: "Everything in one file"
   hosts: servers
@@ -227,9 +246,11 @@ VALE struktuuri näide:```yaml
     - name: "Install Apache"
     - name: "Install MySQL"  # Erinevad teenused segamini
   handlers:
-    - name: restart  # Handlers võiks olla eraldi```
+    - name: restart  # Handlers võiks olla eraldi
+```
 
-ÕIGE struktuuri näide:```yaml
+ÕIGE struktuuri näide:
+```yaml
 # apache.yml
 - name: "Apache setup"
   hosts: lamp_servers
@@ -248,7 +269,8 @@ VALE struktuuri näide:```yaml
 - import_playbook: system.yml
 - import_playbook: apache.yml
 - import_playbook: mysql.yml
-- import_playbook: php.yml```
+- import_playbook: php.yml
+```
 
 ---
 
@@ -267,7 +289,8 @@ Kasutage järgmisi mooduleid:
 - `service_facts` - teenuste seisundi kontroll
 - `stat` - failide olemasolu kontroll
 
-Testimise näide:```yaml
+Testimise näide:
+```yaml
 - name: "Test Apache is responding"
   uri:
     url: "http://{{ inventory_hostname }}"
@@ -277,7 +300,8 @@ Testimise näide:```yaml
   wait_for:
     port: 3306
     state: started
-    timeout: 30```
+    timeout: 30
+```
 
 ---
 
@@ -285,7 +309,8 @@ Testimise näide:```yaml
 
 ### README.md nõuded
 
-Teie README.md fail peab sisaldama järgmisi sektsioone:```markdown
+Teie README.md fail peab sisaldama järgmisi sektsioone:
+```markdown
 # LAMP Stack Ansible
 
 ## Autor
@@ -300,12 +325,14 @@ Teie README.md fail peab sisaldama järgmisi sektsioone:```markdown
 - SSH juurdepääs target serveritele
 - Sudo õigused target serverites
 
-## Failide struktuur```
+## Failide struktuur
+```
 ansible_lamp/
 ├── playbooks/
 │   ├── site.yml
 │   └── ...
-...```
+...
+```
 [Kirjeldage, mis igas kaustas on]
 
 ## Seadistamine
@@ -317,11 +344,15 @@ ansible_lamp/
 
 ## Kasutamine
 
-### Esimene käivitamine```bash
-ansible-playbook playbooks/site.yml --ask-become-pass```
+### Esimene käivitamine
+```bash
+ansible-playbook playbooks/site.yml --ask-become-pass
+```
 
-### Idempotentsuse test```bash
-ansible-playbook playbooks/site.yml```
+### Idempotentsuse test
+```bash
+ansible-playbook playbooks/site.yml
+```
 
 ### Testimine
 Avage brauseris: http://[teie-server-ip]
@@ -341,7 +372,8 @@ Avage brauseris: http://[teie-server-ip]
 ## Kasutatud allikad
 
 - [Ansible dokumentatsioon](https://docs.ansible.com/)
-- [Link teisele allikale]```
+- [Link teisele allikale]
+```
 
 ### Kontroll enne esitamist
 
@@ -434,7 +466,8 @@ Valikulised täiendused, mis annavad lisapunkte (kokku kuni +10%):
 
 ### Ansible Vault (+3%)
 
-Krüpteerige MySQL paroolid Ansible Vault'iga:```bash
+Krüpteerige MySQL paroolid Ansible Vault'iga:
+```bash
 # Looge krüpteeritud fail
 ansible-vault create group_vars/all/vault.yml
 
@@ -443,11 +476,13 @@ mysql_root_password: "secret123"
 mysql_app_password: "appsecret456"
 
 # Käivitage playbook vault parooliga
-ansible-playbook playbooks/site.yml --ask-vault-pass```
+ansible-playbook playbooks/site.yml --ask-vault-pass
+```
 
 ### Mitme keskkonna tugi (+3%)
 
-Looge eraldi inventory ja muutujad dev ja prod keskkondade jaoks:```
+Looge eraldi inventory ja muutujad dev ja prod keskkondade jaoks:
+```
 inventory/
   dev/
     hosts
@@ -457,11 +492,13 @@ group_vars/
   dev/
     main.yml
   prod/
-    main.yml```
+    main.yml
+```
 
 ### Automaatne testimine (+2%)
 
-Lisage playbook'i lõppu testid, mis kontrollivad teenuste tööd:```yaml
+Lisage playbook'i lõppu testid, mis kontrollivad teenuste tööd:
+```yaml
 - name: "Verify all services are running"
   service_facts:
   
@@ -473,11 +510,13 @@ Lisage playbook'i lõppu testid, mis kontrollivad teenuste tööd:```yaml
 - name: "Test web page"
   uri:
     url: "http://{{ inventory_hostname }}"
-    status_code: 200```
+    status_code: 200
+```
 
 ### SSL sertifikaat (+2%)
 
-Seadistage self-signed SSL sertifikaat ja HTTPS:```yaml
+Seadistage self-signed SSL sertifikaat ja HTTPS:
+```yaml
 - name: "Generate SSL certificate"
   command: >
     openssl req -x509 -nodes -days 365 -newkey rsa:2048
@@ -485,7 +524,8 @@ Seadistage self-signed SSL sertifikaat ja HTTPS:```yaml
     -out /etc/ssl/certs/apache-selfsigned.crt
     -subj "/C=EE/ST=Harjumaa/L=Tallinn/O=MyOrg/CN={{ domain_name }}"
   args:
-    creates: /etc/ssl/certs/apache-selfsigned.crt```
+    creates: /etc/ssl/certs/apache-selfsigned.crt
+```
 
 ---
 
@@ -500,14 +540,20 @@ Seadistage self-signed SSL sertifikaat ja HTTPS:```yaml
 
 ### Debugimine
 
-Verbose režiim rohkem infot saamiseks:```bash
-ansible-playbook playbooks/site.yml -vvv```
+Verbose režiim rohkem infot saamiseks:
+```bash
+ansible-playbook playbooks/site.yml -vvv
+```
 
-Kuiv käivitus (ei tee muudatusi):```bash
-ansible-playbook playbooks/site.yml --check```
+Kuiv käivitus (ei tee muudatusi):
+```bash
+ansible-playbook playbooks/site.yml --check
+```
 
-Vaadake muudatuste diff'i:```bash
-ansible-playbook playbooks/site.yml --diff```
+Vaadake muudatuste diff'i:
+```bash
+ansible-playbook playbooks/site.yml --diff
+```
 
 ### Mida MITTE teha
 

@@ -20,7 +20,8 @@ Tööstuses kasutatakse branch strateegiaid nagu Git Flow või GitHub Flow. Iga 
 
 GitHub Actions võimaldab käitumist kontrollida branch'i nime järgi. Conditional execution kasutab workflow süntaksit kus iga job saab määrata millal ta käivitub.
 
-Näide branch-põhisest käitumisest:```yaml
+Näide branch-põhisest käitumisest:
+```yaml
 name: CI/CD
 
 on:
@@ -77,7 +78,8 @@ jobs:
     steps:
       - name: Deploy to production
         run: echo "Deploying to production..."
-      # Käivitub AINULT main branch'il, vajab manual approval```
+      # Käivitub AINULT main branch'il, vajab manual approval
+```
 
 Environment konfiguratsioon lisab turvalisuse kihi. Production environment saab seadistada nõudma manual approval - keegi peab GitHub UI's kinnitama enne kui deployment käivitub. Samuti saab seadistada kes võivad approve'ida - ainult senior arendajad või DevOps tiim.
 
@@ -99,7 +101,8 @@ Image tagging strateegia on oluline. Feature branch'idel ei builda image'i ülds
 - Kasuta github.ref võrdlemiseks - see on branch'i täielik nimi nagu refs/heads/main
 - Tag'ide jaoks kasuta ternary operator'it workflow'des
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Loo feature branch
 git checkout -b feature/test-strategy
 git push origin feature/test-strategy
@@ -113,7 +116,8 @@ git push origin develop
 
 # Ava PR main'i
 # Vaata et nõuab review'd
-# Pärast merge'i vaata et nõuab manual approval production deployment'iks```
+# Pärast merge'i vaata et nõuab manual approval production deployment'iks
+```
 
 **Boonus:**
 - Lisa pull request'i jaoks eraldi workflow mis kommenteerib PR'i build statusega
@@ -136,18 +140,21 @@ Tööstuses on pipeline optimiseerimine pidev protsess. Netflix optimeeris oma p
 
 Optimeerimise võti on caching, paralleliseerimine ja layer reuse. Alustame dependency caching'ust.
 
-Dependencies muutuvad harva. Python'i requirements.txt või Node'i package.json muutub vahest kord nädalas. Aga me installime need iga commit'iga uuesti. Caching lahendab selle.```yaml
+Dependencies muutuvad harva. Python'i requirements.txt või Node'i package.json muutub vahest kord nädalas. Aga me installime need iga commit'iga uuesti. Caching lahendab selle.
+```yaml
 - name: Cache Python dependencies
   uses: actions/cache@v3
   with:
     path: ~/.cache/pip
     key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
     restore-keys: |
-      ${{ runner.os }}-pip-```
+      ${{ runner.os }}-pip-
+```
 
 Cache key kasutab requirements.txt hash'i. Kui fail ei muutu, key ei muutu, cache hit. Kui fail muutub, key muutub, cache miss, uus install. Restore-keys on fallback - kui exact match puudub, kasuta kõige lähemat.
 
-Docker layer caching on võimsam. Multi-stage build võimaldab base image'i taaskasutada.```dockerfile
+Docker layer caching on võimsam. Multi-stage build võimaldab base image'i taaskasutada.
+```dockerfile
 # Base stage - harva muutub
 FROM python:3.9-slim AS base
 RUN apt-get update && apt-get install -y build-essential
@@ -158,9 +165,11 @@ RUN pip install -r requirements.txt
 FROM base AS app
 COPY . /app
 WORKDIR /app
-CMD ["python", "app.py"]```
+CMD ["python", "app.py"]
+```
 
-Base stage builditakse ainult kui requirements.txt muutub. App stage builditakse iga kord, aga see on kiire - ainult COPY ja CMD. Docker build-push-action toetab layer caching'ut built-in.```yaml
+Base stage builditakse ainult kui requirements.txt muutub. App stage builditakse iga kord, aga see on kiire - ainult COPY ja CMD. Docker build-push-action toetab layer caching'ut built-in.
+```yaml
 - name: Build and push
   uses: docker/build-push-action@v4
   with:
@@ -168,9 +177,11 @@ Base stage builditakse ainult kui requirements.txt muutub. App stage builditakse
     push: true
     tags: myapp:latest
     cache-from: type=registry,ref=myapp:buildcache
-    cache-to: type=registry,ref=myapp:buildcache,mode=max```
+    cache-to: type=registry,ref=myapp:buildcache,mode=max
+```
 
-Paralleliseerimine käivitab töö korraga. Test ja lint võivad käia samal ajal - nad ei sõltu üksteisest.```yaml
+Paralleliseerimine käivitab töö korraga. Test ja lint võivad käia samal ajal - nad ei sõltu üksteisest.
+```yaml
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -186,9 +197,11 @@ jobs:
     needs: [test, lint]
     runs-on: ubuntu-latest
     steps:
-      - run: docker build .```
+      - run: docker build .
+```
 
-Matrix strategy testib mitmete versioonidega paralleelselt.```yaml
+Matrix strategy testib mitmete versioonidega paralleelselt.
+```yaml
 test:
   strategy:
     matrix:
@@ -198,9 +211,11 @@ test:
     - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    - run: pytest tests/```
+    - run: pytest tests/
+```
 
-Artifact'id jagavad build tulemusi. Build job loob artifact'i, deploy job kasutab seda.```yaml
+Artifact'id jagavad build tulemusi. Build job loob artifact'i, deploy job kasutab seda.
+```yaml
 build:
   steps:
     - run: npm run build
@@ -215,7 +230,8 @@ deploy:
     - uses: actions/download-artifact@v3
       with:
         name: dist
-    - run: deploy.sh dist/```
+    - run: deploy.sh dist/
+```
 
 ### 2.3 Harjutus: Pipeline Kiiruse Optimeerimine
 
@@ -233,7 +249,8 @@ deploy:
 - actions/cache documentation näitab kõiki võimalusi
 - Paralleelsed job'id on lihtsad - lihtsalt eemalda needs kui sõltuvust pole
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Baseline
 git tag baseline
 git push origin baseline
@@ -247,7 +264,8 @@ git push origin main
 # Näide:
 # Baseline: 8m 30s
 # Optimized: 3m 45s
-# Improvement: 56%```
+# Improvement: 56%
+```
 
 **Boonus:**
 - Kasuta BuildKit features Docker'is (cache-from, cache-to advanced options)
@@ -268,7 +286,8 @@ Production-ready pipeline hõlmab mitut kihti. Security on sisse ehitatud - iga 
 
 ### 3.2 Lahendus
 
-Security scanning peaks olema pipeline'i lahutamatu osa. Trivy on tööstustandard container ja dependency scanning'uks.```yaml
+Security scanning peaks olema pipeline'i lahutamatu osa. Trivy on tööstustandard container ja dependency scanning'uks.
+```yaml
 security:
   runs-on: ubuntu-latest
   steps:
@@ -294,18 +313,22 @@ security:
         scan-type: 'fs'
         scan-ref: '.'
         exit-code: '1'
-        severity: 'CRITICAL'```
+        severity: 'CRITICAL'
+```
 
-Container image scanning käivitub pärast build'i.```yaml
+Container image scanning käivitub pärast build'i.
+```yaml
 - name: Scan Docker image
   uses: aquasecurity/trivy-action@master
   with:
     image-ref: 'myapp:${{ github.sha }}'
     format: 'sarif'
     output: 'image-results.sarif'
-    severity: 'HIGH,CRITICAL'```
+    severity: 'HIGH,CRITICAL'
+```
 
-Health monitoring deploymentil on kriitiline. Lihtne health check endpoint ja monitoring loop.```bash
+Health monitoring deploymentil on kriitiline. Lihtne health check endpoint ja monitoring loop.
+```bash
 #!/bin/bash
 # health-check.sh
 
@@ -335,9 +358,11 @@ while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
 done
 
 echo "Health checks failed after $MAX_ATTEMPTS attempts"
-exit 1```
+exit 1
+```
 
-Workflow kasutab seda:```yaml
+Workflow kasutab seda:
+```yaml
 deploy:
   steps:
     - name: Deploy
@@ -349,9 +374,11 @@ deploy:
     
     - name: Rollback on failure
       if: failure()
-      run: ./rollback.sh```
+      run: ./rollback.sh
+```
 
-Rollback strateegia nõuab versiooni tracking'ut. Metadata file säilitab deployment ajalugu.```json
+Rollback strateegia nõuab versiooni tracking'ut. Metadata file säilitab deployment ajalugu.
+```json
 {
   "deployments": [
     {
@@ -371,9 +398,11 @@ Rollback strateegia nõuab versiooni tracking'ut. Metadata file säilitab deploy
       "status": "success"
     }
   ]
-}```
+}
+```
 
-Rollback workflow võimaldab manual intervention'i.```yaml
+Rollback workflow võimaldab manual intervention'i.
+```yaml
 name: Rollback
 
 on:
@@ -396,9 +425,11 @@ jobs:
           ./deploy.sh ${{ github.event.inputs.version }}
       
       - name: Verify rollback
-        run: ./health-check.sh https://myapp.com```
+        run: ./health-check.sh https://myapp.com
+```
 
-Notifications hoiavad meeskonda kursis. Slack webhook on lihtne seadistada.```yaml
+Notifications hoiavad meeskonda kursis. Slack webhook on lihtne seadistada.
+```yaml
 - name: Notify deployment
   uses: 8398a7/action-slack@v3
   if: always()
@@ -408,7 +439,8 @@ Notifications hoiavad meeskonda kursis. Slack webhook on lihtne seadistada.```ya
       Deployment ${{ job.status }}
       Version: ${{ github.sha }}
       Deployed by: ${{ github.actor }}
-    webhook_url: ${{ secrets.SLACK_WEBHOOK }}```
+    webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+```
 
 ### 3.3 Harjutus: Production Pipeline Implementeerimine
 
@@ -426,7 +458,8 @@ Notifications hoiavad meeskonda kursis. Slack webhook on lihtne seadistada.```ya
 - Rollback workflow kasuta workflow_dispatch trigger'it
 - RUNBOOK.md peab sisaldama: kuidas deployda, kuidas rollback teha, kuidas troubleshoot'ida
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Security scan
 git push origin main
 # Vaata Actions → Security tab → peaks näitama vulnerabilities
@@ -441,7 +474,8 @@ git push origin main
 # Kontrolli et rakendus tuli tagasi
 
 # Notifications
-# Iga deployment peaks saatma Slack/Discord message```
+# Iga deployment peaks saatma Slack/Discord message
+```
 
 **Boonus:**
 - Implementeeri canary deployment - 10% traffic uuele versioonile, siis 100%

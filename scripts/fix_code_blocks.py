@@ -6,13 +6,25 @@ from pathlib import Path
 
 def fix_code_blocks(content: str) -> str:
     """Fix code blocks that are missing newlines before opening fence."""
-    # Pattern: text (not starting line)``` followed optionally by language
+    # Pattern 1: text (not starting line)``` followed optionally by language
     # Replace with: text\n```language
     content = re.sub(
         r'([^\n])(```(?:\w+)?)',
         r'\1\n\2',
         content
     )
+    
+    # Pattern 2: **Bold text:**``` (common pattern for labels)
+    # Already caught by pattern 1, but ensure consistency
+    
+    # Pattern 3: closing fence without newline after
+    # text```\n should become text\n```\n
+    content = re.sub(
+        r'([^\n])(```)\n',
+        r'\1\n\2\n',
+        content
+    )
+    
     return content
 
 
@@ -34,4 +46,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

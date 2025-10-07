@@ -32,15 +32,18 @@ CI/CD'ga arendaja kirjutab koodi ja teeb git push. Pipeline käivitub automaatse
 
 Selles jaotises loome lihtsa API, mida hiljem automatiseerime. Me kasutame lihtsat rakendust, et fookus oleks automatiseerimisel, mitte rakenduse keerukusel. Kui rakendus on keerukas, on raske eristada kas probleem on rakenduses või pipeline'is.
 
-### Loo projekt```bash
+### Loo projekt
+```bash
 mkdir cicd-demo
 cd cicd-demo
 git init
-git branch -M main```
+git branch -M main
+```
 
 ### Loo Flask rakendus
 
-Loo fail nimega app.py:```python
+Loo fail nimega app.py:
+```python
 from flask import Flask, jsonify
 from datetime import datetime
 
@@ -66,39 +69,50 @@ def products():
     ])
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)```
+    app.run(host='0.0.0.0', port=5000)
+```
 
 Health endpoint on oluline, sest pipeline kasutab seda pärast deployment'i kontrollimaks kas rakendus töötab. Kui health endpoint ei vasta, siis deployment on ebaõnnestunud.
 
-Loo fail nimega requirements.txt:```
+Loo fail nimega requirements.txt:
+```
 Flask==3.0.0
-pytest==7.4.3```
+pytest==7.4.3
+```
 
-### Testi kohalikult```bash
+### Testi kohalikult
+```bash
 pip install -r requirements.txt
-python app.py```
+python app.py
+```
 
-Ava teine terminal ja testi endpoint'e:```bash
+Ava teine terminal ja testi endpoint'e:
+```bash
 curl http://localhost:5000/
 curl http://localhost:5000/health
-curl http://localhost:5000/products```
+curl http://localhost:5000/products
+```
 
 Kõik kolm endpoint'i peaksid tagastama JSON vastuse.
 
-### Loo Git repository```bash
+### Loo Git repository
+```bash
 echo "__pycache__/" > .gitignore
 echo "*.pyc" >> .gitignore
 echo "venv/" >> .gitignore
 
 git add .
-git commit -m "Initial: Flask app"```
+git commit -m "Initial: Flask app"
+```
 
 ### GitHub setup
 
-Mine GitHub'i lehele ja loo uus repository nimega cicd-demo. Vali Public visibility, et GitHub Actions töötaks tasuta.```bash
+Mine GitHub'i lehele ja loo uus repository nimega cicd-demo. Vali Public visibility, et GitHub Actions töötaks tasuta.
+```bash
 # Asenda USERNAME oma GitHub kasutajanimega
 git remote add origin https://github.com/USERNAME/cicd-demo.git
-git push -u origin main```
+git push -u origin main
+```
 
 ### Kontrolli
 
@@ -120,7 +134,8 @@ Validate on esimene stage, kuna see on kõige kiirem ja odavam viis vigade leidm
 
 ### Loo workflow fail
 
-Loo kataloog ja fail: .github/workflows/ci.yml```yaml
+Loo kataloog ja fail: .github/workflows/ci.yml
+```yaml
 name: CI/CD Pipeline
 
 on:
@@ -144,29 +159,36 @@ jobs:
         run: |
           echo "Alustan valideerimist..."
           python -m py_compile app.py
-          echo "Kood on korrektne"```
+          echo "Kood on korrektne"
+```
 
 Workflow käivitub automaatselt kui keegi pushib või avab pull request'i main branch'i. Validate job käivitub Ubuntu masinal, tõmbab koodi, seadistab Python'i ja kontrollib app.py süntaksit.
 
-### Push ja vaata```bash
+### Push ja vaata
+```bash
 git add .github/
 git commit -m "Add pipeline: validate stage"
-git push origin main```
+git push origin main
+```
 
 Mine GitHub'is Actions tab'i alla. Kliki pipeline'i nimel ja vaata validate job'i logi. Pipeline peaks käivituma automaatselt, job peaks olema roheline ja logis peaksid nägema echo käskude väljundit.
 
 ### Eksperiment - süntaksi viga
 
-Nüüd õpime kuidas pipeline vigu leiab. Lisa app.py faili tahtlik süntaksi viga. Muuda real kuus def home(): nii, et eemaldad kooloni: def home(). Commit ja push.```bash
+Nüüd õpime kuidas pipeline vigu leiab. Lisa app.py faili tahtlik süntaksi viga. Muuda real kuus def home(): nii, et eemaldad kooloni: def home(). Commit ja push.
+```bash
 git add app.py
 git commit -m "Test: syntax error"
-git push origin main```
+git push origin main
+```
 
-Mine GitHub Actions'i ja vaata mis juhtub. Pipeline fail'ib kiiresti. Vaata error message'it logis. See näitab täpselt kus viga on. Paranda viga ja push uuesti.```bash
+Mine GitHub Actions'i ja vaata mis juhtub. Pipeline fail'ib kiiresti. Vaata error message'it logis. See näitab täpselt kus viga on. Paranda viga ja push uuesti.
+```bash
 # Paranda app.py - lisa koolon tagasi
 git add app.py
 git commit -m "Fix: syntax error"
-git push origin main```
+git push origin main
+```
 
 ### Refleksioon
 
@@ -184,7 +206,8 @@ Validate kontrollib kas kood kompileerub. Test kontrollib kas kood teeb õiget a
 
 ### Loo testid
 
-Loo fail nimega test_app.py:```python
+Loo fail nimega test_app.py:
+```python
 import pytest
 from app import app
 
@@ -208,18 +231,22 @@ def test_home(client):
 def test_products(client):
     response = client.get('/products')
     assert response.status_code == 200
-    assert len(response.get_json()) == 2```
+    assert len(response.get_json()) == 2
+```
 
 Esimene test kontrollib health endpoint'i - see peab tagastama status code 200 ja status healthy. Teine test kontrollib home endpoint'i - versioon peab olema 1.0.0. Kolmas test kontrollib products endpoint'i - peab olema kaks toodet.
 
-### Testi kohalikult```bash
-pytest test_app.py -v```
+### Testi kohalikult
+```bash
+pytest test_app.py -v
+```
 
 Kõik kolm testi peaksid läbima rohelisega. Kui mõni test fail'ib, loe error message'it. Vaata milline assert fail'is. Paranda test või rakendus.
 
 ### Lisa test stage workflow'sse
 
-Uuenda .github/workflows/ci.yml faili. Lisa uus job nimega test, mis jookseb pärast validate'i:```yaml
+Uuenda .github/workflows/ci.yml faili. Lisa uus job nimega test, mis jookseb pärast validate'i:
+```yaml
 name: CI/CD Pipeline
 
 on:
@@ -261,24 +288,29 @@ jobs:
       - name: Run tests
         run: |
           pytest test_app.py -v
-          echo "Testid läbisid edukalt"```
+          echo "Testid läbisid edukalt"
+```
 
 Test job kasutab needs: validate, mis tähendab et test jookseb ainult kui validate õnnestub. Kui validate fail'ib, siis test ei käivitu üldse. See hoiab kokku aega ja ressursse.
 
-### Push ja kontrolli```bash
+### Push ja kontrolli
+```bash
 git add test_app.py .github/workflows/ci.yml
 git commit -m "Add tests and test stage"
-git push origin main```
+git push origin main
+```
 
 Mine GitHub Actions'i. Vaata et validate job jookseb esimesena. Test job jookseb teisena. Mõlemad peaksid olema rohelised.
 
 ### Eksperiment - testide failure
 
-Nüüd vaatame mis juhtub kui test fail'ib. Muuda app.py's versiooni 2.0.0 aga ära muuda test'i. Test ootab endiselt versiooni 1.0.0.```bash
+Nüüd vaatame mis juhtub kui test fail'ib. Muuda app.py's versiooni 2.0.0 aga ära muuda test'i. Test ootab endiselt versiooni 1.0.0.
+```bash
 # Muuda app.py's version: '2.0.0'
 git add app.py
 git commit -m "Update version"
-git push origin main```
+git push origin main
+```
 
 Vaata GitHub Actions'is mis juhtub. Validate läbib edukalt. Test fail'ib. Loe error message'it - see näitab et oodati 1.0.0 aga sai 2.0.0. Paranda test nii, et see ootab 2.0.0 ja push uuesti.
 
@@ -294,7 +326,8 @@ Klassikaline probleem: arendaja ütleb et rakendus töötab tema masinas. Server
 
 ### Loo Dockerfile
 
-Loo fail nimega Dockerfile:```dockerfile
+Loo fail nimega Dockerfile:
+```dockerfile
 FROM python:3.9-slim
 WORKDIR /app
 
@@ -309,11 +342,13 @@ COPY app.py .
 EXPOSE 5000
 
 # Käivita
-CMD ["python", "app.py"]```
+CMD ["python", "app.py"]
+```
 
 Dockerfile algab Python 3.9 slim base image'iga. Töökaust on app. Esimesena kopeerime requirements.txt ja installime dependencies. Alles seejärel kopeerime app.py. See järjekord on oluline Docker layer caching'u jaoks. Dependencies muutuvad harva, app.py muutub tihti. Kui kopeerime requirements eraldi, siis Docker cacheb dependency installatsiooni.
 
-### Testi Docker kohalikult```bash
+### Testi Docker kohalikult
+```bash
 # Ehita image
 docker build -t cicd-demo:test .
 
@@ -325,13 +360,15 @@ curl http://localhost:5000/health
 
 # Peata ja eemalda
 docker stop test-app
-docker rm test-app```
+docker rm test-app
+```
 
 Kontrolli et Docker build õnnestub, container käivitub ja rakendus vastab korrektselt.
 
 ### Lisa build stage
 
-Uuenda .github/workflows/ci.yml faili. Lisa build job mis jookseb pärast test'i:```yaml
+Uuenda .github/workflows/ci.yml faili. Lisa build job mis jookseb pärast test'i:
+```yaml
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -353,7 +390,8 @@ Uuenda .github/workflows/ci.yml faili. Lisa build job mis jookseb pärast test'i
           docker build -t $IMAGE_NAME:latest .
           docker push $IMAGE_NAME:${{ github.sha }}
           docker push $IMAGE_NAME:latest
-          echo "Image pushed successfully"```
+          echo "Image pushed successfully"
+```
 
 Build job kasutab if tingimust, et jooksda ainult main branch'il. See hoiab ära et iga feature branch push'iga ehitataks Docker image. Job logib sisse GitHub Container Registry'sse, ehitab image'i kahe tag'iga ja pushib registry'sse.
 
@@ -363,10 +401,12 @@ Kaks tag'i on vajalikud erinevatel põhjustel. Latest tag on lihtsam development
 
 GitHub vajab luba registry'sse kirjutamiseks. Mine repo Settings'i. Vali Actions alt General. Workflow permissions alt vali Read and write permissions. Salvesta.
 
-### Push ja kontrolli```bash
+### Push ja kontrolli
+```bash
 git add Dockerfile .github/workflows/ci.yml
 git commit -m "Add Docker build stage"
-git push origin main```
+git push origin main
+```
 
 Mine GitHub Actions'i ja vaata pipeline'i. Validate, test ja build peaksid kõik edukalt läbima. Mine repo põhilehele ja vaata Packages sektsiooni paremal. Seal peaks nähtav olema sinu image koos kahe tag'iga.
 
@@ -384,7 +424,8 @@ Mõned ettevõtted kasutavad täielikult automaatset production deployment'i, ag
 
 ### Lisa deploy stage
 
-Uuenda .github/workflows/ci.yml faili. Lisa deploy job:```yaml
+Uuenda .github/workflows/ci.yml faili. Lisa deploy job:
+```yaml
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -402,7 +443,8 @@ Uuenda .github/workflows/ci.yml faili. Lisa deploy job:```yaml
           echo "SIMULATED: docker rm cicd-demo || true"
           echo "SIMULATED: docker run -d --name cicd-demo -p 5000:5000 $IMAGE_NAME"
           echo "SIMULATED: Health check would run here"
-          echo "Deploy successful"```
+          echo "Deploy successful"
+```
 
 Deploy job kasutab environment konfiguratsiooni. See võimaldab meil seadistada manual approval'i ja näha deployment ajalugu.
 
@@ -412,10 +454,12 @@ Mine GitHub repo Settings'i. Vali Environments. Loo uus environment nimega produ
 
 ### Testi deployment workflow
 
-Muuda app.py's versiooni 2.0.0. Uuenda test_app.py's oodatavat versiooni 2.0.0. Commit ja push.```bash
+Muuda app.py's versiooni 2.0.0. Uuenda test_app.py's oodatavat versiooni 2.0.0. Commit ja push.
+```bash
 git add app.py test_app.py .github/workflows/ci.yml
 git commit -m "Version 2.0.0 + deploy stage"
-git push origin main```
+git push origin main
+```
 
 Mine GitHub Actions'i ja vaata pipeline'i. Validate, test ja build jooksevad läbi. Deploy job jääb ootama kollase Waiting staatusega. Kliki deploy job'il. Vajuta Review deployments. Märgi production ja vajuta Approve and deploy. Vaata kuidas deploy job käivitub ja logis näed deployment samme.
 
@@ -437,7 +481,8 @@ Caching lahendab selle. Esimene run installib dependencies ja salvestab cache'ss
 
 ### Lisa caching test job'i
 
-Uuenda test job'i .github/workflows/ci.yml failis:```yaml
+Uuenda test job'i .github/workflows/ci.yml failis:
+```yaml
   test:
     needs: validate
     runs-on: ubuntu-latest
@@ -456,13 +501,15 @@ Uuenda test job'i .github/workflows/ci.yml failis:```yaml
       
       - name: Run tests
         run: |
-          pytest test_app.py -v```
+          pytest test_app.py -v
+```
 
 Setup-python action toetab built-in caching'ut. Lisa lihtsalt cache: pip parameeter ja see hakkab automaatselt cachima pip dependencies'eid.
 
 ### Lisa README badge
 
-Loo README.md fail:```markdown
+Loo README.md fail:
+```markdown
 # CI/CD Demo
 
 [![CI/CD](https://github.com/USERNAME/cicd-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/USERNAME/cicd-demo/actions/workflows/ci.yml)
@@ -506,14 +553,18 @@ Testid:
 
 \`\`\`bash
 pytest test_app.py -v
-\`\`\````
+\`\`\
+`
+```
 
 Asenda USERNAME oma GitHub kasutajanimega. Badge näitab pipeline'i staatust - roheline kui kõik töötab, punane kui midagi on katki.
 
-### Viimane push```bash
+### Viimane push
+```bash
 git add README.md .github/workflows/ci.yml
 git commit -m "Add caching and README"
-git push origin main```
+git push origin main
+```
 
 Vaata GitHub'is et pipeline jookseb läbi ja README näitab badge'i.
 

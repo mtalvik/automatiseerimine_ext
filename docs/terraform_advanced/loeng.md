@@ -34,7 +34,8 @@ AWS (Amazon Web Services) on maailma suurim pilveteenuste pakkuja. Terraform suh
 
 AWS provideril on kaks olulist aspekti. Esiteks, autentimine. Terraform peab teadma, kellena ta AWS'i sisse logib. Selleks kasutatakse AWS credentials'eid - access key ja secret key, mis antakse Terraform'ile kas keskkonna muutujate või konfiguratsioonifaili kaudu. Turvakaalutlustel ei tohiks neid võtmeid kunagi kirjutada otse Terraform koodisse.
 
-Teiseks, regioonid. AWS'il on kogu maailmas datacentrid, mida nimetatakse regioonideks - us-east-1 (Virginia), eu-west-1 (Iirimaa), ap-southeast-1 (Singapur) jne. Iga ressurss luuakse konkreetsesse regiooni ja need ei ole omavahel automaatselt ühendatud. Regiooni valik mõjutab nii latentsust (kui kiiresti kasutajad serverile ligi pääsevad) kui ka kulusid (eri regioonides on erinevad hinnad).```hcl
+Teiseks, regioonid. AWS'il on kogu maailmas datacentrid, mida nimetatakse regioonideks - us-east-1 (Virginia), eu-west-1 (Iirimaa), ap-southeast-1 (Singapur) jne. Iga ressurss luuakse konkreetsesse regiooni ja need ei ole omavahel automaatselt ühendatud. Regiooni valik mõjutab nii latentsust (kui kiiresti kasutajad serverile ligi pääsevad) kui ka kulusid (eri regioonides on erinevad hinnad).
+```hcl
 terraform {
   required_version = ">= 1.0"
   required_providers {
@@ -49,13 +50,15 @@ provider "aws" {
   region = "eu-west-1"
   # Credentials tuleb anda AWS CLI kaudu või keskkonnamuutujatega
   # MITTE kunagi otse koodi!
-}```
+}
+```
 
 ### Azure Provider iseärasused
 
 Azure erineb AWS'ist arhitektuuri poolest. Kui AWS'is luuakse ressursid otse, siis Azure nõuab alati ressursigrupi olemasolu. Ressursigrupp on loogiline konteiner, mis grupeerib seotud ressursse kokku. See võib tunduda algul tüütu lisasamm, aga tegelikult aitab see paremini organiseerida ja hallata suuri projekte.
 
-Azure'i autentimine on samuti erinev. Kui AWS kasutab lihtsalt võtmepaari, siis Azure kasutab Service Principal'eid, mis on põhimõtteliselt robotkasutajad. Service Principal'il on tenant ID (mis Azure Active Directory'ga ühendatakse), subscription ID (mis maksmise konto määrab) ja client ID koos client secret'iga (mis autentimiseks).```hcl
+Azure'i autentimine on samuti erinev. Kui AWS kasutab lihtsalt võtmepaari, siis Azure kasutab Service Principal'eid, mis on põhimõtteliselt robotkasutajad. Service Principal'il on tenant ID (mis Azure Active Directory'ga ühendatakse), subscription ID (mis maksmise konto määrab) ja client ID koos client secret'iga (mis autentimiseks).
+```hcl
 terraform {
   required_providers {
     azurerm = {
@@ -76,7 +79,8 @@ provider "azurerm" {
 resource "azurerm_resource_group" "main" {
   name     = "terraform-rg"
   location = "West Europe"
-}```
+}
+```
 
 ### Võrgu põhikontseptsioonid pilves
 
@@ -84,7 +88,8 @@ Nii AWS kui Azure kasutavad virtuaalseid võrke (Virtual Private Cloud või Virt
 
 Virtuaalse võrgu põhielement on CIDR block - IP-aadresside vahemik, mida see võrk kasutab. Näiteks 10.0.0.0/16 tähendab, et võrgul on kasutada IP-aadressid 10.0.0.0 kuni 10.0.255.255 - kokku 65,536 aadressi. See vahemik tuleb valida nii, et see ei kattuks teiste võrkudega, millega hiljem võib vaja olla ühendust luua.
 
-Võrk jagatakse subnet'ideks - alamvõrkudeks, mis on väiksemad IP vahemikud. Subnet'id võivad olla public (ligipääsetav internetist) või private (ligipääsetav ainult seesmiselt). Public subnet'is olevad ressursid saavad otse internetiga suhelda, private subnet'is olevad peavad kasutama NAT Gateway'd või muid vahendusservereid.```hcl
+Võrk jagatakse subnet'ideks - alamvõrkudeks, mis on väiksemad IP vahemikud. Subnet'id võivad olla public (ligipääsetav internetist) või private (ligipääsetav ainult seesmiselt). Public subnet'is olevad ressursid saavad otse internetiga suhelda, private subnet'is olevad peavad kasutama NAT Gateway'd või muid vahendusservereid.
+```hcl
 # AWS VPC näide
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
@@ -117,7 +122,8 @@ resource "aws_subnet" "private" {
     Name = "private-subnet"
     Type = "private"
   }
-}```
+}
+```
 
 Igal ressursil on ID, mida saab kasutada teistes ressurssides viitamiseks. Siin on oluline mõista Terraform'i dependency graafi - Terraform teab, et subnet sõltub VPC'st, sest kasutab `aws_vpc.main.id` viitamist. See tähendab, et Terraform loob alati VPC enne subnet'e.
 
@@ -129,7 +135,8 @@ Pilves ei ole füüsilisi firewalle, mida saaks riiulisse panna. Kogu võrguturv
 
 Näiteks kui loote veebiserveri, vajate tavaliselt kolme asja: SSH ligipääs (port 22), et saaksite serverisse sisse logida ja seda seadistada; HTTP ligipääs (port 80), et kasutajad saaksid veebilehte vaadata; ja HTTPS ligipääs (port 443) turvaliseks ühenduseks. Kõik muu liiklus blokeeritakse vaikimisi.
 
-Oluline on mõista, et security group'id pole seotud ühe konkreetse ressursiga, vaid neid saab rakendada mitmele ressursile. Kui teil on viis veebiserveri, võivad kõik kasutada sama security group'i. See teeb haldamise lihtsamaks - kui peate muutma firewall reegleid, muudate ühes kohas ja mõjutab kõiki.```hcl
+Oluline on mõista, et security group'id pole seotud ühe konkreetse ressursiga, vaid neid saab rakendada mitmele ressursile. Kui teil on viis veebiserveri, võivad kõik kasutada sama security group'i. See teeb haldamise lihtsamaks - kui peate muutma firewall reegleid, muudate ühes kohas ja mõjutab kõiki.
+```hcl
 resource "aws_security_group" "web" {
   name_prefix = "web-"
   description = "Security group for web servers"
@@ -174,7 +181,8 @@ resource "aws_security_group" "web" {
   tags = {
     Name = "web-security-group"
   }
-}```
+}
+```
 
 CIDR notatsioonis `/32` tähendab täpselt ühte IP-aadressi, `/0` tähendab kõiki IP-aadresse. Port 0 ja protokoll "-1" tähendavad kõiki porte ja protokolle. Seega egress reegel ülalpool ütleb: "luba välja kõik".
 
@@ -192,7 +200,8 @@ Reaalsetes projektides ei ole kunagi ainult üks keskkond. Teil on vähemalt dev
 
 Terraform workspaces lahendavad selle probleemi. Workspace on eraldi state fail samale konfiguratsioonile. Igal workspace'il on oma state, aga nad jagavad sama Terraform koodi. See tähendab, et saate kirjutada konfiguratsiooni üks kord ja luua sellest mitu eraldatud instantsi.
 
-Kui käivitate `terraform workspace new development`, loob Terraform uue state faili nimega `terraform.tfstate.d/development/terraform.tfstate`. Kui käivitate `terraform workspace new production`, luuakse eraldi state fail `terraform.tfstate.d/production/terraform.tfstate`. Need kaks state faili on täiesti eraldatud - ressursid ühes ei mõjuta teist.```bash
+Kui käivitate `terraform workspace new development`, loob Terraform uue state faili nimega `terraform.tfstate.d/development/terraform.tfstate`. Kui käivitate `terraform workspace new production`, luuakse eraldi state fail `terraform.tfstate.d/production/terraform.tfstate`. Need kaks state faili on täiesti eraldatud - ressursid ühes ei mõjuta teist.
+```bash
 # Loo uus workspace
 terraform workspace new development
 terraform workspace new staging
@@ -205,13 +214,15 @@ terraform workspace list
 terraform workspace select development
 
 # Vaata praegust workspace'i
-terraform workspace show```
+terraform workspace show
+```
 
 ### Keskkonna-spetsiifilised konfiguratsioonid
 
 Kuigi kood on sama, peavad keskkonnad erinema. Production vajab võimsamaid servereid kui development. Production vajab backup'e, development ei pruugi. Production on mitmes availability zone's, development võib olla ühes.
 
-Neid erinevusi hallatakse muutujate kaudu. Võite luua eraldi `.tfvars` faile igale keskkonnale või kasutada `terraform.workspace` built-in muutujat, et koodis vahet teha.```hcl
+Neid erinevusi hallatakse muutujate kaudu. Võite luua eraldi `.tfvars` faile igale keskkonnale või kasutada `terraform.workspace` built-in muutujat, et koodis vahet teha.
+```hcl
 # variables.tf
 variable "environment" {
   description = "Environment name"
@@ -256,13 +267,15 @@ resource "aws_db_instance" "postgres" {
   engine              = "postgres"
   instance_class      = "db.t3.micro"
   backup_retention_period = 7
-}```
+}
+```
 
 Siin kasutatakse mitut tehnikat. `var.instance_size[terraform.workspace]` valib map'ist õige võtme workspace nime järgi. `count` kasutamine conditionally ressursi loomiseks - kui `enable_backups` on false, siis `count = 0` ja ressurssi ei looda üldse.
 
 ### Deployment strateegia workspaces'iga
 
-Tüüpiline deployment workflow workspace'idega näeb välja nii: arendaja teeb muudatuse koodis development workspace'is ja testib seda. Kui töötab, mergeeb ta koodi main branchi ja CI/CD süsteem deploy'ib automaatselt staging workspace'i. Pärast testimist staging'us saab käsitsi deploy'ida production workspace'i.```bash
+Tüüpiline deployment workflow workspace'idega näeb välja nii: arendaja teeb muudatuse koodis development workspace'is ja testib seda. Kui töötab, mergeeb ta koodi main branchi ja CI/CD süsteem deploy'ib automaatselt staging workspace'i. Pärast testimist staging'us saab käsitsi deploy'ida production workspace'i.
+```bash
 # Development deployment
 terraform workspace select development
 terraform plan -var="environment=development"
@@ -272,7 +285,8 @@ terraform apply -var="environment=development"
 terraform workspace select production
 terraform plan -var="environment=production"
 # Kontrolli plaani põhjalikult!
-terraform apply -var="environment=production"```
+terraform apply -var="environment=production"
+```
 
 Oluline on mõista, et workspaces ei asenda proper keskkondade eraldamist. Production peaks ikka olema eraldi AWS accountis või Azure subscription'is. Workspaces on hea dev ja staging jaoks samas accountis, aga production vajab täielikku eraldamist.
 
@@ -290,7 +304,8 @@ State locking lukustab state faili operatsiooni ajaks. Kui üks inimene käivita
 
 ### S3 backend konfiguratsioon
 
-AWS'is kasutatakse state'i jaoks S3 bucket'it ja locking'uks DynamoDB tabelit. S3 on objekt storage - ideaalne failide hoidmiseks. DynamoDB on NoSQL andmebaas - kiire võtme-väärtus paar'ide hoidmiseks, ideaalne lock'ide jaoks.```hcl
+AWS'is kasutatakse state'i jaoks S3 bucket'it ja locking'uks DynamoDB tabelit. S3 on objekt storage - ideaalne failide hoidmiseks. DynamoDB on NoSQL andmebaas - kiire võtme-väärtus paar'ide hoidmiseks, ideaalne lock'ide jaoks.
+```hcl
 # backend.tf
 terraform {
   backend "s3" {
@@ -338,7 +353,8 @@ resource "aws_dynamodb_table" "terraform_locks" {
     name = "LockID"
     type = "S"
   }
-}```
+}
+```
 
 Pange tähele `prevent_destroy` lifecycle reeglit. See on turvamehhanism, mis takistab state bucket'i kogemata kustutamist. State fail on teie infrastruktuuri ainuke tõeallikas - kui see kaob, ei tea Terraform enam, mis pilves eksisteerib.
 
@@ -346,7 +362,8 @@ Versioning lubamine on samuti kriitiline. Kui keegi teeb vea ja state fail corru
 
 ### State'i migratsioon
 
-Kui olete alustanud kohaliku state'iga ja nüüd soovite remote state'i kasutada, peate state'i migreerima. Terraform teeb selle lihtsamaks `terraform init -migrate-state` käsuga.```bash
+Kui olete alustanud kohaliku state'iga ja nüüd soovite remote state'i kasutada, peate state'i migreerima. Terraform teeb selle lihtsamaks `terraform init -migrate-state` käsuga.
+```bash
 # 1. Lisa backend konfiguratsioon
 # (backend.tf fail ülalpool)
 
@@ -354,7 +371,8 @@ Kui olete alustanud kohaliku state'iga ja nüüd soovite remote state'i kasutada
 terraform init -migrate-state
 
 # Terraform küsib kinnitust ja kopeerib state'i S3'i
-# Kohalik fail jääb alles backup'ina```
+# Kohalik fail jääb alles backup'ina
+```
 
 Pärast migratsiooni võite kohaliku state faili kustutada, aga hoidke see esialgu alles turvakoopiana. Kui remote state on töökorras, siis enam ei pea sellest muretsema.
 
@@ -366,16 +384,19 @@ Modules on Terraform'i võimsaim feature korduvkasutatavas koodis. Module on nag
 
 Kujutage ette, et teil on 10 erinevat projekti ja igaüks vajab VPC'd koos subnet'ide, internet gateway, route table'ite jms. Kas kirjutate selle koodi 10 korda? Kui peate hiljem midagi muutma, muudate 10 kohas?
 
-Module võimaldab kirjutada VPC konfiguratsioon üks kord ja kasutada seda 10 projektis. Kui peate muutma, muudate ühes kohas ja kõik projektid saavad uuenduse.```
+Module võimaldab kirjutada VPC konfiguratsioon üks kord ja kasutada seda 10 projektis. Kui peate muutma, muudate ühes kohas ja kõik projektid saavad uuenduse.
+```
 project/
 ├── modules/
 │   └── vpc/
 │       ├── main.tf
 │       ├── variables.tf
 │       └── outputs.tf
-└── main.tf```
+└── main.tf
+```
 
-VPC module võiks näha välja selline:```hcl
+VPC module võiks näha välja selline:
+```hcl
 # modules/vpc/variables.tf
 variable "name" {
   description = "Name prefix for VPC resources"
@@ -461,11 +482,13 @@ output "public_subnet_ids" {
 output "vpc_cidr" {
   description = "CIDR block of the VPC"
   value       = aws_vpc.main.cidr_block
-}```
+}
+```
 
 ### Module'i kasutamine
 
-Nüüd saate seda module'it kasutada erinevates projektides:```hcl
+Nüüd saate seda module'it kasutada erinevates projektides:
+```hcl
 # main.tf
 module "vpc" {
   source = "./modules/vpc"
@@ -485,13 +508,15 @@ resource "aws_instance" "web" {
   tags = {
     Name = "web-server"
   }
-}```
+}
+```
 
 Module outputs on ligipääsetavad `module.<name>.<output>` kaudu. Terraform teab, et `aws_instance.web` sõltub `module.vpc`'st, sest kasutab selle outputi. Seega loob Terraform alati VPC enne serveri loomist.
 
 ### Public modules Terraform Registry'st
 
-Te ei pea isegi ise module'eid kirjutama - Terraform Registry sisaldab tuhandeid valmis module'eid. Need on community poolt testitud ja kasutusel paljudes ettevõtetes.```hcl
+Te ei pea isegi ise module'eid kirjutama - Terraform Registry sisaldab tuhandeid valmis module'eid. Need on community poolt testitud ja kasutusel paljudes ettevõtetes.
+```hcl
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.0.0"
@@ -509,7 +534,8 @@ module "vpc" {
   tags = {
     Environment = "dev"
   }
-}```
+}
+```
 
 Versioning on oluline - `version = "5.0.0"` tagab, et saate alati sama module'i versiooni. Kui module uueneb, ei muutu teie infrastruktuur ootamatult.
 
@@ -532,12 +558,14 @@ State fail sisaldab kogu teie infrastruktuuri detaile, sealhulgas sageli tundlik
 1. S3 bucket on krüpteeritud (server-side encryption)
 2. S3 bucket ei ole avalik (public access blocked)
 3. DynamoDB table on kaetud IAM õigustega
-4. State faile pole Git repositories (lisa .gitignore)```
+4. State faile pole Git repositories (lisa .gitignore)
+```
 # .gitignore
 *.tfstate
 *.tfstate.*
 .terraform/
-terraform.tfvars  # Kui sisaldab salasõnu```
+terraform.tfvars  # Kui sisaldab salasõnu
+```
 
 ### Tagging standardid
 
@@ -546,7 +574,8 @@ Tags on metadata, mida saate lisada igale ressursile. Need on kriitilise tähtsu
 - Jälgida kulusid projekti või meeskonna kaupa
 - Tuvastada ressursside omanikke
 - Automaatselt peatada või kustutada ressursse
-- Rakendada security policy'sid```hcl
+- Rakendada security policy'sid
+```hcl
 locals {
   common_tags = {
     Project     = "myapp"
@@ -568,7 +597,8 @@ resource "aws_instance" "web" {
       Role = "webserver"
     }
   )
-}```
+}
+```
 
 `merge()` funktsioon kombineerib kaks map'i. Nii saate defineerida ühised tag'id ühes kohas ja lisada ressursi-spetsiifilisi tag'e vajadusel.
 
@@ -578,7 +608,8 @@ MITTE KUNAGI pane salasõnu või API võtmeid Terraform koodi. Kasuta alati:
 
 1. Keskkonna muutujaid (`TF_VAR_db_password`)
 2. AWS Secrets Manager või Azure Key Vault
-3. Terraform Cloud variables (kui kasutate)```hcl
+3. Terraform Cloud variables (kui kasutate)
+```hcl
 # VALE - salasõna koodis
 resource "aws_db_instance" "postgres" {
   password = "SuperSecret123"  # ÄRA TEE SEDA!
@@ -597,16 +628,19 @@ resource "aws_db_instance" "postgres" {
 
 # Käivitamine
 # export TF_VAR_db_password="SuperSecret123"
-# terraform apply```
+# terraform apply
+```
 
-Või veelgi parem - kasuta Secrets Manager:```hcl
+Või veelgi parem - kasuta Secrets Manager:
+```hcl
 data "aws_secretsmanager_secret_version" "db_password" {
   secret_id = "myapp/database/password"
 }
 
 resource "aws_db_instance" "postgres" {
   password = data.aws_secretsmanager_secret_version.db_password.secret_string
-}```
+}
+```
 
 ---
 

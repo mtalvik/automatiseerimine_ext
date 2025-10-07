@@ -35,13 +35,17 @@ Logige GitHub'i ja looge uus repositoorium:
 - EI lisa README ega .gitignore (loote ise)
 - Lisa MIT License
 
-### 2.2 Kloonimine ja Initsiaalseadistamine```bash
+### 2.2 Kloonimine ja Initsiaalseadistamine
+```bash
 git clone git@github.com:TEIE-KASUTAJANIMI/git-homework.git
-cd git-homework```
+cd git-homework
+```
 
-Kontrollige:```bash
+Kontrollige:
+```bash
 git status
-git remote -v```
+git remote -v
+```
 
 ---
 
@@ -53,7 +57,8 @@ Valige ÜKS järgnevatest. Ärge üle keeruliseks tehke - fookus on Git'il, mitt
 
 Looge 2 faili:
 
-**calculator.py:**```python
+**calculator.py:**
+```python
 def add(a, b):
     """Liida kaks arvu."""
     return a + b
@@ -76,19 +81,23 @@ if __name__ == "__main__":
     print("2 + 3 =", add(2, 3))
     print("5 - 2 =", subtract(5, 2))
     print("4 * 3 =", multiply(4, 3))
-    print("10 / 2 =", divide(10, 2))```
+    print("10 / 2 =", divide(10, 2))
+```
 
-**.gitignore:**```
+**.gitignore:**
+```
 __pycache__/
 *.pyc
 .vscode/
-.DS_Store```
+.DS_Store
+```
 
 ### Variant B: HTML Lihtne Leht
 
 Looge 3 faili:
 
-**index.html:**```html
+**index.html:**
+```html
 <!DOCTYPE html>
 <html lang="et">
 <head>
@@ -106,9 +115,11 @@ Looge 3 faili:
         <li>HTML/CSS põhitõed</li>
     </ul>
 </body>
-</html>```
+</html>
+```
 
-**style.css:**```css
+**style.css:**
+```css
 body {
     font-family: Arial, sans-serif;
     max-width: 800px;
@@ -123,18 +134,22 @@ h1 {
 
 ul {
     list-style-type: square;
-}```
+}
+```
 
-**.gitignore:**```
+**.gitignore:**
+```
 .DS_Store
 Thumbs.db
-.vscode/```
+.vscode/
+```
 
 ### Variant C: Bash Skriptid
 
 Looge 2 skripti:
 
-**backup.sh:**```bash
+**backup.sh:**
+```bash
 #!/bin/bash
 # Lihtne varundusskript
 
@@ -145,25 +160,32 @@ DATE=$(date +%Y%m%d_%H%M%S)
 mkdir -p "$BACKUP_DIR"
 tar -czf "$BACKUP_DIR/backup_$DATE.tar.gz" "$SOURCE_DIR"
 
-echo "Backup created: $BACKUP_DIR/backup_$DATE.tar.gz"```
+echo "Backup created: $BACKUP_DIR/backup_$DATE.tar.gz"
+```
 
-**cleanup.sh:**```bash
+**cleanup.sh:**
+```bash
 #!/bin/bash
 # Puhasta ajutised failid
 
 echo "Cleaning temporary files..."
 find . -name "*.log" -delete
 find . -name "*.tmp" -delete
-echo "Cleanup complete!"```
+echo "Cleanup complete!"
+```
 
-**.gitignore:**```
+**.gitignore:**
+```
 *.log
 *.tmp
 backups/
-.DS_Store```
+.DS_Store
+```
 
-Tee skriptid käivitatavaks:```bash
-chmod +x backup.sh cleanup.sh```
+Tee skriptid käivitatavaks:
+```bash
+chmod +x backup.sh cleanup.sh
+```
 
 ---
 
@@ -171,56 +193,71 @@ chmod +x backup.sh cleanup.sh```
 
 Tehke vähemalt 5 commit'i järgmises stiilis. Iga commit teeb ÜHE loogilise asja.
 
-### Commit 1: Algstruktuur```bash
+### Commit 1: Algstruktuur
+```bash
 touch README.md
 git add README.md
 git commit -m "Initial commit: create README"
-git push origin main```
+git push origin main
+```
 
-### Commit 2: Lisa .gitignore```bash
+### Commit 2: Lisa .gitignore
+```bash
 # Loo .gitignore fail (vali variant projektile)
 git add .gitignore
 git commit -m "Add .gitignore for [Python/Web/Bash] project"
-git push origin main```
+git push origin main
+```
 
-### Commit 3: Lisa põhifail```bash
+### Commit 3: Lisa põhifail
+```bash
 # Loo põhifail (calculator.py, index.html või backup.sh)
 git add calculator.py  # või teine fail
 git commit -m "Add main calculator functions"
-git push origin main```
+git push origin main
+```
 
-### Commit 4: Lisa teine komponent```bash
+### Commit 4: Lisa teine komponent
+```bash
 # Loo teine fail (style.css, cleanup.sh vms)
 git add style.css  # või teine fail
 git commit -m "Add [description of what this file does]"
-git push origin main```
+git push origin main
+```
 
-### Commit 5: Täienda README```bash
+### Commit 5: Täienda README
+```bash
 # Kirjuta README.md (vt sektsioon 5)
 git add README.md
 git commit -m "Add project documentation and usage instructions"
-git push origin main```
+git push origin main
+```
 
 **Oluline:** Iga commit sõnum peab olema kirjeldav ja selgitama MIKS.
 
-**Head näited:**```
+**Head näited:**
+```
 Add calculator module with basic operations
 Fix division by zero error handling
 Add CSS styling for better readability
-Update README with installation instructions```
+Update README with installation instructions
+```
 
-**Halvad näited (ära kasuta):**```
+**Halvad näited (ära kasuta):**
+```
 update
 fix
 asdf
 wip
-changes```
+changes
+```
 
 ---
 
 ## 5. README.md Dokumentatsioon
 
-Teie README.md peab sisaldama järgmisi sektsioone:```markdown
+Teie README.md peab sisaldama järgmisi sektsioone:
+```markdown
 # Projekti Nimi
 
 Lühike kirjeldus 1-2 lausega.
@@ -238,23 +275,29 @@ Lühike kirjeldus 1-2 lausega.
 - Python 3.x (või muud nõuded)
 - Git
 
-### Paigaldamine```bash
+### Paigaldamine
+```bash
 git clone git@github.com:KASUTAJANIMI/git-homework.git
-cd git-homework```
+cd git-homework
+```
 
-### Käivitamine```bash
+### Käivitamine
+```bash
 python calculator.py
 # või
 open index.html
 # või
-./backup.sh```
+./backup.sh
+```
 
-## Failide Struktuur```
+## Failide Struktuur
+```
 git-homework/
 ├── calculator.py  (või teised failid)
 ├── README.md
 ├── .gitignore
-└── LICENSE```
+└── LICENSE
+```
 
 ## Autor
 
@@ -267,7 +310,8 @@ MIT License
 
 ## Refleksioon
 
-(Vasta allpool olevatele küsimustele)```
+(Vasta allpool olevatele küsimustele)
+```
 
 Lisage README.md lõppu "## Refleksioon" sektsioon.
 
@@ -297,7 +341,8 @@ Seletage Git'i väärtust lihtsas keeles ilma tehnilise žargoonita. Kasutage an
 
 Mis aspekt oli kõige õpetlikum või huvitavam? Miks?
 
-**Näide refleksioonist:**```markdown
+**Näide refleksioonist:**
+```markdown
 ## Refleksioon
 
 ### 1. Mis oli kõige raskem?
@@ -332,7 +377,8 @@ midagi katki läheb, saad alati tagasi minna. Ei ole enam
 Kõige huvitavam oli näha oma projekti ajalugu `git log` käsuga. 
 See oli nagu vaadata oma töö "filmilinti" - nägin täpselt, mis 
 järjekorras asju tegin. See aitas mõista, et Git ei ole lihtsalt 
-varundussüsteem, vaid dokumenteerib kogu arendusprotsessi.```
+varundussüsteem, vaid dokumenteerib kogu arendusprotsessi.
+```
 
 ---
 
@@ -357,7 +403,8 @@ Esitage järgmine informatsioon:
 
 **E-mail teema:** Git Kodutöö - [Teie Nimi]
 
-**E-mail sisu:**```
+**E-mail sisu:**
+```
 Tere,
 
 Esitan Git kodutöö:
@@ -367,7 +414,8 @@ Projekti tüüp: [Python kalkulaator / HTML leht / Bash skriptid]
 Commit'ide arv: [number]
 
 Parimate soovidega,
-[Teie Nimi]```
+[Teie Nimi]
+```
 
 ---
 
@@ -388,17 +436,21 @@ Parimate soovidega,
 
 ## Boonus (Valikuline, +10%)
 
-**Git Branch (+5%):** Tee üks feature branch, arenda seal, merge tagasi main'i.```bash
+**Git Branch (+5%):** Tee üks feature branch, arenda seal, merge tagasi main'i.
+```bash
 git checkout -b feature/new-function
 # tee muudatus
 git add .
 git commit -m "Add new feature"
 git checkout main
 git merge feature/new-function
-git push origin main```
+git push origin main
+```
 
-**GitHub README Badge (+5%):** Lisa README.md'sse badge (näiteks litsents või tähed).```markdown
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)```
+**GitHub README Badge (+5%):** Lisa README.md'sse badge (näiteks litsents või tähed).
+```markdown
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+```
 
 Vaata: https://shields.io/
 
@@ -422,29 +474,35 @@ Levinud probleemid:
 
 **Probleem:** Unustasin midagi commit'ist välja jätta.
 
-**Lahendus:**```bash
+**Lahendus:**
+```bash
 # Lisa fail ja muuda viimast commit'i
 git add forgotten-file.txt
 git commit --amend --no-edit
-git push --force-with-lease origin main```
+git push --force-with-lease origin main
+```
 
 **Probleem:** Committisin .env faili kogemata.
 
-**Lahendus:**```bash
+**Lahendus:**
+```bash
 # Lisa .gitignore'sse
 echo ".env" >> .gitignore
 
 # Eemalda repos'ist, säilita kohalikult
 git rm --cached .env
 git commit -m "Remove .env from repository"
-git push origin main```
+git push origin main
+```
 
 **Probleem:** Commit sõnum on vale.
 
-**Lahendus:**```bash
+**Lahendus:**
+```bash
 # Muuda viimast commit sõnumit
 git commit --amend -m "Parandatud sõnum"
-git push --force-with-lease origin main```
+git push --force-with-lease origin main
+```
 
 ---
 

@@ -26,9 +26,11 @@ Terraform loob kõik automaatselt kui käivitate `terraform apply`. Kui soovite 
 
 ### 2.1 Projekti Struktuur
 
-Looge kaust ja failid:```bash
+Looge kaust ja failid:
+```bash
 mkdir terraform-homework
-cd terraform-homework```
+cd terraform-homework
+```
 
 Looge 4 faili:
 - `main.tf` - ressursside definitsioonid
@@ -38,7 +40,8 @@ Looge 4 faili:
 
 ### 2.2 main.tf
 
-Looge `main.tf` fail järgmise sisuga:```hcl
+Looge `main.tf` fail järgmise sisuga:
+```hcl
 terraform {
   required_providers {
     local = {
@@ -119,9 +122,11 @@ resource "local_file" "readme" {
     Keskkond: ${var.environment}
   EOF
   filename = "${local_directory.project_root.path}/README.md"
-}```
+}
+```
 
-### 2.3 variables.tf```hcl
+### 2.3 variables.tf
+```hcl
 variable "project_name" {
   description = "Projekti nimi"
   type        = string
@@ -142,9 +147,11 @@ variable "environment" {
     condition     = contains(["development", "staging", "production"], var.environment)
     error_message = "Keskkond peab olema: development, staging või production."
   }
-}```
+}
+```
 
-### 2.4 outputs.tf```hcl
+### 2.4 outputs.tf
+```hcl
 output "project_path" {
   description = "Projekti tee"
   value       = local_directory.project_root.path
@@ -158,17 +165,21 @@ output "created_files" {
     script  = local_file.startup_script.filename
     readme  = local_file.readme.filename
   }
-}```
+}
+```
 
-### 2.5 terraform.tfvars```hcl
+### 2.5 terraform.tfvars
+```hcl
 project_name = "minu-projekt"
-environment  = "development"```
+environment  = "development"
+```
 
 ---
 
 ## 3. Projekti Käivitamine
 
-Nüüd kasutage Terraform'i:```bash
+Nüüd kasutage Terraform'i:
+```bash
 # Initsialiseeri
 terraform init
 
@@ -176,9 +187,11 @@ terraform init
 terraform plan
 
 # Loo infrastruktuur
-terraform apply```
+terraform apply
+```
 
-Kontrolli tulemust:```bash
+Kontrolli tulemust:
+```bash
 # Vaata outpute
 terraform output
 
@@ -190,18 +203,23 @@ tree minu-projekt/
 ./minu-projekt/scripts/startup.sh
 
 # Vaata JSON faili
-cat minu-projekt/config/project.json```
+cat minu-projekt/config/project.json
+```
 
 ---
 
 ## 4. Muudatuste Tegemine
 
-Muuda `terraform.tfvars`:```hcl
+Muuda `terraform.tfvars`:
+```hcl
 project_name = "minu-uus-projekt"
-environment  = "production"```
+environment  = "production"
+```
 
-Rakenda:```bash
-terraform apply```
+Rakenda:
+```bash
+terraform apply
+```
 
 Terraform loob uue kausta ja kustutab vana!
 
@@ -209,7 +227,8 @@ Terraform loob uue kausta ja kustutab vana!
 
 ## 5. Lisaülesanne: Cleanup Skript
 
-Lisa `main.tf` faili veel üks skript:```hcl
+Lisa `main.tf` faili veel üks skript:
+```hcl
 resource "local_file" "cleanup_script" {
   content = <<-EOF
     #!/bin/bash
@@ -219,21 +238,28 @@ resource "local_file" "cleanup_script" {
   EOF
   filename        = "${local_directory.scripts.path}/cleanup.sh"
   file_permission = "0755"
-}```
+}
+```
 
-Lisa ka `outputs.tf` faili:```hcl
-cleanup = local_file.cleanup_script.filename```
+Lisa ka `outputs.tf` faili:
+```hcl
+cleanup = local_file.cleanup_script.filename
+```
 
-Rakenda:```bash
+Rakenda:
+```bash
 terraform apply
-./minu-uus-projekt/scripts/cleanup.sh```
+./minu-uus-projekt/scripts/cleanup.sh
+```
 
 ---
 
 ## 6. Puhastamine
 
-Kui oled valmis:```bash
-terraform destroy```
+Kui oled valmis:
+```bash
+terraform destroy
+```
 
 See kustutab kõik Terraform'i loodud failid ja kaustad.
 
@@ -247,7 +273,8 @@ See kustutab kõik Terraform'i loodud failid ja kaustad.
 - [ ] `terraform init` töötab
 - [ ] `terraform apply` loob struktuuri ilma erroriteta
 - [ ] Loodud failide struktuur on õige:
-  ```
+  
+```
   minu-projekt/
   ├── README.md
   ├── config/
@@ -255,7 +282,8 @@ See kustutab kõik Terraform'i loodud failid ja kaustad.
   │   └── app.yaml
   └── scripts/
       └── startup.sh
-  ```
+  
+```
 - [ ] Skript käivitub: `./minu-projekt/scripts/startup.sh`
 - [ ] `terraform output` näitab õigeid teid
 - [ ] Muutujate muutmine ja uuesti apply töötab
@@ -265,13 +293,15 @@ See kustutab kõik Terraform'i loodud failid ja kaustad.
 
 ### GitHub Repository
 
-Loo uus repository:```bash
+Loo uus repository:
+```bash
 git init
 git add .
 git commit -m "Add Terraform homework"
 git branch -M main
 git remote add origin https://github.com/[sinu-nimi]/terraform-homework.git
-git push -u origin main```
+git push -u origin main
+```
 
 Lisa ka README.md mis selgitab:
 - Mis see projekt teeb
@@ -343,18 +373,21 @@ Vasta küsimustele (2-3 lauset igaüks):
 
 ### 1. Tingimused (+5%)
 
-Lisa `main.tf` faili resource mis loob backup skripti **ainult** production keskkonnas:```hcl
+Lisa `main.tf` faili resource mis loob backup skripti **ainult** production keskkonnas:
+```hcl
 resource "local_file" "backup_script" {
   count = var.environment == "production" ? 1 : 0
   
   content         = "#!/bin/bash\necho 'Backup...'\n"
   filename        = "${local_directory.scripts.path}/backup.sh"
   file_permission = "0755"
-}```
+}
+```
 
 ### 2. Validation Rules (+5%)
 
-Lisa `variables.tf` faili rohkem validation'eid:```hcl
+Lisa `variables.tf` faili rohkem validation'eid:
+```hcl
 variable "project_name" {
   # ... olemasolev kood ...
   
@@ -362,29 +395,38 @@ variable "project_name" {
     condition     = can(regex("^[a-z0-9-]+$", var.project_name))
     error_message = "Nimi võib sisaldada ainult väikseid tähti, numbreid ja kriipse."
   }
-}```
+}
+```
 
 ---
 
 ## Abi ja Troubleshooting
 
-### "Error: Invalid provider"```bash
+### "Error: Invalid provider"
+```bash
 # Lahendus: Initsialiseeri uuesti
-terraform init```
+terraform init
+```
 
-### "Error: path already exists"```bash
+### "Error: path already exists"
+```bash
 # Lahendus: Kustuta vana kaust või muuda project_name
 rm -rf minu-projekt
-terraform apply```
+terraform apply
+```
 
-### Skript ei käivitu```bash
+### Skript ei käivitu
+```bash
 # Lahendus: Lisa executable õigus
-chmod +x minu-projekt/scripts/startup.sh```
+chmod +x minu-projekt/scripts/startup.sh
+```
 
-### Terraform destroy ei kustuta kõike```bash
+### Terraform destroy ei kustuta kõike
+```bash
 # Terraform ei kustuta faile mis ei ole state'is
 # Kustuta käsitsi:
-rm -rf minu-projekt```
+rm -rf minu-projekt
+```
 
 ---
 

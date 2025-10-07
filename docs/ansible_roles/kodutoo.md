@@ -25,12 +25,15 @@ Kõik see tehakse kahel viisil - esmalt Ansible'iga, seejärel Puppet'iga. Lõpp
 
 Kasutate Vagrant'i kahte isoleeritud VM'i jaoks. Üks Ansible'i jaoks, teine Puppet'i jaoks. See võimaldab õiglast võrdlust - mõlemad algavad puhtalt lehelt.
 
-### Git repositooriumi loomine```bash
+### Git repositooriumi loomine
+```bash
 mkdir ansible-puppet-comparison
 cd ansible-puppet-comparison
-git init```
+git init
+```
 
-Looge README.md esmase struktuuriga:```markdown
+Looge README.md esmase struktuuriga:
+```markdown
 # Ansible vs Puppet: Practical Comparison
 
 Comparative infrastructure automation project implementing identical web server setup using both Ansible and Puppet.
@@ -47,17 +50,21 @@ Understand practical differences between push-based (Ansible) and pull-based (Pu
 - Health monitoring
 - Log rotation
 
-## Repository Structure```
+## Repository Structure
+```
 ansible/          - Ansible implementation
 puppet/           - Puppet implementation
 vagrant/          - VM configurations
-COMPARISON.md     - Detailed comparison```
+COMPARISON.md     - Detailed comparison
+```
 
 ## Setup Instructions
 
-[Täidetakse hiljem]```
+[Täidetakse hiljem]
+```
 
-### Vagrantfile loomine```ruby
+### Vagrantfile loomine
+```ruby
 # vagrant/Vagrantfile
 Vagrant.configure("2") do |config|
   
@@ -80,24 +87,34 @@ Vagrant.configure("2") do |config|
       vb.memory = "1024"
     end
   end
-end```
+end
+```
 
-Commit esmane struktuur:```bash
+Commit esmane struktuur:
+```bash
 git add .
-git commit -m "Initial project structure"```
+git commit -m "Initial project structure"
+```
 
 ## 3. Ansible Implementatsioon
 
 Ansible osa kasutab rolle, mida laboris õppisite. Loote kolm rolli: nginx, postgresql, monitoring. Iga roll on modulaarne ja taaskasutatav.
 
-### Ansible projekti struktuur```bash
+### Ansible projekti struktuur
+```bash
 mkdir -p ansible/{roles,group_vars,inventory}
-cd ansible```
+cd ansible
+```
 
-### Inventory ja variables```ini
+### Inventory ja variables
+```ini
 # inventory/hosts
 [webservers]
-ansible-test ansible_host=192.168.56.10 ansible_user=vagrant``````yaml
+ansible-test ansible_host=192.168.56.10 ansible_user=vagrant
+`
+`
+`
+```yaml
 # group_vars/webservers.yml
 ---
 # Nginx configuration
@@ -121,13 +138,17 @@ postgresql_users:
 
 # Monitoring
 monitoring_enabled: true
-health_check_interval: "*/5"```
+health_check_interval: "*/5"
+```
 
-### Nginx role loomine```bash
+### Nginx role loomine
+```bash
 cd roles
-ansible-galaxy init nginx```
+ansible-galaxy init nginx
+```
 
-Nginx tasks (lühendatud näide):```yaml
+Nginx tasks (lühendatud näide):
+```yaml
 # roles/nginx/tasks/main.yml
 ---
 - name: "Install Nginx"
@@ -147,7 +168,11 @@ Nginx tasks (lühendatud näide):```yaml
   service:
     name: nginx
     state: started
-    enabled: yes``````yaml
+    enabled: yes
+`
+`
+`
+```yaml
 # roles/nginx/tasks/ssl.yml
 ---
 - name: "Create SSL directories"
@@ -166,9 +191,11 @@ Nginx tasks (lühendatud näide):```yaml
     -out /etc/ssl/certs/nginx.crt
     -subj "/C=EE/O=ITS24/CN={{ ansible_fqdn }}"
   args:
-    creates: /etc/ssl/certs/nginx.crt```
+    creates: /etc/ssl/certs/nginx.crt
+```
 
-### PostgreSQL role```yaml
+### PostgreSQL role
+```yaml
 # roles/postgresql/tasks/main.yml
 ---
 - name: "Install PostgreSQL"
@@ -199,9 +226,11 @@ Nginx tasks (lühendatud näide):```yaml
     db: "{{ item.db }}"
     priv: ALL
   loop: "{{ postgresql_users }}"
-  become_user: postgres```
+  become_user: postgres
+```
 
-### Monitoring role```yaml
+### Monitoring role
+```yaml
 # roles/monitoring/tasks/main.yml
 ---
 - name: "Deploy health check script"
@@ -214,7 +243,11 @@ Nginx tasks (lühendatud näide):```yaml
   cron:
     name: "nginx health check"
     minute: "{{ health_check_interval }}"
-    job: "/usr/local/bin/health-check.sh >> /var/log/health-check.log 2>&1"``````bash
+    job: "/usr/local/bin/health-check.sh >> /var/log/health-check.log 2>&1"
+`
+`
+`
+```bash
 # roles/monitoring/templates/health-check.sh.j2
 #!/bin/bash
 # Health check script managed by Ansible
@@ -233,9 +266,11 @@ if systemctl is-active --quiet postgresql; then
     echo "$DATE - PostgreSQL: OK"
 else
     echo "$DATE - PostgreSQL: FAILED"
-fi```
+fi
+```
 
-### Main playbook```yaml
+### Main playbook
+```yaml
 # site.yml
 ---
 - name: "Deploy web infrastructure"
@@ -245,37 +280,49 @@ fi```
   roles:
     - nginx
     - postgresql
-    - monitoring```
+    - monitoring
+```
 
-### Testimine ja deploy```bash
+### Testimine ja deploy
+```bash
 cd vagrant && vagrant up ansible
 cd ../ansible
-ansible-playbook -i inventory/hosts site.yml```
+ansible-playbook -i inventory/hosts site.yml
+```
 
-Validation:```bash
+Validation:
+```bash
 ansible webservers -i inventory/hosts -m command -a "systemctl status nginx"
 ansible webservers -i inventory/hosts -m command -a "systemctl status postgresql"
-curl -k https://192.168.56.10```
+curl -k https://192.168.56.10
+```
 
-Commit:```bash
+Commit:
+```bash
 git add ansible/
-git commit -m "Complete Ansible implementation with nginx, postgresql, monitoring"```
+git commit -m "Complete Ansible implementation with nginx, postgresql, monitoring"
+```
 
 ## 4. Puppet Implementatsioon
 
 Puppet kasutab erinevat struktuuri ja süntaksi. Agent töötab serveris ja küsib perioodiliselt konfiguratsiooni. Selles projektis kasutate masterless setup'i - agent apply rakendab manifeste lokaalal.
 
-### Puppet projekti struktuur```bash
+### Puppet projekti struktuur
+```bash
 mkdir -p puppet/{manifests,modules}
-cd puppet```
+cd puppet
+```
 
-### Puppet modules loomine```bash
+### Puppet modules loomine
+```bash
 cd modules
 puppet module generate its24-nginx
 puppet module generate its24-postgresql
-puppet module generate its24-monitoring```
+puppet module generate its24-monitoring
+```
 
-### Nginx module```puppet
+### Nginx module
+```puppet
 # modules/nginx/manifests/init.pp
 class nginx (
   Boolean $ssl_enabled = true,
@@ -308,7 +355,11 @@ class nginx (
     hasrestart => true,
     require    => Package['nginx'],
   }
-}``````puppet
+}
+`
+`
+`
+```puppet
 # modules/nginx/manifests/ssl.pp
 class nginx::ssl {
   
@@ -333,7 +384,11 @@ class nginx::ssl {
     mode    => '0600',
     require => Exec['generate-ssl-cert'],
   }
-}``````puppet
+}
+`
+`
+`
+```puppet
 # modules/nginx/manifests/vhost.pp
 define nginx::vhost (
   String $root,
@@ -367,9 +422,11 @@ define nginx::vhost (
     target => "/etc/nginx/sites-available/${name}.conf",
     notify => Service['nginx'],
   }
-}```
+}
+```
 
-### PostgreSQL module```puppet
+### PostgreSQL module
+```puppet
 # modules/postgresql/manifests/init.pp
 class postgresql (
   String $version = '12',
@@ -400,9 +457,11 @@ class postgresql (
       require  => Postgresql::Database[$user['db']],
     }
   }
-}```
+}
+```
 
-### Monitoring module```puppet
+### Monitoring module
+```puppet
 # modules/monitoring/manifests/init.pp
 class monitoring (
   String $interval = '*/5',
@@ -419,9 +478,11 @@ class monitoring (
     minute  => $interval,
     require => File['/usr/local/bin/health-check.sh'],
   }
-}```
+}
+```
 
-### Site manifest```puppet
+### Site manifest
+```puppet
 # manifests/site.pp
 node 'puppet-test' {
   
@@ -458,28 +519,36 @@ node 'puppet-test' {
   class { 'monitoring':
     interval => '*/5',
   }
-}```
+}
+```
 
-### Puppet apply```bash
+### Puppet apply
+```bash
 cd vagrant && vagrant up puppet
 vagrant ssh puppet
 
 # Puppet VM'is
 sudo puppet module install puppetlabs-postgresql --version 6.0.0
-sudo puppet apply --modulepath=/vagrant/puppet/modules /vagrant/puppet/manifests/site.pp```
+sudo puppet apply --modulepath=/vagrant/puppet/modules /vagrant/puppet/manifests/site.pp
+```
 
-Validation:```bash
+Validation:
+```bash
 systemctl status nginx postgresql
 curl -k https://localhost
-cat /var/log/health-check.log```
+cat /var/log/health-check.log
+```
 
-Commit:```bash
+Commit:
+```bash
 git add puppet/
-git commit -m "Complete Puppet implementation with nginx, postgresql, monitoring"```
+git commit -m "Complete Puppet implementation with nginx, postgresql, monitoring"
+```
 
 ## 5. Võrdlev Analüüs
 
-Looge COMPARISON.md fail, mis dokumenteerib põhjaliku võrdluse. See on projekti kõige olulisem osa - näitab et mõistate mitte ainult kuidas, vaid miks.```markdown
+Looge COMPARISON.md fail, mis dokumenteerib põhjaliku võrdluse. See on projekti kõige olulisem osa - näitab et mõistate mitte ainult kuidas, vaid miks.
+```markdown
 # Ansible vs Puppet: Detailed Comparison
 
 ## Architecture Comparison
@@ -498,11 +567,13 @@ Looge COMPARISON.md fail, mis dokumenteerib põhjaliku võrdluse. See on projekt
 
 ## Syntax Comparison
 
-### Ansible (YAML + Jinja2)```yaml
+### Ansible (YAML + Jinja2)
+```yaml
 - name: "Install nginx"
   apt:
     name: nginx
-    state: present```
+    state: present
+```
 
 Plussid:
 - YAML on intuitiivne
@@ -513,10 +584,12 @@ Miinused:
 - YAML indentation errors
 - Loops ja conditionals võivad olla verbose
 
-### Puppet (DSL - Domain Specific Language)```puppet
+### Puppet (DSL - Domain Specific Language)
+```puppet
 package { 'nginx':
   ensure => installed,
-}```
+}
+```
 
 Plussid:
 - Puhtalt declarative
@@ -585,13 +658,15 @@ Mõlemad tööriistad on võimekad. Valik sõltub:
 - Existing tooling ecosystem
 
 Ansible võidab lihtsuses ja kiiruses.
-Puppet võidab scale'is ja robustsuses.```
+Puppet võidab scale'is ja robustsuses.
+```
 
 ## Esitamine
 
 ### Repositooriumi viimistlemine
 
-Veenduge et repositoorium sisaldab:```
+Veenduge et repositoorium sisaldab:
+```
 ansible-puppet-comparison/
 ├── README.md                    # Projekti ülevaade, setup juhend
 ├── COMPARISON.md                # Detailne võrdlus
@@ -611,7 +686,8 @@ ansible-puppet-comparison/
 │       ├── postgresql/
 │       └── monitoring/
 └── vagrant/
-    └── Vagrantfile```
+    └── Vagrantfile
+```
 
 ### Kontrollnimekiri
 
@@ -625,12 +701,14 @@ ansible-puppet-comparison/
 - [ ] Git commit history on clean ja descriptive
 - [ ] Repository on avalik GitHubis
 
-### GitHub esitamine```bash
+### GitHub esitamine
+```bash
 # Create GitHub repo (via web interface)
 
 git remote add origin https://github.com/yourusername/ansible-puppet-comparison.git
 git branch -M main
-git push -u origin main```
+git push -u origin main
+```
 
 ## Refleksioon
 

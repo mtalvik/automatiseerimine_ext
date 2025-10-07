@@ -23,24 +23,29 @@ Näiteks Nginx konfiguratsioon, kus on mitu backend serverit, SSL seadistused s�
 
 Jinja2 pakub advanced funktsionaalsust, mis võimaldab kirjutada keerukaid template'eid:
 
-**Filters ja arvutused:**```jinja2
+**Filters ja arvutused:**
+```jinja2
 {% set workers = ansible_processor_vcpus | default(2) %}
 worker_processes {{ workers }};
 worker_connections {{ (1024 * workers) | int }};
 
 {% set disk_space_gb = (ansible_mounts[0].size_total / 1024 / 1024 / 1024) | round(2) %}
-# Available disk: {{ disk_space_gb }} GB```
+# Available disk: {{ disk_space_gb }} GB
+```
 
-**Loops ja complex data:**```jinja2
+**Loops ja complex data:**
+```jinja2
 {% for backend in backend_servers %}
 upstream {{ backend.name }} {
     {% for server in backend.servers %}
     server {{ server.host }}:{{ server.port }}{% if server.weight is defined %} weight={{ server.weight }}{% endif %};
     {% endfor %}
 }
-{% endfor %}```
+{% endfor %}
+```
 
-**Macros korduvate plokkide jaoks:**```jinja2
+**Macros korduvate plokkide jaoks:**
+```jinja2
 {% macro location_block(path, proxy_pass) %}
 location {{ path }} {
     proxy_pass {{ proxy_pass }};
@@ -52,18 +57,22 @@ location {{ path }} {
 server {
     {{ location_block('/api/', 'http://api_backend') }}
     {{ location_block('/admin/', 'http://admin_backend') }}
-}```
+}
+```
 
-**Advanced conditionals:**```jinja2
+**Advanced conditionals:**
+```jinja2
 {% if environment == 'prod' %}
 error_log /var/log/nginx/error.log error;
 {% elif environment == 'staging' %}
 error_log /var/log/nginx/error.log warn;
 {% else %}
 error_log /var/log/nginx/error.log debug;
-{% endif %}```
+{% endif %}
+```
 
-Täielik näide (templates/nginx-advanced.conf.j2):```jinja2
+Täielik näide (templates/nginx-advanced.conf.j2):
+```jinja2
 {% set workers = ansible_processor_vcpus | default(2) %}
 user nginx;
 worker_processes {{ workers }};
@@ -103,7 +112,8 @@ http {
         {{ location_block('/api/', 'http://api_backend') }}
         {{ location_block('/admin/', 'http://admin_backend') }}
     }
-}```
+}
+```
 
 ### 1.3 Harjutus: Nginx Load Balancer Template
 
@@ -126,7 +136,8 @@ Loo advanced Nginx template, mis konfigreerib load balancer'i dünaamiliselt.
 - `{% if variable is defined %}` kontrollib muutuja olemasolu
 - Macro defineeritakse `{% macro name(params) %}...{% endmacro %}`
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Genereeri template
 ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags nginx
 
@@ -134,9 +145,11 @@ ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags nginx
 cat /etc/nginx/nginx.conf
 
 # Testi Nginx konfiguratsiooni
-nginx -t```
+nginx -t
+```
 
-**Muutujad (group_vars/webservers/nginx.yml):**```yaml
+**Muutujad (group_vars/webservers/nginx.yml):**
+```yaml
 backend_servers:
   - name: api_backend
     servers:
@@ -158,7 +171,8 @@ ssl_protocols:
 ssl_ciphers: "HIGH:!aNULL:!MD5"
 
 environment: "{{ app_env }}"
-server_name: "{{ inventory_hostname }}.example.com"```
+server_name: "{{ inventory_hostname }}.example.com"
+```
 
 **Boonus:**
 
@@ -184,7 +198,8 @@ Static inventory failid ei skaleeru cloud keskkonnas, kus servereid luuakse ja k
 
 Ansible toetab AWS EC2 dynamic inventory plugin'it, mis pärib instance'id otse AWS API-st. Plugin kasutab boto3 library't ja AWS credentials'eid.
 
-**AWS EC2 inventory plugin (aws_ec2.yml):**```yaml
+**AWS EC2 inventory plugin (aws_ec2.yml):**
+```yaml
 plugin: aws_ec2
 
 regions:
@@ -214,7 +229,8 @@ hostnames:
 
 compose:
   ansible_host: public_ip_address
-  ansible_user: "'ec2-user'"```
+  ansible_user: "'ec2-user'"
+```
 
 See konfiguratsioon:
 
@@ -224,7 +240,8 @@ See konfiguratsioon:
 - Kasutab Name tag'i või DNS nime hostname'ina
 - Seadistab ansible_host ja ansible_user automaatselt
 
-**Custom inventory script alternatiiv (inventory/custom_inventory.py):**```python
+**Custom inventory script alternatiiv (inventory/custom_inventory.py):**
+```python
 #!/usr/bin/env python3
 
 import json
@@ -270,7 +287,8 @@ def get_inventory():
     return inventory
 
 if __name__ == '__main__':
-    print(json.dumps(get_inventory(), indent=2))```
+    print(json.dumps(get_inventory(), indent=2))
+```
 
 ### 2.3 Harjutus: AWS Dynamic Inventory Setup
 
@@ -293,7 +311,8 @@ Seadista AWS EC2 dynamic inventory ja kasuta seda playbook'ides.
 - Kasuta `--graph` inventory struktuuri vaatamiseks
 - Cache'imine kiirendab suuri inventory'sid
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Installi dependencies
 pip install boto3 botocore
 
@@ -312,9 +331,11 @@ ansible-playbook -i aws_ec2.yml site.yml
 # Cache'imisega
 ansible-playbook -i aws_ec2.yml site.yml \
   --inventory-cache-plugin jsonfile \
-  --inventory-cache-timeout 3600```
+  --inventory-cache-timeout 3600
+```
 
-**AWS IAM õigused (minimum):**```json
+**AWS IAM õigused (minimum):**
+```json
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -327,7 +348,8 @@ ansible-playbook -i aws_ec2.yml site.yml \
       "Resource": "*"
     }
   ]
-}```
+}
+```
 
 **Boonus:**
 
@@ -353,7 +375,8 @@ Tavaline deployment peatab rakenduse, uuendab koodi ja käivitab uuesti. See tek
 
 Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serveri tervise enne järgmise juurde liikumist. Ansible `serial` direktiiv võimaldab kontrollida mitu serverit korraga töödeldakse.
 
-**Rolling deployment pattern:**```yaml
+**Rolling deployment pattern:**
+```yaml
 ---
 - name: Rolling deployment
   hosts: webservers
@@ -424,9 +447,11 @@ Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serv
     - name: restart myapp
       systemd:
         name: myapp
-        state: restarted```
+        state: restarted
+```
 
-**Rollback playbook (rollback.yml):**```yaml
+**Rollback playbook (rollback.yml):**
+```yaml
 ---
 - name: Rollback deployment
   hosts: "{{ failed_host }}"
@@ -454,7 +479,8 @@ Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serv
       register: result
       until: result.status == 200
       retries: 10
-      delay: 2```
+      delay: 2
+```
 
 ### 3.3 Harjutus: Rolling Deployment Implementeerimine
 
@@ -478,7 +504,8 @@ Loo rolling deployment strategy veebirakendusele koos health check'ide ja rollba
 - `until` ja `retries` ootavad kuni tingimus täidetud
 - `pre_tasks` käivituvad enne `tasks`, `post_tasks` pärast
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Deploy uus versioon
 ansible-playbook -i inventory/hosts.yml rolling-deploy.yml -e "version=2.0.0"
 
@@ -486,9 +513,11 @@ ansible-playbook -i inventory/hosts.yml rolling-deploy.yml -e "version=2.0.0"
 # (peaks nägema servereid ükshaaval)
 
 # Testi rollback
-ansible-playbook -i inventory/hosts.yml rollback.yml -e "failed_host=web1"```
+ansible-playbook -i inventory/hosts.yml rollback.yml -e "failed_host=web1"
+```
 
-**Load balancer konfiguratsioon (HAProxy):**```cfg
+**Load balancer konfiguratsioon (HAProxy):**
+```cfg
 # /etc/haproxy/haproxy.cfg
 global
     stats socket /var/run/haproxy.sock mode 600 level admin
@@ -498,7 +527,8 @@ backend webservers
     option httpchk GET /health
     server web1 10.0.1.10:8080 check
     server web2 10.0.1.11:8080 check
-    server web3 10.0.1.12:8080 check```
+    server web3 10.0.1.12:8080 check
+```
 
 **Boonus:**
 

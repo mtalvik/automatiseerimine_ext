@@ -16,7 +16,8 @@ Meeskonnas juhtub, et keegi commit'ib koodi, mis sisaldab süntaksi vigu, debug 
 
 Git hooks on skriptid `.git/hooks/` kaustas, mis käivituvad automaatselt. Pre-commit hook käivitub enne commit'i tegemist - kui script ebaõnnestub, commit tühistatakse.
 
-Näide Python projektile:```bash
+Näide Python projektile:
+```bash
 #!/bin/bash
 # .git/hooks/pre-commit
 
@@ -45,9 +46,11 @@ if command -v flake8 &> /dev/null; then
     flake8 $PYTHON_FILES || exit 1
 fi
 
-echo "Pre-commit checks passed!"```
+echo "Pre-commit checks passed!"
+```
 
-Commit sõnumite kontroll:```bash
+Commit sõnumite kontroll:
+```bash
 #!/bin/bash
 # .git/hooks/commit-msg
 
@@ -58,7 +61,8 @@ if ! echo "$COMMIT_MSG" | grep -qE "^(feat|fix|docs|refactor|test|chore)(\(.+\))
     echo "Use: type(scope): description"
     echo "Example: feat(auth): add login validation"
     exit 1
-fi```
+fi
+```
 
 ### 1.3 Harjutus: Implementeeri Hooks
 
@@ -73,10 +77,12 @@ fi```
 - Ajutine vahele jätmine: `git commit --no-verify`
 - Kontrolli ainult staged faile: `git diff --cached --name-only`
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 echo "print('debug')" > test.py
 git add test.py
-git commit -m "feat: test"  # Peaks ebaõnnestuma```
+git commit -m "feat: test"  # Peaks ebaõnnestuma
+```
 
 **Boonus:**
 - Lisa kontroll failide suuruse kohta
@@ -95,7 +101,8 @@ Meeskonnas push'itakse PR'e iga päev. Kui ei käivita teste automaatselt, võib
 
 GitHub Actions käivitab workflow'sid iga push/PR peale. Workflow on YAML fail `.github/workflows/` kaustas.
 
-Põhiline CI workflow:```yaml
+Põhiline CI workflow:
+```yaml
 name: CI Pipeline
 
 on:
@@ -127,9 +134,11 @@ jobs:
         run: npm test
       
       - name: Build
-        run: npm run build```
+        run: npm run build
+```
 
-Matrix strategy (mitu versiooni paralleelselt):```yaml
+Matrix strategy (mitu versiooni paralleelselt):
+```yaml
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -144,9 +153,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm test```
+      - run: npm test
+```
 
-Artifacts ja deployment:```yaml
+Artifacts ja deployment:
+```yaml
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -166,7 +177,8 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: dist
-      - run: echo "Deploy to production"```
+      - run: echo "Deploy to production"
+```
 
 ### 2.3 Harjutus: CI/CD Pipeline
 
@@ -181,13 +193,15 @@ jobs:
 - Kasuta `npm ci` mitte `npm install`
 - Cache dependency'sid: `cache: 'npm'`
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 mkdir -p .github/workflows
 # Lisa CI YAML fail
 git add .github/
 git commit -m "ci: add workflow"
 git push origin main
-# Vaata GitHubis: Actions tab```
+# Vaata GitHubis: Actions tab
+```
 
 **Boonus:**
 - Lisa security scanning
@@ -204,28 +218,36 @@ Teed feature jaoks 7 commit'i: feat, typo fix, oops, wip, actually fix, final, r
 
 ### 3.2 Lahendus
 
-Interactive rebase võimaldab ajaloo ümberkirjutamist: squash commit'id kokku, muuda sõnumeid, eemalda commit'e.```bash
-git rebase -i HEAD~5```
+Interactive rebase võimaldab ajaloo ümberkirjutamist: squash commit'id kokku, muuda sõnumeid, eemalda commit'e.
+```bash
+git rebase -i HEAD~5
+```
 
-Avaneb editor:```
+Avaneb editor:
+```
 pick a1b2c3d feat(auth): add login
 pick d4e5f6g fix: typo
 pick h7i8j9k wip
 pick k1l2m3n feat(auth): add logout
-pick n4o5p6q fix: oops```
+pick n4o5p6q fix: oops
+```
 
-Puhasta:```
+Puhasta:
+```
 pick a1b2c3d feat(auth): add login
 fixup d4e5f6g fix: typo
 drop h7i8j9k wip
 pick k1l2m3n feat(auth): add logout
-fixup n4o5p6q fix: oops```
+fixup n4o5p6q fix: oops
+```
 
 Tulemus: 5 commit → 2 commit. Commands: `pick` (use), `reword` (edit message), `squash` (merge, keep message), `fixup` (merge, discard message), `drop` (remove).
 
-Rebase main'i peale:```bash
+Rebase main'i peale:
+```bash
 git checkout feature
-git rebase main```
+git rebase main
+```
 
 **HOIATUS:** Rebase'i ainult lokaalset ajalugu! Kui push'isid, rebase rikub teiste ajaloo.
 
@@ -242,7 +264,8 @@ git rebase main```
 - Kui läks katki: `git rebase --abort`
 - Force push pärast: `git push --force-with-lease`
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 git checkout -b feature/cleanup
 for i in {1..5}; do
   echo "v$i" > file.txt
@@ -251,7 +274,8 @@ done
 
 git log --oneline  # 5 commit'i
 git rebase -i HEAD~5  # Squash kokku
-git log --oneline  # 1 commit```
+git log --oneline  # 1 commit
+```
 
 **Boonus:**
 - Õpi `git reflog` - leia "kaotatud" commit'e

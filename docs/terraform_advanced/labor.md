@@ -22,11 +22,14 @@ Alustame AWS provider konfigureerimisega. Provider ühendab Terraform'i AWS API'
 
 AWS credentials on juba seadistatud AWS CLI kaudu (`aws configure`). Terraform kasutab automaatselt samu credentials'eid.
 
-Looge töökataloog:```bash
+Looge töökataloog:
+```bash
 mkdir -p ~/terraform-aws-lab
-cd ~/terraform-aws-lab```
+cd ~/terraform-aws-lab
+```
 
-Looge `main.tf`:```hcl
+Looge `main.tf`:
+```hcl
 terraform {
   required_version = ">= 1.0"
   
@@ -40,19 +43,24 @@ terraform {
 
 provider "aws" {
   region = "eu-west-1"  # Iirimaa
-}```
+}
+```
 
-Initsialiseerige:```bash
-terraform init```
+Initsialiseerige:
+```bash
+terraform init
+```
 
 Näete, kuidas Terraform laeb alla AWS provider plugina. See plugin sisaldab kogu loogika AWS API'ga suhtlemiseks.
 
-### Validation```bash
+### Validation
+```bash
 # Kontrollige, et provider töötab
 terraform providers
 
 # Peaks näitama:
-# provider[registry.terraform.io/hashicorp/aws]```
+# provider[registry.terraform.io/hashicorp/aws]
+```
 
 Kui näete viga "No valid credential sources found", siis käivitage `aws configure` ja sisestage oma AWS access key ja secret key.
 
@@ -62,7 +70,8 @@ Kui näete viga "No valid credential sources found", siis käivitage `aws config
 
 VPC (Virtual Private Cloud) on isoleeritud võrgukeskkond AWS'is. Kõik teised ressursid lähevad selle võrgu sisse.
 
-Lisage `main.tf` faili:```hcl
+Lisage `main.tf` faili:
+```hcl
 # VPC
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
@@ -113,24 +122,29 @@ resource "aws_route_table" "public" {
 resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
-}```
+}
+```
 
 Mõelge sellele nagu maja ehitamisele. VPC on krunt, subnet on tuba, internet gateway on uks ja route table on silt, mis näitab, kuidas ukse juurde jõuda.
 
-Apply muudatused:```bash
+Apply muudatused:
+```bash
 terraform plan
 # Vaadake põhjalikult, mida luuakse
 
 terraform apply
-# Kirjutage "yes"```
+# Kirjutage "yes"
+```
 
-### Validation```bash
+### Validation
+```bash
 # Vaadake loodud ressursse
 terraform show
 
 # Kontrollige AWS konsoolist:
 # https://console.aws.amazon.com/vpc/
-# Peaks nägema VPC nimega "terraform-lab-vpc"```
+# Peaks nägema VPC nimega "terraform-lab-vpc"
+```
 
 Terraform dependency graph hoolitses, et ressursid loodi õiges järjekorras: VPC → Internet Gateway → Subnet → Route Table → Association.
 
@@ -140,7 +154,8 @@ Terraform dependency graph hoolitses, et ressursid loodi õiges järjekorras: VP
 
 Security Group kontrollib, milline võrguliiklus serveri juurde jõuab.
 
-Lisage `main.tf` faili:```hcl
+Lisage `main.tf` faili:
+```hcl
 resource "aws_security_group" "web" {
   name_prefix = "terraform-lab-web-"
   description = "Allow HTTP and SSH"
@@ -180,15 +195,20 @@ resource "aws_security_group" "web" {
   lifecycle {
     create_before_destroy = true
   }
-}```
+}
+```
 
-OLULINE: Tootmises ei tohiks SSH'd avada kõigile IP'dele (0.0.0.0/0). Saate oma IP kätte nii:```bash
+OLULINE: Tootmises ei tohiks SSH'd avada kõigile IP'dele (0.0.0.0/0). Saate oma IP kätte nii:
+```bash
 curl ifconfig.me
 # Näiteks: 85.253.123.45
-# Siis muutke cidr_blocks = ["85.253.123.45/32"]```
+# Siis muutke cidr_blocks = ["85.253.123.45/32"]
+```
 
-Apply:```bash
-terraform apply```
+Apply:
+```bash
+terraform apply
+```
 
 ### Validation
 
@@ -200,11 +220,14 @@ AWS konsool → EC2 → Security Groups → Peaks nägema "terraform-lab-web-...
 
 Nüüd loome serveri, mis jookseb meie VPC public subnet'is.
 
-Esmalt vajame SSH võtmepaari. Kui teil pole veel:```bash
+Esmalt vajame SSH võtmepaari. Kui teil pole veel:
+```bash
 # Looge SSH key (kui pole)
-ssh-keygen -t rsa -b 2048 -f ~/.ssh/terraform-lab -N ""```
+ssh-keygen -t rsa -b 2048 -f ~/.ssh/terraform-lab -N ""
+```
 
-Lisage `main.tf` faili:```hcl
+Lisage `main.tf` faili:
+```hcl
 # SSH key pair
 resource "aws_key_pair" "deployer" {
   key_name   = "terraform-lab-key"
@@ -265,16 +288,20 @@ HTML
   tags = {
     Name = "terraform-lab-web-server"
   }
-}```
+}
+```
 
 User data skript käivitub serveri esimesel käivitumisel. See installib nginx'i ja loob lihtsa veebilehe.
 
-Apply:```bash
-terraform apply```
+Apply:
+```bash
+terraform apply
+```
 
 Server on valmis ~2 minuti pärast. Terraform tagastab kontrolli kohe, aga user data skript töötab taustal.
 
-### Validation```bash
+### Validation
+```bash
 # Vaata serveri IP'd
 terraform output instance_public_ip
 
@@ -282,7 +309,8 @@ terraform output instance_public_ip
 # http://<IP_AADRESS>
 
 # Või curl'iga:
-curl http://$(terraform output -raw instance_public_ip)```
+curl http://$(terraform output -raw instance_public_ip)
+```
 
 Kui lehte ei kuvata kohe, oodake veel minutike - nginx käivitub.
 
@@ -292,7 +320,8 @@ Kui lehte ei kuvata kohe, oodake veel minutike - nginx käivitub.
 
 Outputs teevad olulise info kergesti kättesaadavaks.
 
-Looge `outputs.tf`:```hcl
+Looge `outputs.tf`:
+```hcl
 output "vpc_id" {
   description = "VPC ID"
   value       = aws_vpc.main.id
@@ -316,12 +345,16 @@ output "website_url" {
 output "ssh_command" {
   description = "SSH connection command"
   value       = "ssh -i ~/.ssh/terraform-lab ec2-user@${aws_instance.web.public_ip}"
-}```
+}
+```
 
-Apply (outputs ei vaja resursse muuta):```bash
-terraform apply```
+Apply (outputs ei vaja resursse muuta):
+```bash
+terraform apply
+```
 
-Nüüd saate:```bash
+Nüüd saate:
+```bash
 # Vaata kõiki outpute
 terraform output
 
@@ -329,9 +362,11 @@ terraform output
 terraform output website_url
 
 # Kopeeri SSH käsk
-echo $(terraform output -raw ssh_command)```
+echo $(terraform output -raw ssh_command)
+```
 
-### Validation```bash
+### Validation
+```bash
 # Testi SSH ühendust
 $(terraform output -raw ssh_command)
 
@@ -339,7 +374,8 @@ $(terraform output -raw ssh_command)
 systemctl status nginx
 # Peaks näitama "active (running)"
 
-exit```
+exit
+```
 
 ---
 
@@ -347,7 +383,8 @@ exit```
 
 Praegu on palju hardcoded väärtusi. Tehme need konfigureeritavaks.
 
-Looge `variables.tf`:```hcl
+Looge `variables.tf`:
+```hcl
 variable "aws_region" {
   description = "AWS region"
   type        = string
@@ -376,9 +413,11 @@ variable "project_name" {
   description = "Project name for tagging"
   type        = string
   default     = "terraform-lab"
-}```
+}
+```
 
-Nüüd uuendage `main.tf`, et kasutada neid muutujaid:```hcl
+Nüüd uuendage `main.tf`, et kasutada neid muutujaid:
+```hcl
 # Provider blokis
 provider "aws" {
   region = var.aws_region
@@ -409,26 +448,34 @@ resource "aws_instance" "web" {
   tags = {
     Name = "${var.project_name}-web-server"
   }
-}```
+}
+```
 
-Apply (ei muuda ressursse, sest väärtused on samad):```bash
+Apply (ei muuda ressursse, sest väärtused on samad):
+```bash
 terraform plan
 # Peaks näitama "No changes"
 
-terraform apply```
+terraform apply
+```
 
-Nüüd saate väärtusi muuta ilma koodi muutmata:```bash
-terraform apply -var="project_name=minu-projekt"```
+Nüüd saate väärtusi muuta ilma koodi muutmata:
+```bash
+terraform apply -var="project_name=minu-projekt"
+```
 
-### Validation```bash
+### Validation
+```bash
 terraform output
-# Vaata, et kõik endiselt töötab```
+# Vaata, et kõik endiselt töötab
+```
 
 ---
 
 ## 7. State Kontrollimine
 
-Terraform state fail sisaldab kogu infot teie infrastruktuuri kohta.```bash
+Terraform state fail sisaldab kogu infot teie infrastruktuuri kohta.
+```bash
 # Vaata kõiki ressursse
 terraform state list
 
@@ -436,15 +483,20 @@ terraform state list
 terraform state show aws_instance.web
 
 # Vaata state faili suurust
-ls -lh terraform.tfstate```
+ls -lh terraform.tfstate
+```
 
-State fail on JSON formaat. Saate seda vaadata:```bash
-cat terraform.tfstate | jq '.resources[] | {type, name}'```
+State fail on JSON formaat. Saate seda vaadata:
+```bash
+cat terraform.tfstate | jq '.resources[] | {type, name}'
+```
 
-### Validation```bash
+### Validation
+```bash
 # Kontrolli, et state ja AWS on sünkroonis
 terraform plan
-# Peaks näitama "No changes"```
+# Peaks näitama "No changes"
+```
 
 Kui plan näitab muudatusi, kuigi te ei muutnud koodi, siis kas:
 - Keegi muutis ressursse AWS konsoolist (DRIFT!)
@@ -457,7 +509,8 @@ Kui plan näitab muudatusi, kuigi te ei muutnud koodi, siis kas:
 
 Kui teil on aega järgi, lisage:
 
-### S3 Bucket```hcl
+### S3 Bucket
+```hcl
 resource "random_string" "bucket_suffix" {
   length  = 8
   special = false
@@ -479,9 +532,11 @@ resource "aws_s3_bucket_public_access_block" "website" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
-}```
+}
+```
 
-### Elastic IP (Static IP)```hcl
+### Elastic IP (Static IP)
+```hcl
 resource "aws_eip" "web" {
   instance = aws_instance.web.id
   domain   = "vpc"
@@ -496,20 +551,24 @@ resource "aws_eip" "web" {
 # Lisa output
 output "elastic_ip" {
   value = aws_eip.web.public_ip
-}```
+}
+```
 
 ---
 
 ## 9. Cleanup (VÄGA OLULINE!)
 
-AWS ressursid maksavad raha. Kustutage kõik pärast labori lõpetamist:```bash
-terraform destroy```
+AWS ressursid maksavad raha. Kustutage kõik pärast labori lõpetamist:
+```bash
+terraform destroy
+```
 
 Terraform küsib kinnitust. Kirjutage "yes".
 
 Terraform kustutab ressursse vastupidises järjekorras: EC2 → Security Group → Route Table → Subnet → Internet Gateway → VPC.
 
-### Validation```bash
+### Validation
+```bash
 # Kontrollige AWS konsoolist:
 # - EC2 Instances: peaks olema tühi
 # - VPC: peaks olema ainult default VPC
@@ -518,7 +577,8 @@ Terraform kustutab ressursse vastupidises järjekorras: EC2 → Security Group �
 
 # Või AWS CLI'ga:
 aws ec2 describe-instances --filters "Name=tag:Name,Values=terraform-lab-*"
-# Peaks olema tühi list```
+# Peaks olema tühi list
+```
 
 OLULINE: Kui unustate `destroy` käivitada, maksate iga päev ~$0.24 (t2.micro) + võrguliikluse eest!
 
@@ -540,7 +600,8 @@ Selles lab'is lõite:
 
 ## Troubleshooting
 
-### "Access Denied" viga```bash
+### "Access Denied" viga
+```bash
 # Kontrolli AWS credentials
 aws sts get-caller-identity
 
@@ -549,12 +610,16 @@ aws sts get-caller-identity
 #   "UserId": "...",
 #   "Account": "...",
 #   "Arn": "..."
-# }```
+# }
+```
 
-Kui ei tööta, seadistage uuesti:```bash
-aws configure```
+Kui ei tööta, seadistage uuesti:
+```bash
+aws configure
+```
 
-### Veebiserver ei vasta```bash
+### Veebiserver ei vasta
+```bash
 # SSH serverisse
 ssh -i ~/.ssh/terraform-lab ec2-user@<IP>
 
@@ -565,17 +630,22 @@ sudo systemctl status nginx
 sudo journalctl -u nginx -n 50
 
 # Käivita käsitsi
-sudo systemctl start nginx```
+sudo systemctl start nginx
+```
 
-### Security Group blokeerib```bash
+### Security Group blokeerib
+```bash
 # Kontrolli, et security group on õigesti seotud
 terraform state show aws_instance.web | grep vpc_security_group_ids
 
 # Testi ühendust
-curl -v http://<IP>```
+curl -v http://<IP>
+```
 
-### State lock viga```bash
+### State lock viga
+```bash
 # Kui keegi teine (või crash) jättis luku kinni
 terraform force-unlock <LOCK_ID>
 
-# LOCK_ID on vea messages```
+# LOCK_ID on vea messages
+```

@@ -14,7 +14,8 @@ Pärast kodutöö tegemist on teil üks keskkond. Aga päris elus on vaja mitut:
 
 ### 1.2 Lahendus
 
-Terraform workspaces võimaldavad sama koodi kasutada mitme eraldatud keskkonna loomiseks. Iga workspace'il on oma state fail, seega ressursid ei kattu.```hcl
+Terraform workspaces võimaldavad sama koodi kasutada mitme eraldatud keskkonna loomiseks. Iga workspace'il on oma state fail, seega ressursid ei kattu.
+```hcl
 # variables.tf lisage:
 variable "environment_config" {
   description = "Configuration per environment"
@@ -84,7 +85,8 @@ resource "aws_cloudwatch_metric_alarm" "cpu" {
   dimensions = {
     InstanceId = aws_instance.app[count.index].id
   }
-}```
+}
+```
 
 ### 1.3 Harjutus: Multi-Environment Deployment
 
@@ -104,7 +106,8 @@ Võtke oma kodutöö projekt ja tehke sellest multi-environment:
 - Kui workspace on "dev", kasutage 10.0.0.0/16, kui "staging", siis 10.1.0.0/16 jne
 - Testige iga workspace'i eraldi: `terraform workspace select dev && terraform apply`
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Dev keskkond
 terraform workspace select dev
 terraform apply
@@ -115,7 +118,8 @@ terraform workspace select staging
 terraform apply
 terraform output
 
-# Vaadake AWS konsoolist, et mõlemad eraldatud```
+# Vaadake AWS konsoolist, et mõlemad eraldatud
+```
 
 **Boonus:**
 - Lisage workspace-põhine DNS naming
@@ -132,7 +136,8 @@ Praegu on teie state fail arvutis. Kui töökolleeg tahab same projekti kallal t
 
 ### 2.2 Lahendus
 
-Remote state S3'is koos DynamoDB lockinguga lahendab need probleemid.```hcl
+Remote state S3'is koos DynamoDB lockinguga lahendab need probleemid.
+```hcl
 # 1. Looge S3 bucket ja DynamoDB tabel (tehke see eraldi projektina!)
 # s3-backend/main.tf
 terraform {
@@ -218,7 +223,8 @@ terraform {
     encrypt        = true
     dynamodb_table = "terraform-state-locks"
   }
-}```
+}
+```
 
 ### 1.3 Harjutus: Shared State Setup
 
@@ -239,14 +245,16 @@ Seadistage remote state ja testige locking'ut.
 - Käivitage `terraform init -migrate-state`
 - Lokaalne state fail jääb alles backup'ina - ärge kustutage kohe
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Terminalis 1
 terraform plan
 # Hoidke plani oodates...
 
 # Terminalis 2 (sama kataloog)
 terraform plan
-# Peaks nägema: "Error locking state: state currently locked..."```
+# Peaks nägema: "Error locking state: state currently locked..."
+```
 
 **Boonus:**
 - Kasutage erinevaid S3 key'sid erinevate workspace'ide jaoks
@@ -263,7 +271,8 @@ Teie kodutöö kood töötab, aga on spetsiifiline ühele projektile. Kui peaksi
 
 ### 3.2 Lahendus
 
-Terraform modules võimaldavad luua taaskasutatavaid infrastruktuuri komponente.```
+Terraform modules võimaldavad luua taaskasutatavaid infrastruktuuri komponente.
+```
 terraform-modules/
 ├── modules/
 │   └── aws-vpc/
@@ -275,9 +284,11 @@ terraform-modules/
     ├── project-a/
     │   └── main.tf
     └── project-b/
-        └── main.tf```
+        └── main.tf
+```
 
-Module näide:```hcl
+Module näide:
+```hcl
 # modules/aws-vpc/variables.tf
 variable "project_name" {
   description = "Project name for resource naming"
@@ -417,7 +428,8 @@ resource "aws_instance" "web" {
   tags = {
     Name = "web-server"
   }
-}```
+}
+```
 
 ### 3.3 Harjutus: VPC Module Creation
 
@@ -438,7 +450,8 @@ Looge taaskasutatav VPC module ja kasutage seda kahes erinevas projektis.
 - Kasutage `count` või `for_each` subnet'ide loomiseks
 - Dokumenteerige inputs, outputs ja kasutamisnäide README'sse
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Projekt A
 cd projects/project-a
 terraform init
@@ -449,7 +462,8 @@ cd ../project-b
 terraform init
 terraform apply
 
-# Kontrollige AWS konsoolist, et mõlemad VPC'd eksisteerivad```
+# Kontrollige AWS konsoolist, et mõlemad VPC'd eksisteerivad
+```
 
 **Boonus:**
 - Lisa module'ile private subnet'ide tugi koos NAT Gateway'ga

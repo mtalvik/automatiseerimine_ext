@@ -81,9 +81,11 @@ Pärast kursust õpilane:
 
 **Probleem:** `.github/workflows/` kaust puudub või vale nimi
 
-**Lahendus:**```bash
+**Lahendus:**
+```bash
 mkdir -p .github/workflows
-# NB! Täpselt see path, mitte .github/workflow```
+# NB! Täpselt see path, mitte .github/workflow
+```
 
 ### "Syntax error in YAML"
 
@@ -134,7 +136,8 @@ mkdir -p .github/workflows
 Alusta küsimusega (vastuseid ei vaja, mõtlema panna):
 > "Kes on deploy'inud koodi production'i? Kuidas see käis?"
 
-Näita probleemi:```
+Näita probleemi:
+```
 Käsitsi deploy:
 1. SSH serverisse
 2. git pull
@@ -143,14 +146,17 @@ Käsitsi deploy:
 5. Kontrolli kas töötab
 6. Kui ei tööta → debug
 Aeg: 15-30 min
-Vigu: palju```
+Vigu: palju
+```
 
-vs```
+vs
+```
 CI/CD:
 1. git push
 Pipeline teeb automaatselt kõik
 Aeg: 5 min
-Vigu: vähem (testid püüavad kinni)```
+Vigu: vähem (testid püüavad kinni)
+```
 
 **10-15 min: CI/CD kontseptsioonid**
 
@@ -166,7 +172,9 @@ Selgita lühidalt (kasuta `loeng.md` slaide):
 Screen share + live coding:
 
 1. Ava GitHub repo
-2. Loo fail `.github/workflows/hello.yml````yaml
+2. Loo fail `.github/workflows/hello.yml
+`
+```yaml
 name: Hello World
 
 on: [push]
@@ -175,7 +183,8 @@ jobs:
   greet:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Hello from CI/CD!"```
+      - run: echo "Hello from CI/CD!"
+```
 3. Commit ja push
 4. Mine Actions tab → näita kui see jookseb
 5. Ava job logs → näita output
@@ -222,7 +231,8 @@ Bloki lõpuks:
 
 **5-15 min: Demo - Tests in pipeline**
 
-Live coding: Lisa testid pipeline'i```yaml
+Live coding: Lisa testid pipeline'i
+```yaml
 name: CI
 
 on: [push]
@@ -243,7 +253,8 @@ jobs:
           pip install -r requirements.txt
       
       - name: Run tests
-        run: pytest tests/```
+        run: pytest tests/
+```
 
 **Selgita iga rida:**
 - `actions/checkout` - clone repo
@@ -298,12 +309,14 @@ Paarides:
 
 > "Kui teil on Docker image, kuidas te praegu seda build'ite ja push'ite?" (käsitsi)
 
-Näita probleemi:```bash
+Näita probleemi:
+```bash
 docker build -t myapp:v1.2.3 .
 docker push myapp:v1.2.3
 # Iga kord käsitsi
 # Unustame versiooni number
-# Vale tag```
+# Vale tag
+```
 
 **5-15 min: Demo - Docker build in CI**
 
@@ -311,7 +324,8 @@ docker push myapp:v1.2.3
 1. GitHub Settings → Secrets
 2. Lisa `DOCKERHUB_USERNAME` ja `DOCKERHUB_TOKEN`
 
-Live coding:```yaml
+Live coding:
+```yaml
 build:
   needs: test
   runs-on: ubuntu-latest
@@ -327,7 +341,8 @@ build:
     - name: Build and push
       run: |
         docker build -t username/myapp:${{ github.sha }} .
-        docker push username/myapp:${{ github.sha }}```
+        docker push username/myapp:${{ github.sha }}
+```
 
 **Selgita:**
 - `needs: test` - jookseb alles kui test õnnestub
@@ -373,42 +388,54 @@ Oodatav vastus: Turvalisus, kui repo on public
 
 Demo - näita aeglast vs kiiret pipeline'i:
 
-**Aeglane:**```yaml
-- run: pip install -r requirements.txt  # 30 sek iga kord```
+**Aeglane:**
+```yaml
+- run: pip install -r requirements.txt  # 30 sek iga kord
+```
 
-**Kiire (cache'iga):**```yaml
+**Kiire (cache'iga):**
+```yaml
 - uses: actions/cache@v3
   with:
     path: ~/.cache/pip
     key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
 
-- run: pip install -r requirements.txt  # 5 sek```
+- run: pip install -r requirements.txt  # 5 sek
+```
 
-**Parallel jobs:**```yaml
+**Parallel jobs:**
+```yaml
 jobs:
   test:
     # ...
   
   lint:
-    # Jookseb samaaegselt testidega```
+    # Jookseb samaaegselt testidega
+```
 
 **10-20 min: Debugging techniques**
 
 Näita reaalseid error log'e ja kuidas neid lugeda:
 
-1. **YAML syntax error:**```
+1. **YAML syntax error:**
+```
 Error: Unable to process file: .github/workflows/ci.yml
-unexpected character```
+unexpected character
+```
 Lahendus: Kontrolli indentation
 
-2. **Test failure:**```
+2. **Test failure:**
+```
 FAILED tests/test_app.py:
 - :test_home
-- assert 404 == 200```
+- assert 404 == 200
+```
 Lahendus: Loe mida assert ootab vs mis sai
 
-3. **Permission denied:**```
-denied: requested access to the resource is denied```
+3. **Permission denied:**
+```
+denied: requested access to the resource is denied
+```
 Lahendus: Secrets või login
 
 **20-40 min: Lab - Optimeeri pipeline**

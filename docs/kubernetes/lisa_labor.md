@@ -33,7 +33,8 @@ Service teeb round-robin load balancing: päring 1 → pod 1, päring 2 → pod 
 
 ### 1.2 Lahendus
 
-Kubernetes Service teeb automaatset load balancing'ut kõigi tervete pod'ide vahel. Kui skaleeriksime backend'i 5 pod'iks, jagab Service päringud ühtlaselt kõigi vahel.```bash
+Kubernetes Service teeb automaatset load balancing'ut kõigi tervete pod'ide vahel. Kui skaleeriksime backend'i 5 pod'iks, jagab Service päringud ühtlaselt kõigi vahel.
+```bash
 # Vaata praegust seisu
 kubectl get pods -l app=backend
 
@@ -45,15 +46,19 @@ kubectl get pods -l app=backend -w
 # Ctrl+C pärast kui kõik Running
 
 # Kontrolli - peaks olema 5 pod'i
-kubectl get pods -l app=backend```
+kubectl get pods -l app=backend
+```
 
 **Testimine:**
 
-Lisa backend koodi juurde pod hostname, et näha kumba pod'i päring läks.```bash
+Lisa backend koodi juurde pod hostname, et näha kumba pod'i päring läks.
+```bash
 # Muuda backend ConfigMap
-nano ~/k8s-lab/backend/1-configmap.yaml```
+nano ~/k8s-lab/backend/1-configmap.yaml
+```
 
-Lisa `server.js` faili `/api/products` endpoint'i juurde hostname:```javascript
+Lisa `server.js` faili `/api/products` endpoint'i juurde hostname:
+```javascript
     // API: kõik tooted
     app.get('/api/products', async (req, res) => {
       try {
@@ -68,7 +73,11 @@ Lisa `server.js` faili `/api/products` endpoint'i juurde hostname:```javascript
         console.error('Database error:', err);
         res.status(500).json({ error: err.message });
       }
-    });``````bash
+    });
+`
+`
+`
+```bash
 # Rakenda muudatus
 kubectl apply -f ~/k8s-lab/backend/1-configmap.yaml
 
@@ -85,7 +94,8 @@ for i in {1..10}; do
   sleep 0.5
 done
 
-kill %1```
+kill %1
+```
 
 Näed erinevaid pod nimesid - päringud jaotuvad kõigi pod'ide vahel!
 
@@ -102,7 +112,8 @@ Näed erinevaid pod nimesid - päringud jaotuvad kõigi pod'ide vahel!
 - Kui pod'id ei käivitu, kontrolli ressursse: `kubectl describe nodes`
 - Vähenda replikaid kui VM'il pole piisavalt ressursse
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Kontrolli et Service leiab kõik pod'id
 kubectl get endpoints backend-service
 # Peaks näitama 3+ IP aadressi
@@ -111,7 +122,8 @@ kubectl get endpoints backend-service
 for i in {1..20}; do
   curl -s http://localhost:3000/api/products | jq -r '.pod'
 done | sort | uniq -c
-# Peaks näitama ühtlast jaotust```
+# Peaks näitama ühtlast jaotust
+```
 
 **Boonus:**
 - Tapa üks pod käsitsi: `kubectl delete pod <pod-name>` ja vaata kuidas Service automaatselt eemaldab selle endpoints'ist
@@ -133,19 +145,28 @@ Kubernetes rolling update garanteerib, et alati on vähemalt 1 pod töötamas. P
 1. Loo 1 uus pod uue versiooniga
 2. Oota kuni see valmis (readiness probe)
 3. Kustuta 1 vana pod
-4. Korda kuni kõik uuendatud```bash
+4. Korda kuni kõik uuendatud
+```bash
 # Vaata praegust versiooni
 kubectl rollout history deployment/frontend
 
 # Uuenda frontend (v2.0)
-nano ~/k8s-lab/frontend/1-html.yaml```
+nano ~/k8s-lab/frontend/1-html.yaml
+```
 
 Muuda:
-1. Background gradient (rea ~13):```html
-background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);  <!-- Roosa -->```
+1. Background gradient (rea ~13):
+```html
+background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);  <!-- Roosa -->
+```
 
-2. Versiooni number (rea ~25):```html
-<p><strong>Versioon:</strong> <span style="color: blue;">v2.0</span></p>``````bash
+2. Versiooni number (rea ~25):
+```html
+<p><strong>Versioon:</strong> <span style="color: blue;">v2.0</span></p>
+`
+`
+`
+```bash
 # Rakenda muudatus
 kubectl apply -f ~/k8s-lab/frontend/1-html.yaml
 
@@ -153,9 +174,11 @@ kubectl apply -f ~/k8s-lab/frontend/1-html.yaml
 kubectl rollout restart deployment/frontend
 
 # Jälgi rolling update'i
-kubectl rollout status deployment/frontend```
+kubectl rollout status deployment/frontend
+```
 
-**Rollback kui vaja:**```bash
+**Rollback kui vaja:**
+```bash
 # Vaata ajalugu
 kubectl rollout history deployment/frontend
 
@@ -163,7 +186,8 @@ kubectl rollout history deployment/frontend
 kubectl rollout undo deployment/frontend
 
 # Jälgi
-kubectl rollout status deployment/frontend```
+kubectl rollout status deployment/frontend
+```
 
 ### 2.3 Harjutus: Zero-Downtime Update
 
@@ -179,7 +203,8 @@ kubectl rollout status deployment/frontend```
 - Lisa `spec.strategy.rollingUpdate` sektsioon
 - Update'i ajal peaks alati olema vähemalt 2 pod'i running (kui 3 kokku)
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Muuda strategy
 kubectl edit deployment frontend
 # Lisa:
@@ -192,7 +217,8 @@ kubectl edit deployment frontend
 # Tee update ja jälgi
 kubectl set image deployment/frontend frontend=nginx:alpine
 kubectl get pods -w
-# Näed kuidas vanad pod'id termineeruvad järk-järgult```
+# Näed kuidas vanad pod'id termineeruvad järk-järgult
+```
 
 **Boonus:**
 - Määra annotation rollout history'le: `kubernetes.io/change-cause: "Updated to v2.0"`
@@ -210,11 +236,14 @@ Backend vajab uut endpoint'i, aga ConfigMap muutmine ei rakendu automaatselt pod
 
 ### 3.2 Lahendus
 
-Muuda ConfigMap'i ja restart pod'id rolling update'iga. Pod'id võtavad uue ConfigMap'i sisu käivituse ajal.```bash
+Muuda ConfigMap'i ja restart pod'id rolling update'iga. Pod'id võtavad uue ConfigMap'i sisu käivituse ajal.
+```bash
 # Lisa backend'i uus endpoint
-nano ~/k8s-lab/backend/1-configmap.yaml```
+nano ~/k8s-lab/backend/1-configmap.yaml
+```
 
-Lisa `server.js` faili lõppu:```javascript
+Lisa `server.js` faili lõppu:
+```javascript
     // Uus endpoint - info
     app.get('/api/info', (req, res) => {
       res.json({
@@ -223,7 +252,11 @@ Lisa `server.js` faili lõppu:```javascript
         uptime: process.uptime(),
         timestamp: new Date()
       });
-    });``````bash
+    });
+`
+`
+`
+```bash
 # Rakenda ConfigMap muudatus
 kubectl apply -f ~/k8s-lab/backend/1-configmap.yaml
 
@@ -243,7 +276,8 @@ kubectl rollout status deployment backend-api
 kubectl port-forward service/backend-service 3000:3000 &
 curl http://localhost:3000/api/info
 # {"version":"1.0","pod":"backend-api-xxx",...}
-kill %1```
+kill %1
+```
 
 ### 3.3 Harjutus: Uuenda API Endpoint'i
 
@@ -259,7 +293,8 @@ kill %1```
 - Pod'id kasutavad vana kuni restart'ini
 - Rolling restart: `kubectl rollout restart deployment backend-api`
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Kontrolli ConfigMap
 kubectl describe configmap backend-code | grep -A10 "/api/health"
 
@@ -267,7 +302,8 @@ kubectl describe configmap backend-code | grep -A10 "/api/health"
 curl http://localhost:3000/api/health
 
 # Test pärast restart'i (peaks töötama)
-curl http://localhost:3000/api/health```
+curl http://localhost:3000/api/health
+```
 
 **Boonus:**
 - Kasuta `subPath` volume mount'is, et muuta ainult üht faili ConfigMap'is
