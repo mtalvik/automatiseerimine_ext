@@ -43,6 +43,7 @@ graph TD
 ### Miks See Lähenemine Ebaõnnestub
 
 Probleem pole serverite arvus - probleem on **korduses**. Iga kord kui kopeerite koodi:
+
 - Kasvab hoolduskoormus eksponentsiaalselt
 - Vigade tõenäosus suureneb
 - Muudatused muutuvad aeglaseks ja ohtlikuks
@@ -58,6 +59,7 @@ See on fundamentaalne skaleeritavuse probleem. Ansible põhifunktsioonid aitavad
 ### Probleem: Üks Playbook, Paljud Kontekstid
 
 Teie rakendus peab töötama erinevates kontekstides:
+
 - Arenduses port 3000, tootmises port 80
 - Arenduses debug sisse, tootmises välja
 - Serveritel erinev RAM, CPU
@@ -151,12 +153,14 @@ Server ise ütleb Ansible'ile, mis ta vajab. Te ei pea teadma, kas serveril on 2
 Teil on Nginx konfiguratsioon. Arenduses ja tootmises on erinev:
 
 **Development:**
+
 - Port 8080
 - Debug logging
 - Cache välja
 - SSL välja
 
 **Production:**
+
 - Port 80 ja 443
 - Error logging ainult
 - Cache sisse
@@ -264,6 +268,7 @@ Handler on **laisalt täidetav task**. See:
 3. Käivitub **playbook'i lõpus**, mitte kohe
 ```yaml
 tasks:
+
   - name: Config 1
     template: ...
     notify: restart apache
@@ -273,6 +278,7 @@ tasks:
     notify: restart apache
     
 handlers:
+
   - name: restart apache
     service: ...
 ```
@@ -307,12 +313,14 @@ sequenceDiagram
 Paljud teenused toetavad kahte viisi:
 
 **Restart:**
+
 - Peatab teenuse täielikult
 - Katkestab kõik ühendused
 - Aeglane
 - Vajalik suurte muudatuste puhul
 
 **Reload:**
+
 - Laeb konfiguratsioon uuesti
 - Ei katkesta ühendusi
 - Kiire
@@ -338,6 +346,7 @@ mysql_password: "SuperSecret123"
 ```
 
 See läheb Git'i. Nüüd on parool:
+
 - Igale inimesele nähtav, kellel on repo ligipääs
 - Git ajaloos igavesti (isegi kui kustutate)
 - Endistele töötajatele ligipääsetav
@@ -352,6 +361,7 @@ Kui üks inimene lahkub ettevõttest, peate:
 4. Lootma, et ei unustanud midagi
 
 Kui parool lekkib (ja private repo'st võib lekkida):
+
 - Ründajal on ligipääs kogu infrastruktuurile
 - Te ei tea, millal leke toimus
 - Te ei tea, kas keegi kasutas parooli ära
@@ -422,16 +432,19 @@ Nimetamiskonventsioon `vault_` prefiksiga muudab kohe selgeks, mis on krüpteeri
 ### Miks See On Parem
 
 **Turvalisus:**
+
 - Paroolid on krüpteeritud isegi Git'is
 - Ainult õigete inimestega vault parooli
 - Vault parooli saab vahetada ilma infrastruktuuri muutmata
 
 **Auditeerimine:**
+
 - Näete Git'is, millal vault faili muudeti
 - Ei näe, millised väärtused muutusid (krüpteeritud)
 - Saate kontrollida, kes millal ligi pääses
 
 **Turvatsoon:**
+
 - Repo võib lekkida
 - paroolid on turvalised
 - Endised töötajad võivad säilitada ligipääsu repo'le
@@ -464,6 +477,7 @@ graph TD
 **Stsenaarium:** WordPress hosting platvorm 3 keskkonnas.
 
 **Muutujate hierarhia** määrab:
+
 - `group_vars/all/`
 - ühised seaded (WordPress versioon, timezone)
 - `group_vars/production/`
@@ -472,16 +486,19 @@ graph TD
 - arenduse seaded (SSL välja, debug sisse)
 
 **Template'id** genereerivad:
+
 - Nginx konfiguratsioon kohandub keskkonnale
 - WordPress config failis õiged paroolid igal keskkonnal
 - PHP settings kohanduvad serveri RAM-ile
 
 **Handler'id** haldavad:
+
 - Nginx reload kui konfig muutub
 - PHP-FPM restart kui versioon uuendub
 - Ainult üks kord playbook'i lõpus
 
 **Vault** krüpteerib:
+
 - Database paroolid igal keskkonnal
 - WordPress security keys
 - SSL privaatvõtmed
@@ -498,20 +515,24 @@ ansible-playbook site.yml -i inventory/prod --ask-vault-pass
 ```
 
 SAMA playbook, erinevad tulemused:
+
 - Dev: port 8080, debug ON, SSL OFF, dev paroolid
 - Prod: port 80+443, debug OFF, SSL ON, prod paroolid
 
 Infrastruktuur kohandub automaatselt:
+
 - 2GB RAM server → PHP memory 256M
 - 16GB RAM server → PHP memory 512M
 - 4 CPU tuuma → 8 PHP worker'it
 
 Kõik on turvaline:
+
 - Paroolid krüpteeritud
 - SSL võtmed krüpteeritud
 - API võtmed krüpteeritud
 
 Kõik on efektiivne:
+
 - Teenused restart'ivad ainult kui vaja
 - Ainult üks restart playbook'i kohta
 - Muudatused rakenduvad kiiresti
@@ -523,16 +544,19 @@ Kõik on efektiivne:
 ### Ilma Nende Funktsioonideta
 
 **Väike projekt (3-10 serverit):**
+
 - Läheb veel kuidagi
 - Copy-paste töötab
 - Kõik meelde jääb
 
 **Keskmine projekt (10-50 serverit):**
+
 - Copy-paste muutub koormuseks
 - Vead hakkavad ilmnema
 - Muudatused võtavad tunde
 
 **Suur projekt (50+ serverit):**
+
 - Ilma nende funktsioonideta on hooldamine võimatu
 - Muudatused võtavad päevi
 - Vigade risk on kriitiline
@@ -540,21 +564,25 @@ Kõik on efektiivne:
 ### Nende Funktsioonidega
 
 **Skaleerub lõputult:**
+
 - 3 serverit → sama playbook
 - 300 serverit → sama playbook
 - 3000 serverit → sama playbook
 
 **Hooldatav:**
+
 - Muudatus ühes kohas
 - Rakendub kõigis keskkondades
 - Code review on võimalik
 
 **Turvaline:**
+
 - Paroolid pole plain text'is
 - Ligipääsu saab kontrollida
 - Audit trail eksisteerib
 
 **Professionaalne:**
+
 - Industry standard praktikad
 - Tunnustatud iga DevOps insener
 - Kasutusel suurtes ettevõtetes
@@ -566,12 +594,14 @@ Kõik on efektiivne:
 ### Mida Te Nüüd Teate
 
 **Kontseptuaalne mõistmine:**
+
 - Miks muutujate hierarhia on vajalik
 - Kuidas template'id lahendavad korduse probleemi
 - Miks handler'id on efektiivsemad kui otsesed restartid
 - Kuidas vault lahendab turvaprobleemi
 
 **Arhitektuuri mõistmine:**
+
 - Kuidas need funktsioonid töötavad koos
 - Kuidas ehitada skaleeritav infrastruktuur
 - Mis teeb Ansible projekti professionaalseks
@@ -579,6 +609,7 @@ Kõik on efektiivne:
 ### Järgmine Samm: Praktika
 
 Labor'is rakendatakse neid kontseptsioone:
+
 - Loote muutujate hierarhia
 - Kirjutate template'eid
 - Seadistate handler'eid
@@ -591,6 +622,7 @@ Ei piisa teadmisest, mis on template - peate kirjutama template'eid. Ei piisa m�
 ### Edasi
 
 **Järgmisel nädalal:**
+
 - Ansible Roles
 - kuidas teha korduvkasutatavad komponendid
 - Galaxy
@@ -599,6 +631,7 @@ Ei piisa teadmisest, mis on template - peate kirjutama template'eid. Ei piisa m�
 - kuidas testida playbook'e enne production'i
 
 **Pikemas perspektiivis:**
+
 - Need on fundamentaalsed oskused DevOps töös
 - Iga Ansible projekt kasutab neid tehnikaid
 - Mõistmine võimaldab lugeda ja kirjutada professionaalset koodi

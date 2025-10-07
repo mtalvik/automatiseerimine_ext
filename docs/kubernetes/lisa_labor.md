@@ -10,11 +10,13 @@ Need harjutused täiendavad põhilabi ja lähevad sügavamale Kubernetes kontsep
 **Eeldus:** Oled teinud labor.md lõpuni ja e-pood töötab (postgres, backend, frontend deployment'id on rakendatud).
 
 **Mida õpid:**
+
 - Labor näitas kuidas deployment luua → Siin õpid seda skaleerima ja load balancing'ut testima
 - Labor näitas ConfigMap'e → Siin õpid neid muutma ilma downtime'ita
 - Labor näitas probe'sid → Siin õpid neid seadistama ja testima
 
 **Nõuded:**
+
 - Minikube töötab (`minikube status`)
 - kubectl installitud ja töötab
 - Põhilab e-pood rakendatud (`kubectl get pods` näitab postgres-0, backend-api-xxx, frontend-xxx)
@@ -100,12 +102,14 @@ Näed erinevaid pod nimesid - päringud jaotuvad kõigi pod'ide vahel!
 ### 1.3 Harjutus: Testi Load Balancing'u
 
 **Nõuded:**
+
 - [ ] Backend skaleeritud vähemalt 3 pod'iks
 - [ ] Endpoint tagastab pod hostname'i
 - [ ] 20 järjestikust päringut näitavad erinevaid pod nimesid
 - [ ] Vaata Service endpoints: `kubectl get endpoints backend-service`
 
 **Näpunäiteid:**
+
 - Service hoiab kõigi pod'ide IP'd: `kubectl describe endpoints backend-service`
 - Kui pod'id ei käivitu, kontrolli ressursse: `kubectl describe nodes`
 - Vähenda replikaid kui VM'il pole piisavalt ressursse
@@ -124,6 +128,7 @@ done | sort | uniq -c
 ```
 
 **Boonus:**
+
 - Tapa üks pod käsitsi: `kubectl delete pod <pod-name>` ja vaata kuidas Service automaatselt eemaldab selle endpoints'ist
 - Skalee 10 pod'iks ja mõõda response time'i erinevust
 
@@ -188,6 +193,7 @@ kubectl rollout status deployment/frontend
 ### 2.3 Harjutus: Zero-Downtime Update
 
 **Nõuded:**
+
 - [ ] Frontend skaleeritud 3 pod'iks
 - [ ] Deployment strategy seadistatud: maxUnavailable=1, maxSurge=1
 - [ ] Tee update, mis muudab visuaali (värv või tekst)
@@ -195,6 +201,7 @@ kubectl rollout status deployment/frontend
 - [ ] Tee rollback eelmisele versioonile
 
 **Näpunäiteid:**
+
 - Muuda deployment strategy: `nano ~/k8s-lab/frontend/3-deployment.yaml`
 - Lisa `spec.strategy.rollingUpdate` sektsioon
 - Update'i ajal peaks alati olema vähemalt 2 pod'i running (kui 3 kokku)
@@ -217,6 +224,7 @@ kubectl get pods -w
 ```
 
 **Boonus:**
+
 - Määra annotation rollout history'le: `kubernetes.io/change-cause: "Updated to v2.0"`
 - Tee Blue-Green deployment simulatsioon kahe deployment'iga
 
@@ -276,6 +284,7 @@ kill %1
 ### 3.3 Harjutus: Uuenda API Endpoint'i
 
 **Nõuded:**
+
 - [ ] Lisa backend ConfigMap'i uus endpoint `/api/health`
 - [ ] Endpoint tagastab JSON: `{status: "healthy", checks: {...}}`
 - [ ] Rakenda ConfigMap ilma pod'ide restartita
@@ -283,6 +292,7 @@ kill %1
 - [ ] Restart pod'id ja kontrolli et uus kood töötab
 
 **Näpunäiteid:**
+
 - ConfigMap muutus nähtav: `kubectl get configmap backend-code -o yaml`
 - Pod'id kasutavad vana kuni restart'ini
 - Rolling restart: `kubectl rollout restart deployment backend-api`
@@ -300,6 +310,7 @@ curl http://localhost:3000/api/health
 ```
 
 **Boonus:**
+
 - Kasuta `subPath` volume mount'is, et muuta ainult üht faili ConfigMap'is
 - Kasuta `immutable: true` ConfigMap'ile, et vältida kogemata muutmist
 
@@ -308,12 +319,14 @@ curl http://localhost:3000/api/health
 ## Kasulikud Ressursid
 
 **Dokumentatsioon:**
+
 - [Kubernetes Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
 - [Kubernetes Services](https://kubernetes.io/docs/concepts/services-networking/service/)
 - [ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/)
 - [Health Checks](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
 
 **Tööriistad:**
+
 - **k9s**
 - Terminal UI Kubernetes'ele: `brew install k9s`
 - **kubectl plugins**
@@ -322,6 +335,7 @@ curl http://localhost:3000/api/health
 - Desktop IDE: https://k8slens.dev/
 
 **Näited:**
+
 - [Kubernetes Examples Repository](https://github.com/kubernetes/examples)
 - [Minikube Tutorials](https://minikube.sigs.k8s.io/docs/tutorials/)
 

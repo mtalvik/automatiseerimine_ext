@@ -86,6 +86,7 @@ Closes #123
 ```
 
 **Reeglid:**
+
 - Tühi rida pärast first line'i
 - Selgita MIKS, mitte MIS
 - Viita issue'le kui on
@@ -104,5 +105,6 @@ Enne commit'i küsi:
 ---
 
 **Rohkem infot:**
+
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - Vaata ka: `reference/whatthecommit.md` (kui tahad näha HALVAID näiteid 😄)

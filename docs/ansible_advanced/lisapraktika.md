@@ -151,8 +151,10 @@ nginx -t
 **Muutujad (group_vars/webservers/nginx.yml):**
 ```yaml
 backend_servers:
+
   - name: api_backend
     servers:
+
       - host: 10.0.1.10
         port: 8080
         weight: 3
@@ -161,11 +163,13 @@ backend_servers:
         weight: 2
   - name: admin_backend
     servers:
+
       - host: 10.0.2.10
         port: 9090
 
 ssl_enabled: true
 ssl_protocols:
+
   - TLSv1.2
   - TLSv1.3
 ssl_ciphers: "HIGH:!aNULL:!MD5"
@@ -203,6 +207,7 @@ Ansible toetab AWS EC2 dynamic inventory plugin'it, mis pärib instance'id otse 
 plugin: aws_ec2
 
 regions:
+
   - us-east-1
   - eu-west-1
 
@@ -224,6 +229,7 @@ keyed_groups:
     prefix: az
 
 hostnames:
+
   - tag:Name
   - dns-name
 
@@ -384,6 +390,7 @@ Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serv
   max_fail_percentage: 0  # Peata kui üks ebaõnnestub
 
   pre_tasks:
+
     - name: Health check enne deployment'i
       uri:
         url: "http://{{ inventory_hostname }}/health"
@@ -398,6 +405,7 @@ Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serv
       delegate_to: "{{ groups['loadbalancers'][0] }}"
 
   tasks:
+
     - name: Peata rakendus
       systemd:
         name: myapp
@@ -430,6 +438,7 @@ Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serv
       delay: 2
 
   post_tasks:
+
     - name: Lisa tagasi load balancer'isse
       haproxy:
         state: enabled
@@ -444,6 +453,7 @@ Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serv
       delegate_to: localhost
 
   handlers:
+
     - name: restart myapp
       systemd:
         name: myapp
@@ -456,6 +466,7 @@ Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serv
 - name: Rollback deployment
   hosts: "{{ failed_host }}"
   tasks:
+
     - name: Peata current version
       systemd:
         name: myapp
@@ -560,6 +571,7 @@ backend webservers
 - Ansible performance parandamine (kuni 7x kiirem): `pip install mitogen`
 
 **Näited:**
+
 - [Ansible Examples Repository](https://github.com/ansible/ansible-examples)
 - [Jeff Geerling's Ansible Roles](https://github.com/geerlingguy) - kvaliteetsed production-ready rollid
 - [Debops](https://debops.org/) - täielik datacenter automatiseerimine

@@ -38,11 +38,13 @@ Image väheneb 1.2GB → 150MB.
 Looge multi-stage Dockerfile Python Flask rakendusele:
 
 **Nõuded:**
+
 - Stage 1: Install dependencies ja compile
 - Stage 2: Ainult runtime + compiled files
 - Eesmärk: alla 100MB final image
 
 **Näpunäiteid:**
+
 - Kasutage `python:3.11` builder'is
 - Kasutage `python:3.11-alpine` runtime'is
 - Kompileerige `.pyc` failid: `python -m compileall`
@@ -85,6 +87,7 @@ docker run -d --name api --network app-network \
 Looge 3 network'i:
 
 **Nõuded:**
+
 - `frontend-net`
 - nginx ↔ api
 - `backend-net`
@@ -92,6 +95,7 @@ Looge 3 network'i:
 - `api` container on mõlemas network'is (bridge)
 
 **Validatsioon:**
+
 - nginx ei näe db'd
 - api näeb mõlemat
 - db ei näe nginx'i
@@ -160,6 +164,7 @@ CMD ["python3", "app.py"]
 ```
 
 **Näpunäiteid:**
+
 - Kasutage alpine base'd
 - Eemaldage ebavajalikud tools (vim, wget)
 - Kombineerige RUN käsud
@@ -220,6 +225,7 @@ docker-compose --profile debug up  # app + debug
 Looge `docker-compose.yml` koos:
 
 **Nõuded:**
+
 - Health checks kõigile teenustele
 - Resource limits (CPU, memory)
 - Restart policies
@@ -268,6 +274,7 @@ trivy image --severity HIGH,CRITICAL my-app:latest
 Võtke olemasolev Dockerfile ja:
 
 **Nõuded:**
+
 - [ ] Lisa non-root user
 - [ ] Eemalda shell access (`rm /bin/sh`)
 - [ ] Kasuta read-only filesystem
@@ -313,6 +320,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       - name: Build image
         run: docker build -t my-app:${{ github.sha }} .
@@ -365,8 +373,10 @@ CMD ["--config.file=/etc/prometheus/prometheus.yml"]
 ```yaml
 # prometheus.yml
 scrape_configs:
+
   - job_name: 'docker'
     static_configs:
+
       - targets: ['cadvisor:8080']
 ```
 
@@ -379,40 +389,47 @@ Looge production-ready fullstack rakendus Docker'iga.
 ### 8.1 Nõuded
 
 **Frontend:**
+
 - [ ] React/Vue rakendus
 - [ ] Multi-stage build
 - [ ] Nginx serveerib
 - [ ] Alla 50MB
 
 **Backend:**
+
 - [ ] Node/Python API
 - [ ] Non-root user
 - [ ] Health checks
 - [ ] Environment variables
 
 **Database:**
+
 - [ ] PostgreSQL
 - [ ] Named volume
 - [ ] Backup strategy
 
 **Infra:**
+
 - [ ] Redis cache
 - [ ] Nginx reverse proxy
 - [ ] SSL sertifikaat
 - [ ] Docker Compose orkestratsioon
 
 **CI/CD:**
+
 - [ ] GitHub Actions pipeline
 - [ ] Image build ja test
 - [ ] Push Docker Hub'i
 - [ ] Auto-deploy
 
 **Monitoring:**
+
 - [ ] Prometheus metrics
 - [ ] Grafana dashboard
 - [ ] Centralized logging
 
 **Turvalisus:**
+
 - [ ] Security scanning
 - [ ] Non-root users
 - [ ] Secrets management
@@ -434,16 +451,19 @@ Internet
 ### 8.3 Hindamine
 
 **Põhi (60%):**
+
 - Kõik teenused töötavad
 - Docker Compose setup
 - Volume'id säilitavad andmeid
 
 **Täiendav (20%):**
+
 - Health checks
 - Non-root users
 - Nginx reverse proxy
 
 **Boonus (20%):**
+
 - CI/CD pipeline
 - Monitoring
 - SSL sertifikaat
@@ -454,6 +474,7 @@ Internet
 ## 9. Kasulikud Ressursid
 
 **Dokumentatsioon:**
+
 - [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
 - [Dockerfile Reference](https://docs.docker.com/engine/reference/builder/)
 - [Multi-stage Builds](https://docs.docker.com/build/building/multi-stage/)
@@ -461,6 +482,7 @@ Internet
 - [Compose Specification](https://compose-spec.io/)
 
 **Tööriistad:**
+
 - Trivy
 - security scanning
 - Dive
@@ -471,6 +493,7 @@ Internet
 - Google'i test framework
 
 **Platvormid:**
+
 - Docker Hub
 - public registry
 - GitHub Container Registry

@@ -41,6 +41,7 @@ vagrant destroy  # pärast testimist
 ## 1. Ülesande Kirjeldus
 
 Juurutage veebirakendus (teie valik) kasutades:
+
 - Ansible Vault paroolide jaoks
 - Template'e konfiguratsioonifailidele
 - Handler'eid teenuste haldamiseks
@@ -98,6 +99,7 @@ admin_user: {{ vault_admin_user }}
 ```
 
 Nõuded:
+
 - [ ] Vähemalt 5 krüpteeritud muutujat
 - [ ] Kõik paroolid vault'is (mitte plain text)
 - [ ] Vault muutujad kasutatavad template'ides
@@ -148,6 +150,7 @@ innodb_buffer_pool_size = 256M
 ```
 
 Nõuded:
+
 - [ ] Vähemalt 2 template'i
 - [ ] Kasutavad `{% if %}` tingimusi
 - [ ] Erinevad konfiguratsioonid dev/prod jaoks
@@ -159,6 +162,7 @@ Nõuded:
 Looge vähemalt 2 handler'it teenuste haldamiseks.
 ```yaml
 tasks:
+
   - name: Deploy Apache vhost
     template:
       src: templates/vhost.conf.j2
@@ -172,6 +176,7 @@ tasks:
     notify: reload mysql
 
 handlers:
+
   - name: restart apache
     service:
       name: apache2
@@ -184,6 +189,7 @@ handlers:
 ```
 
 Nõuded:
+
 - [ ] Vähemalt 2 handler'it
 - [ ] Teenused restarditakse ainult muudatuste korral
 - [ ] Handler'id `handlers:` sektsioonis, mitte `tasks:` sees
@@ -236,6 +242,7 @@ all:
 ```
 
 Nõuded:
+
 - [ ] Failid õigesti organiseeritud
 - [ ] Vault fail group_vars/all/ kaustas
 - [ ] Template'id templates/ kaustas
@@ -387,12 +394,14 @@ Mõtle laiemalt kui ainult tehnilised oskused.
 ## 10. Abimaterjalid
 
 **Ansible dokumentatsioon:**
+
 - [Ansible Vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html)
 - [Jinja2 Templates](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_templating.html)
 - [Handlers](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_handlers.html)
 - [Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
 
 **Jinja2:**
+
 - [Jinja2 Documentation](https://jinja.palletsprojects.com/)
 
 **Kui abi vaja:**
@@ -414,6 +423,7 @@ Kasuta dynamic inventory AWS EC2 või Azure VM'idega:
 # aws_ec2.yml
 plugin: aws_ec2
 regions:
+
   - eu-north-1
 filters:
   tag:Environment:
@@ -450,6 +460,7 @@ Lisa GitLab CI või GitHub Actions pipeline:
 # .gitlab-ci.yml
 deploy:
   script:
+
     - ansible-playbook playbooks/site.yml --ask-vault-pass
 ```
 

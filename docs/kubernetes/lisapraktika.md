@@ -21,12 +21,14 @@ Horizontal Pod Autoscaler (HPA) jälgib metrics'eid ja muudab automaatselt repli
 HPA vajab Metrics Server'it, mis kogub ressursi kasutust kõigist node'idest. Minikube'is: `minikube addons enable metrics-server`.
 
 **Kuidas HPA töötab:**
+
 - Deployment määrab `resources.requests.cpu: 200m`
 - HPA määrab target: `averageUtilization: 50`
 - Kui pod'id kasutavad keskmiselt 80% CPU → HPA loob uusi pod'e
 - Kui koormus langeb alla 50% → HPA kustutab pod'e (5 min pärast)
 
 **Loe veel:**
+
 - loeng.md
 - pole veel selles loengus, aga deployment'i ja resource limits't leiad seal
 - labor.md
@@ -49,6 +51,7 @@ spec:
   minReplicas: 1
   maxReplicas: 10
   metrics:
+
   - type: Resource
     resource:
       name: cpu
@@ -62,6 +65,7 @@ spec:
 **SINU ÜLESANNE - ehita need failid:**
 
 **Nõuded:**
+
 - [ ] Luba Metrics Server (`minikube addons enable metrics-server`)
 - [ ] Loo `deployment.yaml`: kasuta image `registry.k8s.io/hpa-example`, port 80
 - [ ] Lisa deployment'i: `resources.requests.cpu: 200m` ja `limits.cpu: 500m`
@@ -72,6 +76,7 @@ spec:
 - [ ] Dokumenteeri: screenshot või log kus näha pod'ide arvu kasv
 
 **Näpunäiteid:**
+
 - Metrics Server vajab 30-60 sekundit enne kui metrics'id ilmuvad
 - Kontrolli metrics: `kubectl top nodes` ja `kubectl top pods`
 - HPA vaatamiseks: `kubectl get hpa --watch`
@@ -101,6 +106,7 @@ kubectl get hpa --watch
 ```
 
 **Boonus:**
+
 - Lisa memory-based scaling (targetAverageUtilization: 70)
 - Muuda scale-down kiiremaks: lisa `behavior.scaleDown.stabilizationWindowSeconds: 60`
 - Proovi erinevaid CPU target väärtusi (30%, 80%)
@@ -132,6 +138,7 @@ StatefulSet kasutab Headless Service'i (`clusterIP: None`), mis annab igale pod'
 | Kasutus | Stateless apps | Andmebaasid, queue'id |
 
 **Loe veel:**
+
 - loeng.md
 - "## 5. Storage ja ConfigMaps" - PVC ja volume'id
 - labor.md
@@ -151,6 +158,7 @@ spec:
   selector:
     app: mysql
   ports:
+
   - port: 3306
 
 ---
@@ -171,12 +179,15 @@ spec:
         app: mysql
     spec:
       containers:
+
       - name: mysql
         image: mysql:8.0
         env:
+
         - name: MYSQL_ROOT_PASSWORD
           value: "password"
         volumeMounts:
+
         - name: data
           mountPath: /var/lib/mysql
   volumeClaimTemplates:    # Loob PVC iga pod'i jaoks
@@ -194,6 +205,7 @@ spec:
 **SINU ÜLESANNE - ehita need failid:**
 
 **Nõuded:**
+
 - [ ] Loo `mysql-secret.yaml`: parool base64 formaadis (echo -n 'rootpass' | base64)
 - [ ] Loo `mysql-statefulset.yaml`: MySQL 8.0, kasuta secret'i parooliks
 - [ ] Lisa StatefulSet'i: volumeClaimTemplate 1Gi storage'iga
@@ -206,6 +218,7 @@ spec:
 - [ ] Kontrolli et andmed on ALLES pärast pod'i restart'i
 
 **Näpunäiteid:**
+
 - Base64 encoding: `echo -n 'password' | base64`
 - MySQL probe näide: `exec.command: ["mysqladmin", "ping"]`
 - Ühenda pod'iga: `kubectl exec -it mysql-0 -- mysql -p`
@@ -249,6 +262,7 @@ kubectl exec -it mysql-0 -- mysql -p -e "USE testdb; SELECT * FROM users;"
 ```
 
 **Boonus:**
+
 - Loo 3-replica StatefulSet (mysql-0, mysql-1, mysql-2)
 - Lisa init container: genereeri unikaalne server-id iga pod'i jaoks
 - Implementeeri MySQL master-replica setup
@@ -269,11 +283,13 @@ Kuidas hallata versioone? Kui deployment fail muutub, kuidas tagada et kõik seo
 Helm on "package manager" Kubernetes'i jaoks (nagu apt/yum Linux'is). Helm Chart on bundle YAML template'idest, mida saab konfigureerida ühe `values.yaml` failiga. Template'id kasutavad Go templating'ut - saate kasutada muutujaid, if/else, loops.
 
 Üks chart, mitu environment'i:
+
 - development kasutab `values-dev.yaml` (1 replica, väikesed resources), production kasutab `values-prod.yaml` (5 replicas, suured resources). Helm jälgib versioone
 - saate teha rollback ühe käsuga. Helm teeb ka dependency management'i
 - kui teie app vajab PostgreSQL'i, võite lisada PostgreSQL chart'i dependency'na.
 
 **Helm põhikontseptsioonid:**
+
 - **Chart**: Package YAML template'idest (nagu npm package)
 - **Release**: Chart'i installitud instance (nt. myapp-dev, myapp-prod)
 - **Values**: Konfiguratsioon (values.yaml, values-dev.yaml)
@@ -292,6 +308,7 @@ myapp/
 ```
 
 **Loe veel:**
+
 - loeng.md
 - YAML struktuurid (deployment, service)
 - labor.md
@@ -311,6 +328,7 @@ spec:
   template:
     spec:
       containers:
+
       - name: app
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         resources:
@@ -354,6 +372,7 @@ helm uninstall myrelease
 **SINU ÜLESANNE:**
 
 **Nõuded:**
+
 - [ ] Loo Helm chart: `helm create myshop`
 - [ ] Muuda `Chart.yaml`: pane oma nimi, versioon 1.0.0, description
 - [ ] Muuda `values.yaml`: nginx image, 2 replicas, ClusterIP service
@@ -369,6 +388,7 @@ helm uninstall myrelease
 - [ ] Rollback: `helm rollback myshop-dev 1`
 
 **Näpunäiteid:**
+
 - `helm create` genereerib valmis template'id
 - ära kirjuta üle, kasuta neid!
 - Dry-run testimiseks: `helm install --dry-run --debug myshop ./myshop`
@@ -458,6 +478,7 @@ helm uninstall myshop-prod
 ```
 
 **Boonus:**
+
 - Lisa conditional Ingress: `{{- if .Values.ingress.enabled }}`
 - Loo `values-staging.yaml` kolmanda environment'i jaoks
 - Lisa HorizontalPodAutoscaler template
@@ -468,6 +489,7 @@ helm uninstall myshop-prod
 ## Kasulikud Ressursid
 
 **Dokumentatsioon:**
+
 - [Kubernetes HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
 - [StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
 - [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
@@ -475,6 +497,7 @@ helm uninstall myshop-prod
 - [Helm Chart Best Practices](https://helm.sh/docs/chart_best_practices/)
 
 **Tööriistad:**
+
 - **k9s**
 - Terminal UI Kubernetes'ile: `brew install k9s` või `snap install k9s`
 - **kubectx/kubens**
@@ -485,6 +508,7 @@ helm uninstall myshop-prod
 - Desktop GUI Kubernetes'ile: https://k8slens.dev/
 
 **Näited:**
+
 - [Kubernetes Examples](https://github.com/kubernetes/examples)
 - [Helm Charts Repository](https://github.com/helm/charts)
 - [Artifact Hub](https://artifacthub.io/) - Helm charts'i otsing

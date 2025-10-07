@@ -327,6 +327,7 @@ Sisestage järgmine sisu:
   gather_facts: yes
   
   tasks:
+
     - name: "Print hostname"
       debug:
         msg: "Hostname: {{ ansible_hostname }}"
@@ -408,6 +409,7 @@ Sisestage järgmine sisu:
   become: yes
   
   tasks:
+
     - name: "Update apt cache"
       apt:
         update_cache: yes
@@ -435,6 +437,7 @@ Sisestage järgmine sisu:
       notify: restart nginx
   
   handlers:
+
     - name: start nginx
       service:
         name: nginx
@@ -581,10 +584,12 @@ Sisestage:
     environment: "Development"
     show_debug: true
     services:
+
       - { name: "Web Server", port: 80 }
       - { name: "SSH", port: 22 }
   
   tasks:
+
     - name: "Deploy HTML from template"
       template:
         src: ../templates/website.html.j2
@@ -592,6 +597,7 @@ Sisestage:
       notify: reload nginx
   
   handlers:
+
     - name: reload nginx
       service:
         name: nginx
@@ -637,15 +643,18 @@ Sisestage:
   become: yes
   vars:
     users_to_create:
+
       - { name: "developer", groups: "www-data", shell: "/bin/bash" }
       - { name: "tester", groups: "www-data", shell: "/bin/sh" }
     packages_to_install:
+
       - htop
       - curl
       - wget
       - git
   
   tasks:
+
     - name: "Install packages"
       apt:
         name: "{{ item }}"
@@ -750,6 +759,7 @@ Sisestage:
 - name: "Install basic packages"
   apt:
     name:
+
       - htop
       - curl
       - wget
@@ -772,6 +782,7 @@ Sisestage:
   become: yes
   
   tasks:
+
     - name: "Show variables from group_vars"
       debug:
         msg: "Company: {{ company }}, Nginx port: {{ nginx_port }}"
@@ -909,6 +920,7 @@ ansible ALL=(ALL) NOPASSWD: ALL
 Probleem: "Syntax Error while loading YAML"
 
 Lahendus:
+
 - Kontrolli taandeid (kasuta ainult tühikuid, mitte tab'e)
 - Kontrolli koolonite järel on tühik
 - Kasuta online YAML validatorit

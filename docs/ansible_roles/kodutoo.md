@@ -13,6 +13,7 @@ Ettevõtted seisavad tihti automatiseerimistehnoloogia valiku ees. Ansible on po
 ## 1. Projekti Ülevaade
 
 Loote täieliku veebiserveri seadistuse, mis sisaldab:
+
 - Nginx veebiserver koos SSL sertifikaatidega
 - Kaks virtual host'i (test.local ja demo.local)
 - PostgreSQL andmebaas koos esialse schema'ga
@@ -118,6 +119,7 @@ ansible-test ansible_host=192.168.56.10 ansible_user=vagrant
 # Nginx configuration
 nginx_ssl_enabled: true
 nginx_vhosts:
+
   - name: test.local
     root: /var/www/test
     ssl: true
@@ -128,8 +130,10 @@ nginx_vhosts:
 # PostgreSQL configuration
 postgresql_version: "12"
 postgresql_databases:
+
   - name: webapp
 postgresql_users:
+
   - name: webuser
     password: "changeme123"
     db: webapp
@@ -177,6 +181,7 @@ Nginx tasks (lühendatud näide):
     state: directory
     mode: '0755'
   loop:
+
     - /etc/ssl/certs
     - /etc/ssl/private
 
@@ -197,6 +202,7 @@ Nginx tasks (lühendatud näide):
 - name: "Install PostgreSQL"
   apt:
     name:
+
       - postgresql
       - postgresql-contrib
       - python3-psycopg2
@@ -272,6 +278,7 @@ fi
   become: yes
   
   roles:
+
     - nginx
     - postgresql
     - monitoring
@@ -567,11 +574,13 @@ Looge COMPARISON.md fail, mis dokumenteerib põhjaliku võrdluse. See on projekt
 ```
 
 Plussid:
+
 - YAML on intuitiivne
 - Jinja2 on võimas templating
 - Procedural ja declarative mix
 
 Miinused:
+
 - YAML indentation errors
 - Loops ja conditionals võivad olla verbose
 
@@ -583,11 +592,13 @@ package { 'nginx':
 ```
 
 Plussid:
+
 - Puhtalt declarative
 - Type system on range
 - Resource dependencies on explicit
 
 Miinused:
+
 - DSL süntaks on unikaalne
 - Steep learning curve
 - Ruby knowledge helps but not required
@@ -643,6 +654,7 @@ Miinused:
 ## Conclusion
 
 Mõlemad tööriistad on võimekad. Valik sõltub:
+
 - Infrastruktuuri suurusest
 - Team skill set'ist
 - Workflow preferences (push vs pull)
@@ -712,12 +724,14 @@ Näide: "Ansible oli mulle mugavam, sest YAML süntaks oli tuttav Dockerist ja J
 ### Mis oli kõige suurem erinevus Ansible ja Puppet vahel?
 
 Näide:
+
 - "Push vs pull arhitektuur. Ansible'is sa kontrolid millal muudatused juhtuvad, Puppet'is agent otsustab. See muutis debugging'i
 - Ansible'is näed kohe tulemust, Puppet'is pead ootama agent run'i."
 
 ### Millises olukorras kasutaksid Ansible'i ja millises Puppet'it?
 
 Näide:
+
 - "Ansible väikestele projektidele ja one-off deployment'idele. Puppet kui mul oleks 100+ serverit ja vaja compliance monitoring'u. Näiteks startup
 - Ansible. Enterprise banking
 - Puppet."
@@ -729,6 +743,7 @@ Näide: "Puppet resource dependencies olid keerulised. Näiteks nginx virtual ho
 ### Mis oli selle projekti juures kõige huvitavam või lõbusam osa?
 
 Näide:
+
 - "Kõige ägedam oli näha sama tulemust kahel erineval viisil. Nagu lahendada matemaatikaülesanne algebraliselt vs geomeetriliselt
 - vastus sama, lähenemine erinev. Sain aru miks DevOps tööriistad pole 'one size fits all'."
 

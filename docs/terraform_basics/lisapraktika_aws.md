@@ -15,6 +15,7 @@ Kohalikus arvutis olev `terraform.tfstate` fail on risk. Kui fail kaob või korr
 Real-world stsenaarium: kolmeliikmeline meeskond haldab AWS infrastruktuuri. State fail on Git'is, mis põhjustab pidevaid konflikte. Eile kustutati kogemata production database, sest kaks inimest käivitasid `terraform apply` samaaegselt ja nende state failid olid erinevad. Üks nägi database'i olemasolevana, teine mitte. Tulemus: andmekadu ja mitu tundi downtime'i.
 
 Põhiprobleemid kohaliku state'iga:
+
 - Ühel masinal olev fail
 - teised ei näe muudatusi
 - Git'is hoidmine põhjustab merge konflikte
@@ -111,6 +112,7 @@ S3 bucket salvestab state faili krüpteeritult. Versioning hoiab kõiki varasema
 ### 1.3 Harjutus: Remote Backend Seadistamine
 
 **Nõuded:**
+
 - [ ] Loo S3 bucket state'i jaoks unikaalse nimega
 - [ ] Seadista bucket versioning ja encryption
 - [ ] Loo DynamoDB tabel state locking'u jaoks
@@ -118,6 +120,7 @@ S3 bucket salvestab state faili krüpteeritult. Versioning hoiab kõiki varasema
 - [ ] Testi, et lukustus töötab kahe paralleelse apply'ga
 
 **Näpunäiteid:**
+
 - Alusta ilma backend blokita, loo esmalt S3 ja DynamoDB ressursid
 - Pärast ressursside loomist lisa backend konfiguratsioon
 - Kasuta `terraform init -migrate-state` state'i migreerimiseks
@@ -145,6 +148,7 @@ terraform apply
 ```
 
 **Boonus:**
+
 - Lisa S3 lifecycle policy, mis kustutab state'i vanemad versioonid pärast 90 päeva
 - Seadista CloudWatch alarm, mis hoiatab, kui state'i pole 7 päeva muudetud
 
@@ -159,6 +163,7 @@ Päris projektides ei loo te alati kõike nullist. Tihti peate kasutama olemasol
 Real-world stsenaarium: teie ettevõttel on olemasolev võrk, mida haldab infrastruktuuri meeskond. Teil on vaja luua EC2 instance'e nende võrku, aga te ei tohi võrku ise muuta ega selle Terraform koodi omaneda. Teie kood peab leidma olemasoleva VPC ja subnet'id, kasutama neid, aga mitte neid haldama.
 
 Probleemid hard-code'imisega:
+
 - AMI ID erinevad regiooniti
 - kood pole portable
 - VPC ja subnet ID'd muutuvad keskkonniti
@@ -230,6 +235,7 @@ VPC data source otsib tag'i järgi VPC'd nimega "company-main-vpc". Subnets data
 ### 2.3 Harjutus: Olemasolevate Ressursside Kasutamine
 
 **Nõuded:**
+
 - [ ] Loo käsitsi AWS konsoolist VPC tag'iga Name=lab-vpc
 - [ ] Kirjuta Terraform kood, mis leiab selle VPC data source'iga
 - [ ] Leia kõik subnet'id selles VPC's
@@ -238,6 +244,7 @@ VPC data source otsib tag'i järgi VPC'd nimega "company-main-vpc". Subnets data
 - [ ] Väljasta instance'i public IP
 
 **Näpunäiteid:**
+
 - Kasuta `terraform console` data source'ide testimiseks
 - Ubuntu Canonical owner ID on `099720109477`
 - Kui VPC'd pole, kasuta default VPC't: `data "aws_vpc" "default" { default = true }`
@@ -262,6 +269,7 @@ aws ec2 describe-instances \
 ```
 
 **Boonus:**
+
 - Kasuta `data "aws_availability_zones"` leidmaks kõik AZ'd ja loo instance igasse
 - Lisa `data "aws_ssm_parameter"` leidmaks AMI ID Systems Manager'ist
 
@@ -278,6 +286,7 @@ Real-world stsenaarium: peate uuendama web serveri AMI'd security patch'ide tõt
 y'd, uus on turvaline. Kui kasutate default käitumist, Terraform kustutab vana instance'i, siis loob uue. Vahepeal on 2-3 minutit downtime'd. Veebileht ei ole kättesaadav, kasutajad näevad vigu.
 
 Probleemid default käitumisega:
+
 - Instance kustutamine põhjustab downtime'i
 - Load balancer näeb instance'i unhealthy
 - Kasutajad näevad 503 Service Unavailable
@@ -368,6 +377,7 @@ Launch template määrab, kuidas instance'd luuakse. Create before destroy tagab
 ### 3.3 Harjutus: Zero-Downtime Update Setup
 
 **Nõuded:**
+
 - [ ] Loo launch template create_before_destroy lifecycle'iga
 - [ ] Loo Auto Scaling Group vähemalt 2 instance'iga
 - [ ] Loo Application Load Balancer ja target group
@@ -376,6 +386,7 @@ Launch template määrab, kuidas instance'd luuakse. Create before destroy tagab
 - [ ] Verifitseeri, et load balancer IP jääb samaks
 
 **Näpunäiteid:**
+
 - Alusta 2 instance'iga
 - lihtsam jälgida
 - Health check path peaks vastama 200 OK
@@ -400,6 +411,7 @@ terraform apply
 ```
 
 **Boonus:**
+
 - Lisa lifecycle ignore_changes user_data'le, et väiksed skripti muudatused ei tekita instance'ite uuendamist
 - Kasuta blue-green deployment strateegia weighted target groups'iga
 
@@ -408,11 +420,13 @@ terraform apply
 ## Kasulikud Ressursid
 
 **Dokumentatsioon:**
+
 - [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [Terraform Backend Configuration](https://www.terraform.io/language/settings/backends/s3)
 - [AWS Auto Scaling Groups](https://docs.aws.amazon.com/autoscaling/ec2/userguide/)
 
 **Tööriistad:**
+
 - **terraform console**
 - interaktiivne REPL testimiseks: `terraform console`
 - **aws-vault**
@@ -421,6 +435,7 @@ terraform apply
 - Terraform koodi linter: `tflint --init && tflint`
 
 **Näited:**
+
 - [Terraform Best Practices](https://github.com/antonbabenko/terraform-best-practices)
 
 Need harjutused on mõeldud süvendama teie Terraform AWS integratsiooniga seotud oskusi. Alustage esimesest ja liikuge järk-järgult keerulisemate poole.

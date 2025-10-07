@@ -267,6 +267,7 @@ CMD ["python", "app.py"]
 ```
 
 Dockerfile selgitus:
+
 - `python:3.11-alpine`
 - väike base image
 - `COPY requirements.txt`
@@ -315,18 +316,23 @@ services:
   chatbot:
     build: .
     ports:
+
       - "5000:5000"
     environment:
+
       - FLASK_ENV=production
     restart: unless-stopped
     
   nginx:
     image: nginx:alpine
     ports:
+
       - "80:80"
     volumes:
+
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
+
       - chatbot
 ```
 
@@ -428,6 +434,7 @@ Lihtne chat bot Docker container'is, mis demonstreerib Docker põhiteadmisi.
 ## Kirjeldus
 
 Flask-põhine chat bot, mis vastab lihtsatele küsimustele. Demonstreerib:
+
 - Dockerfile kirjutamist
 - Multi-container setup (Docker Compose)
 - Nginx reverse proxy
@@ -576,6 +583,7 @@ venv/
 ## Abimaterjalid
 
 **Dokumentatsioon:**
+
 - [Dockerfile Best Practices](https://docs.docker.com/develop/dev-best-practices/)
 - [Docker CLI Reference](https://docs.docker.com/engine/reference/commandline/cli/)
 - [Docker Hub dokumentatsioon](https://docs.docker.com/docker-hub/)
@@ -606,6 +614,7 @@ Lisage `.env` fail ja kasutage environment variable'eid:
 services:
   chatbot:
     environment:
+
       - BOT_NAME=${BOT_NAME:-DefaultBot}
       - DEBUG=${DEBUG:-False}
 ```

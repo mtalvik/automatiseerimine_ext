@@ -78,6 +78,7 @@ Docker on konteinerite loomise ja käitamise tehnoloogia, Kubernetes aga haldab 
 Tegelikult kasutab Kubernetes ise Docker'it (või teisi konteinerite runtime'e nagu containerd või CRI-O) konteinerite käitamiseks. Kubernetes ei ole asendus Docker'ile - see on Docker'i peale ehitatud juhtimiskiht.
 
 Lihtsalt öeldes:
+
 - Docker pakendab ja käitab, Kubernetes orkestreerib ja haldab. Te vajate mõlemat
 - Docker'it konteinerite jaoks ja Kubernetes'i nende haldamiseks suurel skaalal.
 
@@ -178,9 +179,11 @@ metadata:
     app: veebileht
 spec:
   containers:
+
   - name: nginx
     image: nginx:latest
     ports:
+
     - containerPort: 80
 ```
 
@@ -239,9 +242,11 @@ spec:
         app: veebileht
     spec:
       containers:
+
       - name: nginx
         image: nginx:1.21
         ports:
+
         - containerPort: 80
         resources:
           requests:
@@ -365,6 +370,7 @@ Pod'idel on dünaamilised IP aadressid - iga kord kui pod taaskäivitub, saab ta
 **Service** lahendab selle probleemi, pakkudes stabiilset DNS nime ja IP aadressi pod'ide grupile. Service toimib nagu koormusjaotur, suunates liikluse automaatselt töötavatele pod'idele. Kui üks pod kukub, Service lõpetab liikluse suunamise sellele ja jagab koormuse ülejäänud pod'idele.
 
 Kubernetes'is on neli service tüüpi:
+
 - ClusterIP (vaikimisi, ainult klasteri sees), NodePort (avab pordi igal node'il), LoadBalancer (loob välise koormusjaoturi pilves) ja ExternalName (DNS alias välisele teenusele). ClusterIP on kõige levinum
 - see loob sisemise IP aadressi, mis on kättesaadav ainult klastri seest.
 ```yaml
@@ -377,6 +383,7 @@ spec:
   selector:
     app: veebileht  # Leiab pod'id selle label'iga
   ports:
+
   - port: 80        # Service port
     targetPort: 80  # Pod'i port
   type: ClusterIP   # Ainult klasteri sees
@@ -424,9 +431,11 @@ metadata:
   name: veebileht-ingress
 spec:
   rules:
+
   - host: minurakendus.ee
     http:
       paths:
+
       - path: /
         pathType: Prefix
         backend:
@@ -479,9 +488,11 @@ metadata:
   name: app-pod
 spec:
   containers:
+
   - name: app
     image: myapp:latest
     env:
+
     - name: DATABASE_URL
       valueFrom:
         configMapKeyRef:
@@ -518,6 +529,7 @@ metadata:
   name: database-pvc
 spec:
   accessModes:
+
     - ReadWriteOnce
   resources:
     requests:
@@ -648,9 +660,11 @@ spec:
         app: veebirakendus
     spec:
       containers:
+
       - name: nginx
         image: nginx:1.21
         ports:
+
         - containerPort: 80
         resources:
           requests:
@@ -669,6 +683,7 @@ spec:
   selector:
     app: veebirakendus
   ports:
+
   - port: 80
     targetPort: 80
   type: LoadBalancer
@@ -923,6 +938,7 @@ Alustage Minikube'iga, õppige kubectl'i põhikäske ja ehitage järk-järgult k
 ---
 
 **Soovitatav kirjandus:**
+
 - "Kubernetes: Up and Running"
 - Kelsey Hightower, Brendan Burns, Joe Beda https://github.com/rohitg00/DevOps_Books/blob/main/O'Reilly%20Kubernetes%20Up%20and%20Running.pdf
 - "The Kubernetes Book"

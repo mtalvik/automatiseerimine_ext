@@ -67,6 +67,7 @@ fi
 ### 1.3 Harjutus: Implementeeri Hooks
 
 **Nõuded:**
+
 - [ ] Loo pre-commit hook, mis kontrollib vähemalt 2 asja
 - [ ] Loo commit-msg hook Conventional Commits formaadi jaoks
 - [ ] Tee hook'id käivitatavaks: `chmod +x .git/hooks/*`
@@ -87,6 +88,7 @@ git commit -m "feat: test"  # Peaks ebaõnnestuma
 ```
 
 **Boonus:**
+
 - Lisa kontroll failide suuruse kohta
 - Integreeri code formatter
 - Lisa secrets detection
@@ -118,6 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Setup Node.js
@@ -150,6 +153,7 @@ jobs:
         node-version: [16, 18, 20]
     
     steps:
+
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
@@ -164,6 +168,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       - run: npm ci && npm run build
       - uses: actions/upload-artifact@v3
@@ -176,6 +181,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/download-artifact@v3
         with:
           name: dist
@@ -185,12 +191,14 @@ jobs:
 ### 2.3 Harjutus: CI/CD Pipeline
 
 **Nõuded:**
+
 - [ ] Loo `.github/workflows/ci.yml` fail
 - [ ] Workflow käivitub push'il ja PR'il
 - [ ] Sisaldab vähemalt 3 job'i: lint, test, build
 - [ ] Kasuta matrix strategy (vähemalt 2 versiooni)
 
 **Näpunäiteid:**
+
 - Alusta lihtsast ja lisa komplekssust järk-järgult
 - Kasuta `npm ci` mitte `npm install`
 - Cache dependency'sid: `cache: 'npm'`
@@ -206,6 +214,7 @@ git push origin main
 ```
 
 **Boonus:**
+
 - Lisa security scanning
 - Seadista Slack notificationid
 - Deploy production serverisse
@@ -256,12 +265,14 @@ git rebase main
 ### 3.3 Harjutus: Puhasta Feature Branch
 
 **Nõuded:**
+
 - [ ] Loo feature branch ja tee 5-7 "räpast" commit'i
 - [ ] Kasuta `git rebase -i` et squash'ida 2-3 puhtaks commit'iks
 - [ ] Muuda vähemalt ühe commit'i sõnumit
 - [ ] Rebase feature main'i peale
 
 **Näpunäiteid:**
+
 - Backup enne: `git branch backup-feature`
 - Kui läks katki: `git rebase --abort`
 - Force push pärast: `git push --force-with-lease`
@@ -280,6 +291,7 @@ git log --oneline  # 1 commit
 ```
 
 **Boonus:**
+
 - Õpi `git reflog`
 - leia "kaotatud" commit'e
 - Proovi `git rebase --autosquash`
@@ -291,11 +303,13 @@ git log --oneline  # 1 commit
 ## Kasulikud Ressursid
 
 **Dokumentatsioon:**
+
 - [Git Hooks](https://git-scm.com/docs/githooks)
 - [GitHub Actions](https://docs.github.com/en/actions)
 - [Git Rebase](https://git-scm.com/book/en/v2/Git-Branching-Rebasing)
 
 **Tööriistad:**
+
 - **pre-commit**
 - Hook'ide framework: `pip install pre-commit`
 - **act**
@@ -304,6 +318,7 @@ git log --oneline  # 1 commit
 - Ajaloo puhastamine: `pip install git-filter-repo`
 
 **Näited:**
+
 - [GitHub Actions starter workflows](https://github.com/actions/starter-workflows)
 
 Need harjutused on mõeldud süvendama teie Git oskusi. Alustage esimesest ja liikuge järk-järgult keerulisemate poole.

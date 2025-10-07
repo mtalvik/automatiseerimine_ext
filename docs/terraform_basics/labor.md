@@ -93,6 +93,7 @@ terraform --help
 Väljund näitab kõiki Terraform'i põhikäske koos lühikese kirjeldusega. Põhilised käsud, mida kasutame, on `init`, `plan`, `apply` ja `destroy`.
 
 **Validation:**
+
 - [ ] `terraform --version` näitab versiooni numbrit
 - [ ] Töökaust on loodud ja te olete selles
 - [ ] `terraform --help` kuvab käskude nimekirja
@@ -154,6 +155,7 @@ Näete väljundit, mis kirjeldab, mida Terraform teeb. See loob `.terraform` kau
 Initsialisatsioon lõpeb sõnumiga "Terraform has been successfully initialized!" kui kõik läks hästi. Kui saite veateate, kontrollige, kas `main.tf` fail on õigesti vormindatud ning sisaldab kõiki vajalikke plokke.
 
 **Validation:**
+
 - [ ] `.terraform` kaust on loodud
 - [ ] `.terraform.lock.hcl` fail on loodud
 - [ ] Init lõppes edukalt ilma vigadeta
@@ -207,6 +209,7 @@ cat hello.txt
 Peaksite nägema faili sisuga "Tere! See fail on loodud Terraform'i abil."
 
 **Validation:**
+
 - [ ] `hello.txt` fail on loodud
 - [ ] Faili sisu on õige
 - [ ] `terraform.tfstate` fail on loodud
@@ -255,6 +258,7 @@ terraform refresh
 See käsk loeb reaalsed ressursid ja uuendab state faili, kui leiab erinevusi. Praktikas see käsk on harva vajalik, sest `plan` ja `apply` teevad seda automaatselt.
 
 **Validation:**
+
 - [ ] `terraform.tfstate` fail eksisteerib
 - [ ] `terraform show` kuvab ressurssi
 - [ ] `terraform state list` näitab `local_file.hello`
@@ -363,6 +367,7 @@ terraform output created_files
 ```
 
 **Validation:**
+
 - [ ] Kolm faili on loodud
 - [ ] Failide nimed kasutavad projekti nime
 - [ ] `terraform output` näitab mõlemat väljundit
@@ -408,6 +413,7 @@ terraform plan -var="file_count=2"
 See on kasulik testimiseks või CI/CD pipeline'ides. Käsureal antud väärtused võtavad prioriteedi üle `.tfvars` faili ja vaikeväärtuste.
 
 **Validation:**
+
 - [ ] `terraform.tfvars` fail on loodud
 - [ ] Failide nimed kajastavad uut projekti nime
 - [ ] File count on 5
@@ -491,6 +497,7 @@ bash minu-projekt_scripts/startup.sh
 ```
 
 **Validation:**
+
 - [ ] Kaks kataloogi on loodud
 - [ ] JSON fail on kataloogis
 - [ ] Skriptifail on käivitatav
@@ -554,6 +561,7 @@ terraform apply
 Terraform kustutab ainult `cache.conf` faili. Count'i puhul oleks ta uuesti loonud kõik failid uutes positsioonides.
 
 **Validation:**
+
 - [ ] Kolm konfiguratsioonifaili on loodud
 - [ ] Cache.conf eemaldamine jätab teised alles
 - [ ] `each.key` ja `each.value` töötavad õigesti
@@ -588,6 +596,7 @@ terraform destroy -target=local_file.example[0]
 See kustutab ainult esimese `example` faili, jättes teised alles. `-target` on kasulik arenduses, aga tootmises tuleks vältida, kuna võib tekitada sõltuvusprobleeme.
 
 **Validation:**
+
 - [ ] Kõik failid ja kaustad on kustutatud
 - [ ] State fail on tühi
 - [ ] `terraform state list` ei näita midagi
@@ -623,6 +632,7 @@ terraform plan
 Terraform märkab erinevust ja soovib faili sisu taastada. Rakendades `apply` tagastatakse algne sisu. See on idempotentsus töös - Terraform tagab, et infrastruktuur vastab alati koodile.
 
 **Validation:**
+
 - [ ] Teine apply ei tee muudatusi
 - [ ] Käsitsi muudetud fail taastatakse
 - [ ] Terraform märkab erinevusi
@@ -674,6 +684,7 @@ Environment must be one of: development, staging, production.
 Parandage väärtus ja proovige uuesti.
 
 **Validation:**
+
 - [ ] Init lahendab provider probleemid
 - [ ] Lock'i saab force-unlock'ida
 - [ ] Import toob olemasoleva ressursi state'i
@@ -685,6 +696,7 @@ Parandage väärtus ja proovige uuesti.
 Selles laboris õppisime Terraform'i praktiliselt kasutama. Alustasime installimisest ja lihtsamatest ressurssidest, liikusime edasi variables ja outputs'i juurde, ning lõpuks uurisime keerukamaid konstruktsioone nagu for_each ja depends_on.
 
 Peamised õpitud oskused:
+
 - Terraform workflow'i samm-sammult teostamine
 - Local provider'i kasutamine failide ja kataloogide loomiseks
 - Variables kasutamine dünaamiliseks konfiguratsiooniks

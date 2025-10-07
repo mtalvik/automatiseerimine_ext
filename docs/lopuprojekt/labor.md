@@ -127,6 +127,7 @@ git push -u origin main
 ```
 
 **Kontrolli:**
+
 - [ ] Repository on GitHub'is
 - [ ] README on seal
 

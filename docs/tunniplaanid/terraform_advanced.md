@@ -87,10 +87,12 @@
 ## 🎓 Kokkuvõte
 
 **Teha:**
+
 - ✅ DRY principle
 - ✅ Remote state on production must!
 - ✅ Workspaces demo
 
 **Mitte teha:**
+
 - ❌ 20 modules korraga
 - ❌ Production state'i kustutamine (!)

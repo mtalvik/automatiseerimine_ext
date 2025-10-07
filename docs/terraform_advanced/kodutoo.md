@@ -13,6 +13,7 @@ See kodutöö ehitab labori teadmistele peale. Loote AWS VPC infrastruktuuri, ku
 ## Ülesande kirjeldus
 
 Loote pilve infrastruktuuri Terraform'iga, mis:
+
 - Käivitab EC2 instance'i Free Tier t2.micro'ga
 - Jooksutab seal Docker'it
 - Deploy'ib lihtsa Node.js To-Do API rakenduse
@@ -567,6 +568,7 @@ Enne esitamist veenduge:
 ### Esitamisviis
 
 Esitage GitHub repo link õppejõule. Repo peab sisaldama:
+
 - Kogu Terraform koodi
 - App koodi
 - README.md dokumentatsiooni
@@ -607,6 +609,7 @@ Tehke üks järgnevatest:
 ### Boonus 1: Nginx Reverse Proxy
 
 Lisa nginx konteiner, mis proxy'b API:
+
 - nginx kuulab port 80
 - Proxy'b päringud port 3000'le
 - HTTPS redirect (self-signed cert)
@@ -614,6 +617,7 @@ Lisa nginx konteiner, mis proxy'b API:
 ### Boonus 2: Docker Compose
 
 Kasuta Docker Compose'i:
+
 - Multi-container setup (app + nginx)
 - Persistent volume To-Do storage'ks
 - docker-compose.yml fail
@@ -621,6 +625,7 @@ Kasuta Docker Compose'i:
 ### Boonus 3: CloudWatch Monitoring
 
 Lisa AWS CloudWatch:
+
 - CPU/Memory alarms
 - Log group EC2 instance'ile
 - SNS notification emailiga
@@ -628,6 +633,7 @@ Lisa AWS CloudWatch:
 ### Boonus 4: Auto Scaling (Advanced!)
 
 Lisa:
+
 - Launch Template
 - Auto Scaling Group (min 1, max 2)
 - Application Load Balancer

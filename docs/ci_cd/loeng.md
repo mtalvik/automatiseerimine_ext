@@ -131,6 +131,7 @@ graph LR
 ```
 
 Praktikas näeb see välja nii:
+
 - arendaja mergeb pull request'i. Automaatselt algab protsess
 - testid, security scan, build, deployment staging keskkonda, automaatsed integration testid seal, kui kõik OK siis production. Kogu protsess võtab vahest 10-15 minutit. Kui midagi läheb valesti, rollback on sama automaatne.
 
@@ -209,6 +210,7 @@ graph LR
 Deploy stage paigaldab rakenduse keskkonda. Development keskkond on arendajate mänguväljak, kus võib kõik olla katki. Staging on production'i koopia test andmetega. Production on päris kasutajad ja päris andmed.
 
 Oluline reegel:
+
 - Kui üks stage ebaõnnestub, siis järgmised ei käivitu. Build ebaõnnestub
 - testid ei jookse. Testid failivad
 - ei deploy. Kõik OK
@@ -255,6 +257,7 @@ Kasutajad: CERN, NASA, Siemens
 Kasutus: Enterprise, legacy systems
 
 Tugevused:
+
 - vanim ja kõige rohkem kasutatav CI/CD tööriist. Tohutu plugin'ite ökosüsteem
 - on plugin peaaegu igaks asjaks. Täielik kontroll kõige üle. Tasuta ja open source.
 
@@ -311,6 +314,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Set up Python
@@ -335,6 +339,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       - run: docker build -t myapp .
 ```
@@ -342,12 +347,14 @@ jobs:
 GitLab CI:
 ```yaml
 stages:
+
   - build
 
 build:
   stage: build
   image: docker:latest
   script:
+
     - docker build -t myapp .
 ```
 
@@ -429,6 +436,7 @@ jobs:
     container:
       image: python:3.9
     steps:
+
       - run: pytest
 ```
 
@@ -437,6 +445,7 @@ GitLab CI:
 test:
   image: python:3.9
   script:
+
     - pytest
 ```
 
@@ -455,8 +464,10 @@ GitLab CI:
 build:
   image: docker:latest
   services:
+
     - docker:dind
   script:
+
     - docker build -t myapp:$CI_COMMIT_SHA .
     - docker push myapp:$CI_COMMIT_SHA
 ```
@@ -537,6 +548,7 @@ pytest --cov=app --cov-report=html
 ```
 
 Tööstuse standard:
+
 - 80%+ coverage on hea. Kriitilised funktsioonid (payment, authentication) peavad olema 100%. Aga 100% ei ole eesmärk
 - kvaliteet on tähtsam kui kvantiteet.
 
@@ -589,6 +601,7 @@ deploy:
     name: production
     url: https://myapp.com
   steps:
+
     - run: deploy.sh
 ```
 
@@ -599,6 +612,7 @@ deploy:
     name: production
     url: https://myapp.com
   script:
+
     - deploy.sh
 ```
 
@@ -676,6 +690,7 @@ Kõik CI/CD platvormid näitavad pipeline status'it (roheline/punane), job loge,
 ```yaml
 deploy:
   steps:
+
     - run: deploy.sh
     - run: sleep 10
     - run: curl -f https://myapp.com/health || exit 1
@@ -726,6 +741,7 @@ GitLab CI:
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
+
     - node_modules/
 ```
 
@@ -745,6 +761,7 @@ GitLab CI:
 ```yaml
 artifacts:
   paths:
+
     - build/
   expire_in: 1 week
 ```
@@ -781,6 +798,7 @@ CI/CD on DevOps kultuur koodina. See ei ole lihtsalt tööriist. See on viis mõ
 Lab'is seadistame GitHub Actions pipeline'i. Ehitame Docker image'i automaatselt. Deploy'ime (simuleeritud keskkonda). Testame pipeline'i ja näeme kuidas kõik kokku töötab.
 
 Õpi rohkem:
+
 - [GitHub Actions Docs](https://docs.github.com/actions)
 - [GitLab CI/CD Docs](https://docs.gitlab.com/ee/ci/)
 - [The Phoenix Project](https://itrevolution.com/the-phoenix-project/) - DevOps kultuurist
@@ -790,15 +808,18 @@ Lab'is seadistame GitHub Actions pipeline'i. Ehitame Docker image'i automaatselt
 ## Ressursid
 
 **Dokumentatsioon:**
+
 - [GitHub Actions](https://docs.github.com/actions)
 - [GitLab CI/CD](https://docs.gitlab.com/ee/ci/)
 - [Docker in CI/CD](https://docs.docker.com/ci-cd/)
 
 **Videod:**
+
 - [CI/CD in 100 seconds](https://www.youtube.com/watch?v=scEDHsr3APg) - Fireship
 - [GitHub Actions Tutorial](https://www.youtube.com/watch?v=R8_veQiYBjI)
 
 **Miks see oluline:**
+
 - CI/CD on üks olulisemaid oskusi kaasaegses tarkvaraarenduses
 - Iga arendaja peab teadma, kuidas kood jõuab kasutajateni
 - DevOps engineer'id kasutavad seda iga päev

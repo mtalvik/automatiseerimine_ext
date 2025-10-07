@@ -3,6 +3,7 @@
 ## Õpiväljundid
 
 Pärast seda labor'it oskad:
+
 - Kasutada Jinja2 template'eid dünaamiliste konfiguratsioonide jaoks
 - Krüpteerida salajasi Ansible Vault'iga
 - Hallata keerulisi muutujaid (group_vars, host_vars)
@@ -14,6 +15,7 @@ Pärast seda labor'it oskad:
 ## 1. Jinja2 Templates ja Dynamic Configs
 
 **Tegevused:**
+
 - Jinja2 syntax (variables, loops, conditions)
 - Nginx config template loomine
 - Variables erinevatel tasanditel (all, group, host)
@@ -21,6 +23,7 @@ Pärast seda labor'it oskad:
 - Conditional logic template'is
 
 **Kontrollnimekiri:**
+
 - [ ] Template fail on loodud (`templates/nginx.conf.j2`)
 - [ ] Variables töötavad template'is
 - [ ] Conditional logic toimib (erinevad config'id dev vs prod)
@@ -35,6 +38,7 @@ Pärast seda labor'it oskad:
 ## 2. Ansible Vault ja Secrets Management
 
 **Tegevused:**
+
 - Ansible Vault seadistamine
 - Vault faili loomine (`group_vars/all/vault.yml`)
 - Paroolide ja API võtmete krüpteerimine
@@ -42,6 +46,7 @@ Pärast seda labor'it oskad:
 - Variables vault failist kasutamine
 
 **Kontrollnimekiri:**
+
 - [ ] Vault fail on loodud ja krüpteeritud
 - [ ] Paroolid on vault'is (mitte plain text!)
 - [ ] Playbook kasutab vault variables
@@ -56,6 +61,7 @@ Pärast seda labor'it oskad:
 ## 3. Advanced Project Structure ja Best Practices
 
 **Tegevused:**
+
 - Full project structure (inventory, group_vars, host_vars, roles, playbooks)
 - Environment-specific configs (dev/staging/prod)
 - Ansible.cfg seadistamine
@@ -63,6 +69,7 @@ Pärast seda labor'it oskad:
 - Full deployment test
 
 **Kontrollnimekiri:**
+
 - [ ] Project structure on organiseeritud
 - [ ] Group_vars ja host_vars töötavad koos
 - [ ] Ansible.cfg on seadistatud
@@ -271,6 +278,7 @@ PHP mälupiirang kohandub serveri RAM-i järgi - võimsamad serverid saavad rohk
 ```yaml
 # Virtual hosts
 virtual_hosts:
+
   - name: "{{ app_name }}.local"
     document_root: "{{ web_root }}/{{ app_name }}"
     ssl_enabled: "{{ ssl_enabled }}"
@@ -303,6 +311,7 @@ InnoDB buffer pool on MySQL jõudluse võti - see hoiab andmeid mälus kiireks l
 ```yaml
 # Andmebaasid
 mysql_databases:
+
   - name: "{{ app_name }}_{{ app_env }}"
     encoding: "utf8mb4"
     collation: "utf8mb4_unicode_ci"
@@ -311,6 +320,7 @@ mysql_databases:
 Andmebaasi nimi sisaldab keskkonna nime (nt `advanced-lamp_production`), mis hoiab erinevate keskkondade andmed eraldi. UTF8MB4 toetab ka emoji'sid ja teisi 4-baidiseid Unicode märke.
 ```yaml
 mysql_users:
+
   - name: "{{ app_name }}_user"
     host: "localhost"
     priv: "{{ app_name }}_{{ app_env }}.*:ALL"
@@ -320,6 +330,7 @@ mysql_users:
 Andmebaasi kasutaja õigused on piiratud ainult vajaliku andmebaasiga. Parool hoitakse krüpteeritult Vault'is, mitte tavalises tekstifailis.
 
 **Märkused:**
+
 - Kasutame Jinja2 loogikat dünaamilisteks väärtusteks
 - Serverite võimsus mõjutab konfiguratsiooni
 - Keskkond määrab turvalisuse taseme
@@ -569,6 +580,7 @@ nano playbooks/site.yml
 Playbook nimi peaks kirjeldama, mida see teeb. `become: yes` tähendab sudo kasutamist, `gather_facts` kogub infot serverite kohta (OS, mälu, CPU jne).
 ```yaml
   tasks:
+
     - name: "Update package cache"
       package:
         update_cache: yes
@@ -584,6 +596,7 @@ Debian/Ubuntu süsteemides uuendame paketi nimekirju enne installimist. `when` t
         name: "{{ apache_package }}"
         state: present
       notify:
+
         - "start apache"
         - "enable apache"
 ```
@@ -629,6 +642,7 @@ Template task genereerib iga virtual host'i jaoks eraldi konfiguratsioonifaili. 
 4. Lisage handlers sektsioon:
 ```yaml
   handlers:
+
     - name: "start apache"
       service:
         name: "{{ apache_package }}"
@@ -878,6 +892,7 @@ Veenduge, et olete lõpetanud kõik osad ja mõistnud põhimõtteid:
 Kasutage siin õpitud mustreid oma projektides - need on industry standard praktikad, mida kasutatakse päris ettevõtetes. Alustage väiksest projektist ja lisage keerukust järk-järgult. Harjutage vault'i kasutamist kõigi paroolidega - see harjumus säästab teid tulevikus.
 
 **Järgmine nädal:**
+
 - Ansible Roles ja Galaxy
 - kuidas jagada ja taaskasutada koodi
 - Automated testing strategies

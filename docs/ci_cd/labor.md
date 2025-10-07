@@ -8,6 +8,7 @@
 ## Õpiväljundid
 
 Pärast seda labor'it oskad:
+
 - **Loob** GitHub Actions pipeline'i põhistruktuuri stage'idega
 - **Seadistab** automaatse testimise ja Docker build'i
 - **Debugib** pipeline vigu logide abil
@@ -148,6 +149,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Set up Python
@@ -259,6 +261,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Set up Python
@@ -274,6 +277,7 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Set up Python
@@ -374,6 +378,7 @@ Uuenda .github/workflows/ci.yml faili. Lisa build job mis jookseb pärast test'i
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Login to GitHub Container Registry
@@ -434,6 +439,7 @@ Uuenda .github/workflows/ci.yml faili. Lisa deploy job:
       name: production
       url: http://localhost:5000
     steps:
+
       - name: Deploy application
         run: |
           IMAGE_NAME=ghcr.io/${{ github.repository }}:${{ github.sha }}
@@ -487,6 +493,7 @@ Uuenda test job'i .github/workflows/ci.yml failis:
     needs: validate
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Set up Python
@@ -574,23 +581,27 @@ Vaata GitHub'is et pipeline jookseb läbi ja README näitab badge'i.
 Kontrolli et oled kõik sammud läbinud:
 
 **Rakendus:**
+
 - [ ] Flask app töötab kohalikult
 - [ ] Kõik kolm endpoint'i vastavad korrektselt
 - [ ] Testid läbivad kohalikult
 
 **Pipeline:**
+
 - [ ] Validate stage kontrollib süntaksit
 - [ ] Test stage jooksutab automaatseid teste
 - [ ] Build stage ehitab Docker image'i
 - [ ] Deploy stage nõuab manual approval'i
 
 **GitHub:**
+
 - [ ] Repository on public
 - [ ] Actions permissions on seadistatud
 - [ ] Production environment on loodud
 - [ ] Image on nähtav Packages'is
 
 **Mõistmine:**
+
 - [ ] Tead miks validate on esimene stage
 - [ ] Mõistad erinevust validate ja test vahel
 - [ ] Oskad selgitada miks kasutame Docker'it
@@ -613,6 +624,7 @@ Kirjuta millal läks lambike põlema. Millist kontseptsiooni sa nüüd mõistad,
 **Kas oskad selgitada?**
 
 Kontrolli et oskad sõnastada:
+
 - Miks validate on esimene stage? (Kõige kiirem viis vigade leidmiseks)
 - Miks production deploy on manual? (Kõrge risk, vajame kontrolli)
 - Kuidas Docker aitab? (Garanteerib sama keskkonna igal pool)

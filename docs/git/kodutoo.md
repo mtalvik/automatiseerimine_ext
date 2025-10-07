@@ -13,6 +13,7 @@ See kodutöö võtab umbes 1.5-2 tundi ja nõuab labori ajal õpitud Git oskuste
 Loote avaliku GitHub repositooriumi, mis sisaldab väikest projekti või skriptide kogumit. See ei pea olema keeruline - fookus on Git'i õigel kasutamisel, mitte programmeerimise keerukusel.
 
 Minimaalse nõuded:
+
 - Avalik GitHub repositoorium
 - Vähemalt 5 tähenduslikku commit'i
 - README.md koos projekti kirjelduse ja refleksiooniga
@@ -404,6 +405,7 @@ upEsitage Google Classroom'is:
 **Repository link:** `https://github.com/teie-kasutajanimi/git-homework`
 
 Veenduge, et:
+
 - Repository on **public** (avalik)
 - README.md sisaldab projekti kirjeldust
 - Kõik failid on commit'itud ja push'itud
@@ -450,11 +452,13 @@ Vaata: https://shields.io/
 ## Abimaterjalid
 
 **Dokumentatsioon:**
+
 - [Git Cheat Sheet](https://education.github.com/git-cheat-sheet-education.pdf)
 - [GitHub .gitignore templates](https://github.com/github/gitignore)
 - [Markdown Guide](https://www.markdownguide.org/basic-syntax/)
 
 **Kursuseomane:**
+
 - `loeng.md`
 - Git põhitõed
 - `labor.md`

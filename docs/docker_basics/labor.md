@@ -59,6 +59,7 @@ docker run -d --name web -p 8080:80 nginx
 ```
 
 Käsu selgitus:
+
 - `-d`
 - detached mode (taustal)
 - `--name web`
@@ -186,6 +187,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ```
 
 Käskude selgitus:
+
 - `FROM`
 - base image (nginx alpine versioon, 23MB)
 - `COPY`
@@ -221,6 +223,7 @@ docker run -d -p 8081:80 --name minu-app minu-web:v1
 ```
 
 Avage `http:
+
 - //localhost:8081`
 - peaks näitama teie HTML lehte.
 
@@ -595,6 +598,7 @@ Kontrollige, et oskate:
 Labor andis praktilised oskused Docker'i kasutamiseks. Kodutöös rakendage neid teadmisi reaalse rakenduse containeriseerimiseks.
 
 **Näpunäited kodutööks:**
+
 - Alustage lihtsast
 - esmalt käivitage rakendus, siis optimeeri
 - Kasutage `.dockerignore` faili

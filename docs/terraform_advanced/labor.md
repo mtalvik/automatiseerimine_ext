@@ -499,6 +499,7 @@ terraform plan
 ```
 
 Kui plan näitab muudatusi, kuigi te ei muutnud koodi, siis kas:
+
 - Keegi muutis ressursse AWS konsoolist (DRIFT!)
 - State fail on aegunud
 - Bug Terraform'is
@@ -587,6 +588,7 @@ OLULINE: Kui unustate `destroy` käivitada, maksate iga päev ~$0.24 (t2.micro) 
 ## Kokkuvõte
 
 Selles lab'is lõite:
+
 - AWS VPC võrgu isolatsiooniga
 - Public subnet'i internetiühendusega
 - Security Group firewall'i

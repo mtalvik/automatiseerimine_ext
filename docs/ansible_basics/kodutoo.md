@@ -19,6 +19,7 @@ Lahendus peab töötama nii, et õpetaja saab muuta ainult inventory failis IP a
 ## 1. Infrastruktuuri ettevalmistus
 
 Seadistage vähemalt 2 virtuaalmasinat:
+
 - Üks control node (teie arvuti või eraldi VM)
 - Vähemalt üks target server LAMP stack'i jaoks
 
@@ -53,12 +54,14 @@ VALE lähenemine - hardcoded väärtused:
 - name: "Create user"
   user:
 name:
+
 - "jaan.tamm"  # VALE
 - peab olema muutuja
     
 - name: "Copy file"  
   copy:
 dest:
+
 - "/home/jaan.tamm/file"  # VALE
 - hardcoded path
 ```
@@ -79,12 +82,14 @@ dest:
 ## 2. Süsteemi ettevalmistus
 
 Looge playbook mis:
+
 - Uuendab süsteemi pakette
 - Paigaldab vajalikud tööriistad
 - Seadistab firewall'i (avage pordid 80, 443, 22)
 - Seadistab ajavööndi
 
 Uurige järgmisi mooduleid:
+
 - `apt` või `yum`
 - pakettide haldus
 - `ufw` või `firewalld`
@@ -97,6 +102,7 @@ Uurige järgmisi mooduleid:
 ## 3. Apache veebiserver
 
 Paigaldage ja seadistage Apache2:
+
 - Installige Apache2 pakett
 - Lubage vajalikud moodulid (rewrite, ssl, headers)
 - Looge virtual host konfiguratsioon template abil
@@ -105,6 +111,7 @@ Paigaldage ja seadistage Apache2:
 Kasutage Jinja2 template'd Apache virtual host konfiguratsiooni loomiseks. Template peab sisaldama muutujaid nagu domain_name, server_admin, document_root.
 
 Uurige:
+
 - Kuidas luua Apache virtual host?
 - Mis on `a2ensite` ja `a2enmod` käsud?
 - Millal kasutada `notify` ja `handlers`?
@@ -132,6 +139,7 @@ Template näidis (vhost.conf.j2):
 ## 4. MySQL andmebaas
 
 Paigaldage ja seadistage MySQL:
+
 - Installige MySQL server
 - Turvake root kasutaja parooliga
 - Looge andmebaas rakenduse jaoks
@@ -139,6 +147,7 @@ Paigaldage ja seadistage MySQL:
 - Paroolid ei tohi olla nähtavad koodis
 
 Nõuded:
+
 - Kasutage `vars_prompt` või Ansible Vault paroolide salvestamiseks
 - Python MySQL moodul peab olema installitud (pymysql)
 - Andmebaasi nimi ja kasutaja peavad olema muutujad
@@ -146,6 +155,7 @@ Nõuded:
 MySQL paroolide käsitlemine vars_prompt abil:
 ```yaml
 vars_prompt:
+
   - name: mysql_root_password
     prompt: "Enter MySQL root password"
     private: yes
@@ -156,6 +166,7 @@ vars_prompt:
 ```
 
 Uurige järgmisi mooduleid:
+
 - `mysql_db`
 - andmebaasi haldus
 - `mysql_user`
@@ -168,12 +179,14 @@ Uurige järgmisi mooduleid:
 ## 5. PHP seadistamine
 
 Paigaldage PHP ja vajalikud laiendused:
+
 - PHP 8.x või uuem
 - PHP laiendused: mysql, curl, gd, mbstring, xml, zip
 - Integreerige Apache'ga (libapache2-mod-php)
 - Looge PHP test leht
 
 Test leht peab sisaldama:
+
 - Serveri info kuvamist
 - MySQL ühenduse testimist
 - PHP versiooni kuvamist
@@ -231,11 +244,13 @@ ansible_lamp/
 ```
 
 MITTE LUBATUD:
+
 - Kõik muutujad playbook'i sees vars: sektsioonis
 - Kõik ühes suures playbook failis
 - Handlers playbooki sees (väikeste playbook'ide puhul lubatud)
 
 NÕUTUD:
+
 - Muutujad group_vars/ või host_vars/ kaustades
 - Iga teenus eraldi playbook'is
 - Templates templates/ kaustas
@@ -249,9 +264,11 @@ VALE struktuuri näide:
   vars:
     mysql_pass: xyz  # Muutujad peaks olema group_vars
   tasks:
+
     - name: "Install Apache"
     - name: "Install MySQL"  # Erinevad teenused segamini
   handlers:
+
     - name: restart  # Handlers võiks olla eraldi
 ```
 
@@ -261,6 +278,7 @@ VALE struktuuri näide:
 - name: "Apache setup"
   hosts: lamp_servers
   tasks:
+
     - name: "Install Apache"
       # ...
     
@@ -268,6 +286,7 @@ VALE struktuuri näide:
 - name: "MySQL setup"
   hosts: lamp_servers
   tasks:
+
     - name: "Install MySQL"
       # ...
 
@@ -290,6 +309,7 @@ Tagage, et playbook on idempotentne - teine käivitamine ei tohi midagi muuta. L
 - Veebileht on kättesaadav ja näitab õiget sisu?
 
 Kasutage järgmisi mooduleid:
+
 - `uri`
 - veebilehe kättesaadavuse test
 - `wait_for`
@@ -421,6 +441,7 @@ Kirjelda konkreetseid kasutusjuhte. Näiteks: "Võiksin Ansible'iga automatiseer
 ### 4. Kui peaksid oma sõbrale selgitama, mis on Ansible ja miks see on kasulik, siis mida ütleksid?
 
 Anna lihtne, arusaadav selgitus. Näiteks:
+
 - "Ansible on nagu kaugjuhtimispult serveritele
 - ühe käsuga saad seadistada 10 või 100 serverit korraga, kõigil täpselt sama konfiguratsiooniga."
 
@@ -450,12 +471,14 @@ Kokku: 100%
 Enne kodutöö alustamist lugege läbi:
 
 **Ansible dokumentatsioon:**
+
 - [Playbooks](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html)
 - [Variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html)
 - [Handlers](https://docs.ansible.com/ansible/latest/user_guide/playbooks_handlers.html)
 - [Templates](https://docs.ansible.com/ansible/latest/user_guide/playbooks_templating.html)
 
 **Moodulite dokumentatsioon:**
+
 - `ansible-doc apt`
 - pakettide installimine
 - `ansible-doc service`
@@ -520,6 +543,7 @@ Lisage playbook'i lõppu testid, mis kontrollivad teenuste tööd:
 - name: "Check Apache"
   assert:
     that:
+
       - ansible_facts.services['apache2.service'].state == 'running'
       
 - name: "Test web page"
@@ -584,11 +608,13 @@ ansible-playbook playbooks/site.yml --diff
 ## Tähtis meeles pidada
 
 **Labor vs Kodutöö:**
+
 - Laboris oli OK kõik ühes failis (õppimise eesmärgil)
 - Kodutöös peab järgima professionaalset struktuuri
 - Laboris näitasime põhitõed, kodutöös rakendate neid õigesti
 
 **Edusammud:**
+
 - Tehke GitHubi commit'e regulaarselt
 - Testige iga muudatust kohe
 - Alustage lihtsast, lisage keerukust järk-järgult

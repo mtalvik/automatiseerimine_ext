@@ -10,6 +10,7 @@
 ## Õpiväljundid
 
 Pärast moodulit õpilane:
+
 - ÕV1: Selgitab, mis probleemi Docker lahendab; eristab container'eid VM'idest
 - ÕV2: Käivitab konteinereid, kasutab `docker run`, `ps`, `logs`, `exec` käske
 - ÕV3: Kirjutab lihtsa Dockerfile'i ja ehitab image'i

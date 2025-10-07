@@ -10,6 +10,7 @@
 ## Õpiväljundid
 
 Pärast seda moodulit õpilased:
+
 - Selgitavad, mis probleemi Ansible lahendab ja eristavad seda teistest automatiseerimistööriistadest
 - Seadistavad inventory faili ja SSH ühendused mitme serveri jaoks
 - Kirjutavad esimese playbook'i YAML süntaksiga ja kasutavad põhilisi mooduleid
@@ -25,6 +26,7 @@ See tunnikava järgib "How People Learn" (National Research Council, 2000) põhi
 ### Eelteadmised (Prior Knowledge)
 
 Uus teadmine ehitub alati olemasoleva peale. Enne Ansible õpetamist aktiveerige õpilaste eelteadmised:
+
 - Küsige: "Kas olete kunagi seadistanud mitu serverit käsitsi? Kuidas see oli?"
 - Ühendage uus vana külge: SSH → Ansible SSH, shell scripts → playbooks
 - Tunnistage, et õpilased on kogenud "klikka 10 korda sama asja" probleemi
@@ -32,6 +34,7 @@ Uus teadmine ehitub alati olemasoleva peale. Enne Ansible õpetamist aktiveerige
 ### Arusaamine üle memoriseerimise
 
 Õpilased peavad mõistma kontseptsioone, mitte ainult süntaksit:
+
 - Õpetage MIKS Ansible on vajalik, mitte ainult KUIDAS YAML kirjutada
 - Vähem mooduleid, rohkem sügavust (5-6 põhimoodulit vs kõik 3000+)
 - Fookus kontseptsioonidel: idempotence, declarative, agentless
@@ -39,6 +42,7 @@ Uus teadmine ehitub alati olemasoleva peale. Enne Ansible õpetamist aktiveerige
 ### Metakognitsioon
 
 Õpilased peavad jälgima oma õppimist:
+
 - Refleksioonid iga bloki lõpus (1-2 minutit)
 - Kontrollküsimused: "Miks idempotence on oluline? Millal kasutada playbook vs ad-hoc?"
 - Kodutöö refleksioon (5 küsimust) võimaldab õpilastel hinnata oma mõistmist
@@ -157,6 +161,7 @@ Kontrollige järgmist enne tunni algust:
 ### Kontrollküsimused
 
 Küsige õpilastelt:
+
 - "Miks on SSH setup nii oluline Ansible'i jaoks?"
 - "Mis juhtub, kui SSH võti pole õigesti seadistatud?"
 - "Mida Ansible teeks ilma inventory failita?"
@@ -164,6 +169,7 @@ Küsige õpilastelt:
 ### Refleksioon
 
 Viimased 1-2 minutit:
+
 - "Mida õppisite selles blokis?"
 - "Mis oli kõige raskem?"
 - "Kui peaksite sõbrale selgitama, mis on Ansible, mida ütleksite?"
@@ -171,11 +177,13 @@ Viimased 1-2 minutit:
 ### Kohandus
 
 **Kui õpilased on kiired:**
+
 - Lisa Vagrant setup
 - Tutvusta `ansible.cfg` faili
 - Näita `ansible-doc` käsku
 
 **Kui õpilased on aeglased:**
+
 - Keskendu ainult ühele target serverile (mitte kahele)
 - Kasuta Docker container'eid VM-ide asemel (kiirem setup)
 - Jäta inventory gruppide selgitus järgmisesse blokki
@@ -247,11 +255,13 @@ Viimased 1-2 minutit:
 ### Kohandus
 
 **Kui kiired:**
+
 - Tutvustage `ansible-doc` käsku
 - Uurige `setup` moodulit (facts)
 - Proovige filtreerimist: `--limit`, `--tags`
 
 **Kui aeglased:**
+
 - Keskenduge ainult `ping` ja `command` moodulitele
 - Jätke `shell` ja keerulisemad moodulid valikuliseks
 - Rohkem aega troubleshooting'ule
@@ -315,11 +325,13 @@ Viimased 1-2 minutit:
 ### Kohandus
 
 **Kui kiired:**
+
 - Lisage handlers ja notify
 - Tutvustage `--check` režiimi (dry run)
 - Lisage mitu taski ühte playbook'i
 
 **Kui aeg otsa:**
+
 - Jätke idempotentsuse demo kodutööks
 - Keskenduge ainult lihtsa playbook'i kirjutamisele
 - Handlers järgmises blokis
@@ -386,11 +398,13 @@ Viimased 1-2 minutit:
 ### Kohandus
 
 **Kui kiired:**
+
 - Tutvustage Ansible Vault (encrypted variables)
 - Group_vars ja host_vars kaustad
 - Complex Jinja2: filters, loops
 
 **Kui aeg napib:**
+
 - Jätke templates valikuliseks
 - Keskenduge ainult variables'ile
 - Best practices lühemalt

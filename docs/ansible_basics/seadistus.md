@@ -9,6 +9,7 @@ See juhend aitab seadistada Vagrant-põhise labikeskkonna Ansible harjutusteks. 
 ## Mis on Vagrant?
 
 Vagrant on tööriist virtuaalmasinate haldamiseks läbi käsurea. See loeb Vagrantfile nimelist konfiguratsioonifaili ja loob automaatselt VM-id VirtualBoxi. Erinevalt käsitsi VM-ide loomisest on Vagrant:
+
 - Kiirem (1 käsk vs 10 minutit hiireklõpsamist)
 - Kordav (sama setup iga kord)
 - Jagamist toetav (Vagrantfile on tekstifail, pane GitHubi)
@@ -29,6 +30,7 @@ winget install Hashicorp.Vagrant
 ```
 
 Alternatiiv - käsitsi allalaadimine:
+
 - VirtualBox: https://virtualbox.org/wiki/Downloads
 - Vagrant: https://developer.hashicorp.com/vagrant/downloads
 
@@ -81,6 +83,7 @@ cd ansible-lab
 Laadige alla `Vagrantfile` projektikursuse repositooriumist või looge see käsitsi. Vagrantfile peab olema täpselt projekti juurkaustas koos nimega `Vagrantfile` (ilma laiendita).
 
 Vagrantfile seadistab:
+
 - 2 Ubuntu 22.04 VM-i
 - Controller: 192.168.56.10 (Ansible installitud)
 - Web Server: 192.168.56.11 (target server)
@@ -272,6 +275,7 @@ cp /vagrant/shared-file.txt ~/
 ```
 
 See on kasulik:
+
 - Playbook'ide kirjutamiseks host masinas (IDE/teksteditor)
 - Failide jagamiseks VM-ide vahel
 - Backup'ide tegemiseks
@@ -339,6 +343,7 @@ vagrant destroy -f
 ### Git Bash Windows'is
 
 Windows kasutajad, installige Git Bash parem terminali kogemus saamiseks:
+
 - Allalaadimine: https://git-scm.com/download/win
 - Git Bash annab Unix-stiilis käsud Windows'is
 
@@ -506,6 +511,7 @@ rm -rf ansible-lab
 | Web Server | web-server | 192.168.56.11 | 1GB | 1 | Target server |
 
 Mõlemad:
+
 - OS: Ubuntu 22.04 LTS (Jammy)
 - Kasutajad: vagrant/vagrant, ansible/ansible123
 - Sudo: passwordless

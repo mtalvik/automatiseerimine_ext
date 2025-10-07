@@ -10,6 +10,7 @@
 ## Õpiväljundid
 
 Pärast seda õppetükki õpilane:
+
 - Mõistab muutujate hierarhia põhimõtteid ja rakendab neid projektides
 - Kirjutab Jinja2 template'eid dünaamiliste konfiguratsioonide loomiseks
 - Kasutab handler'eid teenuste efektiivseks haldamiseks
@@ -48,6 +49,7 @@ Iga tunni lõpus reflekteeritakse: "Mis oli kõige raskem?" "Kuidas kasutaksid s
 ## Näpunäited Algajale Õpetajale
 
 **Enne tundi:**
+
 - Testi kõik labor'i sammud läbi
 - vault paroolid peavad töötama
 - Valmista ette backup vault fail juhuks, kui õpilane unustab parooli
@@ -55,6 +57,7 @@ Iga tunni lõpus reflekteeritakse: "Mis oli kõige raskem?" "Kuidas kasutaksid s
 - Valmista ette "cheat sheet" Jinja2 süntaksiga
 
 **Tunni ajal:**
+
 - Vault parooli unustamine on KATASTROOF
 - rõhuta seda mitmel korral
 - Kui õpilane küsib "miks mitte lihtsalt...?"
@@ -64,6 +67,7 @@ Iga tunni lõpus reflekteeritakse: "Mis oli kõige raskem?" "Kuidas kasutaksid s
 - Kui keegi on kiire valmis, suuna lisapraktika juurde
 
 **Levinud vead:**
+
 - Õpilased panevad vault_pass faili Git'i
 - kontrolli .gitignore't
 - Unustavad `{{ }}` template'ides
@@ -74,6 +78,7 @@ Iga tunni lõpus reflekteeritakse: "Mis oli kõige raskem?" "Kuidas kasutaksid s
 - joonista skeem tahvlile
 
 **Kui midagi läheb valesti:**
+
 - Labor'i server ei tööta? Kasuta localhost'i
 - Vault parool ununes? Kasuta dekrüpteeritud backup faili
 - Template ei genereeru? Kasuta `--check` mode'i testimiseks
@@ -133,10 +138,12 @@ Iga tunni lõpus reflekteeritakse: "Mis oli kõige raskem?" "Kuidas kasutaksid s
 ### Kohandus
 
 **Kui õpilased on kiired:**
+
 - Näita ka ansible.cfg failist muutujate seadistamist
 - Tutvusta registered variables't
 
 **Kui õpilased on aeglased:**
+
 - Jäta faktid järgmisesse tundi
 - Keskendu ainult group_vars/all vs group_vars/groupname
 
@@ -194,10 +201,12 @@ Iga tunni lõpus reflekteeritakse: "Mis oli kõige raskem?" "Kuidas kasutaksid s
 ### Kohandus
 
 **Kui õpilased on kiired:**
+
 - Tutvusta makrosid: `{% macro %}`
 - Näita template inheritance't
 
 **Kui õpilased on aeglased:**
+
 - Jäta loop edasisesse tundi
 - Keskendu ainult muutujatele ja ühele if tingimusele
 
@@ -263,10 +272,12 @@ Iga tunni lõpus reflekteeritakse: "Mis oli kõige raskem?" "Kuidas kasutaksid s
 ### Kohandus
 
 **Kui õpilased on kiired:**
+
 - Näita listen groups't
 - Tutvusta multiple vault ID'd
 
 **Kui õpilased on aeglased:**
+
 - Jäta vault järgmisesse tundi
 - Keskendu ainult handler'itele
 
@@ -278,6 +289,7 @@ Iga tunni lõpus reflekteeritakse: "Mis oli kõige raskem?" "Kuidas kasutaksid s
 
 **Ülesanne:**
 Loo LAMP stack deployment, mis kasutab kõiki õpitud tehnikaid:
+
 - Muutujate hierarhia (group_vars/all, group_vars/dev, group_vars/prod)
 - Jinja2 template'id (Nginx, MySQL, PHP konfiguratsioonid)
 - Handler'id (teenuste restart/reload)
@@ -286,6 +298,7 @@ Loo LAMP stack deployment, mis kasutab kõiki õpitud tehnikaid:
 **Täpsem kirjeldus:** Vaata kodutoo.md
 
 **Esitamine:**
+
 - Git repository link
 - README.md reflektsiooniga
 - Töötav playbook (testime järgmine kord)
@@ -302,6 +315,7 @@ Loo LAMP stack deployment, mis kasutab kõiki õpitud tehnikaid:
 | **Kokku** | **100** | |
 
 **Boonus (+10%):**
+
 - Kasuta ansible.cfg faili optimeerimiseks
 - Lisa error handling (failed_when, ignore_errors)
 - Dokumenteeri keerulised osad kommentaaridega
@@ -311,16 +325,19 @@ Loo LAMP stack deployment, mis kasutab kõiki õpitud tehnikaid:
 ## Viited ja Täiendav Lugemine
 
 **Ansible dokumentatsioon:**
+
 - [Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
 - [Jinja2 Templates](https://docs.ansible.com/ansible/latest/user_guide/playbooks_templating.html)
 - [Ansible Vault](https://docs.ansible.com/ansible/latest/user_guide/vault.html)
 
 **Pedagoogiline kirjandus:**
+
 - National Research Council (2000). "How People Learn: Brain, Mind, Experience, and School"
 - Sweller, J. (1988). "Cognitive load during problem solving"
 - Vygotsky, L. S. (1978). "Mind in Society"
 
 **Praktilised ressursid:**
+
 - [Ansible Examples](https://github.com/ansible/ansible-examples)
 - [Jeff Geerling's Blog](https://www.jeffgeerling.com/blog)
 
@@ -331,6 +348,7 @@ Loo LAMP stack deployment, mis kasutab kõiki õpitud tehnikaid:
 **Õpetajale meelespea:**
 
 **Teha:**
+
 - Aktiveeri eelteadmisi (copy-paste probleem)
 - Selgita MIKS enne KUIDAS
 - Anna aega praktikaks
@@ -338,18 +356,21 @@ Loo LAMP stack deployment, mis kasutab kõiki õpitud tehnikaid:
 - Küsi refleksioonikuisimusi
 
 **Mitte teha:**
+
 - Ära näita käske ilma selgituseta
 - Ära kiirusta läbi kontseptsioonide
 - Ära unusta vault parooli hoiatust
 - Ära eelda, et kõik saavad ühel ajal valmis
 
 **Kui midagi läheb valesti:**
+
 - Pausi, selgita uuesti
 - Joonista tahvlile
 - Küsi õpilastelt: "Mis osa oli segane?"
 - Kasuta Think-Pair-Share
 
 **Edu näitajad:**
+
 - Õpilased küsivad "miks" küsimusi (hea märk!)
 - Õpilased aitavad üksteist
 - Kodutööd on mitmekesised (ei ole kõik identsed)

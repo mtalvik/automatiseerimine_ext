@@ -9,10 +9,12 @@ See fail sisaldab kasulikke linke ja ressursse Ansible õppimiseks. Materjalid o
 ### Ansible põhitõed
 
 **Alusta siit:**
+
 - [Getting Started with Ansible](https://docs.ansible.com/ansible/latest/getting_started/index.html) - Ametlik dokumentatsioon algajatele
 - [How Ansible Works](https://www.ansible.com/overview/how-ansible-works) - Visuaalne ülevaade arhitektuurist
 
 **Videod:**
+
 - [Ansible in 100 Seconds](https://www.youtube.com/watch?v=xRMPKQweySE) - Kiire ülevaade (Fireship)
 
 ### YAML süntaks
@@ -189,18 +191,21 @@ See fail sisaldab kasulikke linke ja ressursse Ansible õppimiseks. Materjalid o
 Pärast labori ja kodutöö lõpetamist proovige neid projekte:
 
 **Lihtsamad projektid:**
+
 - WordPress paigaldamine LAMP stack'iga
 - Docker ja Docker Compose paigaldamine
 - MySQL database backup automatiseerimine
 - SSL sertifikaatide automaatne uuendamine (Let's Encrypt)
 
 **Keskmised projektid:**
+
 - GitLab paigaldamine ja seadistamine
 - Kubernetes klasteri setup
 - Monitoring stack (Prometheus + Grafana)
 - ELK stack (Elasticsearch, Logstash, Kibana)
 
 **Keerulisemad projektid:**
+
 - Zero-downtime deployment süsteem
 - Multi-environment setup (dev, staging, prod)
 - Dynamic inventory AWS/Azure jaoks
@@ -256,10 +261,12 @@ Kui soovite karjääri IT infrastruktuuri valdkonnas:
 5. Proovige üht praktikaprojekti
 
 **Hoidke lahti kõrval:**
+
 - Ansible Cheat Sheet
 - Module Index dokumentatsioon
 
 **Edasine õppimine:**
+
 - Best practices guide
 - Ansible Roles
 - CI/CD integratsioon

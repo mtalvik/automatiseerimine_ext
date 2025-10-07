@@ -6,6 +6,7 @@
 ## Õpiväljundid
 
 Pärast seda laborit õppija:
+
 - Loob Galaxy standardi järgi struktureeritud Ansible rolli
 - Seadistab template'e Jinja2 süntaksiga konfiguratsioonide dünaamiliseks genereerimiseks
 - Käivitab handlers'eid teenuste kontrollitud taaskäivitamiseks
@@ -124,15 +125,19 @@ galaxy_info:
   min_ansible_version: "2.9"
   
   platforms:
+
     - name: Ubuntu
       versions:
+
         - focal
         - jammy
     - name: Debian
       versions:
+
         - bullseye
   
   galaxy_tags:
+
     - web
     - nginx
     - ssl
@@ -199,10 +204,12 @@ Ansible facts nagu `ansible_processor_vcpus` detekteeritakse automaatselt. Defau
 ---
 _nginx_packages_map:
   Debian:
+
     - nginx
     - ssl-cert
     - curl
   RedHat:
+
     - nginx
     - mod_ssl
     - curl
@@ -276,6 +283,7 @@ Include_tasks on dünaamiline - when conditionals töötavad. Failed_when false 
 - name: "Ensure nginx_http_port is valid"
   assert:
     that:
+
       - nginx_http_port is number
       - nginx_http_port > 0
       - nginx_http_port < 65536
@@ -285,6 +293,7 @@ Include_tasks on dünaamiline - when conditionals töötavad. Failed_when false 
 - name: "Ensure nginx_https_port is valid"
   assert:
     that:
+
       - nginx_https_port is number
       - nginx_https_port > 0
       - nginx_https_port < 65536
@@ -294,6 +303,7 @@ Include_tasks on dünaamiline - when conditionals töötavad. Failed_when false 
 - name: "Check sufficient RAM"
   assert:
     that:
+
       - ansible_memtotal_mb >= 256
     fail_msg: "Minimum 256MB RAM required, found {{ ansible_memtotal_mb }}MB"
     quiet: true
@@ -323,6 +333,7 @@ Assert moodul peatab playbook'i kui tingimus ebaõnnestub. Quiet flag peidab ver
 ```
 
 Cache_valid_time:
+
 - 3600 tähendab "kui apt cache on värskem kui 1h, ära uuenda". See kiirendab korduvaid käivitamisi. Package moodul on OS-agnostic
 - töötab nii apt kui yum'iga.
 
@@ -522,6 +533,7 @@ SSL võimaldab HTTPS ühendusi. Isegi kui kasutate ise-allkirjastatud sertifikaa
     group: root
     mode: '0755'
   loop:
+
     - /etc/ssl/certs
     - /etc/ssl/private
 
@@ -608,6 +620,7 @@ Symlink sites-enabled'is aktiveerib virtual hosti. Selle eemaldamine deaktiveeri
   vars:
     nginx_ssl_enabled: true
     nginx_vhosts:
+
       - name: test.local
         ssl: true
       - name: demo.local
@@ -615,6 +628,7 @@ Symlink sites-enabled'is aktiveerib virtual hosti. Selle eemaldamine deaktiveeri
         root: /var/www/demo
   
   roles:
+
     - nginx-webserver
 ```
 

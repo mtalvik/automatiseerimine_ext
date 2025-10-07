@@ -63,6 +63,7 @@ resource "local_file" "user_configs" {
 ### Ülesanne 1: Dünaamiline Infrastructure
 
 Loo Terraform kood, mis genereerib:
+
 - 3 kausta: `dev/`, `staging/`, `prod/`
 - Igas kaustas: `config.yaml`, `secrets.txt` (encrypted), `README.md`
 - Kasuta `for_each` ja variables
@@ -159,6 +160,7 @@ locals {
 ### Ülesanne 2: Dynamic Configuration Generator
 
 Loo Terraform kood, mis:
+
 - Võtab map of services (name → config)
 - Genereerib iga service jaoks nginx config
 - Kasuta `for_each`, `templatefile()`, ja `merge()`
@@ -270,6 +272,7 @@ output "upstreams" {
 ### Ülesanne 3: Multi-Environment Setup
 
 Loo terraform projekt, mis genereerib:
+
 - Dev, staging, prod environments
 - Igal: nginx config, app config, database init script
 - Conditional: prod'is SSL, dev'is debug mode
@@ -352,10 +355,13 @@ module "servers" {
 **Input** (`infrastructure.yaml`):
 ```yaml
 projects:
+
   - name: web-app
     environments:
+
       - name: dev
         services:
+
           - name: api
             port: 8080
             replicas: 1
@@ -364,6 +370,7 @@ projects:
             replicas: 1
       - name: prod
         services:
+
           - name: api
             port: 8080
             replicas: 3
@@ -380,6 +387,7 @@ projects:
 - README'ed
 
 **Nõuded:**
+
 - [ ] Parse YAML (`yamldecode()`)
 - [ ] Nested `for_each` loops
 - [ ] Templates

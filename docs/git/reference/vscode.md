@@ -186,11 +186,13 @@ Host multipass-dev
 
 ### Remote Extensions
 Remote masinas on **eraldi extension store**:
+
 - Ühenda remote masinaga
 - Extensions paneel näitab "Install in SSH: serverinimi"
 - Paigalda vajalikud extensions remote masinas
 
 **Soovitatud remote extensions**:
+
 - Python, Docker, YAML
 - kui vaja remote masinas
 

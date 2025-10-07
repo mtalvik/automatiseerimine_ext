@@ -70,9 +70,11 @@ galaxy_info:
   description: "Production-grade Nginx with SSL"
   min_ansible_version: "2.9"
   platforms:
+
     - name: Ubuntu
       versions: [focal, jammy]
 dependencies:
+
   - role: firewall
     vars:
       firewall_allowed_ports: [80, 443]
@@ -238,6 +240,7 @@ Tasks'id notifivad handlers'eid muudatuste korral. Ansible jälgib iga task'i "c
     dest: /etc/nginx/nginx.conf
     validate: nginx -t -c %s
   notify:
+
     - validate nginx config
     - reload nginx
 
@@ -277,6 +280,7 @@ Rollid ei eksisteeri isolatsioonis - nad sõltuvad teineteisest. Nginx roll või
 ```yaml
 # meta/main.yml
 dependencies:
+
   - role: common
     vars:
       common_packages: [curl, vim, git]
@@ -337,8 +341,10 @@ Testimise kihid algavad süntaksi valideerimisest. Ansible-lint kontrollib commo
 ```yaml
 # .ansible-lint
 skip_list:
+
   - '106'  # Role name with galaxy prefix
 warn_list:
+
   - experimental
   - role-name
 ```
@@ -374,6 +380,7 @@ jobs:
       matrix:
         distro: [ubuntu2004, ubuntu2204, debian11]
     steps:
+
       - uses: actions/checkout@v2
       - name: Run Molecule tests
         run: molecule test
@@ -408,10 +415,12 @@ Production-ready Nginx role with SSL, virtual hosts, and performance tuning.
 ```yaml
 - hosts: webservers
   roles:
+
     - role: nginx-pro
       vars:
         nginx_ssl_enabled: true
         nginx_vhosts:
+
           - name: example.com
             root: /var/www/example
 ```

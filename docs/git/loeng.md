@@ -46,6 +46,7 @@ Git'i südames on neli objekti tüüpi. **Blob** (binary large object) on faili 
 Need objektid salvestatakse `.git/objects/` kataloogi, kus iga objekti nimi tuleneb selle sisu SHA-1 räsist. See on content-addressable süsteemi olemus: sisu määrab aadressi. Kui kaks objekti on identsed, on ka nende räsid identsed, ja Git salvestab nad ainult üks kord. See on üks efektiivsuse allikaid - identne sisu ei dubleerita kunagi.
 
 Working directory on tavaliselt arusaadav:
+
 - see on kataloog kettale, kus asuvad sinu projekti failid redigeerimiskõlblikul kujul. Repository on `.git` kataloog, mis sisaldab kogu versiooniajalogu. Kuid mis on **staging area** ehk **index**? See on vahepealne seis, mis määratleb, milline sinu järgmine commit täpselt olema saab. Staging area ei ole lihtsalt muudatuste nimekiri
 - see on täielik snapshot'i prototüüp. Kui teed `git add`, siis salvestatakse faili sisu juba blob'ina objektide andmebaasi ja staging area registreerib viite sellele blob'ile. Commit tegemine on seejärel kiire
 - lihtsalt tree ja commit objekti loomine.

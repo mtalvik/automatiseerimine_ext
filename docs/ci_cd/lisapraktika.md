@@ -27,11 +27,13 @@ name: CI/CD
 on:
   push:
     branches:
+
       - main
       - develop
       - 'feature/**'
   pull_request:
     branches:
+
       - main
       - develop
 
@@ -39,6 +41,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       - name: Run tests
         run: pytest tests/
@@ -49,6 +52,7 @@ jobs:
     if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
     needs: test
     steps:
+
       - uses: actions/checkout@v3
       - name: Build Docker image
         run: |
@@ -64,6 +68,7 @@ jobs:
       name: staging
       url: https://staging.myapp.com
     steps:
+
       - name: Deploy to staging
         run: echo "Deploying to staging..."
       # Käivitub AINULT develop branch'il
@@ -76,6 +81,7 @@ jobs:
       name: production
       url: https://myapp.com
     steps:
+
       - name: Deploy to production
         run: echo "Deploying to production..."
       # Käivitub AINULT main branch'il, vajab manual approval
@@ -88,6 +94,7 @@ Image tagging strateegia on oluline. Feature branch'idel ei builda image'i ülds
 ### 1.3 Harjutus: Branch Strategy Implementeerimine
 
 **Nõuded:**
+
 - [ ] Pipeline käitub erinevalt sõltuvalt branch'ist (feature → test ainult, develop → test + build + staging, main → täielik)
 - [ ] Docker image'id on tagitud erinevalt (develop-latest, latest + SHA)
 - [ ] Production environment nõuab manual approval
@@ -95,6 +102,7 @@ Image tagging strateegia on oluline. Feature branch'idel ei builda image'i ülds
 - [ ] README.md dokumenteerib branch strategy't ja näitab igat stsenaariumi
 
 **Näpunäiteid:**
+
 - Alusta lihtsamatest if condition'itest, testi iga branch'i käitumist
 - GitHub environment settings asub Settings → Environments, seal saad seadistada approval'eid
 - Branch protection asub Settings → Branches, seal nõua pull request review'd
@@ -121,6 +129,7 @@ git push origin develop
 ```
 
 **Boonus:**
+
 - Lisa pull request'i jaoks eraldi workflow mis kommenteerib PR'i build statusega
 - Implementeeri automatic tagging: kui merge main'i, loo Git tag
 - Lisa matrix strategy: testi mitmete versioonidega, aga ainult develop ja main'il
@@ -187,17 +196,20 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+
       - run: pytest tests/
   
   lint:
     runs-on: ubuntu-latest
     steps:
+
       - run: flake8 .
   
   build:
     needs: [test, lint]
     runs-on: ubuntu-latest
     steps:
+
       - run: docker build .
 ```
 
@@ -209,6 +221,7 @@ test:
       python-version: [3.8, 3.9, 3.10, 3.11]
   runs-on: ubuntu-latest
   steps:
+
     - uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
@@ -219,6 +232,7 @@ Artifact'id jagavad build tulemusi. Build job loob artifact'i, deploy job kasuta
 ```yaml
 build:
   steps:
+
     - run: npm run build
     - uses: actions/upload-artifact@v3
       with:
@@ -228,6 +242,7 @@ build:
 deploy:
   needs: build
   steps:
+
     - uses: actions/download-artifact@v3
       with:
         name: dist
@@ -237,6 +252,7 @@ deploy:
 ### 2.3 Harjutus: Pipeline Kiiruse Optimeerimine
 
 **Nõuded:**
+
 - [ ] Mõõda baseline - pipeline'i täielik aeg enne optimeerimist
 - [ ] Implementeeri vähemalt kolm optimeerimist (caching, parallelism, Docker layers)
 - [ ] Mõõda tulemused - pipeline'i aeg pärast optimeerimist
@@ -244,6 +260,7 @@ deploy:
 - [ ] Dokumenteeri README.md'sse kõik optimeerimised ja nende mõju
 
 **Näpunäiteid:**
+
 - Alusta profiling'ust
 - vaata GitHub Actions UI'st kus kulub kõige rohkem aega
 - Dependency caching on quickest win
@@ -272,6 +289,7 @@ git push origin main
 ```
 
 **Boonus:**
+
 - Kasuta BuildKit features Docker'is (cache-from, cache-to advanced options)
 - Implementeeri custom cache strategy mis säilitab cache'i branch'ide vahel
 - Lisa workflow dispatch trigger mis puhastab cache'i kui vaja
@@ -295,6 +313,7 @@ Security scanning peaks olema pipeline'i lahutamatu osa. Trivy on tööstustanda
 security:
   runs-on: ubuntu-latest
   steps:
+
     - uses: actions/checkout@v3
     
     - name: Run Trivy vulnerability scanner
@@ -369,6 +388,7 @@ Workflow kasutab seda:
 ```yaml
 deploy:
   steps:
+
     - name: Deploy
       run: ./deploy.sh
     
@@ -420,6 +440,7 @@ jobs:
   rollback:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Rollback to version
@@ -449,6 +470,7 @@ Notifications hoiavad meeskonda kursis. Slack webhook on lihtne seadistada.
 ### 3.3 Harjutus: Production Pipeline Implementeerimine
 
 **Nõuded:**
+
 - [ ] Security scanning - Trivy või muu tool (dependency + container)
 - [ ] Health monitoring - automaatne check peale deployment'i
 - [ ] Rollback capability - manual workflow või automaatne failure'il
@@ -456,6 +478,7 @@ Notifications hoiavad meeskonda kursis. Slack webhook on lihtne seadistada.
 - [ ] RUNBOOK.md dokumentatsioon - kuidas süsteem töötab ja kuidas troubleshoot'ida
 
 **Näpunäiteid:**
+
 - Alusta security scanning'ust
 - Trivy action on kõige lihtsam
 - Health check script kirjuta ja testi lokaalses enne kui lisad pipeline'i
@@ -483,6 +506,7 @@ git push origin main
 ```
 
 **Boonus:**
+
 - Implementeeri canary deployment
 - 10% traffic uuele versioonile, siis 100%
 - Lisa metrics collection
@@ -496,12 +520,14 @@ git push origin main
 ## Kasulikud Ressursid
 
 **Dokumentatsioon:**
+
 - [GitHub Actions Workflow Syntax](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions)
 - [GitHub Actions Caching](https://github.com/actions/cache)
 - [Docker Multi-Stage Builds](https://docs.docker.com/build/building/multi-stage/)
 - [Trivy Security Scanner](https://github.com/aquasecurity/trivy)
 
 **Tööriistad:**
+
 - **Trivy**
 - vulnerability scanning: `aquasecurity/trivy-action@master`
 - **actions/cache**
@@ -512,6 +538,7 @@ git push origin main
 - Slack notifications: `8398a7/action-slack@v3`
 
 **Näited:**
+
 - [GitHub Actions Examples](https://github.com/actions/starter-workflows)
 - [Docker BuildKit Cache](https://docs.docker.com/engine/reference/commandline/buildx_build/#cache-from)
 - [Git Flow Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)

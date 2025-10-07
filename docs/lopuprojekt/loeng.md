@@ -161,12 +161,14 @@ See kombinatsioon rõhutab operatsioonide poolt - kuidas jälgida, et süsteem t
 Traditsiooniline veebirakendus koosneb kolmest põhikihist: frontend (kasutajaliides), backend (äriloogika ja API) ning andmebaas (andmete püsivus). See arhitektuur on hästi mõistetav ja dokumenteeritud.
 
 **Tehnilised Aspektid:**
+
 - Frontend võib olla staatiline (HTML/CSS/JS) või raamistiku-põhine (React, Vue)
 - Backend pakub REST või GraphQL API't
 - Andmebaas võib olla relatsioonne (PostgreSQL, MySQL) või NoSQL (MongoDB)
 - Session management ja autentimine on vajalikud
 
 **DevOps Integratsioon:**
+
 - Iga komponent on eraldi Docker konteiner
 - Kubernetes deploy'ib ja skaleerib komponente sõltumatult
 - CI/CD pipeline testib ja deploy'ib automaatselt
@@ -190,6 +192,7 @@ Frontend pod'id serveerivad staatilist sisu, backend pod'id töötlevad API pär
 REST API teenus on backend-focused projekt, mis eksponeerib andmeid ja funktsionaalsust HTTP endpoint'ide kaudu. Frontend puudub, fookus on API disainil ja dokumentatsioonil.
 
 **Tehnilised Aspektid:**
+
 - RESTful endpoint'id CRUD operatsioonide jaoks
 - OpenAPI/Swagger dokumentatsioon
 - Autentimine läbi API key'de või JWT
@@ -197,6 +200,7 @@ REST API teenus on backend-focused projekt, mis eksponeerib andmeid ja funktsion
 - Versioonimine (v1, v2 endpoint'id)
 
 **DevOps Integratsioon:**
+
 - API konteinerid deploy'itakse Kubernetes'es
 - API Gateway haldab routing'ut ja rate limiting'ut
 - Andmebaas on HA (High Availability) konfiguratsioonis
@@ -217,12 +221,14 @@ API versioonimise strateegiad võimaldavad muudatusi ilma olemasolevaid kliente 
 Monitoring dashboard visualiseerib süsteemi meetrikaid reaalajas. See projekt on operations-focused, rõhutades observability't ja alerting'ut.
 
 **Tehnilised Aspektid:**
+
 - Prometheus kogub meetrikaid exporteritelt
 - Grafana dashboard'id visualiseerivad andmeid
 - Alertmanager haldab hoiatusi
 - Time-series andmebaas (Prometheus built-in)
 
 **DevOps Integratsioon:**
+
 - Prometheus deploy'itakse Kubernetes'es
 - Service discovery leiab automaatselt target'id
 - Grafana import'ib eelseadistatud dashboard'e
@@ -276,12 +282,14 @@ Peamised kasutusjuhtumid on kasutajate ja tellimuste haldamine.
 Valime PostgreSQL'i.
 
 **Põhjendus:**
+
 - ACID garantii on kriitiline tellimuste jaoks
 - JSON tugi võimaldab paindlikkust ilma NoSQL'i liikumata
 - Parem full-text search kui MySQL'il
 - Rikkalikkud data tüübid (arrays, hstore)
 
 **Tagajärjed:**
+
 - Vajame PostgreSQL ekspertiisi meeskonnas
 - Backup strateegia peab arvestama WAL'iga
 - Replication seadistamine on keerulisem kui MongoDB'l
@@ -445,16 +453,19 @@ Iga suurem komponent vajab kirjeldust:
 **Deployment:** Nginx container Kubernetes'es
 
 **Environment Variables:**
+
 - `API_URL`
 - Backend API endpoint
 - `AUTH_DOMAIN`
 - Autentimise provider
 
 **Ressursinõuded:**
+
 - CPU: 100m request, 500m limit
 - Memory: 128Mi request, 512Mi limit
 
 **Health Check:**
+
 - Readiness: `GET /health`
 - Liveness: `GET /`
 ```
@@ -586,6 +597,7 @@ Dependency vulnerabilities on tõsine turvaoht. Automaatne skaneerimine:
 # Dependabot config
 version: 2
 updates:
+
   - package-ecosystem: npm
     directory: /
     schedule:
@@ -630,6 +642,7 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
+
   - name: app
     resources:
       requests:
@@ -654,6 +667,7 @@ kube-score manifest.yaml
 **README Täielikkus:**
 
 Checklist hea README jaoks:
+
 - [ ] Projekti kirjeldus esimeses lõigus
 - [ ] Installimise sammud nullist working state'ini
 - [ ] Prerequisite'id versiooni numbritega
@@ -695,6 +709,7 @@ Scope creep on nähtus, kus projekti ulatus kasvab planeeritust suuremaks. See o
 **Ennetamine:**
 
 Defineeri selgelt Minimum Viable Product (MVP):
+
 - Millised featured on absolutely essential?
 - Millised on nice-to-have?
 - Millised on future enhancements?
@@ -740,13 +755,16 @@ metadata:
   name: reviews
 spec:
   hosts:
+
   - reviews
   http:
+
   - match:
     - headers:
         user-type:
           exact: tester
     route:
+
     - destination:
         host: reviews
         subset: v2  # Testers näevad v2
@@ -836,14 +854,17 @@ rate(http_requests_total[5m])
 Liiga palju alert'e on sama halb kui mitte ühtegi - inimesed hakkavad ignoreerima.
 
 Alert'ide põhimõtted:
+
 - Alert ainult actionable problems korral
 - Alert severity järgi urgency't (critical, warning, info)
 - Dokumenteeri iga alert'i runbook'is "mida teha?"
 ```yaml
 # Prometheus AlertManager rule
 groups:
+
 - name: example
   rules:
+
   - alert: HighErrorRate
     expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
     for: 10m  # Ainult kui kestab 10+ minutit

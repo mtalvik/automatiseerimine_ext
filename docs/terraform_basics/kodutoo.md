@@ -13,6 +13,7 @@ Loo kohalik infrastruktuur Terraform'iga. Õpid Infrastructure as Code põhimõt
 ## 1. Projekti Ülevaade
 
 Loote Terraform'iga projekti struktuuri mis sisaldab:
+
 - Kaustu (config, scripts, docs)
 - Konfiguratsioonifaile (JSON, YAML)
 - Skripte (startup, cleanup)
@@ -33,6 +34,7 @@ cd terraform-homework
 ```
 
 Looge 4 faili:
+
 - `main.tf`
 - ressursside definitsioonid
 - `variables.tf`
@@ -308,6 +310,7 @@ git push -u origin main
 ```
 
 Lisa ka README.md mis selgitab:
+
 - Mis see projekt teeb
 - Kuidas käivitada
 - Mis faile see loob
@@ -366,6 +369,7 @@ Vasta küsimustele (2-3 lauset igaüks):
 **Kokku:** 100% + 10% boonus = max 110%
 
 **Hindeskaalaa:**
+
 - 90-100%: Hinne 5 (suurepärane)
 - 75-89%: Hinne 4 (hea)
 - 60-74%: Hinne 3 (rahuldav)

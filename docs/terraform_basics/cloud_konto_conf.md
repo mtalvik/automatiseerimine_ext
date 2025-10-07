@@ -31,6 +31,7 @@ Selles juhendis seadistad cloud platvormi Terraform'i kasutamiseks. Valik platvo
 ### 1.1 Miks Student Pack?
 
 GitHub Student Pack annab õpilastele juurdepääsu paljudele tasuta tööriistadele:
+
 - DigitalOcean $200 credit (1 aasta)
 - Azure $100 credit
 - Heroku credits
@@ -43,6 +44,7 @@ GitHub Student Pack annab õpilastele juurdepääsu paljudele tasuta tööriista
 Vajad kooli või ülikooli emaili (lõppeb .edu või .edu.ee) VÕI õpilastunnistust.
 
 Mine https:
+
 - //education.github.com/pack ja logi sisse GitHub'i. Kui kontot pole, loo uus. Vajuta "Get student benefits" ja vali "Student". Sisesta oma kooli email või lae üles õpilastunnistus (foto või PDF). Oota kinnitust
 - tavaliselt võtab 1-3 päeva.
 
@@ -83,6 +85,7 @@ doctl account get
 ```
 
 **Validation:**
+
 - [ ] Student Pack aktiivne GitHub'is
 - [ ] DigitalOcean konto loodud
 - [ ] $200 credit nähtav
@@ -98,6 +101,7 @@ AWS on kõige populaarsem cloud platvorm. Vajad krediitkaarti, aga free tier keh
 ### 2.1 Miks AWS?
 
 AWS on:
+
 - Kõige populaarsem (hea CV jaoks)
 - Kõige rohkem õppematerjale
 - 12 kuud free tier
@@ -106,6 +110,7 @@ AWS on:
 ### 2.2 Konto Loomine
 
 Mine https:
+
 - //aws.amazon.com ja vajuta "Create an AWS Account". Sisesta email, konto nimi ja tugev parool. Vali konto tüübiks "Personal". Sisesta krediitkaart info
 - AWS teeb $1 test'i mille tagastavad. Kinnita telefon SMS koodiga. Vali support plaan "Basic Support
 - Free".
@@ -132,6 +137,7 @@ Loo Access Keys:
 Mine IAM → Users → terraform-user → Security credentials → Create access key. Vali "Command Line Interface (CLI)". Kopeeri Access Key ID ja Secret Access Key - näed neid ainult ühe korra.
 
 **Validation:**
+
 - [ ] IAM kasutaja loodud
 - [ ] Credentials CSV alla laetud
 - [ ] Access keys loodud ja salvestatud
@@ -167,6 +173,7 @@ aws sts get-caller-identity
 Peaksid nägema JSON'i oma account ID'ga.
 
 **Validation:**
+
 - [ ] AWS CLI installitud
 - [ ] aws configure tehtud
 - [ ] aws sts get-caller-identity töötab
@@ -227,11 +234,13 @@ aws sts get-caller-identity
 ```
 
 **TURVALISUS:**
+
 - Ära pane credentials Git'i
 - Ära jaga Codespace'i avalikult
 - Credentials kustutatakse codespace'i sulgemisel
 
 **Validation:**
+
 - [ ] Codespace töötab
 - [ ] Terraform installitud
 - [ ] AWS CLI töötab
@@ -281,6 +290,7 @@ aws ec2 describe-key-pairs --key-names terraform-key
 ```
 
 **Validation:**
+
 - [ ] SSH key paar loodud
 - [ ] Private key õigused 600
 - [ ] Key AWS'is nähtav
@@ -328,6 +338,7 @@ EOF
 ```
 
 Miks see oluline:
+
 - Ei pane AWS credentials Git'i
 - Ei pane SSH võtmeid Git'i
 - Ei pane terraform.tfvars Git'i (sisaldab tundlikku infot)
@@ -356,6 +367,7 @@ terraform-labs/
 ```
 
 **Validation:**
+
 - [ ] Kaust loodud
 - [ ] .gitignore on olemas
 - [ ] Põhifailid loodud
@@ -368,25 +380,30 @@ terraform-labs/
 Enne labori alustamist kontrolli:
 
 **Terraform:**
+
 - [ ] terraform version töötab
 - [ ] Näitab versiooni 1.5+
 
 **Cloud Platform (vali üks):**
+
 - [ ] DigitalOcean: doctl account get töötab
 - [ ] AWS: aws sts get-caller-identity töötab
 - [ ] Codespaces: Codespace töötab ja AWS CLI seadistatud
 
 **SSH:**
+
 - [ ] SSH key paar loodud
 - [ ] Private key õigused 600
 - [ ] Key AWS'is (kui kasutad AWS'i)
 
 **Projekt:**
+
 - [ ] terraform-labs kaust loodud
 - [ ] .gitignore on olemas ja õige
 - [ ] Põhifailid loodud
 
 **Turvalisus:**
+
 - [ ] Credentials pole Git'is
 - [ ] .gitignore sisaldab *.tfvars
 - [ ] SSH private key pole Git'is

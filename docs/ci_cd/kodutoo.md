@@ -338,6 +338,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Run tests
@@ -353,6 +354,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Login to GitHub Container Registry
@@ -376,6 +378,7 @@ jobs:
     environment:
       name: production
     steps:
+
       - name: Deploy
         run: |
           echo "Deploying $IMAGE_NAME"

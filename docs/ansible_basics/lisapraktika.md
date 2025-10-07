@@ -40,10 +40,12 @@ Näide dünaamilisest nginx konfiguratsioonist:
     ssl_key: "/etc/ssl/private/mysite.key"
     
     backend_apps:
+
       - name: "api"
         port: 8080
         health_path: "/health"
         replicas:
+
           - { ip: "10.0.1.10", weight: 3 }
           - { ip: "10.0.1.11", weight: 2 }
           - { ip: "10.0.1.12", weight: 1 }
@@ -52,10 +54,12 @@ Näide dünaamilisest nginx konfiguratsioonist:
         port: 3000
         health_path: "/status"
         replicas:
+
           - { ip: "10.0.2.10", weight: 1 }
           - { ip: "10.0.2.11", weight: 1 }
   
   tasks:
+
     - name: "Deploy nginx config from template"
       template:
         src: ../templates/nginx_advanced.conf.j2
@@ -64,6 +68,7 @@ Näide dünaamilisest nginx konfiguratsioonist:
       notify: reload nginx
   
   handlers:
+
     - name: reload nginx
       service:
         name: nginx
@@ -223,6 +228,7 @@ Kasutame kombinatsiooni `lineinfile`, `blockinfile` ja `replace` moodulitest koo
   become: yes
   
   tasks:
+
     - name: "Backup original sshd_config"
       copy:
         src: /etc/ssh/sshd_config
@@ -255,6 +261,7 @@ Kasutame kombinatsiooni `lineinfile`, `blockinfile` ja `replace` moodulitest koo
       blockinfile:
         path: /etc/ssh/sshd_config
 marker:
+
 - "# {mark} ANSIBLE MANAGED BLOCK
 - Security"
         block: |
@@ -387,8 +394,10 @@ Kasutame `block/rescue/always` struktuuri koos retry loogikaga ja health check'i
     health_url: "http://localhost:8080/health"
   
   tasks:
+
     - name: "Deployment block with error handling"
       block:
+
         - name: "Create backup directory"
           file:
             path: "{{ backup_path }}"
@@ -455,12 +464,14 @@ Kasutame `block/rescue/always` struktuuri koos retry loogikaga ja health check'i
             url: "http://localhost:8080{{ item }}"
             status_code: 200
           loop:
+
             - "/api/status"
             - "/api/version"
             - "/api/db-check"
           register: smoke_tests
       
       rescue:
+
         - name: "Deployment failed
         - starting rollback"
           debug:
@@ -512,6 +523,7 @@ Kasutame `block/rescue/always` struktuuri koos retry loogikaga ja health check'i
             msg: "Deployment failed. System rolled back to previous version."
       
       always:
+
         - name: "Cleanup temp files"
           file:
             path: "/tmp/{{ app_name }}-{{ app_version }}.tar.gz"

@@ -9,6 +9,7 @@
 ## Õpiväljundid
 
 Pärast kursust õpilane:
+
 - **ÕV1:** Selgitab CI/CD vajadust ja eristab Continuous Integration'it Continuous Deployment'ist
 - **ÕV2:** Seadistab GitHub Actions pipeline'i põhistruktuuri (jobs, steps, triggers)
 - **ÕV3:** Kirjutab YAML workflow'sid testide ja build'i automatiseerimiseks
@@ -28,6 +29,7 @@ Pärast kursust õpilane:
 4. **Authentic learning:** Kasuta päris tööriistu (GitHub Actions, Docker Hub), mitte simulatsioone
 
 **Bloom'i taksonoomia rakendus:**
+
 - Mäletamine: CI/CD definitsioonid
 - Mõistmine: Miks automatiseerimine on vajalik
 - Rakendamine: Pipeline'i kirjutamine
@@ -53,6 +55,7 @@ Pärast kursust õpilane:
 ### Enne esimest tundi
 
 **Tehniline setup:**
+
 - [ ] GitHub organisatsioon õpilastele (või public repos)
 - [ ] Näidis repository valmis (Python Flask või Node.js Express)
 - [ ] GitHub Actions enabled (default on)
@@ -60,6 +63,7 @@ Pärast kursust õpilane:
 - [ ] Backup plan: GitLab.com kui GitHub on maas
 
 **Materjalide kontroll:**
+
 - [ ] `loeng.md` läbi loetud
 - [ ] `labor.md` testitud (kas kõik käsud töötavad)
 - [ ] `kodutoo.md` selge
@@ -92,6 +96,7 @@ mkdir -p .github/workflows
 **Probleem:** Indentation vale (YAML on range!)
 
 **Lahendus:**
+
 - Näita https://www.yamllint.com/
 - Selgita: YAML kasutab spaces, mitte tabs
 - Tipp: VS Code YAML extension
@@ -110,6 +115,7 @@ mkdir -p .github/workflows
 **Probleem:** Dependency puudub või test on vale
 
 **Lahendus:**
+
 - Loe logs tähelepanelikult (scroll to error)
 - "Kas see töötab lokaalses?"
 - Dependencies install before test
@@ -119,6 +125,7 @@ mkdir -p .github/workflows
 **Probleem:** Vale repository nimi või pole push'inud
 
 **Lahendus:**
+
 - Docker Hub repo nimi: `username/reponame` (lowercase!)
 - Kontrolli kas push job õnnestus
 
@@ -161,6 +168,7 @@ Vigu: vähem (testid püüavad kinni)
 **10-15 min: CI/CD kontseptsioonid**
 
 Selgita lühidalt (kasuta `loeng.md` slaide):
+
 - **Continuous Integration:** Merge tihti, testi automaatselt
 - **Continuous Deployment:** Kui testid OK → production automaatselt
 - **Pipeline:** Sammud mida iga commit läbib
@@ -182,6 +190,7 @@ jobs:
   greet:
     runs-on: ubuntu-latest
     steps:
+
       - run: echo "Hello from CI/CD!"
 ```
 3. Commit ja push
@@ -189,6 +198,7 @@ jobs:
 5. Ava job logs → näita output
 
 **Rõhuta:**
+
 - `.github/workflows/`
 - täpne path
 - YAML süntaks
@@ -204,6 +214,7 @@ jobs:
 3. Push ja vaata Actions tab'is
 
 **Kõnni ringi, aita:**
+
 - YAML syntax errorid
 - Kas Actions tab avaneb
 - Kas näevad logs
@@ -214,6 +225,7 @@ jobs:
 ### Kontrollpunktid
 
 Bloki lõpuks:
+
 - [ ] Iga õpilane on loonud esimese workflow'i
 - [ ] Pipeline on käivitunud edukalt
 - [ ] Õpilased teavad kus Actions tab on
@@ -243,6 +255,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       
       - name: Set up Python
@@ -259,6 +272,7 @@ jobs:
 ```
 
 **Selgita iga rida:**
+
 - `actions/checkout`
 - clone repo
 - `actions/setup-python`
@@ -267,6 +281,7 @@ jobs:
 - käivita käsud
 
 **Näita kui see faili'b:**
+
 - Loo tahtlikult failing test
 - Näita punast X Actions tab'is
 - Näita error logs
@@ -282,6 +297,7 @@ jobs:
 4. Push ja vaata kas läbib
 
 **Aita troubleshoot:**
+
 - Dependencies install
 - Test framework setup
 - YAML süntaks
@@ -289,6 +305,7 @@ jobs:
 **35-45 min: Paaristöö + refleksioon**
 
 Paarides:
+
 - Üks inimene selgitab teisele oma pipeline'i
 - Teine küsib: "Miks sa seda teed?"
 
@@ -335,6 +352,7 @@ build:
   needs: test
   runs-on: ubuntu-latest
   steps:
+
     - uses: actions/checkout@v3
     
     - name: Login to Docker Hub
@@ -350,6 +368,7 @@ build:
 ```
 
 **Selgita:**
+
 - `needs: test`
 - jookseb alles kui test õnnestub
 - `secrets.*`
@@ -366,6 +385,7 @@ build:
 4. Push ja kontrolli Docker Hub'is
 
 **Tüüpilised probleemid:**
+
 - Secrets vale nimi
 - Docker Hub repo pole public
 - Image tag lowercase
@@ -435,6 +455,7 @@ Lahendus: Kontrolli indentation
 2. **Test failure:**
 ```
 FAILED tests/test_app.py:
+
 - :test_home
 - assert 404 == 200
 ```
@@ -461,6 +482,7 @@ Lahendus: Secrets või login
 3. "Kuidas debugid YAML syntax errori?"
 
 **Kodutöö tutvustus:**
+
 - Loo täielik pipeline uuele projektile
 - Details `kodutoo.md`'is
 - Tähtaeg: 1 nädal
@@ -486,6 +508,7 @@ Detailid failis `kodutoo.md`.
 4. Dokumenteeri (`README.md` - refleksioon)
 
 **Hindamine:**
+
 - 20%
 - Pipeline disain (põhjendused)
 - 35%
@@ -506,6 +529,7 @@ Failis `lisapraktika.md` - 3 advanced harjutust:
 3. Production-ready pipeline
 
 **Kasutamine:**
+
 - Kiired õpilased kes lab'i varakult lõpetavad
 - Boonus punktid
 - Portfolio materjal
@@ -519,6 +543,7 @@ Failis `lisapraktika.md` - 3 advanced harjutust:
 **Eesmärk:** Õppimine, mitte hindamine
 
 **Kontroll:**
+
 - [ ] Pipeline eksisteerib ja käivitub
 - [ ] Vähemalt 2 job'i (test + build)
 - [ ] Testid läbivad
@@ -530,11 +555,13 @@ Failis `lisapraktika.md` - 3 advanced harjutust:
 **Detailid `kodutoo.md`'is**
 
 **Läbimiseks (50%):**
+
 - Pipeline töötab
 - Testid läbivad
 - README olemas
 
 **Täispunktideks (100%):**
+
 - Põhjendused konkreetsed
 - Pipeline optimeeritud
 - Refleksioon näitab mõistmist

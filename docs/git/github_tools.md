@@ -16,6 +16,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       - run: npm test
 ```
@@ -55,6 +56,7 @@ Arenduskeskkond brauseris - ei pea midagi installima.
 ---
 
 **Rohkem infot:**
+
 - [GitHub Actions Docs](https://docs.github.com/en/actions)
 - [Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers)
 - [Codespaces](https://docs.github.com/en/codespaces)

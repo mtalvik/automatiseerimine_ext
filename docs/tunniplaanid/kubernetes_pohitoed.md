@@ -126,12 +126,14 @@
 ## 🎓 Kokkuvõte
 
 **Teha:**
+
 - ✅ Alusta Docker'i teadmistega
 - ✅ Selgita MIKS orkestreerim ine
 - ✅ Minikube/Kind (mitte real cluster!)
 - ✅ YAML demo koos vigadega
 
 **Mitte teha:**
+
 - ❌ Helm, Operators, Ingress kohe
 - ❌ Cloud clusters (liiga kallis!)
 - ❌ 50 resource tüüpi

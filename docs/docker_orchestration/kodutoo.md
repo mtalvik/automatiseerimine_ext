@@ -33,10 +33,13 @@ Lisa Redis teenus:
     image: redis:7-alpine
     container_name: todo_redis
     ports:
+
       - "6379:6379"
     volumes:
+
       - redis_data:/data
     networks:
+
       - backend
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -329,6 +332,7 @@ Muuda `docker-compose.yml` - lisa health checks API'le ja frontend'ile:
       redis:
         condition: service_healthy
     networks:
+
       - backend
       - frontend
     restart: unless-stopped
@@ -345,6 +349,7 @@ Muuda `docker-compose.yml` - lisa health checks API'le ja frontend'ile:
       dockerfile: Dockerfile
     container_name: todo_frontend
     networks:
+
       - frontend
     restart: unless-stopped
     healthcheck:
@@ -380,6 +385,7 @@ version: '3.8'
 services:
   api:
     volumes:
+
       - ./api:/app
       - /app/node_modules
     environment:
@@ -388,6 +394,7 @@ services:
 
   frontend:
     volumes:
+
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
     environment:
@@ -530,6 +537,7 @@ DB_PASSWORD=yourpassword
 ## Health Checks
 
 All services have health checks:
+
 - Database: `pg_isready`
 - Redis: `redis-cli ping`
 - API: `GET /health`

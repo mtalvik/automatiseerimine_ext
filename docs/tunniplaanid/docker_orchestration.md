@@ -8,6 +8,7 @@
 ## Õpiväljundid
 
 Pärast seda õppetundi oskavad õppurid:
+
 - Kirjutada ja käivitada Docker Compose faile
 - Ehitada multi-container rakendusi
 - Mõista teenuste vahelist suhtlust ja võrgustikku
@@ -142,6 +143,7 @@ Küsi 2-3 õppurilt:
 ### Refleksioon
 
 Küsi õppuritelt (1 min, suuline tagasiside):
+
 - "Kellel on nüüd selge MIKS me vajame Compose'i?"
 - "Kes tunneb end kindlalt YAML süntaksiga?" (kui alla 50%
 - võta järgmises tunnis rohkem aega)
@@ -149,10 +151,12 @@ Küsi õppuritelt (1 min, suuline tagasiside):
 ### Kohandus
 
 **Kui õppurid on kiiremad:**
+
 - Näita ka docker-compose.override.yml kontseptsiooni
 - Alusta teenuste kirjeldamist (services sektsioon)
 
 **Kui õppurid on aeglasemad:**
+
 - Jäta YAML detailid järgmisesse tundi
 - Fokuseeri rohkem motivatsioonile (probleemi mõistmine)
 
@@ -180,6 +184,7 @@ Küsi õppuritelt (1 min, suuline tagasiside):
     web:
       image: nginx:alpine
       ports:
+
         - "8080:80"
   
 ```
@@ -226,16 +231,19 @@ Küsi õppuritelt (1 min, suuline tagasiside):
 ### Refleksioon
 
 Think-Pair-Share (2 min):
+
 - "Mis oli selle tunni kõige huvitavam osa?"
 - "Mis jäi ebaselgeks?"
 
 ### Kohandus
 
 **Kui kiire:**
+
 - Lisa volumes kontseptsioon
 - Näita depends_on
 
 **Kui aeglane:**
+
 - Jäta postgres hilisemaks
 - Rohkem aega DNS kontseptsioonile
 
@@ -262,6 +270,7 @@ Think-Pair-Share (2 min):
 - need vajavad rohkem abi
 
 **Levinud probleemid (valmistud ette):**
+
 - npm install võtab kaua
 - seleta et see on normaalne
 - Port conflict
@@ -294,16 +303,19 @@ Labori lõpus küsi:
 ### Refleksioon
 
 Kirjalik (2 min, paned Moodle'sse):
+
 - "Mis oli selle projekti juures kõige raskem?"
 - "Mida sa õppisid Docker Compose kohta?"
 
 ### Kohandus
 
 **Kui kiire:**
+
 - Lisa Redis cache (kodutöö ette)
 - Näita scaling (`docker-compose up --scale`)
 
 **Kui aeglane:**
+
 - Loo grupid
 - üks arvuti grupi kohta
 - Võta rohkem aega troubleshooting'uks
@@ -346,6 +358,7 @@ Kirjalik (2 min, paned Moodle'sse):
 ### Õpetajana pead:
 
 **Tegema:**
+
 - Aktiveerima eelnevaid teadmisi enne uute kontseptsioonide õpetamist
 - Näitama MIKS enne KUIDAS
 - Kasutama päris näiteid ja analoogiaid
@@ -354,6 +367,7 @@ Kirjalik (2 min, paned Moodle'sse):
 - Andma aega refleksiooniks ja metakognitsiooniks
 
 **MITTE tegema:**
+
 - Liiga kiiresti edasi minna (YAML süntaks vajab aega!)
 - Ainult loengut pidama
 - praktika on kriitilise tähtsusega

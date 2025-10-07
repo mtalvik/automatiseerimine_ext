@@ -330,6 +330,7 @@ Looge fail `webserver.yml`:
   become: yes
   
   tasks:
+
     - name: Nginx installimine
       package:
         name: nginx
@@ -374,6 +375,7 @@ Olulised reeglid:
 # Kommentaar
 muutuja: väärtus
 loend:
+
   - esimene_element
   - teine_element
 objekt:
@@ -399,6 +401,7 @@ Ansible'is saate kasutada muutujaid, et teha playbook'id paindlikumaks. Muutujad
     app_user: "appuser"
   
   tasks:
+
     - name: "Kasutaja {{ app_user }} loomine"
       user:
         name: "{{ app_user }}"
@@ -438,6 +441,7 @@ Kasutamine playbook'is:
 - name: Rakendus
   hosts: webservers
   vars_files:
+
     - vars.yml
 ```
 
@@ -446,6 +450,7 @@ Kasutamine playbook'is:
 **Handlers** käivitatakse ainult siis, kui midagi tõesti muutub. See on oluline, sest teenuste taaskäivitamine on kulukas operatsioon - te ei taha nginx'i restartidata, kui konfiguratsioon ei muutunud. Handlers käivitatakse alati playbook'i lõpus pärast kõiki taske, isegi kui mitmed taskid sama handlerit kutsuvad.
 ```yaml
 tasks:
+
   - name: Nginx konfiguratsiooni uuendamine
     copy:
       src: nginx.conf
@@ -459,6 +464,7 @@ tasks:
     notify: restart nginx
 
 handlers:
+
   - name: restart nginx
     service:
       name: nginx
@@ -474,6 +480,7 @@ Oluline punkt: kui kaks taski kutsuvad sama handlerit, siis handler käivitataks
 Tingimused lasevad teil käivitada taske ainult teatud tingimustel. See on kasulik, kui erinevad operatsioonisüsteemid vajavad erinevaid käske.
 ```yaml
 tasks:
+
   - name: Ubuntu paketid
     package:
       name: ufw
@@ -498,11 +505,13 @@ Tingimused võivad kasutada:
 Tsüklid lasevad teil sama taski käivitada mitme elemendiga. See vältib koodi kordamist.
 ```yaml
 tasks:
+
   - name: Mitme paketi installimine
     package:
       name: "{{ item }}"
       state: present
     loop:
+
       - vim
       - git
       - curl
@@ -558,6 +567,7 @@ ansible all -m setup -a "filter=ansible_processor*"
 ### 9.2. Faktide kasutamine playbook'is
 ```yaml
 tasks:
+
   - name: "Serveri {{ ansible_hostname }} seadistamine"
     debug:
       msg: "Seadistan {{ ansible_distribution }} {{ ansible_distribution_version }} serverit IP-ga {{ ansible_default_ipv4.address }}"
@@ -669,6 +679,7 @@ changed: [server] (item=command_that_always_runs)
 ```
 
 Lahendus:
+
 - Kasutage `creates` või `removes` parameetreid. Idempotentsus tähendab, et kui käivitate sama playbook'i mitu korda, siis pärast esimest korda ei peaks midagi enam muutuma
 - see on oluline, et vältida soovimatud muudatused.
 ```yaml

@@ -731,6 +731,7 @@ if __name__ == "__main__":
 ```
 
 Konfliktimärgid:
+
 - `<<<<<<< HEAD`
 - sinu praegune versioon (main)
 - `=======` - eraldaja

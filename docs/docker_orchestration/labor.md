@@ -6,6 +6,7 @@
 ## Õpiväljundid
 
 Pärast seda lab'i oskad:
+
 - Kirjutada `docker-compose.yml` faile
 - Käivitada multi-container rakendusi
 - Ühendada container'eid võrkude kaudu
@@ -43,6 +44,7 @@ docker ps
 ### 1.2 VSCode seadistamine
 
 Host masinas (Windows/Mac):
+
 - Lae alla: https://code.visualstudio.com/
 - Installi "Remote
 - SSH" extension
@@ -94,6 +96,7 @@ Kui VSCode on HOST masinas (Windows/Mac):
 ### 2.3 Loo kaustad
 
 VSCode'is vajuta **New Folder** ikooni ja loo:
+
 - `api`
 - `database`
 - `frontend`
@@ -420,6 +423,7 @@ build
 ### 5.3 Loo kaustad
 
 VSCode'is loo:
+
 - `frontend/public/` kaust
 - `frontend/src/` kaust
 
@@ -1061,6 +1065,7 @@ services:
       # Init skript
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
+
       - backend
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U todouser -d tododb"]
@@ -1082,6 +1087,7 @@ services:
       database:
         condition: service_healthy
     networks:
+
       - backend
       - frontend
     restart: unless-stopped
@@ -1099,6 +1105,7 @@ services:
       dockerfile: Dockerfile
     container_name: todo_frontend
     networks:
+
       - frontend
     restart: unless-stopped
 
@@ -1110,11 +1117,14 @@ services:
       # OLULINE: See port on kust pääsed ligi
       - "80:80"
     volumes:
+
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
+
       - api
       - frontend
     networks:
+
       - frontend
       - backend
     restart: unless-stopped
@@ -1321,6 +1331,7 @@ docker-compose restart api
 ### Probleem 3: "Frontend shows blank page"
 
 Diagnoos:
+
 - Ava browser console (F12)
 - Vaata Network tab
 - Kas API päringud ebaõnnestuvad?
@@ -1367,6 +1378,7 @@ sudo netstat -tulpn | grep :80
 
 # Sulge see programm või muuda docker-compose.yml
 ports:
+
   - "8080:80"
 ```
 
@@ -1424,12 +1436,14 @@ Kui see töötab, proovi:
 redis:
   image: redis:alpine
   networks:
+
     - backend
 ```
 
 2. Lisa environment file (.env):
 ```yaml
 env_file:
+
   - .env
 ```
 
@@ -1437,6 +1451,7 @@ env_file:
 ```yaml
 api:
   volumes:
+
     - ./api:/app
     - /app/node_modules
   command: npm run dev

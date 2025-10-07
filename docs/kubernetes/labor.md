@@ -183,6 +183,7 @@ graph TB
 8. JavaScript näitab tooteid lehel
 
 **Kubernetes eelised:**
+
 - Iga komponent saab iseseisvalt uueneda
 - Kui frontend kukub, backend ja DB töötavad edasi
 - Saame skaleerida (backend 1→10 pod'i)
@@ -333,14 +334,17 @@ apiVersion: v1                    # Kubernetes API versioon (v1 = stable core AP
 kind: ConfigMap                   # Ressursi tüüp
 metadata:
 name:
+
 - postgres-config           # Nimi
 - teised failid viitavad sellele
   namespace: default              # Namespace (vaikimisi 'default')
 data:                            # Key-value paarid
 POSTGRES_DB:
+
 - shopdb            # Andmebaasi nimi
 - muutub env variable'iks pod'is
 POSTGRES_USER:
+
 - shopuser        # Kasutajanimi
 - pole salajane, seega ConfigMap OK
 
@@ -412,11 +416,13 @@ apiVersion: v1
 kind: PersistentVolumeClaim       # Küsib salvestust
 metadata:
 name:
+
 - postgres-pvc              # Nimi
 - StatefulSet viitab sellele
   namespace: default
 spec:
   accessModes:
+
     - ReadWriteOnce               # RWO = Üks pod korraga kirjutab
                                   # ReadOnlyMany = mitu pod'i loevad
                                   # ReadWriteMany = mitu pod'i kirjutavad (harv!)
@@ -468,10 +474,12 @@ spec:
         app: postgres             # Service leiab pod'id selle label'i järgi
     spec:
       containers:
+
       - name: postgres            # Konteineri nimi (suvaline)
         image: postgres:14-alpine # Docker image: postgres v14, alpine = väike (50MB vs 350MB)
         
         ports:
+
         - containerPort: 5432     # PostgreSQL standard port
           name: postgres          # Pordi nimi (optional, aga hea dokumentatsioon)
         
@@ -503,6 +511,7 @@ spec:
         
         # Kus hoiame andmeid (mount PVC)
         volumeMounts:
+
         - name: postgres-storage  # Volume nimi (volumes'ist all)
           mountPath: /var/lib/postgresql/data  # PostgreSQL vaikimisi andmete asukoht
         
@@ -517,6 +526,7 @@ spec:
       
       # Volumes - kust võtame salvestuse
       volumes:
+
       - name: postgres-storage    # Nimi
       - volumeMounts kasutab seda
         persistentVolumeClaim:
@@ -545,6 +555,7 @@ spec:
   selector:
     app: postgres                 # Leiab pod'id selle label'iga (fail 4: template.metadata.labels)
   ports:
+
   - port: 5432                    # Service port (väline)
     targetPort: 5432              # Container port (pod sees)
     protocol: TCP
@@ -789,10 +800,12 @@ spec:
       # Init container - käivitub ENNE põhikonteinerit
       # Kasutame npm install'iks
       initContainers:
+
       - name: npm-install
         image: node:18-alpine     # Node.js 18 alpine (väike image)
         command: ['sh', '-c']     # Shell käsk
         args:
+
         - |                       # Multiline käsk
           echo "Installing npm packages..."
           cp /code/* /app/        # Kopeeri ConfigMap failid (package.json + server.js)
@@ -800,6 +813,7 @@ spec:
           npm install --production # Installi dependencies (--production = ei installi dev dependencies)
           echo "Dependencies installed!"
         volumeMounts:
+
         - name: code              # ConfigMap mount (volumes'ist all)
           mountPath: /code        # Mount ConfigMap siia (read-only)
         - name: app
@@ -811,16 +825,19 @@ spec:
       
       # Põhikonteiner - käivitub PÄRAST init'i
       containers:
+
       - name: api
         image: node:18-alpine
         command: ['node', '/app/server.js']  # Käivita server
         workingDir: /app                     # Working directory
         
         ports:
+
         - containerPort: 3000     # API port
           name: http              # Pordi nimi (dokumentatsioon)
         
         volumeMounts:
+
         - name: app               # Init container installis npm paketid siia
           mountPath: /app
         
@@ -856,11 +873,13 @@ spec:
       
       # Volumes - kust pod võtab andmeid
       volumes:
+
       - name: code                # ConfigMap volume
         configMap:
           name: backend-code      # Fail 1
       - name: app                 # Ajutine volume npm pakettide jaoks
 emptyDir:
+
 - {}             # emptyDir = ajutine (kaob pod restart'iga, aga pole vaja
 - npm install käib init container'is uuesti)
 ```
@@ -882,6 +901,7 @@ apiVersion: v1
 kind: Service
 metadata:
 name:
+
 - backend-service           # DNS nimi
 - frontend kasutab seda!
   namespace: default
@@ -889,6 +909,7 @@ spec:
   selector:
     app: backend                  # Leiab pod'id label'iga app=backend (fail 2)
   ports:
+
   - port: 3000                    # Service port
     targetPort: 3000              # Container port (pod sees)
     protocol: TCP
@@ -1171,15 +1192,18 @@ spec:
         app: frontend              # Service label (fail 4)
     spec:
       containers:
+
       - name: nginx
         image: nginx:alpine        # Nginx alpine (väike image ~25MB)
         
         ports:
+
         - containerPort: 80        # HTTP port
           name: http
         
         # Mount ConfigMaps õigetesse kohtadesse
         volumeMounts:
+
         - name: html               # HTML ConfigMap (fail 1)
           mountPath: /usr/share/nginx/html  # Nginx otsib HTML'i siit
         - name: config             # Nginx config ConfigMap (fail 2)
@@ -1195,6 +1219,7 @@ spec:
       
       # Volumes - ConfigMap'id
       volumes:
+
       - name: html
         configMap:
           name: frontend-html      # Fail 1
@@ -1224,6 +1249,7 @@ spec:
   selector:
     app: frontend                  # Leiab frontend pod'id (fail 3)
   ports:
+
   - port: 80                       # Service port (sisene)
     targetPort: 80                 # Container port (pod sees)
     protocol: TCP
@@ -1380,6 +1406,7 @@ kubectl logs backend-api-xxx -c npm-install
 ```
 
 **Võimalikud põhjused:**
+
 - Init container fail (npm install error)
 - ConfigMap puudub
 - Resource limits liiga väikesed
@@ -1410,6 +1437,7 @@ kubectl logs -l app=backend
 ```
 
 **Võimalikud põhjused:**
+
 - Backend pole valmis (readinessProbe fail)
 - PostgreSQL pole kättesaadav
 - Service selector vale
@@ -1437,6 +1465,7 @@ kubectl get svc postgres-service
 ```
 
 **Võimalikud põhjused:**
+
 - PostgreSQL pole valmis
 - Vale parool
 - PVC bind fail
@@ -1466,6 +1495,7 @@ kill %1
 ```
 
 **Võimalikud põhjused:**
+
 - Nginx proxy config vale
 - Backend service nimi vale
 - CORS error

@@ -93,6 +93,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu" {
 Võtke oma kodutöö projekt ja tehke sellest multi-environment:
 
 **Nõuded:**
+
 - [ ] Looge 3 workspace'i: `dev`, `staging`, `prod`
 - [ ] Iga keskkond kasutab erinevat instance type'i (vaata configist ülalpool)
 - [ ] Production on 2 instance'iga, teised 1'ga
@@ -101,6 +102,7 @@ Võtke oma kodutöö projekt ja tehke sellest multi-environment:
 - [ ] VPC CIDR on erinev igale keskkonnale (dev: 10.0.x.x, staging: 10.1.x.x, prod: 10.2.x.x)
 
 **Näpunäiteid:**
+
 - Alustage workspace'ide loomisega: `terraform workspace new dev`
 - Kasutage `terraform.workspace` muutujat CIDR valiku jaoks
 - Kui workspace on "dev", kasutage 10.0.0.0/16, kui "staging", siis 10.1.0.0/16 jne
@@ -122,6 +124,7 @@ terraform output
 ```
 
 **Boonus:**
+
 - Lisage workspace-põhine DNS naming
 - Kasutage erinevaid availability zone'e eri keskkondades
 - Looge workspace-spetsiifilised S3 bucket'id
@@ -231,6 +234,7 @@ terraform {
 Seadistage remote state ja testige locking'ut.
 
 **Nõuded:**
+
 - [ ] Looge S3 bucket state'i jaoks (krüpteeritud!)
 - [ ] Looge DynamoDB tabel locking'u jaoks
 - [ ] Migreerige lokaalne state S3'i
@@ -239,6 +243,7 @@ Seadistage remote state ja testige locking'ut.
 - [ ] Lisage .gitignore, et state fails ei läheks Giti
 
 **Näpunäiteid:**
+
 - Alustage eraldi projektiga S3 + DynamoDB loomiseks
 - Salvestage bucket nimi ja DynamoDB tabeli nimi
 - Lisage backend konfiguratsioon põhiprojekti
@@ -258,6 +263,7 @@ terraform plan
 ```
 
 **Boonus:**
+
 - Kasutage erinevaid S3 key'sid erinevate workspace'ide jaoks
 - Lisage lifecycle policy S3 state versioning'u jaoks (hoia 30 päeva)
 - Looge IAM policy, mis lubab ainult read-only ligipääsu production state'ile
@@ -437,6 +443,7 @@ resource "aws_instance" "web" {
 Looge taaskasutatav VPC module ja kasutage seda kahes erinevas projektis.
 
 **Nõuded:**
+
 - [ ] Module struktuur: `modules/aws-vpc/` koos `main.tf`, `variables.tf`, `outputs.tf`
 - [ ] Module loob VPC, subnet'id, IGW, route table'id
 - [ ] Module on parameetritega konfigureeritav (CIDR, subnet count, AZ'id)
@@ -445,6 +452,7 @@ Looge taaskasutatav VPC module ja kasutage seda kahes erinevas projektis.
 - [ ] Module README.md dokumentatsiooniga
 
 **Näpunäiteid:**
+
 - Alustage module failide loomisega eraldi kataloogis
 - Testige module'it kõigepealt ühes projektis
 - Lisage validation variable'itele (näiteks CIDR must be valid)
@@ -467,6 +475,7 @@ terraform apply
 ```
 
 **Boonus:**
+
 - Lisa module'ile private subnet'ide tugi koos NAT Gateway'ga
 - Versiooni module (kasutades Git tag'e)
 - Publish module Terraform Registry'sse (public või private)
@@ -477,11 +486,13 @@ terraform apply
 ## Kasulikud Ressursid
 
 **Dokumentatsioon:**
+
 - [Terraform Workspaces](https://developer.hashicorp.com/terraform/language/state/workspaces)
 - [Terraform Backend Configuration](https://developer.hashicorp.com/terraform/language/settings/backends/s3)
 - [Terraform Modules](https://developer.hashicorp.com/terraform/language/modules)
 
 **Tööriistad:**
+
 - **terraform-docs**
 - Generate module documentation: `brew install terraform-docs`
 - **tflint**
@@ -490,6 +501,7 @@ terraform apply
 - Security scanner: `brew install tfsec`
 
 **Näited:**
+
 - [AWS VPC Terraform Module](https://github.com/terraform-aws-modules/terraform-aws-vpc)
 - [Gruntwork Infrastructure Library](https://gruntwork.io/infrastructure-as-code-library/)
 

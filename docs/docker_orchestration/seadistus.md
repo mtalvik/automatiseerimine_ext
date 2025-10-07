@@ -58,6 +58,7 @@ docker compose version
 ## 5. VSCode Setup
 
 Install extensions:
+
 - `ms-vscode-remote.remote-wsl` (Windows)
 - `ms-vscode-remote.remote-ssh` (Mac/Multipass)  
 - `ms-azuretools.vscode-docker`
@@ -72,6 +73,7 @@ services:
   web:
     image: nginx:alpine
     ports:
+
       - "8080:80"
 EOF
 
@@ -373,6 +375,7 @@ services:
   api:
     env_file: .env
     environment:
+
       - NODE_ENV=production  # override
 
 # Mitu keskkonda

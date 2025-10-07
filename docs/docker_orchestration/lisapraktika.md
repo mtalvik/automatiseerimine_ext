@@ -38,6 +38,7 @@ Image väheneb 1.2GB → 150MB.
 Looge multi-stage Dockerfile Python Flask rakendusele:
 
 **Nõuded:**
+
 - [ ] Stage 1: Install dependencies ja compile
 - [ ] Stage 2: Ainult runtime + compiled files
 - [ ] Eesmärk: alla 100MB final image
@@ -45,11 +46,13 @@ Looge multi-stage Dockerfile Python Flask rakendusele:
 - [ ] Kasutage `python:3.11-alpine` runtime'is
 
 **Näpunäiteid:**
+
 - Kompileerige `.pyc` failid: `python -m compileall`
 - Kopeerige ainult vajalikud failid
 - Lisage .dockerignore fail
 
 **Boonus:**
+
 - Kasutage distroless image't lõpptulemuses
 - Skannige Trivy'ga: `trivy image your-image:latest`
 - Optimeerige alla 50MB
@@ -93,6 +96,7 @@ services:
 Looge `docker-compose.yml` mis sisaldab:
 
 **Nõuded:**
+
 - [ ] Vähemalt 3 teenust (frontend, backend, database)
 - [ ] Health checks kõigile teenustele
 - [ ] Resource limits (CPU: 0.5, Memory: 512M)
@@ -100,6 +104,7 @@ Looge `docker-compose.yml` mis sisaldab:
 - [ ] `depends_on` koos `condition: service_healthy`
 
 **Näpunäiteid:**
+
 - `start_period` annab aega bootimiseks
 - `wget --spider` ei lae sisu, ainult kontrollib HTTP status
 - `pg_isready` on PostgreSQL'i built-in health check
@@ -117,6 +122,7 @@ watch docker compose ps
 ```
 
 **Boonus:**
+
 - Lisage logging configuration (max-size, max-file)
 - Looge `/health` endpoint mis tagastab süsteemi seisundi
 - Integreerige Prometheus metrics
@@ -148,8 +154,10 @@ services:
   api:
     build: .
     ports:
+
       - "${PORT}:3000"
     env_file:
+
       - .env
 ```
 
@@ -160,9 +168,11 @@ version: '3.8'
 services:
   api:
     volumes:
+
       - .:/app
       - /app/node_modules
     environment:
+
       - NODE_ENV=development
       - DEBUG=*
 ```
@@ -179,6 +189,7 @@ services:
           cpus: '0.5'
           memory: 512M
     environment:
+
       - NODE_ENV=production
     restart: always
 ```
@@ -197,6 +208,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
 Looge projekti struktuur koos deployment script'iga:
 
 **Nõuded:**
+
 - [ ] Base `docker-compose.yml` + 2 override faili (dev, prod)
 - [ ] Development mount'ib koodi (hot reload)
 - [ ] Production seab resource limits ja restart: always
@@ -240,6 +252,7 @@ curl http://localhost:3000/health
 ```
 
 **Näpunäiteid:**
+
 - `-f` flag laseb override'ida config'e
 - `--env-file` valib õige environment
 - Production'is ALATI sea memory limits
@@ -247,6 +260,7 @@ curl http://localhost:3000/health
 - kasuta `.env.example` placeholder'itega
 
 **Boonus:**
+
 - Lisage staging environment (docker-compose.staging.yml)
 - Implementeerige Docker secrets
 - Looge smoke test script mis kontrollib deployment'i
@@ -257,11 +271,13 @@ curl http://localhost:3000/health
 ## Kasulikud Ressursid
 
 **Dokumentatsioon:**
+
 - [Docker Multi-stage Builds](https://docs.docker.com/build/building/multi-stage/)
 - [Compose Healthcheck](https://docs.docker.com/compose/compose-file/compose-file-v3/#healthcheck)
 - [Compose Override](https://docs.docker.com/compose/extends/)
 
 **Tööriistad:**
+
 - **Dive**
 - image layer analüüs: `docker run --rm -it wagoodman/dive:latest <image>`
 - **Trivy**
@@ -270,6 +286,7 @@ curl http://localhost:3000/health
 - Dockerfile linter: https://github.com/hadolint/hadolint
 
 **Näited:**
+
 - Awesome Compose: https://github.com/docker/awesome-compose
 - Docker Samples: https://github.com/dockersamples
 

@@ -334,8 +334,10 @@ services:
   web:
     build: ./frontend
     ports:
+
       - "80:80"
     depends_on:
+
       - api
   
   api:
@@ -343,11 +345,13 @@ services:
     environment:
       DATABASE_URL: postgres://db:5432/mydb
     depends_on:
+
       - db
   
   db:
     image: postgres:15-alpine
     volumes:
+
       - pgdata:/var/lib/postgresql/data
 
 volumes:

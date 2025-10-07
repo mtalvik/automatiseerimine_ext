@@ -135,9 +135,11 @@ spec:
         app: backend
     spec:
       containers:
+
       - name: backend
         image: valixyz/shop-backend:v1.0  # SINU IMAGE!
         ports:
+
         - containerPort: 3000
         # POLE ENAM:
         # - volumeMounts
@@ -159,6 +161,7 @@ spec:
   selector:
     app: backend
   ports:
+
   - port: 3000
 ```
 
@@ -179,9 +182,11 @@ spec:
         app: frontend
     spec:
       containers:
+
       - name: frontend
         image: valixyz/shop-frontend:v1.0  # SINU IMAGE!
         ports:
+
         - containerPort: 80
         # POLE ENAM volumeMounts ConfigMap'iga!
 ---
@@ -193,6 +198,7 @@ spec:
   selector:
     app: frontend
   ports:
+
   - port: 80
   type: NodePort
 ```
@@ -275,6 +281,7 @@ spec:
   minReplicas: 1
   maxReplicas: 5
   metrics:
+
   - type: Resource
     resource:
       name: cpu
@@ -338,6 +345,7 @@ spec:
         version: blue
     spec:
       containers:
+
       - name: frontend
         image: valixyz/shop-frontend:blue
 ---
@@ -358,6 +366,7 @@ spec:
         version: green
     spec:
       containers:
+
       - name: frontend
         image: valixyz/shop-frontend:green
 ---
@@ -370,6 +379,7 @@ spec:
     app: frontend
     version: blue  # SIIN VAHETAD!
   ports:
+
   - port: 80
   type: NodePort
 ```
@@ -439,9 +449,11 @@ spec:
         app: backend
     spec:
       containers:
+
       - name: backend
         image: {{ .Values.backend.image }}
         ports:
+
         - containerPort: 3000
 ```
 ```bash
@@ -598,6 +610,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 ##  Abimaterjalid ja lugemine
 
 **Kiirviited:**
+
 - [Kubernetes Docs - Concepts](https://kubernetes.io/docs/concepts/)
 - [Kubernetes Docs - kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
 - [Play with Kubernetes](https://labs.play-with-k8s.com/) - tasuta online playground
