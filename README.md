@@ -256,4 +256,4 @@ Vaata eelmiste õpilaste lõpuprojekte inspiratsiooni saamiseks:
 
 *"The best way to learn is by doing."*
 
-</div>
+</div># Trigger deployment Tue Oct  7 17:09:31 EEST 2025
