@@ -8,6 +8,7 @@
 ## Õpivälјundid
 
 Pärast laborit oskate:
+
 - Loob Git repository projekti jaoks
 - Valib 2 tööriista mida kasutada
 - Kirjutab lihtsa README ja plaani
@@ -28,11 +29,13 @@ Lõpuprojekt on sinu võimalus näidata mida oled õppinud. Kasutad 2-3 töörii
 Vali 2 tööriista mida kasutad:
 
 **Lihtsamad kombinatsioonid:**
+
 - ✅ Git + Docker (kõige lihtsam)
 - ✅ Docker + Ansible
 - ✅ Git + Ansible
 
 **Keerulisemad (ainult kui juba oskad):**
+
 - Docker + Kubernetes
 - Terraform + Ansible
 - Kubernetes + Monitoring
@@ -50,14 +53,17 @@ Miks: Tean neid juba ja saan kiiresti alustada
 Vali lihtne projekt:
 
 **Valik 1: Lihtne Veebirakendus**
+
 - HTML lehekülg + andmebaas
 - Näiteks: TODO list, blog, portfol
 
 **Valik 2: Mingi Teenus**
+
 - Backend API
 - Näiteks: kasutajad, tooted, ilm
 
 **Valik 3: Midagi Oma**
+
 - Mis sind huvitab
 - Aga peab olema LIHTNE!
 
