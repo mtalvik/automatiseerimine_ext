@@ -159,8 +159,6 @@ nav:
 - Lõpuprojekt:
   - Loeng: lopuprojekt/loeng.md
   - Labor: lopuprojekt/labor.md
-  - Arhitektuur: lopuprojekt/architecture.md
-  - Tehnilised Otsused: lopuprojekt/decisions.md
 
 extra:
   social:
