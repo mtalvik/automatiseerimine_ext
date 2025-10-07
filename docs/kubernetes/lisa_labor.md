@@ -74,9 +74,7 @@ Lisa `server.js` faili `/api/products` endpoint'i juurde hostname:
         res.status(500).json({ error: err.message });
       }
     });
-`
-`
-`
+```
 ```bash
 # Rakenda muudatus
 kubectl apply -f ~/k8s-lab/backend/1-configmap.yaml
@@ -163,9 +161,7 @@ background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);  <!-- Roosa -->
 2. Versiooni number (rea ~25):
 ```html
 <p><strong>Versioon:</strong> <span style="color: blue;">v2.0</span></p>
-`
-`
-`
+```
 ```bash
 # Rakenda muudatus
 kubectl apply -f ~/k8s-lab/frontend/1-html.yaml
@@ -253,9 +249,7 @@ Lisa `server.js` faili lõppu:
         timestamp: new Date()
       });
     });
-`
-`
-`
+```
 ```bash
 # Rakenda ConfigMap muudatus
 kubectl apply -f ~/k8s-lab/backend/1-configmap.yaml

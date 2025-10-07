@@ -113,8 +113,7 @@ Tuleb hiljem...
 - [ ] Testa
 ```
 
-Salvesta: `Ctrl+O`, `Enter`, `Ctrl+X
-`
+Salvesta: `Ctrl+O`, `Enter`, `Ctrl+X`
 ```bash
 # Tee esimene commit
 git add README.md
@@ -163,9 +162,7 @@ Loo `PLAAN.md` fail:
 
 ### Reede
 - [ ] Esitlus!
-`
-`
-`
+```
 ```bash
 git add PLAAN.md
 git commit -m "Add project plan"
@@ -209,8 +206,7 @@ touch requirements.txt  # või package.json
 </html>
 ```
 
-Testi: ava brauser ja ava `index.html
-`
+Testi: ava brauser ja ava `index.html`
 ```bash
 # Commit
 git add .

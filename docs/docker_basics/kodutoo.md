@@ -86,9 +86,7 @@ if __name__ == '__main__':
 Looge kaust ja fail `templates/index.html`:
 ```bash
 mkdir templates
-`
-`
-`
+```
 ```html
 <!DOCTYPE html>
 <html lang="et">

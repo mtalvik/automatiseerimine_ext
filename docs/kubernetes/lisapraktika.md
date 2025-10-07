@@ -309,9 +309,7 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         resources:
           {{- toYaml .Values.resources | nindent 10 }}    # Kopeeri terve YAML block
-`
-`
-`
+```
 ```yaml
 # values.yaml
 replicaCount: 2

@@ -111,9 +111,7 @@ cd ansible
 # inventory/hosts
 [webservers]
 ansible-test ansible_host=192.168.56.10 ansible_user=vagrant
-`
-`
-`
+```
 ```yaml
 # group_vars/webservers.yml
 ---
@@ -169,9 +167,7 @@ Nginx tasks (lühendatud näide):
     name: nginx
     state: started
     enabled: yes
-`
-`
-`
+```
 ```yaml
 # roles/nginx/tasks/ssl.yml
 ---
@@ -244,9 +240,7 @@ Nginx tasks (lühendatud näide):
     name: "nginx health check"
     minute: "{{ health_check_interval }}"
     job: "/usr/local/bin/health-check.sh >> /var/log/health-check.log 2>&1"
-`
-`
-`
+```
 ```bash
 # roles/monitoring/templates/health-check.sh.j2
 #!/bin/bash
@@ -356,9 +350,7 @@ class nginx (
     require    => Package['nginx'],
   }
 }
-`
-`
-`
+```
 ```puppet
 # modules/nginx/manifests/ssl.pp
 class nginx::ssl {
@@ -385,9 +377,7 @@ class nginx::ssl {
     require => Exec['generate-ssl-cert'],
   }
 }
-`
-`
-`
+```
 ```puppet
 # modules/nginx/manifests/vhost.pp
 define nginx::vhost (

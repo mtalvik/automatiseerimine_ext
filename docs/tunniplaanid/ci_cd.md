@@ -172,8 +172,7 @@ Selgita lühidalt (kasuta `loeng.md` slaide):
 Screen share + live coding:
 
 1. Ava GitHub repo
-2. Loo fail `.github/workflows/hello.yml
-`
+2. Loo fail `.github/workflows/hello.yml`
 ```yaml
 name: Hello World
 

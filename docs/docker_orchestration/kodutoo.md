@@ -421,8 +421,7 @@ docker-compose --env-file .env.prod up -d
 
 ## 4. Deployment Script
 
-### 4.1 Loo `deploy.sh
-`
+### 4.1 Loo `deploy.sh`
 ```bash
 #!/bin/bash
 
@@ -457,9 +456,7 @@ esac
 
 echo "Done!"
 docker-compose ps
-`
-`
-`
+```
 ```bash
 chmod +x deploy.sh
 ```
@@ -477,17 +474,15 @@ chmod +x deploy.sh
 
 ## 5. Dokumentatsioon
 
-### 5.1 Uuenda `README.md
-`
+### 5.1 Uuenda `README.md`
 ```markdown
 # Todo App with Redis Cache
 
 ## Architecture
-```
+
 Nginx (80) → Frontend → API → Database
                         ↓
                       Redis
-```
 
 ## Services
 
@@ -540,10 +535,7 @@ All services have health checks:
 - API: `GET /health`
 - Frontend: HTTP check
 
-Check status:
-```bash
-docker-compose ps
-```
+Check status: `docker-compose ps`
 ```
 
 **SCREENSHOT 3:** Brauseris töötav rakendus + cache testimine terminalis

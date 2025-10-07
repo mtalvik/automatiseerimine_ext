@@ -411,28 +411,28 @@ Loo README.md fail:
 ## Käivitamine
 
 ### Lokaalselt
-\`\`\`bash
+```bash
 # Tehnoloogiast sõltuvalt:
 # Go: go run main.go
 # Node: npm start  
 # Python: uvicorn main:app --reload
 
 curl http://localhost:PORT/health
-\`\`\`
+```
 
 ### Docker'iga
-\`\`\`bash
+```bash
 docker build -t myapp .
 docker run -p 8080:8080 myapp
 curl http://localhost:8080/health
-\`\`\`
+```
 
 ### Testid
-\`\`\`bash
+```bash
 # Go: go test ./...
 # Node: npm test
 # Python: pytest
-\`\`\`
+```
 
 ## Refleksioon
 

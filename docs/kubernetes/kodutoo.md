@@ -43,9 +43,7 @@ nano package.json
 #### Samm 2: Loo Dockerfile
 ```bash
 nano Dockerfile
-`
-`
-`
+```
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -101,9 +99,7 @@ nano nginx.conf
 #### Samm 2: Dockerfile
 ```bash
 nano Dockerfile
-`
-`
-`
+```
 ```dockerfile
 FROM nginx:alpine
 COPY index.html /usr/share/nginx/html/
@@ -265,9 +261,7 @@ minikube addons enable metrics-server
 
 # 2. Loo HPA
 nano hpa.yaml
-`
-`
-`
+```
 ```yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -287,9 +281,7 @@ spec:
       target:
         type: Utilization
         averageUtilization: 50
-`
-`
-`
+```
 ```bash
 # 3. Apply
 kubectl apply -f hpa.yaml
@@ -326,9 +318,7 @@ nano index.html
 # Build green
 docker build -t valixyz/shop-frontend:green .
 docker push valixyz/shop-frontend:green
-`
-`
-`
+```
 ```yaml
 # 2. blue-green.yaml
 apiVersion: apps/v1
@@ -382,9 +372,7 @@ spec:
   ports:
   - port: 80
   type: NodePort
-`
-`
-`
+```
 ```bash
 # 3. Deploy mõlemad
 kubectl apply -f blue-green.yaml
@@ -416,9 +404,7 @@ helm create eshop
 
 # 3. Muuda values
 nano eshop/values.yaml
-`
-`
-`
+```
 ```yaml
 backend:
   image: valixyz/shop-backend:v1.0
@@ -432,15 +418,11 @@ frontend:
 
 postgres:
   enabled: true
-`
-`
-`
+```
 ```yaml
 # 4. Muuda template
 nano eshop/templates/backend.yaml
-`
-`
-`
+```
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -461,9 +443,7 @@ spec:
         image: {{ .Values.backend.image }}
         ports:
         - containerPort: 3000
-`
-`
-`
+```
 ```bash
 # 5. Install
 helm install myshop ./eshop

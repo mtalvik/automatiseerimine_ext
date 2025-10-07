@@ -222,9 +222,7 @@ Ansible'is kehtib muutujate hierarhia - spetsiifilisemad muutujad kirjutavad ül
 ```bash
 touch group_vars/all/vars.yml
 nano group_vars/all/vars.yml
-`
-`
-`
+```
 ```yaml
 # Kõikidele serveritele ühised seadistused
 app_name: "advanced-lamp"
@@ -253,9 +251,7 @@ Need seadistused kohanduvad automaatselt vastavalt keskkonnale. Tootmises lülit
 ```bash
 touch group_vars/webservers/vars.yml
 nano group_vars/webservers/vars.yml
-`
-`
-`
+```
 ```yaml
 # Apache/Nginx seadistused
 max_workers: "{{ ansible_processor_vcpus * 2 }}"
@@ -289,9 +285,7 @@ Virtual host'ide nimekiri võimaldab hallata mitut veebisaiti ühel serveril. SS
 ```bash
 touch group_vars/dbservers/vars.yml
 nano group_vars/dbservers/vars.yml
-`
-`
-`
+```
 ```yaml
 # MySQL konfigureerimine
 mysql_root_user: "root"
@@ -739,9 +733,7 @@ Administraatori parool annab täieliku kontrolli süsteemi üle. See peaks olema
 3. Looge production-spetsiifiline vault:
 ```bash
 ansible-vault create group_vars/production/vault.yml
-`
-`
-`
+```
 ```yaml
 # Production SSL certificates
 vault_ssl_cert_content: |
@@ -778,9 +770,7 @@ Vault muutujad ei ole otse kasutatavad - need tuleb "mappida" tavalistele muutuj
 1. Uuendage group_vars/all/vars.yml:
 ```bash
 nano group_vars/all/vars.yml
-`
-`
-`
+```
 ```yaml
 # Lisage vault viited
 mysql_root_password: "{{ vault_mysql_root_password }}"
@@ -795,9 +785,7 @@ Need muutujad viitavad vault muutujatele. Kui Ansible laeb muutujaid, asendab ta
 2. Uuendage MySQL template'i:
 ```bash
 nano templates/mysql.cnf.j2
-`
-`
-`
+```
 ```ini
 # Lisage vault-põhised seadistused
 {% if app_env == 'production' %}

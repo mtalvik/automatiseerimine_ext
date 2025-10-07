@@ -203,7 +203,6 @@ Vaata, mis muutus:
 ```bash
 git status
 ```
-```
 On branch main
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
@@ -1131,4 +1130,4 @@ Oled nüüd läbinud Git'i põhitõed! Edasi:
 2. **Lisapraktika:** Tutvu `lisapraktika.md` - CI/CD, hooks, advanced Git
 3. **Praktiline:** Alusta oma projekti Git'iga, tee commit'e iga päev
 
-Edu!
+Edu!```

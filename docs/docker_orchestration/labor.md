@@ -115,8 +115,7 @@ Andmebaas hoiab meie todos'e. PostgreSQL on eraldi konteineris, et saaksime seda
 
 ### 3.1 Loo fail `database/init.sql`
 
-VSCode'is: Right click `database` kaust → New File → `init.sql
-`
+VSCode'is: Right click `database` kaust → New File → `init.sql`
 ```sql
 -- Lubame UUID-d kasutada
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -143,8 +142,7 @@ INSERT INTO todos (title, description) VALUES
 
 API on vahendaja frontendi ja andmebaasi vahel. Node.js töötab eraldi konteineris.
 
-### 4.1 Loo fail `api/.dockerignore
-`
+### 4.1 Loo fail `api/.dockerignore`
 ```
 node_modules
 npm-debug.log
@@ -152,8 +150,7 @@ npm-debug.log
 .git
 ```
 
-### 4.2 Loo fail `api/package.json
-`
+### 4.2 Loo fail `api/package.json`
 ```json
 {
   "name": "todo-api",
@@ -170,8 +167,7 @@ npm-debug.log
 }
 ```
 
-### 4.3 Loo fail `api/server.js
-`
+### 4.3 Loo fail `api/server.js`
 ```javascript
 const express = require('express');
 const { Pool } = require('pg');
@@ -355,8 +351,7 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 ```
 
-### 4.4 Loo fail `api/Dockerfile
-`
+### 4.4 Loo fail `api/Dockerfile`
 ```dockerfile
 FROM node:16-alpine
 
@@ -384,8 +379,7 @@ CMD ["node", "server.js"]
 
 Frontend on kasutajaliides brauseris. See on eraldi konteineris, et frontend arendajad saaksid töötada ilma backend'i puutumata.
 
-### 5.1 Loo fail `frontend/.dockerignore
-`
+### 5.1 Loo fail `frontend/.dockerignore`
 ```
 node_modules
 npm-debug.log
@@ -394,8 +388,7 @@ npm-debug.log
 build
 ```
 
-### 5.2 Loo fail `frontend/package.json
-`
+### 5.2 Loo fail `frontend/package.json`
 ```json
 {
   "name": "todo-frontend",
@@ -429,8 +422,7 @@ VSCode'is loo:
 - `frontend/public/` kaust
 - `frontend/src/` kaust
 
-### 5.4 Loo fail `frontend/public/index.html
-`
+### 5.4 Loo fail `frontend/public/index.html`
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -448,8 +440,7 @@ VSCode'is loo:
 </html>
 ```
 
-### 5.5 Loo fail `frontend/src/index.js
-`
+### 5.5 Loo fail `frontend/src/index.js`
 ```javascript
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -464,8 +455,7 @@ root.render(
 );
 ```
 
-### 5.6 Loo fail `frontend/src/index.css
-`
+### 5.6 Loo fail `frontend/src/index.css`
 ```css
 * {
   margin: 0;
@@ -487,8 +477,7 @@ code {
 }
 ```
 
-### 5.7 Loo fail `frontend/src/App.js
-`
+### 5.7 Loo fail `frontend/src/App.js`
 ```javascript
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -682,8 +671,7 @@ function App() {
 export default App;
 ```
 
-### 5.8 Loo fail `frontend/src/App.css
-`
+### 5.8 Loo fail `frontend/src/App.css`
 ```css
 .App {
   min-height: 100vh;
@@ -950,8 +938,7 @@ export default App;
 }
 ```
 
-### 5.9 Loo fail `frontend/Dockerfile
-`
+### 5.9 Loo fail `frontend/Dockerfile`
 ```dockerfile
 # Stage 1: Build React app
 FROM node:16-alpine AS builder
@@ -992,8 +979,7 @@ CMD ["nginx", "-g", "daemon off;"]
 
 Nginx on värav mis suunab päringuid. `/api` läheb API konteinerisse, ülejäänud frontend konteinerisse. Nii töötab kõik ühest portist.
 
-### 6.1 Loo fail `nginx/nginx.conf
-`
+### 6.1 Loo fail `nginx/nginx.conf`
 ```nginx
 events {
     worker_connections 1024;

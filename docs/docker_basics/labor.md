@@ -10,11 +10,17 @@ Labor keskendub praktilisele Docker'i kasutamisele. Loote image'eid, käivitate 
 ## Õpiväljundid
 
 Pärast seda labor'it oskad:
-- **Käivitada ja hallata container'eid** - `run`, `stop`, `logs`, `exec` käsud
-- **Kirjutada Dockerfile'i** - image loomine nullist
-- **Kasutada volume'eid** - andmete säilitamine
-- **Luua Docker network'e** - container'ite vaheline suhtlus
-- **Debug'ida probleeme** - logide vaatamine, container'isse sisenemine
+
+- **Käivitada ja hallata container'eid**
+  - `run`, `stop`, `logs`, `exec` käsud
+- **Kirjutada Dockerfile'i**
+  - image loomine nullist
+- **Kasutada volume'eid**
+  - andmete säilitamine
+- **Luua Docker network'e**
+  - container'ite vaheline suhtlus
+- **Debug'ida probleeme**
+  - logide vaatamine, container'isse sisenemine
 
 ---
 

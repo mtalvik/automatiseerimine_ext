@@ -396,16 +396,16 @@ Diagramm ja kirjeldus põhikomponentidest.
 - Terraform 1.6+
 
 ### Installimine
-\`\`\`bash
+```bash
 git clone [repo-url]
 cd project
 ./scripts/setup.sh
-\`\`\`
+```
 
 ### Käivitamine
-\`\`\`bash
+```bash
 docker-compose up
-\`\`\`
+```
 
 Rakendus on kättesaadav: http://localhost:3000
 
@@ -421,9 +421,9 @@ Rakendus on kättesaadav: http://localhost:3000
 [Koodipuu selgitus]
 
 ### Testide Käivitamine
-\`\`\`bash
+```bash
 npm test
-\`\`\`
+```
 
 ## License
 [License info]
@@ -454,8 +454,7 @@ Iga suurem komponent vajab kirjeldust:
 
 **Health Check:**
 - Readiness: `GET /health`
-- Liveness: `GET /
-`
+- Liveness: `GET /`
 ```
 
 **Andmevoo Dokumenteerimine:**
@@ -496,7 +495,7 @@ Deployment guide peab võimaldama reprodutseeritavat deployment'i nullist workin
 ### 1. Cloud Provider Setup
 
 AWS näitel:
-\`\`\`bash
+```bash
 # Loo IAM kasutaja Terraform jaoks
 aws iam create-user --user-name terraform-deployer
 
@@ -507,22 +506,21 @@ aws iam attach-user-policy \
 
 # Genereeri access key
 aws iam create-access-key --user-name terraform-deployer
-\`\`\`
+```
 
 Salvesta access key ja secret key keskkonna muutujatesse:
-\`\`\`bash
+```bash
 export AWS_ACCESS_KEY_ID="..."
 export AWS_SECRET_ACCESS_KEY="..."
-\`\`\`
+```
 
 ### 2. Kubernetes Cluster Loomine
-
-\`\`\`bash
+```bash
 cd infrastructure/terraform
 terraform init
 terraform plan
 terraform apply
-\`\`\`
+```
 
 Oodatav tulemus:
 
@@ -532,10 +530,10 @@ Oodatav tulemus:
 - IAM role'id
 
 Keskkonna konfiguratsioon kubectl jaoks:
-\`\`\`bash
+```bash
 aws eks update-kubeconfig --name production-cluster
 kubectl get nodes
-\`\`\`
+```
 
 Peaks näitama 3 node'i Ready state'is.
 ```

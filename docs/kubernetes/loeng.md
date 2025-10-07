@@ -672,9 +672,7 @@ spec:
   - port: 80
     targetPort: 80
   type: LoadBalancer
-`
-`
-`
+```
 ```bash
 # Rakenda deployment
 kubectl apply -f deployment.yaml

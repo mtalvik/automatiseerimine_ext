@@ -359,9 +359,7 @@ FROM prom/prometheus
 COPY prometheus.yml /etc/prometheus/
 
 CMD ["--config.file=/etc/prometheus/prometheus.yml"]
-`
-`
-`
+```
 ```yaml
 # prometheus.yml
 scrape_configs:

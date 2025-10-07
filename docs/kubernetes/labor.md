@@ -319,9 +319,7 @@ ConfigMap on nagu `.env` fail Kubernetes'is. Siia paneme info, mis pole salajane
 ### VM SEES
 ```bash
 nano ~/k8s-lab/postgres/1-configmap.yaml
-`
-`
-`
+```
 ```yaml
 # ConfigMap hoiab konfiguratsiooni, mis POLE salajane
 # Saab muuta ilma konteinerit rebuild'imata
@@ -364,9 +362,7 @@ echo -n 'secretpassword' | base64
 # Tulemus: c2VjcmV0cGFzc3dvcmQ=
 
 nano ~/k8s-lab/postgres/2-secret.yaml
-`
-`
-`
+```
 ```yaml
 # Secret hoiab tundlikku infot turvaliselt
 # Kubernetes krüpteerib automaatselt etcd'sse
@@ -402,9 +398,7 @@ PVC (Persistent Volume Claim) on taotlus kettaruumi jaoks. Ilma selleta kaovad k
 ### VM SEES
 ```bash
 nano ~/k8s-lab/postgres/3-pvc.yaml
-`
-`
-`
+```
 ```yaml
 # PVC = Persistent Volume Claim - "Ma tahan 500MB kettaruumi"
 # Ilma: pod restart = kõik andmed kadunud 
@@ -445,9 +439,7 @@ StatefulSet loob PostgreSQL pod'i. Erinevalt Deployment'ist annab StatefulSet p�
 ### VM SEES
 ```bash
 nano ~/k8s-lab/postgres/4-statefulset.yaml
-`
-`
-`
+```
 ```yaml
 # StatefulSet annab püsiva identiteedi
 # postgres-0 vs postgres-random-xyz ← Deployment annaks random nime
@@ -534,9 +526,7 @@ Service annab andmebaasile püsiva võrguaadressi ja DNS nime. Ilma Service'ita 
 ### VM SEES
 ```bash
 nano ~/k8s-lab/postgres/5-service.yaml
-`
-`
-`
+```
 ```yaml
 # Service = püsiv võrguaadress ja DNS nimi
 # Backend kasutab: postgres-service:5432 ← See DNS nimi töötab alati!
@@ -651,9 +641,7 @@ Tavaliselt ehitatakse Docker image koodiga. Õppimise jaoks hoiame koodi ConfigM
 ### VM SEES
 ```bash
 nano ~/k8s-lab/backend/1-configmap.yaml
-`
-`
-`
+```
 ```yaml
 # Backend kood ConfigMap'is
 # Ebatavaline, aga õppimiseks mugav (ei vaja Docker build'i)
@@ -772,9 +760,7 @@ Deployment sobib stateless rakendustele. Backend ei salvesta midagi, ainult tö�
 ### VM SEES
 ```bash
 nano ~/k8s-lab/backend/2-deployment.yaml
-`
-`
-`
+```
 ```yaml
 # Deployment backend API jaoks
 # Stateless, skaleeritav, self-healing
@@ -882,9 +868,7 @@ Backend Service teeb load balancing'u kui on mitu pod'i. DNS nimi `backend-servi
 ### VM SEES
 ```bash
 nano ~/k8s-lab/backend/3-service.yaml
-`
-`
-`
+```
 ```yaml
 # Service backend API jaoks
 # Load balancer ja DNS
@@ -981,9 +965,7 @@ HTML ja JavaScript on ConfigMap'is. See lubab muuta kasutajaliidest ilma Docker 
 ### VM SEES
 ```bash
 nano ~/k8s-lab/frontend/1-html.yaml
-`
-`
-`
+```
 ```yaml
 # Frontend HTML ja JavaScript
 apiVersion: v1
@@ -1115,9 +1097,7 @@ Nginx konfiguratsioon määrab, kuidas käsitleda päringuid. Staatilised failid
 ### VM SEES
 ```bash
 nano ~/k8s-lab/frontend/2-nginx.yaml
-`
-`
-`
+```
 ```yaml
 # Nginx server konfiguratsioon
 apiVersion: v1
@@ -1165,9 +1145,7 @@ Frontend Deployment loob Nginx pod'i. Volume mount'id ühendavad ConfigMap'id õ
 ### VM SEES
 ```bash
 nano ~/k8s-lab/frontend/3-deployment.yaml
-`
-`
-`
+```
 ```yaml
 # Frontend Deployment
 apiVersion: apps/v1
@@ -1228,9 +1206,7 @@ NodePort Service teeb frontend'i kättesaadavaks väljast. Kubernetes valib auto
 ### VM SEES
 ```bash
 nano ~/k8s-lab/frontend/4-service.yaml
-`
-`
-`
+```
 ```yaml
 # Frontend Service - väline ligipääs
 apiVersion: v1

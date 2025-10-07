@@ -328,9 +328,7 @@ Siin kasutame `count` meta-argumenti, et luua mitu sarnast ressurssi. `count.ind
 Outputs võimaldavad meil näha olulist teavet pärast `apply` käsku. Loome `outputs.tf` faili:
 ```bash
 nano outputs.tf
-`
-`
-`
+```
 ```hcl
 output "created_files" {
   description = "Loodud failide nimed"
@@ -379,9 +377,7 @@ Vaikeväärtused on head, aga sageli tahame neid muuta ilma variables.tf faili m
 ### Tfvars faili loomine
 ```bash
 nano terraform.tfvars
-`
-`
-`
+```
 ```hcl
 project_name = "minu-projekt"
 environment  = "production"

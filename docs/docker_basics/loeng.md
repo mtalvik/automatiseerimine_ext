@@ -196,7 +196,6 @@ node_modules/
 ## 5. Container'ite Käivitamine ja Haldamine
 
 ### 5.1 Põhikäsud
-
 ```bash
 # Käivita container
 docker run nginx
@@ -227,7 +226,6 @@ docker rm web
 ```
 
 ### 5.2 Container Lifecycle
-
 ```
 docker create → CREATED
 docker start → RUNNING

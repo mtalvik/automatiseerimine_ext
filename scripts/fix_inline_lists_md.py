@@ -36,7 +36,7 @@ def split_inline_list_line(line: str) -> str:
     if len(parts) < 2:
         return line
 
-    rebuilt = [f"{prefix}:"]
+    rebuilt = [f"{prefix}:", ""]  # Add empty line after heading
     for p in parts:
         p = p.strip()
         if not p:
@@ -51,23 +51,40 @@ def split_inline_list_line(line: str) -> str:
 
 
 def transform_content(content: str) -> str:
-    # Don't touch fenced code blocks
-    tokens = re.split(r"(^```.*?$|^~~~.*?$)", content, flags=re.MULTILINE)
-    in_code = False
-    out = []
-    for tok in tokens:
-        if re.match(r"^```.*$|^~~~.*$", tok, flags=re.MULTILINE):
-            in_code = not in_code
-            out.append(tok)
+    # Split content into lines, process line by line, but skip code blocks
+    lines = content.split('\n')
+    result = []
+    in_code_block = False
+    i = 0
+
+    while i < len(lines):
+        line = lines[i]
+
+        # Check if we're entering or leaving a code block
+        if line.strip().startswith('```') or line.strip().startswith('~~~'):
+            in_code_block = not in_code_block
+            result.append(line)
+            i += 1
             continue
-        if in_code:
-            out.append(tok)
+
+        # If in code block, don't modify
+        if in_code_block:
+            result.append(line)
+            i += 1
             continue
-        new_lines = []
-        for ln in tok.splitlines():
-            new_lines.append(split_inline_list_line(ln))
-        out.append("\n".join(new_lines))
-    return "".join(out)
+
+        # Process the line for inline lists
+        transformed = split_inline_list_line(line)
+
+        # If line was transformed (contains newlines), it became multiple lines
+        if '\n' in transformed and transformed != line:
+            result.extend(transformed.split('\n'))
+        else:
+            result.append(line)
+
+        i += 1
+
+    return '\n'.join(result)
 
 
 def main():
@@ -84,5 +101,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

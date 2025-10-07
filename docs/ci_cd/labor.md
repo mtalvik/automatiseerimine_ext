@@ -534,27 +534,24 @@ Rakendus pakub kolme endpoint'i:
 - GET /products - Products list
 
 ## Käivitamine
+```
 
 Lokaalselt:
 
-\`\`\`bash
+```bash
 pip install -r requirements.txt
 python app.py
-\`\`\`
+```
 
 Docker'iga:
-
-\`\`\`bash
+```bash
 docker build -t cicd-demo .
 docker run -p 5000:5000 cicd-demo
-\`\`\`
+```
 
 Testid:
-
-\`\`\`bash
+```bash
 pytest test_app.py -v
-\`\`\
-`
 ```
 
 Asenda USERNAME oma GitHub kasutajanimega. Badge näitab pipeline'i staatust - roheline kui kõik töötab, punane kui midagi on katki.
