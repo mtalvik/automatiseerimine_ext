@@ -3,6 +3,7 @@ site_description: DevOps Automatiseerimine - praktilised materjalid
 site_author: Maria Talvik
 repo_url: https://github.com/mtalvik/automatiseerimine_ext
 repo_name: mtalvik/automatiseerimine_ext
+site_url: https://mtalvik.github.io/automatiseerimine_ext
 
 theme:
   name: material
