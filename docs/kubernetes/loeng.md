@@ -749,7 +749,8 @@ kubectl logs --tail=50 myapp-xxx
 kubectl logs myapp-xxx --previous
 ```
 
-**Näide log väljund:**```
+**Näide log väljund:**
+```
 Traceback (most recent call last):
   File "app.py", line 10
     DATABASE_URL = os.environ['DB_URL']
@@ -809,7 +810,8 @@ Endpoints on seos Service ja Pod'ide vahel. Kui endpoints on tühi, tähendab se
 
 ### Levinud probleemid ja lahendused
 
-**Probleem 1: "ImagePullBackOff"**```bash
+**Probleem 1: "ImagePullBackOff"**
+```bash
 # Kontrolli:
 kubectl describe pod myapp-xxx | grep -A 5 "Failed"
 
@@ -820,7 +822,8 @@ kubectl describe pod myapp-xxx | grep -A 5 "Failed"
 # - Kas on vaja autentimist? (imagePullSecrets)
 ```
 
-**Probleem 2: "CrashLoopBackOff"**```bash
+**Probleem 2: "CrashLoopBackOff"**
+```bash
 # Vaata logi:
 kubectl logs myapp-xxx --previous
 
@@ -831,7 +834,8 @@ kubectl logs myapp-xxx --previous
 # - Config fail on vale
 ```
 
-**Probleem 3: "Service ei tööta"**```bash
+**Probleem 3: "Service ei tööta"**
+```bash
 # Kontrolli endpoints:
 kubectl get endpoints myapp-service
 
@@ -849,7 +853,8 @@ kubectl describe svc myapp-service | grep -A 3 "Port"
 
 Label mismatch on üks kõige levinumaid vigu - Service selector on `app: myapp`, aga pod'il on `app: my-app` (sidekriipsuga). Kubernetes on case-sensitive ja täpne.
 
-**Probleem 4: "Ei saa pod'ist logida"**```bash
+**Probleem 4: "Ei saa pod'ist logida"**
+```bash
 # Kontrolli, kas pod töötab:
 kubectl get pods
 

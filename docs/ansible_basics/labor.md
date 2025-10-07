@@ -858,7 +858,8 @@ ansible_tutorial/
 
 Probleem: "Permission denied (publickey)"
 
-Lahendus:```bash
+Lahendus:
+```bash
 # Kontrolli kas võti on õiges kohas
 ls -la ~/.ssh/
 
@@ -873,7 +874,8 @@ ssh-copy-id -i ~/.ssh/id_ed25519.pub ansible@192.168.56.11
 
 Probleem: "Failed to connect to host"
 
-Lahendus:```bash
+Lahendus:
+```bash
 # Kontrolli inventory IP aadresse
 cat inventory.ini
 
@@ -888,7 +890,8 @@ ansible-playbook playbooks/02_nginx.yml -vvv
 
 Probleem: "sudo: a password is required"
 
-Lahendus:```bash
+Lahendus:
+```bash
 # Kasuta --ask-become-pass lippu
 ansible-playbook playbooks/02_nginx.yml --ask-become-pass
 

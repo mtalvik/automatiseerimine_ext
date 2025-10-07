@@ -37,16 +37,19 @@
 
 ## 1. VS Code Installimine
 
-### Windows```powershell
+### Windows
+```powershell
 winget install Microsoft.VisualStudioCode
 ```
 Või lae alla: https://code.visualstudio.com
 
-### macOS```bash
+### macOS
+```bash
 brew install --cask visual-studio-code
 ```
 
-### Linux (Ubuntu/Debian)```bash
+### Linux (Ubuntu/Debian)
+```bash
 sudo snap install code --classic
 ```
 
@@ -95,14 +98,16 @@ Ava VS Code → Vajuta `Ctrl+Shift+X` → Paigalda järgmised:
 
 ## 7. SSH Seadistamine
 
-### SSH võtme loomine:```bash
+### SSH võtme loomine:
+```bash
 ssh-keygen -t rsa -b 4096 -C "sinu.email@example.com"
 ```
 
 ### VS Code SSH config:
 Vajuta `F1` → `Remote-SSH: Open Configuration File`
 
-Lisa:```
+Lisa:
+```
 Host serverinimi
     HostName IP.aadress.või.domeen
     User kasutajanimi
@@ -135,14 +140,16 @@ Ava Settings (`Ctrl+,`) ja lisa:
 | **VirtualBox** | GUI kaudu Ubuntu ISO | VM seadetest Network |
 | **Docker** | `docker run -it ubuntu bash` | `docker inspect container_id` |
 
-### WSL2 Ühendus (kõige lihtsam)```bash
+### WSL2 Ühendus (kõige lihtsam)
+```bash
 # Windows PowerShell-is
 wsl --install Ubuntu
 # Taaskäivita arvuti
 # WSL2 käivitub automaatselt VS Code-s Remote Explorer-is
 ```
 
-### Multipass Ühendus```bash
+### Multipass Ühendus
+```bash
 # Masina loomine
 multipass launch --name devserver --cpus 2 --mem 2G --disk 10G
 
@@ -180,7 +187,8 @@ Remote masinas on **eraldi extension store**:
 
 ## 6. Mitme Terminali Kasutamine
 
-### Terminal Loomine```
+### Terminal Loomine
+```
 Ctrl+Shift+` - Uus terminal
 Ctrl+` - Terminali näitamine/peitmine
 ```
@@ -201,7 +209,8 @@ Ctrl+` - Terminali näitamine/peitmine
 ## 9. Kiire Test
 
 1. Loo uus kaust ja ava VS Code-s
-2. Loo fail `test.yaml`:```yaml
+2. Loo fail `test.yaml`:
+```yaml
 server:
   host: localhost
   port: 8080

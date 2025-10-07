@@ -494,17 +494,20 @@ Kirjutage projekti dokumentatsioon. README.md peab sisaldama:
 1. Clone repo:
 ```bash
 git clone <repo-url>
-cd terraform-aws-homework```
+cd terraform-aws-homework
+```
 
 2. Muuda `terraform.tfvars`:
 ```hcl
 project_name = "minu-nimi"
-my_ip        = "xxx.xxx.xxx.xxx/32"  # curl ifconfig.me```
+my_ip        = "xxx.xxx.xxx.xxx/32"  # curl ifconfig.me
+```
 
 3. Deploy:
 ```bash
 terraform init
-terraform apply```
+terraform apply
+```
 
 4. Deploy app (vaata juhendit allpool)
 
@@ -517,12 +520,14 @@ terraform apply```
 curl http://<IP>:3000/todos
 
 # Health check
-curl http://<IP>:3000/health```
+curl http://<IP>:3000/health
+```
 
 ## Cleanup
 **OLULINE!** Kustuta ressursid kulude vältimiseks:
 ```bash
-terraform destroy```
+terraform destroy
+```
 
 ## Refleksioon
 

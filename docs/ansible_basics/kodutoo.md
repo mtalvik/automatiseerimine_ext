@@ -327,7 +327,8 @@ ansible_lamp/
 ├── playbooks/
 │   ├── site.yml
 │   └── ...
-...```
+...
+```
 [Kirjeldage, mis igas kaustas on]
 
 ## Seadistamine
@@ -341,11 +342,13 @@ ansible_lamp/
 
 ### Esimene käivitamine
 ```bash
-ansible-playbook playbooks/site.yml --ask-become-pass```
+ansible-playbook playbooks/site.yml --ask-become-pass
+```
 
 ### Idempotentsuse test
 ```bash
-ansible-playbook playbooks/site.yml```
+ansible-playbook playbooks/site.yml
+```
 
 ### Testimine
 Avage brauseris: http://[teie-server-ip]
@@ -533,15 +536,18 @@ Seadistage self-signed SSL sertifikaat ja HTTPS:
 
 ### Debugimine
 
-Verbose režiim rohkem infot saamiseks:```bash
+Verbose režiim rohkem infot saamiseks:
+```bash
 ansible-playbook playbooks/site.yml -vvv
 ```
 
-Kuiv käivitus (ei tee muudatusi):```bash
+Kuiv käivitus (ei tee muudatusi):
+```bash
 ansible-playbook playbooks/site.yml --check
 ```
 
-Vaadake muudatuste diff'i:```bash
+Vaadake muudatuste diff'i:
+```bash
 ansible-playbook playbooks/site.yml --diff
 ```
 

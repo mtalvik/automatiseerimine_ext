@@ -77,16 +77,19 @@ Alustame kolme sammuga: paigaldus, SSH võtmed ja inventory. Pärast seda saame 
 
 ### 3.1. Ansible installimine
 
-Ubuntu/Debian:```bash
+Ubuntu/Debian:
+```bash
 sudo apt update
 sudo apt install ansible
 ```
 
-CentOS/RHEL:```bash
+CentOS/RHEL:
+```bash
 sudo yum install ansible
 ```
 
-Kontrollime installatsiooni:```bash
+Kontrollime installatsiooni:
+```bash
 ansible --version
 ```
 
@@ -96,17 +99,20 @@ Peaksite nägema versiooni infot ja Python teed. Kui näete veateadet, kontrolli
 
 Enne Ansible kasutamist peate seadistama SSH võtmed, et saaksite serveritesse sisse logida ilma parooli küsimiseta. SSH võtmete kasutamine on mitte ainult mugavam, vaid ka turvalisem kui paroolide kasutamine, sest võtmeid on praktiliselt võimatu ära arvata. Lisaks säästab see teilt vajadust sisestada parooli iga kord, kui Ansible serveritega ühendub - automatiseerimisel võib see tähendada sadu ühendusi päevas.
 
-Võtme genereerimine:```bash
+Võtme genereerimine:
+```bash
 ssh-keygen -t ed25519 -f ~/.ssh/ansible_key
 ```
 
 Vajutage Enter kõikidele küsimustele (passphrase võite jätta tühjaks testimise ajaks, produktsioonis kasutage passphrase'i).
 
-Võtme kopeerimine serverisse:```bash
+Võtme kopeerimine serverisse:
+```bash
 ssh-copy-id -i ~/.ssh/ansible_key.pub kasutaja@server.ip
 ```
 
-Testimine:```bash
+Testimine:
+```bash
 ssh -i ~/.ssh/ansible_key kasutaja@server.ip
 ```
 
@@ -133,7 +139,8 @@ Kontrollige, kas Ansible saab serveritega ühendust:
 ansible all -i inventory -m ping
 ```
 
-Kui kõik töötab, peaksite nägema midagi sellist:```
+Kui kõik töötab, peaksite nägema midagi sellist:
+```
 web1.example.com | SUCCESS => {
     "changed": false,
     "ping": "pong"
@@ -152,7 +159,8 @@ Ansible CLI võimaldab käivitada üksikuid käske (ad-hoc) või kogu playbook'i
 
 ### 4.1. Ansible käskude struktuur
 
-Kõik Ansible käsud järgivad sama mustrit:```bash
+Kõik Ansible käsud järgivad sama mustrit:
+```bash
 ansible <sihtmärk> -i <inventory> -m <moodul> -a "<argumendid>" [lisaoptsioonid]
 ```
 
@@ -168,73 +176,90 @@ Komponentide selgitus:
 
 **Ad-hoc** käsud on mõeldud kiireks testimiseks ja ühekordseks tööks, mida pole mõtet playbook'i kirjutada. Need on ideaalsed, kui vajate kiiresti kontrollida serverite seisundit või teha väikest muudatust, mida te kunagi enam ei vaja.
 
-Kõikide serverite uptime:```bash
+Kõikide serverite uptime:
+```bash
 ansible all -i inventory -m command -a "uptime"
 ```
 
-Paketi installimine:```bash
+Paketi installimine:
+```bash
 ansible webservers -i inventory -m package -a "name=nginx state=present" --become
 ```
 
-Teenuse käivitamine:```bash
+Teenuse käivitamine:
+```bash
 ansible webservers -i inventory -m service -a "name=nginx state=started" --become
 ```
 
-Faili kopeerimine:```bash
+Faili kopeerimine:
+```bash
 ansible all -i inventory -m copy -a "src=config.txt dest=/tmp/"
 ```
 
-Mälu kasutuse kontroll:```bash
+Mälu kasutuse kontroll:
+```bash
 ansible all -i inventory -m shell -a "free -h"
 ```
 
-Kettaruumi kontroll:```bash
+Kettaruumi kontroll:
+```bash
 ansible all -i inventory -m shell -a "df -h"
 ```
 
-Konkreetse serveriga töötamine:```bash
+Konkreetse serveriga töötamine:
+```bash
 ansible web1.example.com -i inventory -m ping
 ```
 
-Mitme grupi valimine:```bash
+Mitme grupi valimine:
+```bash
 ansible webservers:databases -i inventory -m command -a "hostname"
 ```
 
-Grupi välistamine:```bash
+Grupi välistamine:
+```bash
 ansible all:!databases -i inventory -m ping
 ```
 
 ### 4.3. Olulised käsurea võtmed
 
-Admin õigused (sudo):```bash
+Admin õigused (sudo):
+```bash
 --become
 ```
 
-Verbose väljund (rohkem infot):```bash
+Verbose väljund (rohkem infot):
+```bash
 -v, -vv, -vvv
 ```
 
-Kuiv käivitamine (muudatusi ei tehta):```bash
+Kuiv käivitamine (muudatusi ei tehta):
+```bash
 --check
 ```
 
-Muudatuste eelvaade:```bash
+Muudatuste eelvaade:
+```bash
 --diff
 ```
 
-Paralleelsuse piiramine:```bash
+Paralleelsuse piiramine:
+```bash
 --forks 5
 ```
 
-Sudo parooli küsimine:```bash
+Sudo parooli küsimine:
+```bash
 --ask-become-pass
 ```
 
-Konkreetsete serverite piiramine:```bash
+Konkreetsete serverite piiramine:
+```bash
 --limit web1,web2
 ```
 
-Muutujate edastamine:```bash
+Muutujate edastamine:
+```bash
 -e "variable=value"
 ```
 
@@ -313,7 +338,8 @@ Looge fail `webserver.yml`:
         port: 80
 ```
 
-Playbook'i käivitamine:```bash
+Playbook'i käivitamine:
+```bash
 ansible-playbook -i inventory webserver.yml
 ```
 
@@ -376,23 +402,27 @@ Muutujate kasutamine playbook'is toimub Jinja2 template süntaksiga: `{{ muutuja
 
 ### 6.1. Muutujate allikad
 
-Käsurealt muutuja edastamine:```bash
+Käsurealt muutuja edastamine:
+```bash
 ansible-playbook -e "app_version=2.0" playbook.yml
 ```
 
-Inventory failis:```ini
+Inventory failis:
+```ini
 [webservers]
 web1.example.com app_port=8080
 web2.example.com app_port=9080
 ```
 
-Eraldi muutujate fail:```yaml
+Eraldi muutujate fail:
+```yaml
 # vars.yml
 app_name: myapp
 app_port: 8080
 ```
 
-Kasutamine playbook'is:```yaml
+Kasutamine playbook'is:
+```yaml
 - name: Rakendus
   hosts: webservers
   vars_files:
@@ -473,23 +503,28 @@ Ilma tsüklita peaks kirjutama neli eraldi taski. Tsükkel muudab koodi lühemak
 
 Ansible kogub automaatselt infot serverite kohta igal käivitamisel. Need **faktid** on nagu serveri "pass", mis sisaldab kõiki olulisi andmeid. Faktide kogumine toimub iga playbook'i käivitamisel automaatselt ning see võtab mõne sekundi - see on põhjus, miks näete "Gathering Facts" sammu iga playbook'i alguses.
 
-Kõigi faktide vaatamine (väga palju infot!):```bash
+Kõigi faktide vaatamine (väga palju infot!):
+```bash
 ansible all -m setup
 ```
 
-Ainult võrgu info (filtreerimine on oluline):```bash
+Ainult võrgu info (filtreerimine on oluline):
+```bash
 ansible all -m setup -a "filter=ansible_default_ipv4"
 ```
 
-OS distributsioon ja versioon:```bash
+OS distributsioon ja versioon:
+```bash
 ansible all -m setup -a "filter=ansible_distribution*"
 ```
 
-Mälu info megabaitides:```bash
+Mälu info megabaitides:
+```bash
 ansible all -m setup -a "filter=ansible_memory_mb"
 ```
 
-CPU info:```bash
+CPU info:
+```bash
 ansible all -m setup -a "filter=ansible_processor*"
 ```
 
@@ -573,7 +608,8 @@ Konfiguratsiooni otsingu järjekord:
 3. `~/.ansible.cfg` teie kodukaustas
 4. `/etc/ansible/ansible.cfg` süsteemselt
 
-Konfiguratsiooni kontroll:```bash
+Konfiguratsiooni kontroll:
+```bash
 # Vaata mis konfiguratsioon on kasutusel
 ansible-config view
 
@@ -602,7 +638,8 @@ Lahendus: Lisage `--ask-become-pass` või seadistage passwordless sudo. Ansible 
 /usr/bin/python: not found
 ```
 
-Lahendus: Installige Python või lisa inventory faili:```ini
+Lahendus: Installige Python või lisa inventory faili:
+```ini
 [webservers]
 server1 ansible_python_interpreter=/usr/bin/python3
 ```

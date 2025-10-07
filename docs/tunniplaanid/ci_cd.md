@@ -81,7 +81,8 @@ Pärast kursust õpilane:
 
 **Probleem:** `.github/workflows/` kaust puudub või vale nimi
 
-**Lahendus:**```bash
+**Lahendus:**
+```bash
 mkdir -p .github/workflows
 # NB! Täpselt see path, mitte .github/workflow
 ```
@@ -135,7 +136,8 @@ mkdir -p .github/workflows
 Alusta küsimusega (vastuseid ei vaja, mõtlema panna):
 > "Kes on deploy'inud koodi production'i? Kuidas see käis?"
 
-Näita probleemi:```
+Näita probleemi:
+```
 Käsitsi deploy:
 1. SSH serverisse
 2. git pull
@@ -170,7 +172,9 @@ Selgita lühidalt (kasuta `loeng.md` slaide):
 Screen share + live coding:
 
 1. Ava GitHub repo
-2. Loo fail `.github/workflows/hello.yml````yaml
+2. Loo fail `.github/workflows/hello.yml
+`
+```yaml
 name: Hello World
 
 on: [push]
@@ -305,7 +309,8 @@ Paarides:
 
 > "Kui teil on Docker image, kuidas te praegu seda build'ite ja push'ite?" (käsitsi)
 
-Näita probleemi:```bash
+Näita probleemi:
+```bash
 docker build -t myapp:v1.2.3 .
 docker push myapp:v1.2.3
 # Iga kord käsitsi
@@ -319,7 +324,8 @@ docker push myapp:v1.2.3
 1. GitHub Settings → Secrets
 2. Lisa `DOCKERHUB_USERNAME` ja `DOCKERHUB_TOKEN`
 
-Live coding:```yaml
+Live coding:
+```yaml
 build:
   needs: test
   runs-on: ubuntu-latest
@@ -382,11 +388,13 @@ Oodatav vastus: Turvalisus, kui repo on public
 
 Demo - näita aeglast vs kiiret pipeline'i:
 
-**Aeglane:**```yaml
+**Aeglane:**
+```yaml
 - run: pip install -r requirements.txt  # 30 sek iga kord
 ```
 
-**Kiire (cache'iga):**```yaml
+**Kiire (cache'iga):**
+```yaml
 - uses: actions/cache@v3
   with:
     path: ~/.cache/pip
@@ -395,7 +403,8 @@ Demo - näita aeglast vs kiiret pipeline'i:
 - run: pip install -r requirements.txt  # 5 sek
 ```
 
-**Parallel jobs:**```yaml
+**Parallel jobs:**
+```yaml
 jobs:
   test:
     # ...
@@ -408,18 +417,21 @@ jobs:
 
 Näita reaalseid error log'e ja kuidas neid lugeda:
 
-1. **YAML syntax error:**```
+1. **YAML syntax error:**
+```
 Error: Unable to process file: .github/workflows/ci.yml
 unexpected character
 ```
 Lahendus: Kontrolli indentation
 
-2. **Test failure:**```
+2. **Test failure:**
+```
 FAILED tests/test_app.py::test_home - assert 404 == 200
 ```
 Lahendus: Loe mida assert ootab vs mis sai
 
-3. **Permission denied:**```
+3. **Permission denied:**
+```
 denied: requested access to the resource is denied
 ```
 Lahendus: Secrets või login

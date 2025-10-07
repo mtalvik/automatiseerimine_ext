@@ -101,7 +101,8 @@ Image tagging strateegia on oluline. Feature branch'idel ei builda image'i ülds
 - Kasuta github.ref võrdlemiseks - see on branch'i täielik nimi nagu refs/heads/main
 - Tag'ide jaoks kasuta ternary operator'it workflow'des
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Loo feature branch
 git checkout -b feature/test-strategy
 git push origin feature/test-strategy
@@ -248,7 +249,8 @@ deploy:
 - actions/cache documentation näitab kõiki võimalusi
 - Paralleelsed job'id on lihtsad - lihtsalt eemalda needs kui sõltuvust pole
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Baseline
 git tag baseline
 git push origin baseline
@@ -456,7 +458,8 @@ Notifications hoiavad meeskonda kursis. Slack webhook on lihtne seadistada.
 - Rollback workflow kasuta workflow_dispatch trigger'it
 - RUNBOOK.md peab sisaldama: kuidas deployda, kuidas rollback teha, kuidas troubleshoot'ida
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Security scan
 git push origin main
 # Vaata Actions → Security tab → peaks näitama vulnerabilities

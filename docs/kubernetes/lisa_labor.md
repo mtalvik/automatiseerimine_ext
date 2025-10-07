@@ -153,11 +153,13 @@ nano ~/k8s-lab/frontend/1-html.yaml
 ```
 
 Muuda:
-1. Background gradient (rea ~13):```html
+1. Background gradient (rea ~13):
+```html
 background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);  <!-- Roosa -->
 ```
 
-2. Versiooni number (rea ~25):```html
+2. Versiooni number (rea ~25):
+```html
 <p><strong>Versioon:</strong> <span style="color: blue;">v2.0</span></p>
 ```
 ```bash

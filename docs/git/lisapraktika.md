@@ -77,7 +77,8 @@ fi
 - Ajutine vahele jätmine: `git commit --no-verify`
 - Kontrolli ainult staged faile: `git diff --cached --name-only`
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 echo "print('debug')" > test.py
 git add test.py
 git commit -m "feat: test"  # Peaks ebaõnnestuma
@@ -192,7 +193,8 @@ jobs:
 - Kasuta `npm ci` mitte `npm install`
 - Cache dependency'sid: `cache: 'npm'`
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 mkdir -p .github/workflows
 # Lisa CI YAML fail
 git add .github/
@@ -262,7 +264,8 @@ git rebase main
 - Kui läks katki: `git rebase --abort`
 - Force push pärast: `git push --force-with-lease`
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 git checkout -b feature/cleanup
 for i in {1..5}; do
   echo "v$i" > file.txt

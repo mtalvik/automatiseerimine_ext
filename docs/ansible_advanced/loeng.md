@@ -185,7 +185,8 @@ Template sisaldab:
 
 Jinja2 on template engine - see teisendab malli lõplikuks failiks.
 
-**Tingimused:**```jinja2
+**Tingimused:**
+```jinja2
 {% if environment == 'production' %}
 # Production seaded
 {% else %}
@@ -195,7 +196,8 @@ Jinja2 on template engine - see teisendab malli lõplikuks failiks.
 
 See pole lihtsalt teksti asendamine - see on **programmeerimiskeeleline loogika** faili genereerimiseks.
 
-**Tsüklid:**```jinja2
+**Tsüklid:**
+```jinja2
 {% for vhost in virtual_hosts %}
 <VirtualHost>
   ServerName {{ vhost.domain }}
@@ -205,7 +207,8 @@ See pole lihtsalt teksti asendamine - see on **programmeerimiskeeleline loogika*
 
 Kui teil on list 3 domeenist, genereerib see 3 VirtualHost plokki. Lisate 4. domeeni listile - mall genereerib automaatselt 4 plokki.
 
-**Filtrid:**```jinja2
+**Filtrid:**
+```jinja2
 {{ ansible_memtotal_mb * 0.7 | int }}M
 ```
 
@@ -228,7 +231,8 @@ Template'id lahendavad configuration management'i fundamentaalse probleemi - kui
 
 Konfiguratsioonifaili muutmine nõuab teenuse taaskäivitamist. Aga teil on 5 task'i, mis muudavad 5 erinevat Apache konfiguratsioonifaili.
 
-Naiivne lähenemine:```
+Naiivne lähenemine:
+```
 Task 1: Muuda config1 → Restart Apache
 Task 2: Muuda config2 → Restart Apache  
 Task 3: Muuda config3 → Restart Apache
@@ -374,9 +378,11 @@ graph LR
    - Salvestades krüpteerib automaatselt
 
 2. **Playbook kasutab:** Viitab vault muutujatele
-   ```yaml
+   
+```yaml
    mysql_password: "{{ vault_mysql_password }}"
-   ```
+   
+```
 
 3. **Käivitamine:** `ansible-playbook site.yml --ask-vault-pass`
    - Küsib vault parooli
@@ -394,13 +400,15 @@ group_vars/
     vault.yml      # Krüpteeritud - paroolid
 ```
 
-**vars.yml** (avalik, Git'is):```yaml
+**vars.yml** (avalik, Git'is):
+```yaml
 database_host: "prod-db.example.com"
 database_user: "app_user"
 database_password: "{{ vault_database_password }}"
 ```
 
-**vault.yml** (krüpteeritud, Git'is):```yaml
+**vault.yml** (krüpteeritud, Git'is):
+```yaml
 vault_database_password: "ActualSecretPassword123"
 ```
 

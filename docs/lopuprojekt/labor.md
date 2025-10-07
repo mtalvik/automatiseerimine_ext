@@ -40,7 +40,8 @@ Vali 2 tööriista mida kasutad:
 - Terraform + Ansible
 - Kubernetes + Monitoring
 
-**Kirjuta üles:**```
+**Kirjuta üles:**
+```
 Minu valik: Git + Docker
 Miks: Tean neid juba ja saan kiiresti alustada
 ```
@@ -66,7 +67,8 @@ Vali lihtne projekt:
 - Mis sind huvitab
 - Aga peab olema LIHTNE!
 
-**Kirjuta üles:**```
+**Kirjuta üles:**
+```
 Minu projekt: TODO list veebirakendus
 Mis see teeb: Kasutaja saab lisada ja kustutada ülesandeid
 ```

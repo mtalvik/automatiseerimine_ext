@@ -56,7 +56,8 @@ Understand practical differences between push-based (Ansible) and pull-based (Pu
 ansible/          - Ansible implementation
 puppet/           - Puppet implementation
 vagrant/          - VM configurations
-COMPARISON.md     - Detailed comparison```
+COMPARISON.md     - Detailed comparison
+```
 
 ## Setup Instructions
 
@@ -562,7 +563,8 @@ Looge COMPARISON.md fail, mis dokumenteerib põhjaliku võrdluse. See on projekt
 - name: "Install nginx"
   apt:
     name: nginx
-    state: present```
+    state: present
+```
 
 Plussid:
 - YAML on intuitiivne
@@ -577,7 +579,8 @@ Miinused:
 ```puppet
 package { 'nginx':
   ensure => installed,
-}```
+}
+```
 
 Plussid:
 - Puhtalt declarative

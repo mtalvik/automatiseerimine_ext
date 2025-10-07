@@ -414,7 +414,8 @@ Production-ready Nginx role with SSL, virtual hosts, and performance tuning.
         nginx_ssl_enabled: true
         nginx_vhosts:
           - name: example.com
-            root: /var/www/example```
+            root: /var/www/example
+```
 ```
 
 Semantic versioning on oluline. Versioon 1.2.3 tähendab: major.minor.patch. Patch muudatused on bugfixid, mis ei muuda API'd. Minor muudatused lisavad funktsionaalsusi tagasiühilduvalt. Major muudatused võivad murda olemasolevat kasutust. Kasutajad peavad saama usaldada et kui nad lukustavad rolli versioonile 1.x, ei murra uuendused nende playbook'e.

@@ -34,15 +34,18 @@ git version 2.40.0
 
 Kui Git'i ei ole, paigalda see:
 
-**Windows:**```bash
+**Windows:**
+```bash
 winget install --id Git.Git -e --source winget
 ```
 
-**macOS:**```bash
+**macOS:**
+```bash
 brew install git
 ```
 
-**Linux (Ubuntu/Debian):**```bash
+**Linux (Ubuntu/Debian):**
+```bash
 sudo apt update
 sudo apt install git
 ```
@@ -942,21 +945,24 @@ Lihtne tervitusprogramm, mis demonstreerib funktsioonide kasutamist.
 
 Kasutamine:
 ```bash
-python3 hello.py```
+python3 hello.py
+```
 
 ### calculator.py
 Põhilised ja täiustatud matemaatilised operatsioonid.
 
 Kasutamine:
 ```bash
-python3 calculator.py```
+python3 calculator.py
+```
 
 ### string_utils.py
 Stringide töötlemise utiliidid.
 
 Kasutamine:
 ```bash
-python3 string_utils.py```
+python3 string_utils.py
+```
 
 ## Arendamine
 
@@ -973,7 +979,8 @@ git clone git@github.com:KASUTAJANIMI/git-labor.git
 cd git-labor
 python3 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt  # kui on dependency'sid```
+pip install -r requirements.txt  # kui on dependency'sid
+```
 EOF
 ```
 
@@ -993,7 +1000,8 @@ Mine GitHub'i (veebilehitseja):
 3. Täida PR vorm:
    - **Title:** Lisa kasutamisjuhend
    - **Description:**
-   ```
+   
+```
    ## Muudatused
    - Lisasin USAGE.md faili
    - Dokumenteeritud kõik skriptid
@@ -1003,7 +1011,8 @@ Mine GitHub'i (veebilehitseja):
    - [x] Dokumentatsioon on täielik
    - [x] Näited on testitud
    - [x] Failid on õigesti vormindatud
-   ```
+   
+```
 4. Click "Create pull request"
 
 ### 8.3 Code Review ja Merge
@@ -1074,7 +1083,8 @@ Enne laborit lõpetatuks lugemist veendu:
 
 **Probleem:** `Permission denied (publickey)`
 
-**Lahendus:**```bash
+**Lahendus:**
+```bash
 # Kontrolli, kas SSH agent töötab
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
@@ -1087,7 +1097,8 @@ ssh -T git@github.com
 
 **Probleem:** `rejected - non-fast-forward`
 
-**Lahendus:** Keegi teine push'is vahepeal. Pull esmalt:```bash
+**Lahendus:** Keegi teine push'is vahepeal. Pull esmalt:
+```bash
 git pull origin main
 # Lahenda konfliktid, kui on
 git push origin main
@@ -1097,7 +1108,8 @@ git push origin main
 
 **Probleem:** Merge läks katki, ei tea, mis teha.
 
-**Lahendus:** Tühista merge:```bash
+**Lahendus:** Tühista merge:
+```bash
 git merge --abort
 ```
 
@@ -1105,7 +1117,8 @@ git merge --abort
 
 **Probleem:** Ei saa branch'i kustutada: "not fully merged"
 
-**Lahendus:** Kasuta force delete (ainult kui oled kindel):```bash
+**Lahendus:** Kasuta force delete (ainult kui oled kindel):
+```bash
 git branch -D branch-name
 ```
 

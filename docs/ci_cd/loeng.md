@@ -324,7 +324,8 @@ jobs:
 
 ### Sama Pipeline Erinevatel Platvormidel
 
-GitHub Actions:```yaml
+GitHub Actions:
+```yaml
 name: CI/CD
 on:
   push:
@@ -338,7 +339,8 @@ jobs:
       - run: docker build -t myapp .
 ```
 
-GitLab CI:```yaml
+GitLab CI:
+```yaml
 stages:
   - build
 
@@ -349,7 +351,8 @@ build:
     - docker build -t myapp .
 ```
 
-Jenkins:```groovy
+Jenkins:
+```groovy
 pipeline {
     agent any
     stages {
@@ -418,7 +421,8 @@ Docker lahendab selle radikaalse lähenemisega: me ei paigalda rakendust otse se
 
 CI/CD kontekstis tähendab see kahte asja. Esiteks, job'id jooksevad container'ites. Iga job saab määrata, millises Docker image'is ta jookseb.
 
-GitHub Actions:```yaml
+GitHub Actions:
+```yaml
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -428,7 +432,8 @@ jobs:
       - run: pytest
 ```
 
-GitLab CI:```yaml
+GitLab CI:
+```yaml
 test:
   image: python:3.9
   script:
@@ -437,14 +442,16 @@ test:
 
 Teiseks, me build'ime container image'id. Rakenduse deployment tähendab container image loomist.
 
-GitHub Actions:```yaml
+GitHub Actions:
+```yaml
 - name: Build and push
   run: |
     docker build -t myapp:${{ github.sha }} .
     docker push myapp:${{ github.sha }}
 ```
 
-GitLab CI:```yaml
+GitLab CI:
+```yaml
 build:
   image: docker:latest
   services:
@@ -575,7 +582,8 @@ graph LR
     style ROLLBACK fill:#ff6b6b
 ```
 
-GitHub Actions:```yaml
+GitHub Actions:
+```yaml
 deploy:
   environment:
     name: production
@@ -584,7 +592,8 @@ deploy:
     - run: deploy.sh
 ```
 
-GitLab CI:```yaml
+GitLab CI:
+```yaml
 deploy:
   environment:
     name: production
@@ -704,14 +713,16 @@ Pipeline'id võivad võtta aega. Kui iga kord installite kõik dependencies null
 
 Cache on viis kuidas salvestada faile job'ide vahel. Dependencies ei muutu iga commit'iga. Miks alla laadida uuesti?
 
-GitHub Actions:```yaml
+GitHub Actions:
+```yaml
 - uses: actions/cache@v3
   with:
     path: ~/.cache/pip
     key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 ```
 
-GitLab CI:```yaml
+GitLab CI:
+```yaml
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
@@ -722,14 +733,16 @@ cache:
 
 Artifacts on job'i väljund, mida järgmine stage vajab. Build stage loob JAR faili. Deploy stage vajab seda JAR faili. Artifacts võimaldavad seda jagada.
 
-GitHub Actions:```yaml
+GitHub Actions:
+```yaml
 - uses: actions/upload-artifact@v3
   with:
     name: build
     path: build/
 ```
 
-GitLab CI:```yaml
+GitLab CI:
+```yaml
 artifacts:
   paths:
     - build/

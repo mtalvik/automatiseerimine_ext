@@ -1335,7 +1335,8 @@ Kubernetes loob uue pod'i v2.0, ootab kuni valmis, siis kustutab vana. Zero down
 
 ## 1. Pod ei käivitu
 
-**Symptom:**```bash
+**Symptom:**
+```bash
 kubectl get pods
 # NAME             READY   STATUS             RESTARTS   AGE
 # backend-api-xxx  0/1     CrashLoopBackOff   5          3m
@@ -1343,7 +1344,8 @@ kubectl get pods
 
 `CrashLoopBackOff` tähendab, et pod crashib ja Kubernetes proovib uuesti.
 
-**Debug:**```bash
+**Debug:**
+```bash
 # Vaata detaile
 kubectl describe pod backend-api-xxx
 
@@ -1363,12 +1365,14 @@ kubectl logs backend-api-xxx -c npm-install
 
 ## 2. API ei vasta
 
-**Symptom:**```bash
+**Symptom:**
+```bash
 curl http://localhost:3000/api/products
 # Connection refused
 ```
 
-**Debug:**```bash
+**Debug:**
+```bash
 # Kas Service olemas?
 kubectl get svc backend-service
 
@@ -1391,12 +1395,14 @@ kubectl logs -l app=backend
 
 ## 3. PostgreSQL ühendus fail
 
-**Symptom:**```bash
+**Symptom:**
+```bash
 kubectl logs -l app=backend
 # Error: connect ECONNREFUSED postgres-service:5432
 ```
 
-**Debug:**```bash
+**Debug:**
+```bash
 # Kas postgres pod töötab?
 kubectl get pods postgres-0
 
@@ -1419,7 +1425,8 @@ kubectl get svc postgres-service
 **Symptom:**  
 Brauseris näed: "Viga: API ei vasta"
 
-**Debug:**```bash
+**Debug:**
+```bash
 # Ava browser console (F12)
 # Vaata Network tab
 
@@ -1444,13 +1451,15 @@ kill %1
 
 ## 5. PVC Pending
 
-**Symptom:**```bash
+**Symptom:**
+```bash
 kubectl get pvc
 # NAME          STATUS    VOLUME   CAPACITY
 # postgres-pvc  Pending
 ```
 
-**Debug:**```bash
+**Debug:**
+```bash
 # Vaata detaile
 kubectl describe pvc postgres-pvc
 
@@ -1460,7 +1469,8 @@ df -h
 exit
 ```
 
-**Lahendus:**```bash
+**Lahendus:**
+```bash
 # Kustuta PVC ja loo uuesti
 kubectl delete pvc postgres-pvc
 kubectl apply -f ~/k8s-lab/postgres/3-pvc.yaml
@@ -1508,13 +1518,15 @@ minikube delete
 
 ## Kustuta VM
 
-### Multipass```bash
+### Multipass
+```bash
 # Kohalik arvuti
 multipass delete k8s-lab
 multipass purge
 ```
 
-### VirtualBox```
+### VirtualBox
+```
 VirtualBox UI → Right-click → Remove → Delete all files
 ```
 
@@ -1534,7 +1546,8 @@ VirtualBox UI → Right-click → Remove → Delete all files
 - **Cheatsheet**: https://kubernetes.io/docs/reference/kubectl/cheatsheet/
 - **Reference**: https://kubernetes.io/docs/reference/kubectl/
 
-## Debugging```bash
+## Debugging
+```bash
 kubectl describe pod <name>       # Detailne info
 kubectl logs <pod-name>           # Logid
 kubectl exec -it <pod> -- bash    # Sisene pod'i

@@ -112,7 +112,8 @@ __pycache__/
 
 ### 3.2 RUN Käskude Kombineerimine
 
-**Halb:**```dockerfile
+**Halb:**
+```dockerfile
 RUN apt-get update
 RUN apt-get install -y curl
 RUN apt-get clean
@@ -120,7 +121,8 @@ RUN apt-get clean
 
 Kolm layer'it, apt cache jääb.
 
-**Hea:**```dockerfile
+**Hea:**
+```dockerfile
 RUN apt-get update && \
     apt-get install -y curl && \
     apt-get clean && \
@@ -205,7 +207,8 @@ services:
     profiles: ["testing"]
 ```
 
-Käivitamine:```bash
+Käivitamine:
+```bash
 docker-compose up  # ainult app
 docker-compose --profile debug up  # app + debug
 ```

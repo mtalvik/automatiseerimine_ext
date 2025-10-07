@@ -106,7 +106,8 @@ Võtke oma kodutöö projekt ja tehke sellest multi-environment:
 - Kui workspace on "dev", kasutage 10.0.0.0/16, kui "staging", siis 10.1.0.0/16 jne
 - Testige iga workspace'i eraldi: `terraform workspace select dev && terraform apply`
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Dev keskkond
 terraform workspace select dev
 terraform apply
@@ -244,7 +245,8 @@ Seadistage remote state ja testige locking'ut.
 - Käivitage `terraform init -migrate-state`
 - Lokaalne state fail jääb alles backup'ina - ärge kustutage kohe
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Terminalis 1
 terraform plan
 # Hoidke plani oodates...
@@ -448,7 +450,8 @@ Looge taaskasutatav VPC module ja kasutage seda kahes erinevas projektis.
 - Kasutage `count` või `for_each` subnet'ide loomiseks
 - Dokumenteerige inputs, outputs ja kasutamisnäide README'sse
 
-**Testimine:**```bash
+**Testimine:**
+```bash
 # Projekt A
 cd projects/project-a
 terraform init

@@ -126,22 +126,26 @@ docker stop $(docker ps -q)
 
 ## 10. Levinud probleemid
 
-**"Cannot connect to Docker daemon"**```bash
+**"Cannot connect to Docker daemon"**
+```bash
 sudo service docker start    # Linux/WSL
 ```
 
-**"Permission denied"**```bash
+**"Permission denied"**
+```bash
 newgrp docker    # or logout/login
 ```
 
-**Port already in use**```bash
+**Port already in use**
+```bash
 lsof -i :8080    # find what's using port
 ```
 
 **WSL2 specific - aeglane performance**
 - Hoia failid Linux'is (`~/`), mitte Windows'is (`/mnt/c/`)
 
-**Multipass specific - file sharing**```bash
+**Multipass specific - file sharing**
+```bash
 multipass mount ~/projects docker-vm:/home/ubuntu/projects
 ```
 

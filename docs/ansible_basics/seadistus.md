@@ -344,7 +344,8 @@ Windows kasutajad, installige Git Bash parem terminali kogemus saamiseks:
 
 ### Windows Terminal
 
-Windows 11 kasutajad, kasutage Windows Terminal mitme tab'i jaoks:```powershell
+Windows 11 kasutajad, kasutage Windows Terminal mitme tab'i jaoks:
+```powershell
 # Installi Windows Terminal
 winget install Microsoft.WindowsTerminal
 ```

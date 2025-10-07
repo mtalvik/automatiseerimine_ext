@@ -139,7 +139,8 @@ Mida peaks versioonihaldusesse panema ja mida mitte? See ei ole triviaalne küsi
 
 Tüüpilised .gitignore mustrid keele kaupa:
 
-**Python:**```gitignore
+**Python:**
+```gitignore
 __pycache__/
 *.py[cod]
 *$py.class
@@ -151,7 +152,8 @@ ENV/
 .pytest_cache/
 ```
 
-**Node.js:**```gitignore
+**Node.js:**
+```gitignore
 node_modules/
 npm-debug.log
 .env
@@ -159,7 +161,8 @@ dist/
 build/
 ```
 
-**Java:**```gitignore
+**Java:**
+```gitignore
 *.class
 target/
 .gradle/

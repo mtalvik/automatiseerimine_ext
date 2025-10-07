@@ -274,15 +274,18 @@ README.md peab sisaldama:
 
 ### Esimene käivitus
 ```bash
-ansible-playbook playbooks/site.yml --ask-vault-pass```
+ansible-playbook playbooks/site.yml --ask-vault-pass
+```
 
 ### Dev keskkond
 ```bash
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l dev```
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l dev
+```
 
 ### Production keskkond
 ```bash
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l production```
+ansible-playbook -i inventory/hosts.yml playbooks/site.yml -l production
+```
 
 ## Testimine
 [Kuidas kontrollida, et töötab]
@@ -454,15 +457,18 @@ deploy:
 
 ## 12. Debugimine
 
-Verbose režiim:```bash
+Verbose režiim:
+```bash
 ansible-playbook site.yml -vvv
 ```
 
-Kuiv käivitus:```bash
+Kuiv käivitus:
+```bash
 ansible-playbook site.yml --check
 ```
 
-Vaata diff'i:```bash
+Vaata diff'i:
+```bash
 ansible-playbook site.yml --diff
 ```
 

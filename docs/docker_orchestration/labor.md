@@ -46,7 +46,8 @@ Host masinas (Windows/Mac):
 - Lae alla: https://code.visualstudio.com/
 - Installi "Remote - SSH" extension
 
-Või kasuta VM-is:```bash
+Või kasuta VM-is:
+```bash
 # Kui tahad VSCode otse VM-is
 sudo snap install code --classic
 ```
@@ -79,7 +80,8 @@ cd todo-app
 
 ### 2.2 Ava VSCode
 
-Kui VSCode on VM-is:```bash
+Kui VSCode on VM-is:
+```bash
 code .
 ```
 
@@ -96,7 +98,8 @@ VSCode'is vajuta **New Folder** ikooni ja loo:
 - `frontend`
 - `nginx`
 
-Kontrolli et su kausad näevad välja nii:```
+Kontrolli et su kausad näevad välja nii:
+```
 todo-app/
 ├── api/
 ├── database/
@@ -1179,7 +1182,8 @@ docker-compose up --build
 # Creating todo_nginx ... done
 ```
 
-OOTA kuni näed:```
+OOTA kuni näed:
+```
 todo_db       | PostgreSQL init process complete; ready for start up.
 todo_api      | Connected to PostgreSQL
 todo_api      | API server running on port 3000
@@ -1268,7 +1272,8 @@ docker-compose logs database
 
 ### Probleem 1: "Cannot connect from HOST machine"
 
-Diagnoos:```bash
+Diagnoos:
+```bash
 # VM-is
 curl http://localhost/health
 # Kas töötab? JA
@@ -1285,7 +1290,8 @@ Lahendus:
    - Guest Port: 80
    - Siis HOST-is: http://localhost:8080
 
-2. Või kasuta VM IP:```bash
+2. Või kasuta VM IP:
+```bash
 # VM-is
 ip addr show | grep "inet "
 # Otsi 192.168.x.x
@@ -1296,13 +1302,15 @@ http://192.168.1.100
 
 ### Probleem 2: "API konteiner crashib"
 
-Diagnoos:```bash
+Diagnoos:
+```bash
 docker-compose logs api
 ```
 
 Kui näed: "Cannot connect to database"
 
-Lahendus:```bash
+Lahendus:
+```bash
 # Restart API (andmebaas võtab kauem käivituda)
 docker-compose restart api
 
@@ -1316,7 +1324,8 @@ Diagnoos:
 - Vaata Network tab
 - Kas API päringud ebaõnnestuvad?
 
-Lahendus 1: nginx konfiguratsioon on vale```bash
+Lahendus 1: nginx konfiguratsioon on vale
+```bash
 # Kontrolli nginx.conf
 cat nginx/nginx.conf
 
@@ -1324,7 +1333,8 @@ cat nginx/nginx.conf
 docker-compose restart nginx
 ```
 
-Lahendus 2: Frontend build failed```bash
+Lahendus 2: Frontend build failed
+```bash
 # Vaata frontend logisid
 docker-compose logs frontend
 
@@ -1408,19 +1418,22 @@ docker system prune -a --volumes
 
 Kui see töötab, proovi:
 
-1. Lisa Redis cache'iks:```yaml
+1. Lisa Redis cache'iks:
+```yaml
 redis:
   image: redis:alpine
   networks:
     - backend
 ```
 
-2. Lisa environment file (.env):```yaml
+2. Lisa environment file (.env):
+```yaml
 env_file:
   - .env
 ```
 
-3. Development mode - hot reload:```yaml
+3. Development mode - hot reload:
+```yaml
 api:
   volumes:
     - ./api:/app
@@ -1428,7 +1441,8 @@ api:
   command: npm run dev
 ```
 
-4. Scaling - mitme API instantsi:```bash
+4. Scaling - mitme API instantsi:
+```bash
 docker-compose up --scale api=3
 ```
 

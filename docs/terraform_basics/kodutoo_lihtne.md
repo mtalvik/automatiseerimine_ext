@@ -271,7 +271,8 @@ See kustutab kõik Terraform'i loodud failid ja kaustad.
 - [ ] `terraform init` töötab
 - [ ] `terraform apply` loob struktuuri ilma erroriteta
 - [ ] Loodud failide struktuur on õige:
-  ```
+  
+```
   minu-projekt/
   ├── README.md
   ├── config/
@@ -279,7 +280,8 @@ See kustutab kõik Terraform'i loodud failid ja kaustad.
   │   └── app.yaml
   └── scripts/
       └── startup.sh
-  ```
+  
+```
 - [ ] Skript käivitub: `./minu-projekt/scripts/startup.sh`
 - [ ] `terraform output` näitab õigeid teid
 - [ ] Muutujate muutmine ja uuesti apply töötab

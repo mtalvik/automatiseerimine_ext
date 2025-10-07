@@ -183,7 +183,8 @@ Tulemus: final image sisaldab ainult runtime'i ja kompileeritud koodi, mitte bui
 
 **Kustuta tarbetu:** Apt cache, build artefaktid, .git kataloog.
 
-**.dockerignore:** Väldi tarbetute failide kopeerimist:```
+**.dockerignore:** Väldi tarbetute failide kopeerimist:
+```
 node_modules/
 .git/
 *.log
@@ -256,20 +257,23 @@ Container'i writable layer on ajutine. Container kustutamisel kaovad andmed. And
 
 ### 6.2 Volume Tüübid
 
-**Named volumes:**```bash
+**Named volumes:**
+```bash
 docker volume create pgdata
 docker run -d -v pgdata:/var/lib/postgresql/data postgres
 ```
 
 Docker haldab volume'i asukohta (`/var/lib/docker/volumes/pgdata/`). Soovitatav produktsioonis.
 
-**Bind mounts:**```bash
+**Bind mounts:**
+```bash
 docker run -d -v /host/path:/container/path nginx
 ```
 
 Host'i kataloog mountitakse container'isse. Kasutatakse arenduses (live reload). Bind mount ei ole portable - sõltub host'i failisüsteemist.
 
-**tmpfs mounts:**```bash
+**tmpfs mounts:**
+```bash
 docker run -d --tmpfs /tmp nginx
 ```
 
@@ -360,14 +364,16 @@ Container'id jagavad kernel'it - kernel exploit võib mõjutada host'i. VM'id on
 
 ### 9.2 Best Practices
 
-**Non-root user:**```dockerfile
+**Non-root user:**
+```dockerfile
 RUN adduser -D appuser
 USER appuser
 ```
 
 Vaikimisi jooksevad container'id root'ina. Kui keegi container'isse sisse murdab, on tal root õigused. Loo spetsiaalne kasutaja.
 
-**Read-only filesystem:**```bash
+**Read-only filesystem:**
+```bash
 docker run --read-only --tmpfs /tmp myapp
 ```
 

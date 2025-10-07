@@ -172,7 +172,8 @@ Traditsiooniline veebirakendus koosneb kolmest põhikihist: frontend (kasutajali
 - CI/CD pipeline testib ja deploy'ib automaatselt
 - Monitoring jälgib latency't ja error rate'e
 
-**Näide Arhitektuurist:**```
+**Näide Arhitektuurist:**
+```
 [Kasutaja] → [Load Balancer] → [Frontend Pod'id]
                                       ↓
                             [Backend API Pod'id]
@@ -304,7 +305,8 @@ Git workflow peaks olema struktureeritud:
 - Pull request'id läbivad code review'
 - Merge toimub alles peale testide läbimist
 
-Commit messages peaksid olema kirjeldavad:```
+Commit messages peaksid olema kirjeldavad:
+```
 feat: Lisa Prometheus monitoring support
 
 - Configura /metrics endpoint

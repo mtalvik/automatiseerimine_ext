@@ -396,12 +396,14 @@ services:
 
 ### 3.2 Loo `.env.dev` ja `.env.prod`
 
-`.env.dev`:```bash
+`.env.dev`:
+```bash
 COMPOSE_PROJECT_NAME=todo-dev
 DB_PASSWORD=devpassword
 ```
 
-`.env.prod`:```bash
+`.env.prod`:
+```bash
 COMPOSE_PROJECT_NAME=todo-prod
 DB_PASSWORD=prodpassword123
 ```
@@ -481,7 +483,8 @@ chmod +x deploy.sh
 ```
 Nginx (80) → Frontend → API → Database
                         ↓
-                      Redis```
+                      Redis
+```
 
 ## Services
 
@@ -495,17 +498,20 @@ Nginx (80) → Frontend → API → Database
 
 ### Development
 ```bash
-./deploy.sh dev```
+./deploy.sh dev
+```
 
 ### Production
 ```bash
-./deploy.sh prod```
+./deploy.sh prod
+```
 
 ## Testing
 
 ```bash
 curl http://localhost/health
-curl http://localhost/api/todos```
+curl http://localhost/api/todos
+```
 
 ## Cache Testing
 
@@ -514,7 +520,8 @@ curl http://localhost/api/todos```
 time curl http://localhost/api/todos
 
 # Second request - cache HIT (faster)
-time curl http://localhost/api/todos```
+time curl http://localhost/api/todos
+```
 
 ## Environment Variables
 
@@ -522,7 +529,8 @@ Create `.env.dev` and `.env.prod`:
 
 ```bash
 COMPOSE_PROJECT_NAME=todo-dev
-DB_PASSWORD=yourpassword```
+DB_PASSWORD=yourpassword
+```
 
 ## Health Checks
 
@@ -534,7 +542,8 @@ All services have health checks:
 
 Check status:
 ```bash
-docker-compose ps```
+docker-compose ps
+```
 ```
 
 **SCREENSHOT 3:** Brauseris töötav rakendus + cache testimine terminalis

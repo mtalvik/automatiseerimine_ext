@@ -655,7 +655,8 @@ Lock ID on veateates näidatud. Olge ettevaatlik - eemaldage lock ainult siis, k
 
 Kui ressurss eksisteerib juba väljaspool Terraform'i, ei saa Terraform seda uuesti luua. Lahendused:
 
-1. Importige olemasolev ressurss:```bash
+1. Importige olemasolev ressurss:
+```bash
 terraform import local_file.example ./existing-file.txt
 ```
 

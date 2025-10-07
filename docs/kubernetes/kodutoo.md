@@ -118,7 +118,8 @@ docker push valixyz/shop-frontend:v1.0
 cd ~/kodutoo/kubernetes
 ```
 
-**backend-deployment.yaml:**```yaml
+**backend-deployment.yaml:**
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -161,7 +162,8 @@ spec:
   - port: 3000
 ```
 
-**frontend-deployment.yaml:**```yaml
+**frontend-deployment.yaml:**
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -613,15 +615,19 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 **Kui tahad ekstra punkte, tee üks või mitu neist:**
 
 1. **Horizontal Pod Autoscaler:** Automaatne scaling CPU kasutuse põhjal
-   ```bash
+   
+```bash
    kubectl autoscale deployment backend --cpu-percent=50 --min=2 --max=10
-   ```
+   
+```
 
 2. **Helm Chart:** Pakenda rakendus Helm chart'iks
-   ```bash
+   
+```bash
    helm create myapp
    helm install myapp ./myapp
-   ```
+   
+```
 
 3. **Monitoring:** Lisa Prometheus + Grafana monitoring
 4. **Persistent Volumes:** Kasuta PV ja PVC andmete säilitamiseks

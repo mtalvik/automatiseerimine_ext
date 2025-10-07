@@ -42,7 +42,8 @@ style(app): fix indentation in main.py
 
 ## Halvad Näited
 
-❌ **ÄRA tee nii:**```
+❌ **ÄRA tee nii:**
+```
 fix
 update
 asdf
@@ -53,7 +54,8 @@ stuff
 idk
 ```
 
-✅ **Tee nii:**```
+✅ **Tee nii:**
+```
 fix(login): prevent empty username submission
 feat(api): add user profile endpoint
 docs: update README with usage examples

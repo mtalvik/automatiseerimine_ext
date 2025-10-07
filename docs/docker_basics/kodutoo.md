@@ -432,17 +432,21 @@ Flask-põhine chat bot, mis vastab lihtsatele küsimustele. Demonstreerib:
 
 ### Lokaalselt
 
-\```bash
+\
+```bash
 docker run -d -p 5000:5000 [username]/chatbot-app:latest
-\```
+\
+```
 
 Avage: http://localhost:5000
 
 ### Docker Compose
 
-\```bash
+\
+```bash
 docker-compose up -d
-\```
+\
+```
 
 Avage: http://localhost
 

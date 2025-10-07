@@ -349,7 +349,8 @@ module "servers" {
 
 **Ülesanne:** Loo "Infrastructure as Data" generaator
 
-**Input** (`infrastructure.yaml`):```yaml
+**Input** (`infrastructure.yaml`):
+```yaml
 projects:
   - name: web-app
     environments:
