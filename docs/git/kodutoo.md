@@ -320,66 +320,13 @@ Lisage README.md lõppu "## Refleksioon" sektsioon.
 
 ## 6. Refleksioon
 
-Lisage README.md lõppu vastused järgmistele küsimustele. Iga vastus 2-3 lauset.
+Lisage README.md lõppu "## Refleksioon" sektsioon ja vastake järgmistele küsimustele (2-3 lauset igaüks):
 
-### 1. Mis oli kõige raskem ja kuidas lahendasid?
-
-Kirjeldage ühte konkreetset väljakutset (tehnilise või kontseptuaalse) ja kuidas selle lahendasite. Kas kasutasite dokumentatsiooni? Küsisite abi? Proovisite erinevaid lähenemisi?
-
-### 2. Milline Git kontseptsioon oli suurim "ahaa!" hetk?
-
-Nimetage üks Git käsk või kontseptsioon, mis muutis teie arusaamist versioonihaldusest. Miks see oli oluline?
-
-### 3. Kuidas kasutaksid Git'i tulevikus?
-
-Andke 2 konkreetset näidet, kuidas saaksite Git'i kasutada teistes koolitöödes, isiklikes projektides või tulevases töös.
-
-### 4. Kuidas selgitaksid sõbrale, mis on Git?
-
-Seletage Git'i väärtust lihtsas keeles ilma tehnilise žargoonita. Kasutage analooge, mida mittetehnilisele inimesele on arusaadav.
-
-### 5. Mis oli kõige huvitavam osa?
-
-Mis aspekt oli kõige õpetlikum või huvitavam? Miks?
-
-**Näide refleksioonist:**
-```markdown
-## Refleksioon
-
-### 1. Mis oli kõige raskem?
-
-Kõige raskem oli mõista erinevust `git add` ja `git commit` vahel. 
-Esialgu tundus, et need teevad sama asja. Aitasin end välja 
-dokumentatsiooni lugemisega ja mõistsin, et `add` paneb failid 
-"staging area'sse" ja `commit` salvestab need ajalukku.
-
-### 2. Ahaa! hetk
-
-`git status` oli minu suurim avastus. Esimest korda sain aru, 
-mida Git täpselt jälgib. See käsk näitas mulle, millised failid 
-on muutunud, mis on staging area's ja mis on committitud.
-
-### 3. Tulevikukasutus
-
-Kasutan Git'i kindlasti kõigis programmeerimisprojektides. Samuti 
-võiksin seda kasutada oma lõputöö jaoks - saaksin jälgida, kuidas 
-minu dokument areneb. Meeskonnatöö projektides oleks Git eriti 
-kasulik konfli ktide vältimiseks.
-
-### 4. Seletus sõbrale
-
-Git on nagu ajamasin sinu failidele. Kujuta ette, et saad teha 
-"salvestuspunkti" iga kord, kui teed midagi olulist. Kui hiljem 
-midagi katki läheb, saad alati tagasi minna. Ei ole enam 
-"dokument_final_v2_REAL.docx" probleemi!
-
-### 5. Kõige huvitavam
-
-Kõige huvitavam oli näha oma projekti ajalugu `git log` käsuga. 
-See oli nagu vaadata oma töö "filmilinti" - nägin täpselt, mis 
-järjekorras asju tegin. See aitas mõista, et Git ei ole lihtsalt 
-varundussüsteem, vaid dokumenteerib kogu arendusprotsessi.
-```
+1. **Mis oli kõige raskem ja kuidas lahendasid?**
+2. **Milline Git kontseptsioon oli suurim "ahaa!" hetk?**
+3. **Kuidas kasutaksid Git'i tulevikus?**
+4. **Kuidas selgitaksid sõbrale, mis on Git?**
+5. **Mis oli kõige huvitavam osa?**
 
 ---
 
