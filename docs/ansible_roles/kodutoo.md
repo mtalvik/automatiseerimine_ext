@@ -34,6 +34,7 @@ git init
 ```
 
 Looge README.md esmase struktuuriga:
+
 ```markdown
 # Ansible vs Puppet: Practical Comparison
 
@@ -52,15 +53,13 @@ Understand practical differences between push-based (Ansible) and pull-based (Pu
 - Log rotation
 
 ## Repository Structure
-```
+
 ansible/          - Ansible implementation
 puppet/           - Puppet implementation
 vagrant/          - VM configurations
 COMPARISON.md     - Detailed comparison
-```
 
 ## Setup Instructions
-
 [Täidetakse hiljem]
 ```
 
@@ -545,131 +544,41 @@ git commit -m "Complete Puppet implementation with nginx, postgresql, monitoring
 ## 5. Võrdlev Analüüs
 
 Looge COMPARISON.md fail, mis dokumenteerib põhjaliku võrdluse. See on projekti kõige olulisem osa - näitab et mõistate mitte ainult kuidas, vaid miks.
-```markdown
-# Ansible vs Puppet: Detailed Comparison
 
-## Architecture Comparison
+COMPARISON.md fail peaks sisaldama järgmisi sektsioone:
 
-### Ansible (Push-based)
-- Control node SSH'ib target'itele
-- Agentless
-- ainult Python vajalik target'il
-- Sequential execution (default)
-- Immediate changes
+**Architecture Comparison** - Võrdle push-based (Ansible) ja pull-based (Puppet) arhitektuure:
+- Ansible: Control node SSH'ib target'itele, agentless, ainult Python vajalik, immediate changes
+- Puppet: Agent küsib config'i, daemon töötab target'is, catalog compilation, periodic convergence
 
-### Puppet (Pull-based)
-- Agent küsib config'i serverilt (meie projektis masterless)
-- Agent daemon töötab target'is
-- Catalog compilation on server side
-- Periodic convergence
+**Syntax Comparison** - Võrdle YAML+Jinja2 (Ansible) ja DSL (Puppet) süntaksit. Näita koodi näiteid:
+- Ansible näide: `apt` mooduli kasutamine nginx paigaldamiseks
+- Puppet näide: `package` resource nginx paigaldamiseks
+- Kirjelda plussid ja miinused mõlema kohta
 
-## Syntax Comparison
+**Development Experience** - Kirjelda arenduskogemust:
+- Ansible: Kiirem arendus, lihtne debugging `--verbose` flagidega, ad-hoc tasks lihtsad
+- Puppet: Aeglasem algne setup, catalog errors võivad olla cryptic, rspec-puppet testimine võimas
 
-### Ansible (YAML + Jinja2)
-```yaml
-- name: "Install nginx"
-  apt:
-    name: nginx
-    state: present
-```
+**Performance** - Võrdle jõudlust:
+- Ansible: SSH overhead, parallelization võimalik, hea <100 nodes
+- Puppet: Agent cache, catalog compilation intensive, scales 1000+ nodes
 
-Plussid:
+**Use Case Recommendations** - Millal kasutada:
+- Ansible: Väike infrastruktuur, kiired deployment'id, Python/YAML oskused, cloud provisioning
+- Puppet: Suur infrastruktuur, compliance requirements, complex dependencies, Ruby background
 
-- YAML on intuitiivne
-- Jinja2 on võimas templating
-- Procedural ja declarative mix
+**Personal Reflection** - Sinu isiklik kogemus projektiga (mida õppisid, mis oli raske, huvitav)
 
-Miinused:
-
-- YAML indentation errors
-- Loops ja conditionals võivad olla verbose
-
-### Puppet (DSL - Domain Specific Language)
-```puppet
-package { 'nginx':
-  ensure => installed,
-}
-```
-
-Plussid:
-
-- Puhtalt declarative
-- Type system on range
-- Resource dependencies on explicit
-
-Miinused:
-
-- DSL süntaks on unikaalne
-- Steep learning curve
-- Ruby knowledge helps but not required
-
-## Development Experience
-
-### Ansible
-- Kiirem arendus väikestele projektidele
-- Debugging on lihtne --verbose flagidega
-- Lokaalne testimine on straightforward
-- Ad-hoc tasks on lihtsad
-
-### Puppet
-- Aeglasem algne setup
-- Catalog compilation errors võivad olla cryptic
-- Rspec-puppet testimine on võimas
-- Resource relationships nõuavad planeerimist
-
-## Performance
-
-### Ansible
-- SSH overhead iga connection kohta
-- Parallelization võimalik (forks)
-- Idempotence checks võivad olla slow
-- Good: <100 nodes
-
-### Puppet
-- Agent cache minimeerib network traffic
-- Catalog compilation on intensive
-- Resources puhtalt declarative
-- Scales: 1000+ nodes
-
-## Use Case Recommendations
-
-### Kasuta Ansible kui:
-- Väike infrastruktuur (<50 nodes)
-- Kiired deployment'id vajalikud
-- Team on suured Python/YAML kogemusega
-- Ad-hoc management on priority
-- Cloud provisioning + config management
-
-### Kasuta Puppet kui:
-- Suur infrastruktuur (100+ nodes)
-- Strong compliance requirements
-- Complex resource dependencies
-- Team on Ruby background
-- Long-term configuration drift prevention
-
-## Personal Reflection
-
-[Sinu kogemus selle projektiga - mida õppisid, mis oli raske, mis oli huvitav]
-
-## Conclusion
-
-Mõlemad tööriistad on võimekad. Valik sõltub:
-
-- Infrastruktuuri suurusest
-- Team skill set'ist
-- Workflow preferences (push vs pull)
-- Existing tooling ecosystem
-
-Ansible võidab lihtsuses ja kiiruses.
-Puppet võidab scale'is ja robustsuses.
-```
+**Conclusion** - Kokkuvõte: mõlemad tööriistad on võimekad, valik sõltub infrastruktuuri suurusest, team skill set'ist ja workflow eelistustest.
 
 ## Esitamine
 
 ### Repositooriumi viimistlemine
 
 Veenduge et repositoorium sisaldab:
-```
+
+```text
 ansible-puppet-comparison/
 ├── README.md                    # Projekti ülevaade, setup juhend
 ├── COMPARISON.md                # Detailne võrdlus
