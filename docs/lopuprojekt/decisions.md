@@ -3,7 +3,6 @@
 **Placeholder - õpilased loovad selle faili oma lõpuprojekti raames.**
 
 ## Näidis formaat
-
 ```markdown
 ## YYYY-MM-DD: Otsuse Nimi
 
@@ -15,4 +14,3 @@
 ```
 
 [Lisa oma otsused siia]
-

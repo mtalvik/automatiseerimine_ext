@@ -42,10 +42,11 @@ GitHub Student Pack annab õpilastele juurdepääsu paljudele tasuta tööriista
 
 Vajad kooli või ülikooli emaili (lõppeb .edu või .edu.ee) VÕI õpilastunnistust.
 
-Mine https://education.github.com/pack ja logi sisse GitHub'i. Kui kontot pole, loo uus. Vajuta "Get student benefits" ja vali "Student". Sisesta oma kooli email või lae üles õpilastunnistus (foto või PDF). Oota kinnitust - tavaliselt võtab 1-3 päeva.
+Mine https:
+- //education.github.com/pack ja logi sisse GitHub'i. Kui kontot pole, loo uus. Vajuta "Get student benefits" ja vali "Student". Sisesta oma kooli email või lae üles õpilastunnistus (foto või PDF). Oota kinnitust
+- tavaliselt võtab 1-3 päeva.
 
 **Kontrolli:**
-
 ```bash
 # Kontrolli kas Student Pack aktiivne
 # Mine github.com/settings/billing
@@ -57,7 +58,6 @@ Mine https://education.github.com/pack ja logi sisse GitHub'i. Kui kontot pole, 
 Pärast Student Pack kinnitust mine https://www.digitalocean.com ja loo konto. Kasuta sama emaili mis GitHub'is. Mine "Billing" sektsiooni ja vajuta "Promo Code". Sisesta Student Pack promo kood mis said GitHub'ist. Peaksid nägema $200 credit'it oma kontol.
 
 Installi DigitalOcean CLI:
-
 ```bash
 # Linux / macOS / Codespaces
 curl -sL https://github.com/digitalocean/doctl/releases/download/v1.98.0/doctl-1.98.0-linux-amd64.tar.gz | tar -xzv
@@ -68,7 +68,6 @@ doctl version
 ```
 
 Loo API token DigitalOcean konsoolil:
-
 ```bash
 # DO konsool → API → Generate New Token
 # Name: terraform-labs
@@ -106,12 +105,14 @@ AWS on:
 
 ### 2.2 Konto Loomine
 
-Mine https://aws.amazon.com ja vajuta "Create an AWS Account". Sisesta email, konto nimi ja tugev parool. Vali konto tüübiks "Personal". Sisesta krediitkaart info - AWS teeb $1 test'i mille tagastavad. Kinnita telefon SMS koodiga. Vali support plaan "Basic Support - Free".
+Mine https:
+- //aws.amazon.com ja vajuta "Create an AWS Account". Sisesta email, konto nimi ja tugev parool. Vali konto tüübiks "Personal". Sisesta krediitkaart info
+- AWS teeb $1 test'i mille tagastavad. Kinnita telefon SMS koodiga. Vali support plaan "Basic Support
+- Free".
 
 **OLULINE:** Kohe pärast konto loomist seadista MFA (Multi-Factor Authentication) turvalisuse jaoks.
 
 **Validation:**
-
 ```bash
 # Pea saama sisse logida
 # Mine https://console.aws.amazon.com
@@ -138,7 +139,6 @@ Mine IAM → Users → terraform-user → Security credentials → Create access
 ### 2.4 AWS CLI Installimine
 
 Installi AWS CLI oma masinas:
-
 ```bash
 # Linux / macOS / Codespaces
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -153,7 +153,6 @@ aws --version
 ```
 
 Seadista credentials:
-
 ```bash
 aws configure
 # AWS Access Key ID: AKIAIOSFODNN7EXAMPLE
@@ -183,7 +182,6 @@ Codespaces on brauseripõhine VS Code - ei vaja kohalikku installatsiooni.
 Mine https://github.com ja loo uus repository "terraform-labs". Vajuta "Code" → "Codespaces" → "Create codespace on main". Oota umbes 30 sekundit kuni keskkond valmis. Nüüd on sul VS Code brauseris töötamas.
 
 Kontrolli et tööriistad on olemas:
-
 ```bash
 # Terraform
 terraform version
@@ -203,14 +201,12 @@ sudo ./aws/install
 Codespaces'is saad AWS credentials seadistada kahel viisil.
 
 **Variant A - aws configure:**
-
 ```bash
 aws configure
 # Sisesta Access Key ID ja Secret
 ```
 
 **Variant B - Käsitsi failid:**
-
 ```bash
 mkdir -p ~/.aws
 
@@ -250,7 +246,6 @@ EC2 instancesse ühendumiseks vajad SSH key'i - see on nagu võti serveri ukse j
 ### 4.1 SSH Key Loomine
 
 Loo SSH key paar:
-
 ```bash
 ssh-keygen -t rsa -b 4096 -f ~/.ssh/terraform-key -N ""
 
@@ -261,7 +256,6 @@ ls -la ~/.ssh/
 ```
 
 Seadista õigused:
-
 ```bash
 chmod 600 ~/.ssh/terraform-key
 chmod 644 ~/.ssh/terraform-key.pub
@@ -270,7 +264,6 @@ chmod 644 ~/.ssh/terraform-key.pub
 ### 4.2 Key Import AWS'i
 
 **Variant A - AWS CLI:**
-
 ```bash
 aws ec2 import-key-pair \
   --key-name "terraform-key" \
@@ -283,7 +276,6 @@ aws ec2 import-key-pair \
 Mine EC2 konsool'i → Key Pairs → Actions → Import key pair. Name "terraform-key". Kopeeri ~/.ssh/terraform-key.pub sisu ja paste. Vajuta "Import".
 
 Kontrolli:
-
 ```bash
 aws ec2 describe-key-pairs --key-names terraform-key
 ```
@@ -300,7 +292,6 @@ aws ec2 describe-key-pairs --key-names terraform-key
 ### 5.1 Kausta Loomine
 
 Loo projektile kaust ja failid:
-
 ```bash
 mkdir terraform-labs
 cd terraform-labs
@@ -309,7 +300,6 @@ cd terraform-labs
 ### 5.2 .gitignore Loomine
 
 KRIITILISELT OLULINE - ei pane paroole ja võtmeid Git'i:
-
 ```bash
 cat > .gitignore << 'EOF'
 # Terraform
@@ -346,7 +336,6 @@ Miks see oluline:
 ### 5.3 Põhiline Struktuur
 
 Loo failid:
-
 ```bash
 touch main.tf
 touch variables.tf
@@ -356,7 +345,6 @@ touch README.md
 ```
 
 Sinu projekti struktuur peaks välja nägema:
-
 ```
 terraform-labs/
 ├── .gitignore
@@ -408,7 +396,6 @@ Enne labori alustamist kontrolli:
 ## Probleemide Lahendamine
 
 ### aws command not found
-
 ```bash
 # Installi AWS CLI uuesti
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -420,7 +407,6 @@ export PATH="/usr/local/bin:$PATH"
 ```
 
 ### No valid credential sources found
-
 ```bash
 # Kontrolli credentials faili
 cat ~/.aws/credentials
@@ -430,7 +416,6 @@ aws configure
 ```
 
 ### Permission denied publickey
-
 ```bash
 # Kontrolli SSH key õigusi
 chmod 600 ~/.ssh/terraform-key
@@ -440,7 +425,6 @@ aws ec2 describe-key-pairs --key-names terraform-key
 ```
 
 ### Access Denied AWS'is
-
 ```bash
 # Kontrolli IAM kasutaja õigusi
 # AWS konsool → IAM → Users → terraform-user → Permissions

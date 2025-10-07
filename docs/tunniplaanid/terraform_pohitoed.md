@@ -217,4 +217,3 @@
 5. ❌ Ära jäta state faili selgitamata – see on kõige keerulisem kontseptsioon!
 
 **Edu!** 🚀 Kui küsimusi, vaata `loeng.md`, `labor.md`, `kodutoo.md` – seal on kõik välja kirjutatud.
-

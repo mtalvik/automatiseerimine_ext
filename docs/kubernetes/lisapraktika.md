@@ -33,7 +33,6 @@ HPA vajab Metrics Server'it, mis kogub ressursi kasutust kõigist node'idest. Mi
 - [Metrics Server](https://github.com/kubernetes-sigs/metrics-server)
 
 **Minimaalne näide:**
-
 ```yaml
 # HPA põhistruktuur
 apiVersion: autoscaling/v2
@@ -78,7 +77,6 @@ spec:
 - Scale-down võtab ~5 minutit (cooldown periood)
 
 **Testimine:**
-
 ```bash
 # 1. Kontrolli et Metrics Server töötab
 kubectl top nodes
@@ -138,7 +136,6 @@ StatefulSet kasutab Headless Service'i (`clusterIP: None`), mis annab igale pod'
 - [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 
 **Minimaalne näide:**
-
 ```yaml
 # Headless Service (clusterIP: None)
 apiVersion: v1
@@ -212,7 +209,6 @@ spec:
 - PVC jääb alles isegi kui pod kustutatakse
 
 **Testimine:**
-
 ```bash
 # 1. Rakenda kõik failid
 kubectl apply -f mysql-secret.yaml
@@ -268,7 +264,10 @@ Kuidas hallata versioone? Kui deployment fail muutub, kuidas tagada et kõik seo
 
 Helm on "package manager" Kubernetes'i jaoks (nagu apt/yum Linux'is). Helm Chart on bundle YAML template'idest, mida saab konfigureerida ühe `values.yaml` failiga. Template'id kasutavad Go templating'ut - saate kasutada muutujaid, if/else, loops.
 
-Üks chart, mitu environment'i: development kasutab `values-dev.yaml` (1 replica, väikesed resources), production kasutab `values-prod.yaml` (5 replicas, suured resources). Helm jälgib versioone - saate teha rollback ühe käsuga. Helm teeb ka dependency management'i - kui teie app vajab PostgreSQL'i, võite lisada PostgreSQL chart'i dependency'na.
+Üks chart, mitu environment'i:
+- development kasutab `values-dev.yaml` (1 replica, väikesed resources), production kasutab `values-prod.yaml` (5 replicas, suured resources). Helm jälgib versioone
+- saate teha rollback ühe käsuga. Helm teeb ka dependency management'i
+- kui teie app vajab PostgreSQL'i, võite lisada PostgreSQL chart'i dependency'na.
 
 **Helm põhikontseptsioonid:**
 - **Chart**: Package YAML template'idest (nagu npm package)
@@ -277,7 +276,6 @@ Helm on "package manager" Kubernetes'i jaoks (nagu apt/yum Linux'is). Helm Chart
 - **Template**: YAML kus on muutujad (`{{ .Values.replicaCount }}`)
 
 **Chart struktuur:**
-
 ```
 myapp/
 ├── Chart.yaml              # Metadata (nimi, versioon)
@@ -296,7 +294,6 @@ myapp/
 - [Helm Best Practices](https://helm.sh/docs/chart_best_practices/)
 
 **Template näide:**
-
 ```yaml
 # templates/deployment.yaml
 apiVersion: apps/v1
@@ -313,7 +310,6 @@ spec:
         resources:
           {{- toYaml .Values.resources | nindent 10 }}    # Kopeeri terve YAML block
 ```
-
 ```yaml
 # values.yaml
 replicaCount: 2
@@ -327,7 +323,6 @@ resources:
 ```
 
 **Helm käsud:**
-
 ```bash
 # Loo chart
 helm create myapp
@@ -376,7 +371,6 @@ helm uninstall myrelease
 - `helm uninstall` kustutab kõik ressursid (Deployment, Service, jne)
 
 **Testimine:**
-
 ```bash
 # 1. Loo chart
 helm create myshop

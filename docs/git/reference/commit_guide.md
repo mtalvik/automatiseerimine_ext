@@ -5,7 +5,6 @@
 ---
 
 ## Conventional Commits Formaat
-
 ```
 type(scope): description
 ```
@@ -29,7 +28,6 @@ Mis osa projektist: `(auth)`, `(api)`, `(ui)`, `(db)`
 ---
 
 ## Head Näited
-
 ```bash
 feat(auth): add login endpoint
 fix(api): handle null response in user query
@@ -44,8 +42,7 @@ style(app): fix indentation in main.py
 
 ## Halvad Näited
 
-❌ **ÄRA tee nii:**
-```
+❌ **ÄRA tee nii:**```
 fix
 update
 asdf
@@ -56,8 +53,7 @@ stuff
 idk
 ```
 
-✅ **Tee nii:**
-```
+✅ **Tee nii:**```
 fix(login): prevent empty username submission
 feat(api): add user profile endpoint
 docs: update README with usage examples
@@ -78,7 +74,6 @@ docs: update README with usage examples
 ## Body (valikuline)
 
 Kui vajad rohkem selgitust:
-
 ```
 feat(auth): add JWT token authentication
 

@@ -6,21 +6,18 @@
 
 ##  Põhilised Käsud
 
-### Seadistamine
-```bash
+### Seadistamine```bash
 git config --global user.name "Teie Nimi"
 git config --global user.email "teie.email@example.com"
 git config --list
 ```
 
-### Repository Loomine
-```bash
+### Repository Loomine```bash
 git init                    # Uue repo loomine
 git clone URL               # Olemasoleva repo kopeerimine
 ```
 
-### Põhiline Töövoog
-```bash
+### Põhiline Töövoog```bash
 git status                  # Vaata olekut
 git add .                   # Lisa kõik muudatused
 git commit -m "Sõnum"       # Salvesta muudatused
@@ -30,8 +27,7 @@ git pull origin main        # Võta uusimad muudatused
 
 ##  Info ja Ajalugu
 
-### Muudatuste Vaatamine
-```bash
+### Muudatuste Vaatamine```bash
 git diff                    # Töökausta vs staging
 git diff --staged           # Staging vs viimane commit
 git diff HEAD~1             # Viimase commit'iga võrdlus
@@ -40,8 +36,7 @@ git show commit-hash        # Konkreetne commit
 git show --stat             # Statistika koos
 ```
 
-### Ajaloo Vaatamine
-```bash
+### Ajaloo Vaatamine```bash
 git log --oneline          # Kompaktne vaade
 git log --graph            # Visuaalne harudemudel  
 git log --author="Nimi"    # Konkreetse autori commit'id
@@ -50,8 +45,7 @@ git blame fail.txt         # Kes millise rea muutis
 
 ##  Harude (Branches) Haldamine
 
-### Harude Loomine ja Vahetamine
-```bash
+### Harude Loomine ja Vahetamine```bash
 git branch                  # Vaata harusid
 git branch -v               # Koos viimase commit'iga
 git branch -a               # Kõik harud (ka remote)
@@ -62,15 +56,13 @@ git switch -c funktsioon-login  # Uuem süntaks
 git switch main            # Uuem süntaks
 ```
 
-### Harude Ühendamine
-```bash
+### Harude Ühendamine```bash
 git merge branch-nimi       # Ühenda haru
 git merge --no-ff branch-nimi  # Merge ilma fast-forward'ta
 git merge --abort          # Katkesta merge
 ```
 
-### Rebase
-```bash
+### Rebase```bash
 git rebase origin/main      # Rebase kohalikud commit'id
 git rebase -i origin/main   # Interaktiivne rebase
 git rebase -i HEAD~3        # Viimased 3 commit'i
@@ -80,8 +72,7 @@ git rebase --continue       # Jätka pärast konfliktide lahendamist
 
 ##  Kaugrepositooriumid (Remote)
 
-### Remote'ide Haldamine
-```bash
+### Remote'ide Haldamine```bash
 git remote -v              # Vaata remote'ide URL'e
 git remote show origin     # Remote'i info
 git remote add origin URL  # Lisa remote
@@ -90,8 +81,7 @@ git remote remove old-remote      # Eemalda remote
 git remote set-url origin uus-url # Muuda URL'i
 ```
 
-### Fetch ja Pull
-```bash
+### Fetch ja Pull```bash
 git fetch origin           # Too info serverist
 git fetch origin main      # Konkreetse haru info
 git fetch --all            # Kõigi remote'ide info
@@ -100,8 +90,7 @@ git pull --rebase origin main  # Rebase pull
 git pull --ff-only origin main # Ainult fast-forward
 ```
 
-### Push
-```bash
+### Push```bash
 git push origin main       # Saada muudatused
 git push -u origin main    # Esimene kord (tracking)
 git push origin funktsioon-login  # Uue haru saatmine
@@ -110,8 +99,7 @@ git push origin --delete funktsioon-login  # Haru kustutamine
 
 ##  Failide Haldamine
 
-### Failide Lisamine ja Eemaldamine
-```bash
+### Failide Lisamine ja Eemaldamine```bash
 git add failinimi.txt      # Lisa konkreetne fail
 git add .                  # Lisa kõik muudatused
 git rm failinimi.txt       # Kustuta fail Git'ist ja süsteemist
@@ -119,8 +107,7 @@ git rm --cached failinimi.txt  # Kustuta ainult Git'ist
 git mv vana.txt uus.txt    # Nimetage fail ümber
 ```
 
-### Muudatuste Tagasivõtmine
-```bash
+### Muudatuste Tagasivõtmine```bash
 git checkout -- failinimi.txt  # Taasta fail viimase commit'i olekusse
 git checkout -- .              # Taasta kõik failid
 git reset HEAD failinimi.txt   # Eemalda fail staging'ust
@@ -129,15 +116,13 @@ git reset HEAD                 # Eemalda kõik failid staging'ust
 
 ##  Commit'ide Haldamine
 
-### Commit'ide Muutmine
-```bash
+### Commit'ide Muutmine```bash
 git commit --amend -m "Uus sõnum"  # Muuda viimast commit'i
 git commit --amend --no-edit       # Lisa faile viimase commit'i
 git commit -am "Sõnum"             # Lisa ja commit kõik muudetud failid
 ```
 
-### Commit'ide Tagasivõtmine
-```bash
+### Commit'ide Tagasivõtmine```bash
 git revert commit-hash      # Turvaline tagasivõtmine (loob uue commit'i)
 git revert commit1..commit2 # Mitme commit'i tagasivõtmine
 git reset --soft HEAD~1     # Jätab muudatused staging'u
@@ -145,8 +130,7 @@ git reset --mixed HEAD~1    # Jätab muudatused töökausta
 git reset --hard HEAD~1     # Kustutab muudatused täielikult
 ```
 
-### Commit'ide Identifitseerimine
-```bash
+### Commit'ide Identifitseerimine```bash
 git show HEAD               # Viimane commit
 git show HEAD~1             # Eelmine commit
 git show HEAD~2             # Kaks commit'i tagasi
@@ -157,7 +141,6 @@ git show v1.0.0             # Tag
 ```
 
 ##  Ajutine Salvestamine (Stash)
-
 ```bash
 git stash                   # Salvesta muudatused ajutiselt
 git stash pop              # Taasta salvestatud muudatused
@@ -168,7 +151,6 @@ git stash clear            # Kustuta kõik stash'ed
 ```
 
 ##  Otsimine ja Filtreerimine
-
 ```bash
 git log --grep="sõna"      # Otsi commit'ides
 git log -S "sõna"          # Otsi muudatuste sisus
@@ -179,7 +161,6 @@ git log --oneline -10      # Viimased 10 commit'i
 ```
 
 ##  Tag'id
-
 ```bash
 git tag v1.0.0             # Loo tag
 git tag -a v1.0.0 -m "Sõnum"  # Annotated tag
@@ -190,7 +171,6 @@ git push origin --tags     # Saada kõik tag'id
 ```
 
 ##  Konfliktide Lahendamine
-
 ```bash
 git status                 # Näitab konfliktilisi faile
 git diff                   # Näitab konfliktide detaile
@@ -200,8 +180,7 @@ git add konfliktne-fail.txt # Pärast konfliktide lahendamist
 
 ##  Alias'id ja Konfiguratsioon
 
-### Kasulikud Alias'id
-```bash
+### Kasulikud Alias'id```bash
 # Lisa need git config'u
 git config --global alias.st status
 git config --global alias.co checkout
@@ -212,8 +191,7 @@ git config --global alias.last 'log -1 HEAD'
 git config --global alias.visual '!gitk'
 ```
 
-### Kasutamine
-```bash
+### Kasutamine```bash
 git st                     # git status
 git co main               # git checkout main
 git br                    # git branch

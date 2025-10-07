@@ -34,7 +34,6 @@ Git'i disain lähtub mitmest põhimõttest. Esiteks on see **snapshot-based** s�
 Git'i mõistmiseks ei piisa käskude pähe õppimisest - on vaja mõista selle sisemist struktuuri. Git ei ole lihtsalt failide salvestamise süsteem, vaid content-addressable filesystem, mille peale on ehitatud versioonihalduse kiht.
 
 Git'i töövoog visualiseerituna:
-
 ```mermaid
 graph LR
     A[Working Directory] --> B[Staging Area]
@@ -46,7 +45,10 @@ Git'i südames on neli objekti tüüpi. **Blob** (binary large object) on faili 
 
 Need objektid salvestatakse `.git/objects/` kataloogi, kus iga objekti nimi tuleneb selle sisu SHA-1 räsist. See on content-addressable süsteemi olemus: sisu määrab aadressi. Kui kaks objekti on identsed, on ka nende räsid identsed, ja Git salvestab nad ainult üks kord. See on üks efektiivsuse allikaid - identne sisu ei dubleerita kunagi.
 
-Working directory on tavaliselt arusaadav: see on kataloog kettale, kus asuvad sinu projekti failid redigeerimiskõlblikul kujul. Repository on `.git` kataloog, mis sisaldab kogu versiooniajalogu. Kuid mis on **staging area** ehk **index**? See on vahepealne seis, mis määratleb, milline sinu järgmine commit täpselt olema saab. Staging area ei ole lihtsalt muudatuste nimekiri - see on täielik snapshot'i prototüüp. Kui teed `git add`, siis salvestatakse faili sisu juba blob'ina objektide andmebaasi ja staging area registreerib viite sellele blob'ile. Commit tegemine on seejärel kiire - lihtsalt tree ja commit objekti loomine.
+Working directory on tavaliselt arusaadav:
+- see on kataloog kettale, kus asuvad sinu projekti failid redigeerimiskõlblikul kujul. Repository on `.git` kataloog, mis sisaldab kogu versiooniajalogu. Kuid mis on **staging area** ehk **index**? See on vahepealne seis, mis määratleb, milline sinu järgmine commit täpselt olema saab. Staging area ei ole lihtsalt muudatuste nimekiri
+- see on täielik snapshot'i prototüüp. Kui teed `git add`, siis salvestatakse faili sisu juba blob'ina objektide andmebaasi ja staging area registreerib viite sellele blob'ile. Commit tegemine on seejärel kiire
+- lihtsalt tree ja commit objekti loomine.
 
 Miks on staging area vajalik? Ilma selleta oleks iga muudatus kas committimata või committitud - binaarne seis. Staging area võimaldab konstrueerida "loogiliset commit'e" - sa võid muuta viit faili, kuid committida ainult osa neist muudatustest, luues seega commit'id, mis esindavad loogilisi aatomilisi muudatusi, mitte lihtsalt hetkeseisu kõigist poolikutest töödest.
 
@@ -109,7 +111,6 @@ Code review on oluline kvaliteedikontroll. Hea code review ei ole lihtsalt vigad
 ## 6. Konfliktide Lahendamine ja Ajaloo Manipuleerimine
 
 Merge konfliktid on paratamatu osa koostööst. Git märgib konflikti siis, kui sama faili sama osa on muudetud kahes erinevas branch'is paralleelselt. Konflikti marker'id näevad välja nii:
-
 ```
 <<<<<<< HEAD
 Sinu versioon
@@ -138,8 +139,7 @@ Mida peaks versioonihaldusesse panema ja mida mitte? See ei ole triviaalne küsi
 
 Tüüpilised .gitignore mustrid keele kaupa:
 
-**Python:**
-```gitignore
+**Python:**```gitignore
 __pycache__/
 *.py[cod]
 *$py.class
@@ -151,8 +151,7 @@ ENV/
 .pytest_cache/
 ```
 
-**Node.js:**
-```gitignore
+**Node.js:**```gitignore
 node_modules/
 npm-debug.log
 .env
@@ -160,8 +159,7 @@ dist/
 build/
 ```
 
-**Java:**
-```gitignore
+**Java:**```gitignore
 *.class
 target/
 .gradle/
@@ -205,7 +203,6 @@ Commit'ide kvaliteet eristab professionaalseid arendajaid algajatest. Hea commit
 **Commit sõnumid** järgivad konventsiooni. Esimene rida (subject line) on imperatiivne lühikokkuvõte (50 tähemärki): "Add user authentication", mitte "Added" ega "Adds". Tühi rida. Body selgitab **miks**, mitte **mis** (mis on nähtav diff'ist): miks oli see muudatus vajalik? Mis probleemi see lahendab? Kas on kasulikke kontekste või trade-off'e?
 
 Näide professionaalsest commit sõnumist:
-
 ```
 Add rate limiting to API endpoints
 

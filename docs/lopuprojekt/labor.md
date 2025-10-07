@@ -40,8 +40,7 @@ Vali 2 tööriista mida kasutad:
 - Terraform + Ansible
 - Kubernetes + Monitoring
 
-**Kirjuta üles:**
-```
+**Kirjuta üles:**```
 Minu valik: Git + Docker
 Miks: Tean neid juba ja saan kiiresti alustada
 ```
@@ -67,8 +66,7 @@ Vali lihtne projekt:
 - Mis sind huvitab
 - Aga peab olema LIHTNE!
 
-**Kirjuta üles:**
-```
+**Kirjuta üles:**```
 Minu projekt: TODO list veebirakendus
 Mis see teeb: Kasutaja saab lisada ja kustutada ülesandeid
 ```
@@ -76,7 +74,6 @@ Mis see teeb: Kasutaja saab lisada ja kustutada ülesandeid
 ---
 
 ## 4. Loo GitHub Repository
-
 ```bash
 # Loo kaust
 mkdir lopuprojekt
@@ -91,7 +88,6 @@ nano README.md
 ```
 
 Kirjuta README'sse:
-
 ```markdown
 # [Projekti Nimi]
 
@@ -116,7 +112,6 @@ Tuleb hiljem...
 ```
 
 Salvesta: `Ctrl+O`, `Enter`, `Ctrl+X`
-
 ```bash
 # Tee esimene commit
 git add README.md
@@ -136,7 +131,6 @@ git push -u origin main
 ## 5. Tee Plaan
 
 Loo `PLAAN.md` fail:
-
 ```markdown
 # Projekti Plaan
 
@@ -167,7 +161,6 @@ Loo `PLAAN.md` fail:
 ### Reede
 - [ ] Esitlus!
 ```
-
 ```bash
 git add PLAAN.md
 git commit -m "Add project plan"
@@ -181,7 +174,6 @@ git push
 Nüüd on aeg alustada tööd:
 
 ### Kui teed veebirakendust:
-
 ```bash
 # Loo failid
 touch index.html
@@ -190,7 +182,6 @@ mkdir app
 ```
 
 ### Kui teed API't:
-
 ```bash
 # Loo failid
 mkdir app
@@ -199,7 +190,6 @@ touch requirements.txt  # või package.json
 ```
 
 ### Alusta lihtsalt!
-
 ```html
 <!-- index.html näide -->
 <!DOCTYPE html>
@@ -215,7 +205,6 @@ touch requirements.txt  # või package.json
 ```
 
 Testi: ava brauser ja ava `index.html`
-
 ```bash
 # Commit
 git add .

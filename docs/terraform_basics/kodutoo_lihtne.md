@@ -25,7 +25,6 @@ Terraform loob kõik automaatselt kui käivitate `terraform apply`. Kui soovite 
 ### 2.1 Projekti Struktuur
 
 Looge kaust ja failid:
-
 ```bash
 mkdir terraform-homework
 cd terraform-homework
@@ -40,7 +39,6 @@ Looge 4 faili:
 ### 2.2 main.tf
 
 Looge `main.tf` fail järgmise sisuga:
-
 ```hcl
 terraform {
   required_providers {
@@ -126,7 +124,6 @@ resource "local_file" "readme" {
 ```
 
 ### 2.3 variables.tf
-
 ```hcl
 variable "project_name" {
   description = "Projekti nimi"
@@ -152,7 +149,6 @@ variable "environment" {
 ```
 
 ### 2.4 outputs.tf
-
 ```hcl
 output "project_path" {
   description = "Projekti tee"
@@ -171,7 +167,6 @@ output "created_files" {
 ```
 
 ### 2.5 terraform.tfvars
-
 ```hcl
 project_name = "minu-projekt"
 environment  = "development"
@@ -182,7 +177,6 @@ environment  = "development"
 ## 3. Projekti Käivitamine
 
 Nüüd kasutage Terraform'i:
-
 ```bash
 # Initsialiseeri
 terraform init
@@ -195,7 +189,6 @@ terraform apply
 ```
 
 Kontrolli tulemust:
-
 ```bash
 # Vaata outpute
 terraform output
@@ -216,14 +209,12 @@ cat minu-projekt/config/project.json
 ## 4. Muudatuste Tegemine
 
 Muuda `terraform.tfvars`:
-
 ```hcl
 project_name = "minu-uus-projekt"
 environment  = "production"
 ```
 
 Rakenda:
-
 ```bash
 terraform apply
 ```
@@ -235,7 +226,6 @@ Terraform loob uue kausta ja kustutab vana!
 ## 5. Lisaülesanne: Cleanup Skript
 
 Lisa `main.tf` faili veel üks skript:
-
 ```hcl
 resource "local_file" "cleanup_script" {
   content = <<-EOF
@@ -250,13 +240,11 @@ resource "local_file" "cleanup_script" {
 ```
 
 Lisa ka `outputs.tf` faili:
-
 ```hcl
 cleanup = local_file.cleanup_script.filename
 ```
 
 Rakenda:
-
 ```bash
 terraform apply
 ./minu-uus-projekt/scripts/cleanup.sh
@@ -267,7 +255,6 @@ terraform apply
 ## 6. Puhastamine
 
 Kui oled valmis:
-
 ```bash
 terraform destroy
 ```
@@ -303,7 +290,6 @@ See kustutab kõik Terraform'i loodud failid ja kaustad.
 ### GitHub Repository
 
 Loo uus repository:
-
 ```bash
 git init
 git add .
@@ -384,7 +370,6 @@ Vasta küsimustele (2-3 lauset igaüks):
 ### 1. Tingimused (+5%)
 
 Lisa `main.tf` faili resource mis loob backup skripti **ainult** production keskkonnas:
-
 ```hcl
 resource "local_file" "backup_script" {
   count = var.environment == "production" ? 1 : 0
@@ -398,7 +383,6 @@ resource "local_file" "backup_script" {
 ### 2. Validation Rules (+5%)
 
 Lisa `variables.tf` faili rohkem validation'eid:
-
 ```hcl
 variable "project_name" {
   # ... olemasolev kood ...
@@ -415,14 +399,12 @@ variable "project_name" {
 ## Abi ja Troubleshooting
 
 ### "Error: Invalid provider"
-
 ```bash
 # Lahendus: Initsialiseeri uuesti
 terraform init
 ```
 
 ### "Error: path already exists"
-
 ```bash
 # Lahendus: Kustuta vana kaust või muuda project_name
 rm -rf minu-projekt
@@ -430,14 +412,12 @@ terraform apply
 ```
 
 ### Skript ei käivitu
-
 ```bash
 # Lahendus: Lisa executable õigus
 chmod +x minu-projekt/scripts/startup.sh
 ```
 
 ### Terraform destroy ei kustuta kõike
-
 ```bash
 # Terraform ei kustuta faile mis ei ole state'is
 # Kustuta käsitsi:

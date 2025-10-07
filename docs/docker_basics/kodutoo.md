@@ -24,7 +24,6 @@ Soovitatav ajakava: 0-30 min (rakenduse loomine), 30-60 min (Dockerfile), 60-90 
 ## 2. Flask API Loomine
 
 ### 2.1 Töökaust
-
 ```bash
 mkdir docker-chatbot
 cd docker-chatbot
@@ -33,7 +32,6 @@ cd docker-chatbot
 ### 2.2 Python Rakendus
 
 Looge fail `app.py`:
-
 ```python
 from flask import Flask, render_template, request, jsonify
 import random
@@ -86,11 +84,9 @@ if __name__ == '__main__':
 ### 2.3 HTML Template
 
 Looge kaust ja fail `templates/index.html`:
-
 ```bash
 mkdir templates
 ```
-
 ```html
 <!DOCTYPE html>
 <html lang="et">
@@ -243,7 +239,6 @@ Asendage `[TEIE NIMI]` oma nimega.
 ### 2.4 Requirements
 
 Looge fail `requirements.txt`:
-
 ```
 Flask==3.0.0
 ```
@@ -253,7 +248,6 @@ Flask==3.0.0
 ## 3. Dockerfile Loomine
 
 Looge fail `Dockerfile`:
-
 ```dockerfile
 FROM python:3.11-alpine
 
@@ -284,19 +278,16 @@ Dockerfile selgitus:
 ## 4. Ehitamine ja Testimine
 
 ### 4.1 Image Ehitamine
-
 ```bash
 docker build -t chatbot-app .
 ```
 
 ### 4.2 Container Käivitamine
-
 ```bash
 docker run -d --name chatbot -p 5000:5000 chatbot-app
 ```
 
 ### 4.3 Testimine
-
 ```bash
 # API testimine
 curl http://localhost:5000/api/stats
@@ -312,7 +303,6 @@ Proovige chat bot'iga rääkida - sisestage "tere", "kuidas", "kes".
 ## 5. Docker Compose
 
 Looge fail `docker-compose.yml`:
-
 ```yaml
 version: '3.8'
 
@@ -336,7 +326,6 @@ services:
 ```
 
 Looge fail `nginx.conf`:
-
 ```nginx
 events {
     worker_connections 1024;
@@ -360,7 +349,6 @@ http {
 ```
 
 Käivitage:
-
 ```bash
 docker-compose up -d
 ```
@@ -376,14 +364,12 @@ Nüüd töötab nginx reverse proxy port 80 peal: `http://localhost`
 Looge konto: https://hub.docker.com (tasuta, kinnitage email)
 
 ### 6.2 Login
-
 ```bash
 docker login
 # Sisestage username ja password
 ```
 
 ### 6.3 Tag ja Push
-
 ```bash
 # Tag image oma username'iga
 docker tag chatbot-app [teie-username]/chatbot-app:latest
@@ -405,7 +391,6 @@ Docker Hub'is:
 4. Lisage kirjeldus: "Docker homework - Chat bot API"
 
 ### 6.5 Public Image Testimine
-
 ```bash
 # Kustutage local image
 docker rmi chatbot-app
@@ -426,7 +411,6 @@ curl http://localhost:5001/api/stats
 ## 7. README.md Kirjutamine
 
 Looge fail `README.md` järgmise struktuuriga:
-
 ```markdown
 # Docker Chat Bot
 
@@ -511,7 +495,6 @@ Mis oli selle projekti juures kõige meeldivam või huvitavam?
 ## Esitamine
 
 ### 9.1 Repository Struktuur
-
 ```
 docker-chatbot/
 ├── app.py
@@ -528,7 +511,6 @@ docker-chatbot/
 ### 9.2 .dockerignore
 
 Looge fail `.dockerignore`:
-
 ```
 __pycache__/
 *.pyc
@@ -596,7 +578,6 @@ venv/
 ## Boonus (Valikuline, +10%)
 
 ### 10.1 Health Check
-
 ```dockerfile
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD curl -f http://localhost:5000/api/stats || exit 1
@@ -609,7 +590,6 @@ Optimeerige Dockerfile'i kasutades multi-stage build'i.
 ### 10.3 Environment Variables
 
 Lisage `.env` fail ja kasutage environment variable'eid:
-
 ```yaml
 services:
   chatbot:

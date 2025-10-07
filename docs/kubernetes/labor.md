@@ -112,7 +112,6 @@ Pärast seda lab'i õpilane:
 E-pood kolme komponendiga: andmebaas (PostgreSQL), API server (Node.js), veebileht (Nginx). Kõik komponendid töötavad Kubernetes klastris eraldi pod'ides. Nad suhtlevad omavahel läbi Kubernetes Service'ite.
 
 ## Arhitektuur
-
 ```mermaid
 graph TB
     subgraph "SINU ARVUTI"
@@ -186,7 +185,6 @@ graph TB
 - Self-healing - kui pod kukub, Kubernetes loob uue
 
 ## Failide Struktuur
-
 ```
 k8s-lab/
 ├── postgres/
@@ -215,7 +213,6 @@ Failide nimetused algavad numbriga, et teaksid rakendamise järjekorda.
 ## 1. VM Loomine
 
 ### KOHALIK ARVUTI - Windows + VirtualBox
-
 ```
 1. Laadige Ubuntu Server 22.04 ISO
    https://ubuntu.com/download/server
@@ -231,7 +228,6 @@ Failide nimetused algavad numbriga, et teaksid rakendamise järjekorda.
 ```
 
 ### KOHALIK ARVUTI - Mac + Multipass
-
 ```bash
 # Looge VM
 multipass launch --name k8s-lab --cpus 2 --memory 4G --disk 15G
@@ -243,7 +239,6 @@ multipass shell k8s-lab
 ## 2. Kubernetes Setup
 
 ### VM SEES - Kõik järgnevad käsud
-
 ```bash
 # Kontrollige arhitektuuri
 uname -m
@@ -279,7 +274,6 @@ sudo mv minikube-linux-* /usr/local/bin/minikube
 # Kubernetes Klaster
 
 ### VM SEES
-
 ```bash
 # Käivita Minikube
 minikube start --cpus=2 --memory=2000 --driver=docker
@@ -298,7 +292,6 @@ cd ~/k8s-lab
 # PostgreSQL Andmebaas
 
 ## Ülevaade
-
 ```mermaid
 graph LR
     A[1. ConfigMap<br/>DB nimi & user] --> E[4. StatefulSet<br/>postgres-0]
@@ -324,11 +317,9 @@ PostgreSQL vajab 5 eraldi faili. ConfigMap hoiab avalikke seadeid nagu andmebaas
 ConfigMap on nagu `.env` fail Kubernetes'is. Siia paneme info, mis pole salajane. Kui hiljem tahate andmebaasi nime muuta, muudate ainult seda faili - pole vaja konteinerit uuesti ehitada.
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/postgres/1-configmap.yaml
 ```
-
 ```yaml
 # ConfigMap hoiab konfiguratsiooni, mis POLE salajane
 # Saab muuta ilma konteinerit rebuild'imata
@@ -359,7 +350,6 @@ data:                            # Key-value paarid
 Secret on spetsiaalselt paroolide jaoks. Kubernetes salvestab Secret'id krüpteeritult etcd andmebaasis. Parool peab olema base64 formaadis - see pole krüpteering, lihtsalt encoding, aga Kubernetes nõuab seda.
 
 ### VM SEES
-
 ```bash
 # Arvuta parool base64 formaadis
 echo -n 'secretpassword' | base64
@@ -367,7 +357,6 @@ echo -n 'secretpassword' | base64
 
 nano ~/k8s-lab/postgres/2-secret.yaml
 ```
-
 ```yaml
 # Secret hoiab tundlikku infot turvaliselt
 # Kubernetes krüpteerib automaatselt etcd'sse
@@ -401,11 +390,9 @@ data:
 PVC (Persistent Volume Claim) on taotlus kettaruumi jaoks. Ilma selleta kaovad kõik andmebaasi andmed, kui pod taaskäivitub. PVC tagab, et PostgreSQL'i andmed salvestatakse kettale ja jäävad alles.
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/postgres/3-pvc.yaml
 ```
-
 ```yaml
 # PVC = Persistent Volume Claim - "Ma tahan 500MB kettaruumi"
 # Ilma: pod restart = kõik andmed kadunud 
@@ -442,11 +429,9 @@ spec:
 StatefulSet loob PostgreSQL pod'i. Erinevalt Deployment'ist annab StatefulSet püsiva nime (`postgres-0`). Andmebaas vajab püsivat nime, et PVC leiaks õige pod'i. StatefulSet garanteerib ka õige käivituse järjekorra.
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/postgres/4-statefulset.yaml
 ```
-
 ```yaml
 # StatefulSet annab püsiva identiteedi
 # postgres-0 vs postgres-random-xyz ← Deployment annaks random nime
@@ -531,11 +516,9 @@ spec:
 Service annab andmebaasile püsiva võrguaadressi ja DNS nime. Ilma Service'ita peaks backend teadma pod'i IP aadressi, mis muutub iga restart'iga. Service annab DNS nime (`postgres-service`), mis ei muutu kunagi. See on nagu telefoni kontakt vs telefoninumber.
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/postgres/5-service.yaml
 ```
-
 ```yaml
 # Service = püsiv võrguaadress ja DNS nimi
 # Backend kasutab: postgres-service:5432 ← See DNS nimi töötab alati!
@@ -569,7 +552,6 @@ spec:
 ## PostgreSQL Deploy ja Test
 
 ### VM SEES
-
 ```bash
 # Deploy kõik PostgreSQL failid korraga
 kubectl apply -f ~/k8s-lab/postgres/
@@ -624,7 +606,6 @@ Peate nägema 5 toodet tabelis!
 # Backend API
 
 ## Ülevaade
-
 ```mermaid
 graph LR
     A[1. ConfigMap<br/>package.json + server.js] --> B[2. Deployment]
@@ -650,11 +631,9 @@ Backend on Node.js API server. Ta ühendub PostgreSQL'iga ja serveerib JSON andm
 Tavaliselt ehitatakse Docker image koodiga. Õppimise jaoks hoiame koodi ConfigMap'is. See lubab muuta koodi ilma Docker'it kasutamata. Produktsioonis ÄRGE tehke nii - kasutage Docker image'it!
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/backend/1-configmap.yaml
 ```
-
 ```yaml
 # Backend kood ConfigMap'is
 # Ebatavaline, aga õppimiseks mugav (ei vaja Docker build'i)
@@ -771,11 +750,9 @@ Deployment sobib stateless rakendustele. Backend ei salvesta midagi, ainult tö�
 **Probes:** `livenessProbe` kontrollib kas pod töötab (kui ei, restart). `readinessProbe` kontrollib kas pod valmis päringuteks (kui ei, Service ei saada päringuid).
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/backend/2-deployment.yaml
 ```
-
 ```yaml
 # Deployment backend API jaoks
 # Stateless, skaleeritav, self-healing
@@ -879,11 +856,9 @@ spec:
 Backend Service teeb load balancing'u kui on mitu pod'i. DNS nimi `backend-service` on kättesaadav kõigile pod'idele klastris. Frontend kasutab seda nime API päringuteks.
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/backend/3-service.yaml
 ```
-
 ```yaml
 # Service backend API jaoks
 # Load balancer ja DNS
@@ -912,7 +887,6 @@ spec:
 ## Backend Deploy ja Test
 
 ### VM SEES
-
 ```bash
 # Deploy kõik backend failid
 kubectl apply -f ~/k8s-lab/backend/
@@ -952,7 +926,6 @@ API peab tagastama 5 toodet JSON formaadis!
 # Frontend
 
 ## Ülevaade
-
 ```mermaid
 graph LR
     A[1. HTML ConfigMap<br/>index.html] --> D[3. Nginx Pod]
@@ -978,11 +951,9 @@ Frontend on Nginx server, mis serveerib HTML lehte. Nginx teeb ka proxy API pär
 HTML ja JavaScript on ConfigMap'is. See lubab muuta kasutajaliidest ilma Docker image't ehitamata. JavaScript teeb AJAX päringuid backend API'sse.
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/frontend/1-html.yaml
 ```
-
 ```yaml
 # Frontend HTML ja JavaScript
 apiVersion: v1
@@ -1112,11 +1083,9 @@ data:
 Nginx konfiguratsioon määrab, kuidas käsitleda päringuid. Staatilised failid (HTML, CSS) serveeritakse otse. API päringud (`/api/*`) suunatakse backend-service'isse. See on reverse proxy.
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/frontend/2-nginx.yaml
 ```
-
 ```yaml
 # Nginx server konfiguratsioon
 apiVersion: v1
@@ -1162,11 +1131,9 @@ data:
 Frontend Deployment loob Nginx pod'i. Volume mount'id ühendavad ConfigMap'id õigetesse kohtadesse. Nginx loeb automaatselt konfiguratsiooni `/etc/nginx/conf.d` kaustast.
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/frontend/3-deployment.yaml
 ```
-
 ```yaml
 # Frontend Deployment
 apiVersion: apps/v1
@@ -1225,11 +1192,9 @@ spec:
 NodePort Service teeb frontend'i kättesaadavaks väljast. Kubernetes valib automaatselt pordi vahemikus 30000-32767. See port on avatud kõigil node'idel. ClusterIP oleks ainult sisevõrgus.
 
 ### VM SEES
-
 ```bash
 nano ~/k8s-lab/frontend/4-service.yaml
 ```
-
 ```yaml
 # Frontend Service - väline ligipääs
 apiVersion: v1
@@ -1260,7 +1225,6 @@ spec:
 ## Frontend Deploy
 
 ### VM SEES
-
 ```bash
 # Deploy kõik frontend failid
 kubectl apply -f ~/k8s-lab/frontend/
@@ -1288,7 +1252,6 @@ kubectl get pods -l app=frontend -w
 Port forward teeb Service'i kättesaadavaks su kohalikul arvutil. Kubernetes loob tunneli VM'ist sinu arvutisse.
 
 ### VM SEES - Terminal 1
-
 ```bash
 # Port forward kõigile IP'dele (0.0.0.0 = kõik võrguliidese)
 kubectl port-forward --address 0.0.0.0 service/frontend-service 8080:80
@@ -1299,7 +1262,6 @@ kubectl port-forward --address 0.0.0.0 service/frontend-service 8080:80
 ```
 
 ### KOHALIK ARVUTI - Brauser
-
 ```bash
 # Leia VM IP
 # Multipass:
@@ -1337,7 +1299,6 @@ http://192.168.64.2:8080
 Kubernetes jälgib, et Deployment'is oleks alati õige arv pod'e. Kui pod kustud, loob Kubernetes automaatselt uue.
 
 ### VM SEES
-
 ```bash
 # Kustuta backend pod
 kubectl delete pod $(kubectl get pods -l app=backend -o jsonpath='{.items[0].metadata.name}')
@@ -1349,7 +1310,6 @@ kubectl get pods -l app=backend -w
 Kubernetes näeb, et Deployment tahab 1 pod'i, aga on 0. Loob automaatselt uue pod'i. See on self-healing.
 
 ## Skaleerimine
-
 ```bash
 # Skalee 3 koopiaga
 kubectl scale deployment backend-api --replicas=3
@@ -1360,7 +1320,6 @@ kubectl get pods -l app=backend
 Service teeb automaatse load balancing'u 3 pod'i vahel.
 
 ## Rolling Update
-
 ```bash
 # Muuda environment
 kubectl set env deployment/frontend VERSION=v2.0
@@ -1376,8 +1335,7 @@ Kubernetes loob uue pod'i v2.0, ootab kuni valmis, siis kustutab vana. Zero down
 
 ## 1. Pod ei käivitu
 
-**Symptom:**
-```bash
+**Symptom:**```bash
 kubectl get pods
 # NAME             READY   STATUS             RESTARTS   AGE
 # backend-api-xxx  0/1     CrashLoopBackOff   5          3m
@@ -1385,8 +1343,7 @@ kubectl get pods
 
 `CrashLoopBackOff` tähendab, et pod crashib ja Kubernetes proovib uuesti.
 
-**Debug:**
-```bash
+**Debug:**```bash
 # Vaata detaile
 kubectl describe pod backend-api-xxx
 
@@ -1406,14 +1363,12 @@ kubectl logs backend-api-xxx -c npm-install
 
 ## 2. API ei vasta
 
-**Symptom:**
-```bash
+**Symptom:**```bash
 curl http://localhost:3000/api/products
 # Connection refused
 ```
 
-**Debug:**
-```bash
+**Debug:**```bash
 # Kas Service olemas?
 kubectl get svc backend-service
 
@@ -1436,14 +1391,12 @@ kubectl logs -l app=backend
 
 ## 3. PostgreSQL ühendus fail
 
-**Symptom:**
-```bash
+**Symptom:**```bash
 kubectl logs -l app=backend
 # Error: connect ECONNREFUSED postgres-service:5432
 ```
 
-**Debug:**
-```bash
+**Debug:**```bash
 # Kas postgres pod töötab?
 kubectl get pods postgres-0
 
@@ -1466,8 +1419,7 @@ kubectl get svc postgres-service
 **Symptom:**  
 Brauseris näed: "Viga: API ei vasta"
 
-**Debug:**
-```bash
+**Debug:**```bash
 # Ava browser console (F12)
 # Vaata Network tab
 
@@ -1492,15 +1444,13 @@ kill %1
 
 ## 5. PVC Pending
 
-**Symptom:**
-```bash
+**Symptom:**```bash
 kubectl get pvc
 # NAME          STATUS    VOLUME   CAPACITY
 # postgres-pvc  Pending
 ```
 
-**Debug:**
-```bash
+**Debug:**```bash
 # Vaata detaile
 kubectl describe pvc postgres-pvc
 
@@ -1510,8 +1460,7 @@ df -h
 exit
 ```
 
-**Lahendus:**
-```bash
+**Lahendus:**```bash
 # Kustuta PVC ja loo uuesti
 kubectl delete pvc postgres-pvc
 kubectl apply -f ~/k8s-lab/postgres/3-pvc.yaml
@@ -1524,7 +1473,6 @@ kubectl apply -f ~/k8s-lab/postgres/3-pvc.yaml
 ## Kustuta Rakendused
 
 ### VM SEES
-
 ```bash
 # Kustuta kõik komponendid
 kubectl delete -f ~/k8s-lab/frontend/
@@ -1539,13 +1487,11 @@ kubectl get secret
 ```
 
 ## Kustuta PVC (andmed kaovad!)
-
 ```bash
 kubectl delete pvc postgres-pvc
 ```
 
 ## Peata Minikube
-
 ```bash
 # Peata klaster (ei kustuta)
 minikube stop
@@ -1555,7 +1501,6 @@ minikube stop
 ```
 
 ## Kustuta Minikube
-
 ```bash
 # Kustuta kogu klaster
 minikube delete
@@ -1563,15 +1508,13 @@ minikube delete
 
 ## Kustuta VM
 
-### Multipass
-```bash
+### Multipass```bash
 # Kohalik arvuti
 multipass delete k8s-lab
 multipass purge
 ```
 
-### VirtualBox
-```
+### VirtualBox```
 VirtualBox UI → Right-click → Remove → Delete all files
 ```
 
@@ -1591,8 +1534,7 @@ VirtualBox UI → Right-click → Remove → Delete all files
 - **Cheatsheet**: https://kubernetes.io/docs/reference/kubectl/cheatsheet/
 - **Reference**: https://kubernetes.io/docs/reference/kubectl/
 
-## Debugging
-```bash
+## Debugging```bash
 kubectl describe pod <name>       # Detailne info
 kubectl logs <pod-name>           # Logid
 kubectl exec -it <pod> -- bash    # Sisene pod'i

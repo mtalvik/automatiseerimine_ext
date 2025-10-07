@@ -36,7 +36,9 @@ Kui sul on 5-6 erinevat komponenti, muutub see haldamatuks. Pead meeles pidama j
 
 ## 2. Docker Compose lahendus
 
-Compose'i põhiidee on lihtne: kirjelda kogu süsteem ühes failis. Ära ütle KUIDAS asjad teha, vaid ÜTLE MIDA sa tahad. See on deklaratiivne lähenemine - sa kirjeldad soovitud lõpptulemust, mitte samme sinna jõudmiseks.
+Compose'i põhiidee on lihtne:
+- kirjelda kogu süsteem ühes failis. Ära ütle KUIDAS asjad teha, vaid ÜTLE MIDA sa tahad. See on deklaratiivne lähenemine
+- sa kirjeldad soovitud lõpptulemust, mitte samme sinna jõudmiseks.
 
 Loome faili nimega `docker-compose.yml`. Selles failis kirjeldame meie kahe komponendiga süsteemi. Kirjutame et meil on kaks teenust: üks nimega "database" mis kasutab PostgreSQL'i, ja teine nimega "api" mis kasutab meie API koodi. Ütleme ka et API vajab andmebaasi, seega andmebaas peab enne käivituma.
 
@@ -78,7 +80,9 @@ Praktikas tähendab see et kui API vajab andmebaasiga ühendust, kirjutad ta kon
 
 See on võimas sest muudab süsteemi paindlikuks. Saad teenuseid liigutada, uuesti käivitada, asendada - ja teised teenused leiavad nad ikka automaatselt. Saad ka skaleerida teenuseid (`docker-compose up --scale api=3`) ja DNS teeb round-robin load balancing'u automaatselt.
 
-Oluline mõista: see DNS töötab ainult Compose võrgu sees. Kui tahad et väljastpoolt (näiteks sinu brauser) saaks teenusele ligi, pead pordi avama `ports` sektsiooniga. Ports loob mapping'u host'i ja konteineri vahel - näiteks `8080:80` tähendab "host'i port 8080 suunab konteineri port 80 peale".
+Oluline mõista:
+- see DNS töötab ainult Compose võrgu sees. Kui tahad et väljastpoolt (näiteks sinu brauser) saaks teenusele ligi, pead pordi avama `ports` sektsiooniga. Ports loob mapping'u host'i ja konteineri vahel
+- näiteks `8080:80` tähendab "host'i port 8080 suunab konteineri port 80 peale".
 
 ## 6. Andmete püsimine
 
@@ -104,13 +108,17 @@ Lahendus on health check. See on väike skript või käsk mida Compose regulaars
 
 ## 8. Keskkonnamuutujad
 
-Konteinerid vajavad seadeid: andmebaasi paroole, API võtmeid, pordi numbreid. Need antakse keskkonnamuutujate kaudu. See on 12-factor app metodoloogia põhiprintsiip - konfiguratsioon peaks olema keskkonnas, mitte koodis.
+Konteinerid vajavad seadeid:
+- andmebaasi paroole, API võtmeid, pordi numbreid. Need antakse keskkonnamuutujate kaudu. See on 12-factor app metodoloogia põhiprintsiip
+- konfiguratsioon peaks olema keskkonnas, mitte koodis.
 
 Kõige lihtsam viis on kirjutada need otse Compose faili. Aga see ei ole hea idee sest siis on paroolid failis nähtavad ja kui commitid selle Git'i, on paroolid avalikud. Paljudes ettevõtetes on juhtunud turvaintsidente just seetõttu - keegi committis kogemata `.env` või config faili kus olid production andmebaasi paroolid, ja see läks GitHubi public repo'sse.
 
 Parem viis on kasutada `.env` faili. See on lihtne tekstifail kus on muutujad ja väärtused. Compose loeb selle automaatselt ja saad Compose failis neid muutujaid kasutada. Näiteks kirjutad `.env` faili `DB_PASSWORD=minuparool` ja Compose failis kirjutad `${DB_PASSWORD}`. Compose asendab selle õige väärtusega. See toimib täpselt nagu template engine - muutujad asendatakse väärtustega enne kui Compose faili parsitakse.
 
-Oluline: `.env` fail EI TOHI minna Git'i. See sisaldab saladusi. Pane see `.gitignore` faili. Aga tee `.env.example` fail kus on samad muutujad aga ilma väärtusteta või placeholder väärtustega - see näitab kolleegile millised muutujad on vajalikud. Näiteks `.env.example` võib sisaldada `DB_PASSWORD=changeme` ja `.env` sisaldab päris parooli.
+Oluline:
+- `.env` fail EI TOHI minna Git'i. See sisaldab saladusi. Pane see `.gitignore` faili. Aga tee `.env.example` fail kus on samad muutujad aga ilma väärtusteta või placeholder väärtustega
+- see näitab kolleegile millised muutujad on vajalikud. Näiteks `.env.example` võib sisaldada `DB_PASSWORD=changeme` ja `.env` sisaldab päris parooli.
 
 ## 9. Põhilised käsud
 
@@ -120,7 +128,9 @@ Kõige olulisem käsk on `up`. See käivitab kõik teenused. Kui käivitad lihts
 
 Kui tahad näha mis töötab, kasuta `ps`. See näitab kõiki teenuseid ja nende staatust - running, exited, restarting. Kui mõni teenus pidevalt restartib, on seal probleem.
 
-Kui midagi läheb valesti, vaata logisid: `docker-compose logs`. Lisades `-f` saad jälgida reaalajas (follow), lisades teenuse nime näed ainult selle teenuse logisid. Flag `-f` töötab sarnaselt `tail -f` käsule UNIX'is - see jääb terminali kinni ja näitab uusi logiridu nagu nad tulevad.
+Kui midagi läheb valesti, vaata logisid:
+- `docker-compose logs`. Lisades `-f` saad jälgida reaalajas (follow), lisades teenuse nime näed ainult selle teenuse logisid. Flag `-f` töötab sarnaselt `tail -f` käsule UNIX'is
+- see jääb terminali kinni ja näitab uusi logiridu nagu nad tulevad.
 
 Kui tahad kõik peatada, kasuta `stop`. See peatab konteinerid aga ei kustuta neid. Võid hiljem jätkata `start` käsuga. Konteinerite failisüsteem jääb alles, ainult protsessid peatuvad.
 
@@ -134,11 +144,18 @@ Kui midagi ei tööta, on süsteemne lähenemine. Debugging võib tunduda keerul
 
 Esiteks kontrolli kas kõik töötab: `docker-compose ps`. Kui mõni teenus on "Exit" staatuses või pidevalt restardib, on seal probleem. "Exit 0" tähendab et teenus lõpetas edukalt (mis on imelik teenuse puhul mis peaks töötama), "Exit 1" või muu number tähendab viga.
 
-Vaata logisid: `docker-compose logs teenuse_nimi`. Otsi sõnu nagu ERROR, FATAL, failed, exception. Tavaliselt on seal selgitus mis valesti läks. PostgreSQL'i logid ütlevad näiteks "FATAL: password authentication failed" - selge, et parool on vale. Node.js logid võivad öelda "ECONNREFUSED" - ei saa andmebaasiga ühendust.
+Vaata logisid:
+- `docker-compose logs teenuse_nimi`. Otsi sõnu nagu ERROR, FATAL, failed, exception. Tavaliselt on seal selgitus mis valesti läks. PostgreSQL'i logid ütlevad näiteks "FATAL: password authentication failed"
+- selge, et parool on vale. Node.js logid võivad öelda "ECONNREFUSED"
+- ei saa andmebaasiga ühendust.
 
-Kontrolli kas teenused näevad üksteist: mine teenuse sisse (`docker-compose exec teenus sh`) ja proovi teist teenust pingida või `nslookup` käsuga lahendada. Kui ei saa vastust, on võrguprobleem - kas teenused pole samas võrgus või DNS ei tööta.
+Kontrolli kas teenused näevad üksteist:
+- mine teenuse sisse (`docker-compose exec teenus sh`) ja proovi teist teenust pingida või `nslookup` käsuga lahendada. Kui ei saa vastust, on võrguprobleem
+- kas teenused pole samas võrgus või DNS ei tööta.
 
-Kontrolli keskkonnamuutujaid: kas kõik vajalikud muutujad on määratud? Kas väärtused on õiged? Kasuta `docker-compose config` et näha kuidas Compose tõlgendas YAML faili - see näitab ka kõiki asendatud muutujaid.
+Kontrolli keskkonnamuutujaid:
+- kas kõik vajalikud muutujad on määratud? Kas väärtused on õiged? Kasuta `docker-compose config` et näha kuidas Compose tõlgendas YAML faili
+- see näitab ka kõiki asendatud muutujaid.
 
 Kui API ei käivitu või käitub imelikult, võib probleem olla volumes'ides - võib-olla on failid vales kohas või õigused on valed. Linuxis võivad file permissions põhjustada kummalisi probleeme kui host user ID ei kattu konteineri user ID'ga.
 

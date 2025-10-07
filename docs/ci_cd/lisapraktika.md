@@ -21,7 +21,6 @@ Tööstuses kasutatakse branch strateegiaid nagu Git Flow või GitHub Flow. Iga 
 GitHub Actions võimaldab käitumist kontrollida branch'i nime järgi. Conditional execution kasutab workflow süntaksit kus iga job saab määrata millal ta käivitub.
 
 Näide branch-põhisest käitumisest:
-
 ```yaml
 name: CI/CD
 
@@ -102,8 +101,7 @@ Image tagging strateegia on oluline. Feature branch'idel ei builda image'i ülds
 - Kasuta github.ref võrdlemiseks - see on branch'i täielik nimi nagu refs/heads/main
 - Tag'ide jaoks kasuta ternary operator'it workflow'des
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # Loo feature branch
 git checkout -b feature/test-strategy
 git push origin feature/test-strategy
@@ -142,7 +140,6 @@ Tööstuses on pipeline optimiseerimine pidev protsess. Netflix optimeeris oma p
 Optimeerimise võti on caching, paralleliseerimine ja layer reuse. Alustame dependency caching'ust.
 
 Dependencies muutuvad harva. Python'i requirements.txt või Node'i package.json muutub vahest kord nädalas. Aga me installime need iga commit'iga uuesti. Caching lahendab selle.
-
 ```yaml
 - name: Cache Python dependencies
   uses: actions/cache@v3
@@ -156,7 +153,6 @@ Dependencies muutuvad harva. Python'i requirements.txt või Node'i package.json 
 Cache key kasutab requirements.txt hash'i. Kui fail ei muutu, key ei muutu, cache hit. Kui fail muutub, key muutub, cache miss, uus install. Restore-keys on fallback - kui exact match puudub, kasuta kõige lähemat.
 
 Docker layer caching on võimsam. Multi-stage build võimaldab base image'i taaskasutada.
-
 ```dockerfile
 # Base stage - harva muutub
 FROM python:3.9-slim AS base
@@ -172,7 +168,6 @@ CMD ["python", "app.py"]
 ```
 
 Base stage builditakse ainult kui requirements.txt muutub. App stage builditakse iga kord, aga see on kiire - ainult COPY ja CMD. Docker build-push-action toetab layer caching'ut built-in.
-
 ```yaml
 - name: Build and push
   uses: docker/build-push-action@v4
@@ -185,7 +180,6 @@ Base stage builditakse ainult kui requirements.txt muutub. App stage builditakse
 ```
 
 Paralleliseerimine käivitab töö korraga. Test ja lint võivad käia samal ajal - nad ei sõltu üksteisest.
-
 ```yaml
 jobs:
   test:
@@ -206,7 +200,6 @@ jobs:
 ```
 
 Matrix strategy testib mitmete versioonidega paralleelselt.
-
 ```yaml
 test:
   strategy:
@@ -221,7 +214,6 @@ test:
 ```
 
 Artifact'id jagavad build tulemusi. Build job loob artifact'i, deploy job kasutab seda.
-
 ```yaml
 build:
   steps:
@@ -256,8 +248,7 @@ deploy:
 - actions/cache documentation näitab kõiki võimalusi
 - Paralleelsed job'id on lihtsad - lihtsalt eemalda needs kui sõltuvust pole
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # Baseline
 git tag baseline
 git push origin baseline
@@ -294,7 +285,6 @@ Production-ready pipeline hõlmab mitut kihti. Security on sisse ehitatud - iga 
 ### 3.2 Lahendus
 
 Security scanning peaks olema pipeline'i lahutamatu osa. Trivy on tööstustandard container ja dependency scanning'uks.
-
 ```yaml
 security:
   runs-on: ubuntu-latest
@@ -325,7 +315,6 @@ security:
 ```
 
 Container image scanning käivitub pärast build'i.
-
 ```yaml
 - name: Scan Docker image
   uses: aquasecurity/trivy-action@master
@@ -337,7 +326,6 @@ Container image scanning käivitub pärast build'i.
 ```
 
 Health monitoring deploymentil on kriitiline. Lihtne health check endpoint ja monitoring loop.
-
 ```bash
 #!/bin/bash
 # health-check.sh
@@ -372,7 +360,6 @@ exit 1
 ```
 
 Workflow kasutab seda:
-
 ```yaml
 deploy:
   steps:
@@ -389,7 +376,6 @@ deploy:
 ```
 
 Rollback strateegia nõuab versiooni tracking'ut. Metadata file säilitab deployment ajalugu.
-
 ```json
 {
   "deployments": [
@@ -414,7 +400,6 @@ Rollback strateegia nõuab versiooni tracking'ut. Metadata file säilitab deploy
 ```
 
 Rollback workflow võimaldab manual intervention'i.
-
 ```yaml
 name: Rollback
 
@@ -442,7 +427,6 @@ jobs:
 ```
 
 Notifications hoiavad meeskonda kursis. Slack webhook on lihtne seadistada.
-
 ```yaml
 - name: Notify deployment
   uses: 8398a7/action-slack@v3
@@ -472,8 +456,7 @@ Notifications hoiavad meeskonda kursis. Slack webhook on lihtne seadistada.
 - Rollback workflow kasuta workflow_dispatch trigger'it
 - RUNBOOK.md peab sisaldama: kuidas deployda, kuidas rollback teha, kuidas troubleshoot'ida
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # Security scan
 git push origin main
 # Vaata Actions → Security tab → peaks näitama vulnerabilities

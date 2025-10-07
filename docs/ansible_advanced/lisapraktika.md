@@ -24,7 +24,6 @@ Näiteks Nginx konfiguratsioon, kus on mitu backend serverit, SSL seadistused s�
 Jinja2 pakub advanced funktsionaalsust, mis võimaldab kirjutada keerukaid template'eid:
 
 **Filters ja arvutused:**
-
 ```jinja2
 {% set workers = ansible_processor_vcpus | default(2) %}
 worker_processes {{ workers }};
@@ -35,7 +34,6 @@ worker_connections {{ (1024 * workers) | int }};
 ```
 
 **Loops ja complex data:**
-
 ```jinja2
 {% for backend in backend_servers %}
 upstream {{ backend.name }} {
@@ -47,7 +45,6 @@ upstream {{ backend.name }} {
 ```
 
 **Macros korduvate plokkide jaoks:**
-
 ```jinja2
 {% macro location_block(path, proxy_pass) %}
 location {{ path }} {
@@ -64,7 +61,6 @@ server {
 ```
 
 **Advanced conditionals:**
-
 ```jinja2
 {% if environment == 'prod' %}
 error_log /var/log/nginx/error.log error;
@@ -76,7 +72,6 @@ error_log /var/log/nginx/error.log debug;
 ```
 
 Täielik näide (templates/nginx-advanced.conf.j2):
-
 ```jinja2
 {% set workers = ansible_processor_vcpus | default(2) %}
 user nginx;
@@ -142,7 +137,6 @@ Loo advanced Nginx template, mis konfigreerib load balancer'i dünaamiliselt.
 - Macro defineeritakse `{% macro name(params) %}...{% endmacro %}`
 
 **Testimine:**
-
 ```bash
 # Genereeri template
 ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags nginx
@@ -155,7 +149,6 @@ nginx -t
 ```
 
 **Muutujad (group_vars/webservers/nginx.yml):**
-
 ```yaml
 backend_servers:
   - name: api_backend
@@ -206,7 +199,6 @@ Static inventory failid ei skaleeru cloud keskkonnas, kus servereid luuakse ja k
 Ansible toetab AWS EC2 dynamic inventory plugin'it, mis pärib instance'id otse AWS API-st. Plugin kasutab boto3 library't ja AWS credentials'eid.
 
 **AWS EC2 inventory plugin (aws_ec2.yml):**
-
 ```yaml
 plugin: aws_ec2
 
@@ -249,7 +241,6 @@ See konfiguratsioon:
 - Seadistab ansible_host ja ansible_user automaatselt
 
 **Custom inventory script alternatiiv (inventory/custom_inventory.py):**
-
 ```python
 #!/usr/bin/env python3
 
@@ -321,7 +312,6 @@ Seadista AWS EC2 dynamic inventory ja kasuta seda playbook'ides.
 - Cache'imine kiirendab suuri inventory'sid
 
 **Testimine:**
-
 ```bash
 # Installi dependencies
 pip install boto3 botocore
@@ -345,7 +335,6 @@ ansible-playbook -i aws_ec2.yml site.yml \
 ```
 
 **AWS IAM õigused (minimum):**
-
 ```json
 {
   "Version": "2012-10-17",
@@ -387,7 +376,6 @@ Tavaline deployment peatab rakenduse, uuendab koodi ja käivitab uuesti. See tek
 Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serveri tervise enne järgmise juurde liikumist. Ansible `serial` direktiiv võimaldab kontrollida mitu serverit korraga töödeldakse.
 
 **Rolling deployment pattern:**
-
 ```yaml
 ---
 - name: Rolling deployment
@@ -463,7 +451,6 @@ Rolling deployment strateegia uuendab servereid ühekaupa, kontrollides iga serv
 ```
 
 **Rollback playbook (rollback.yml):**
-
 ```yaml
 ---
 - name: Rollback deployment
@@ -518,7 +505,6 @@ Loo rolling deployment strategy veebirakendusele koos health check'ide ja rollba
 - `pre_tasks` käivituvad enne `tasks`, `post_tasks` pärast
 
 **Testimine:**
-
 ```bash
 # Deploy uus versioon
 ansible-playbook -i inventory/hosts.yml rolling-deploy.yml -e "version=2.0.0"
@@ -531,7 +517,6 @@ ansible-playbook -i inventory/hosts.yml rollback.yml -e "failed_host=web1"
 ```
 
 **Load balancer konfiguratsioon (HAProxy):**
-
 ```cfg
 # /etc/haproxy/haproxy.cfg
 global

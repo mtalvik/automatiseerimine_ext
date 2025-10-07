@@ -135,4 +135,3 @@
 - ❌ Helm, Operators, Ingress kohe
 - ❌ Cloud clusters (liiga kallis!)
 - ❌ 50 resource tüüpi
-

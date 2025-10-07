@@ -55,7 +55,6 @@ Netflix käivitab üle miljardi container'i nädalas. Google'i infrastruktuur on
 ### 2.1 Client-Server Mudel
 
 Docker kasutab client-server arhitektuuri. Docker CLI (client) suhtleb Docker daemoniga (dockerd) üle UNIX socket'i või HTTP API. Daemon haldab image'eid, container'eid, võrke ja volume'e.
-
 ```
 [Docker CLI] --REST API--> [Docker Daemon] --> [Container Runtime]
                                 |
@@ -115,7 +114,6 @@ Image'i täisnimi: `registry/namespace/repository:tag`
 ### 4.1 Dockerfile Süntaks
 
 Dockerfile on tekstifail käskudega image'i ehitamiseks:
-
 ```dockerfile
 FROM python:3.11-alpine
 WORKDIR /app
@@ -145,7 +143,6 @@ Peamised käsud:
 **ENTRYPOINT:** Käsk mis alati käivitub. CMD lisab argumendid.
 
 ### 4.2 Build Protsess
-
 ```bash
 docker build -t myapp:v1.0 .
 ```
@@ -157,7 +154,6 @@ Cache'imine: kui layer ei ole muutunud, kasutab Docker vana layer'it. Seega `RUN
 ### 4.3 Multi-Stage Build
 
 Suurte rakenduste puhul on build dependencies (kompileerimistarkvara, npm, maven) suuremad kui runtime vajadus. Multi-stage build eraldab need:
-
 ```dockerfile
 # Build stage
 FROM node:18 AS builder
@@ -187,8 +183,7 @@ Tulemus: final image sisaldab ainult runtime'i ja kompileeritud koodi, mitte bui
 
 **Kustuta tarbetu:** Apt cache, build artefaktid, .git kataloog.
 
-**.dockerignore:** Väldi tarbetute failide kopeerimist:
-```
+**.dockerignore:** Väldi tarbetute failide kopeerimist:```
 node_modules/
 .git/
 *.log
@@ -200,7 +195,6 @@ node_modules/
 ## 5. Container'ite Käivitamine ja Haldamine
 
 ### 5.1 Põhikäsud
-
 ```bash
 # Käivita container
 docker run nginx
@@ -231,7 +225,6 @@ docker rm web
 ```
 
 ### 5.2 Container Lifecycle
-
 ```
 docker create → CREATED
 docker start → RUNNING
@@ -243,7 +236,6 @@ docker rm → deleted
 `docker stop` saadab SIGTERM signaali, ootab 10 sekundit graceful shutdown'iks, seejärel SIGKILL. Kasuta `docker stop -t 30` pikema timeout'i jaoks.
 
 ### 5.3 Resource Limits
-
 ```bash
 docker run -d \
   --memory="512m" \
@@ -264,23 +256,20 @@ Container'i writable layer on ajutine. Container kustutamisel kaovad andmed. And
 
 ### 6.2 Volume Tüübid
 
-**Named volumes:**
-```bash
+**Named volumes:**```bash
 docker volume create pgdata
 docker run -d -v pgdata:/var/lib/postgresql/data postgres
 ```
 
 Docker haldab volume'i asukohta (`/var/lib/docker/volumes/pgdata/`). Soovitatav produktsioonis.
 
-**Bind mounts:**
-```bash
+**Bind mounts:**```bash
 docker run -d -v /host/path:/container/path nginx
 ```
 
 Host'i kataloog mountitakse container'isse. Kasutatakse arenduses (live reload). Bind mount ei ole portable - sõltub host'i failisüsteemist.
 
-**tmpfs mounts:**
-```bash
+**tmpfs mounts:**```bash
 docker run -d --tmpfs /tmp nginx
 ```
 
@@ -289,7 +278,6 @@ Salvestab RAM'is. Kiire, aga kaob restart'imisel. Cache või ajutised failid.
 ### 6.3 Volume Elutsükkel
 
 Volume eksisteerib iseseisvalt container'ist:
-
 ```bash
 docker run -v mydata:/data alpine sh -c 'echo "test" > /data/file.txt'
 docker run -v mydata:/data alpine cat /data/file.txt  # "test"
@@ -312,7 +300,6 @@ Volume ei kustutata automaatselt. Kasuta `docker volume prune` kasutamata volume
 **Overlay:** Multi-host võrk Docker Swarm/Kubernetes jaoks.
 
 ### 7.2 Container-to-Container Communication
-
 ```bash
 docker network create mynet
 docker run -d --name db --network mynet postgres
@@ -330,7 +317,6 @@ Port mapping (`-p`) on välise ligipääsu jaoks. Internal suhtlus ei vaja port 
 ### 8.1 Miks Compose
 
 Käsitsi käivitada 5 container'it (web, api, db, cache, queue) koos nende sõltuvustega on vigaderohke. Docker Compose kirjeldab kogu stack'i YAML formaadis:
-
 ```yaml
 version: '3.8'
 
@@ -374,23 +360,20 @@ Container'id jagavad kernel'it - kernel exploit võib mõjutada host'i. VM'id on
 
 ### 9.2 Best Practices
 
-**Non-root user:**
-```dockerfile
+**Non-root user:**```dockerfile
 RUN adduser -D appuser
 USER appuser
 ```
 
 Vaikimisi jooksevad container'id root'ina. Kui keegi container'isse sisse murdab, on tal root õigused. Loo spetsiaalne kasutaja.
 
-**Read-only filesystem:**
-```bash
+**Read-only filesystem:**```bash
 docker run --read-only --tmpfs /tmp myapp
 ```
 
 **Secrets management:** Ära pane paroole ENV'i ega image'sse. Kasuta Docker secrets või vault'i.
 
 **Image scanning:** Skanni haavatavusi (Trivy, Clair).
-
 ```bash
 trivy image myapp:latest
 ```
@@ -402,14 +385,12 @@ trivy image myapp:latest
 ## 10. Monitoring ja Logging
 
 ### 10.1 Container Stats
-
 ```bash
 docker stats
 docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
 ```
 
 ### 10.2 Health Checks
-
 ```dockerfile
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
@@ -420,7 +401,6 @@ Docker märgib container'i unhealthy, kui health check ebaõnnestub. Orchestraat
 ### 10.3 Logging
 
 Vaikimisi salvestab Docker logid JSON formaadis `/var/lib/docker/containers/`. Produktsioonis suunake logid tsentraliseeritud süsteemi (ELK stack, Loki):
-
 ```yaml
 services:
   app:

@@ -13,7 +13,6 @@ See juhend aitab teil seadistada Docker keskkonna kodu arvutis, et saaksite harj
 ## 1. Operatsioonisüsteemi valik
 
 ### Windows - WSL2
-
 ```bash
 # PowerShell (Admin)
 wsl --install -d Ubuntu-22.04
@@ -21,7 +20,6 @@ wsl --install -d Ubuntu-22.04
 ```
 
 ### macOS - Multipass
-
 ```bash
 brew install --cask multipass
 multipass launch --name docker-vm --memory 4G --disk 20G 22.04
@@ -29,13 +27,11 @@ multipass shell docker-vm
 ```
 
 ### Linux - Native
-
 ```bash
 # You're already there!
 ```
 
 ## 2. Docker installeerimine
-
 ```bash
 # One command install
 curl -fsSL https://get.docker.com | sudo sh
@@ -45,14 +41,12 @@ exit
 ```
 
 ## 3. Installatsiooni testimine
-
 ```bash
 docker --version
 docker run hello-world
 ```
 
 ## 4. Docker Compose
-
 ```bash
 # Install compose plugin
 sudo apt update && sudo apt install docker-compose-plugin -y
@@ -70,7 +64,6 @@ Install extensions:
 - `redhat.vscode-yaml`
 
 ## 6. Test projekti loomine
-
 ```bash
 mkdir ~/docker-test && cd ~/docker-test
 
@@ -88,7 +81,6 @@ docker compose down
 ```
 
 ## 7. Docker Hub
-
 ```bash
 # Create account at hub.docker.com
 docker login
@@ -104,7 +96,6 @@ docker pull username/myapp
 ## 8. Kasulikud aliased
 
 Lisa faili `~/.bashrc`:
-
 ```bash
 alias dc='docker compose'
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
@@ -113,7 +104,6 @@ alias dex='docker exec -it'
 ```
 
 ## 9. Põhilised käsud
-
 ```bash
 # List everything
 docker ps -a          # containers
@@ -136,26 +126,22 @@ docker stop $(docker ps -q)
 
 ## 10. Levinud probleemid
 
-**"Cannot connect to Docker daemon"**
-```bash
+**"Cannot connect to Docker daemon"**```bash
 sudo service docker start    # Linux/WSL
 ```
 
-**"Permission denied"**
-```bash
+**"Permission denied"**```bash
 newgrp docker    # or logout/login
 ```
 
-**Port already in use**
-```bash
+**Port already in use**```bash
 lsof -i :8080    # find what's using port
 ```
 
 **WSL2 specific - aeglane performance**
 - Hoia failid Linux'is (`~/`), mitte Windows'is (`/mnt/c/`)
 
-**Multipass specific - file sharing**
-```bash
+**Multipass specific - file sharing**```bash
 multipass mount ~/projects docker-vm:/home/ubuntu/projects
 ```
 
@@ -168,7 +154,6 @@ multipass mount ~/projects docker-vm:/home/ubuntu/projects
 | GitLab | Jah | Unlimited | 5GB/project |
 
 ## Projekti struktuuri näide
-
 ```
 myapp/
 ├── docker-compose.yml
@@ -187,7 +172,6 @@ myapp/
 ## Cloud registries (edasijõudnutele)
 
 ### Google Cloud
-
 ```bash
 # Vaja: Google account + card (free $300 credit)
 gcloud auth login
@@ -204,7 +188,6 @@ docker push europe-north1-docker.pkg.dev/PROJECT/REPO/myapp
 ```
 
 ### AWS ECR
-
 ```bash
 # Vaja: AWS account (free tier: 500MB/month)
 aws configure  # enter credentials
@@ -219,7 +202,6 @@ docker push 123456789.dkr.ecr.region.amazonaws.com/myapp
 ## Turvalisus ja tulemüür
 
 ### Portide avamine
-
 ```bash
 # Windows PowerShell (Admin)
 New-NetFirewallRule -DisplayName "Docker" -Direction Inbound -Protocol TCP -LocalPort 80,443,8080,3000,5000 -Action Allow
@@ -236,7 +218,6 @@ lsof -i -P -n | grep LISTEN
 ```
 
 ### Turvalisuse skaneerimine
-
 ```bash
 # Skaneeri image'id haavatavuste suhtes
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image myapp:latest
@@ -252,7 +233,6 @@ snyk test --docker myapp:latest
 ## Võrgustik ja DNS
 
 ### Custom võrgud
-
 ```bash
 # Loo võrk (konteinerid saavad rääkida nime järgi)
 docker network create app-net
@@ -268,7 +248,6 @@ echo "127.0.0.1 myapp.local api.local" | sudo tee -a /etc/hosts
 ## Volumes ja varundamine
 
 ### Andmete püsimine
-
 ```bash
 # Named volume
 docker volume create mydata
@@ -284,7 +263,6 @@ docker run --rm -v mydata:/target -v $(pwd):/backup alpine tar xzf /backup/mydat
 ## Jõudluse optimeerimine
 
 ### WSL2 mälu
-
 ```bash
 # Loo: C:\Users\YOU\.wslconfig
 [wsl2]
@@ -296,7 +274,6 @@ swap=2GB
 ```
 
 ### Docker piirangud
-
 ```bash
 # Piira konteineri ressursse
 docker run -m 512m --cpus="1.0" myapp
@@ -314,7 +291,6 @@ docker run -m 512m --cpus="1.0" myapp
 ## Monitoring
 
 ### Lihtne monitoring
-
 ```bash
 # Real-time stats
 docker stats
@@ -331,7 +307,6 @@ docker run -d -p 19999:19999 \
 ```
 
 ## Git integratsioon
-
 ```bash
 # Seadista Git
 git config --global user.name "Your Name"
@@ -352,7 +327,6 @@ EOF
 ```
 
 ## Kasulikud tööriistad
-
 ```bash
 # Installi productivity tools
 sudo apt install -y htop tree jq curl wget nano tmux
@@ -368,7 +342,6 @@ dive myapp:latest
 ```
 
 ## Ketta puhastamine
-
 ```bash
 # Manual cleanup
 docker system prune -af --volumes  # HOIATUS: kustutab kõik!
@@ -383,7 +356,6 @@ wsl --shutdown
 ```
 
 ## Keskkonna haldamine
-
 ```bash
 # .env fail
 DB_HOST=localhost

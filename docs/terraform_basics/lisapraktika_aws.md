@@ -24,7 +24,6 @@ Põhiprobleemid kohaliku state'iga:
 ### 1.2 Lahendus
 
 Remote backend kasutab S3 bucketi state'i salvestamiseks ja DynamoDB tabelit lukustamiseks. S3 versioning võimaldab taastada vanu versioone, kui midagi läheb valesti. DynamoDB hoiab lukku - ainult üks operatsioon saab korraga state'i muuta.
-
 ```hcl
 terraform {
   required_providers {
@@ -123,7 +122,6 @@ S3 bucket salvestab state faili krüpteeritult. Versioning hoiab kõiki varasema
 - Kui lukustus jääb kinni, kasuta `terraform force-unlock <LOCK_ID>`
 
 **Testimine:**
-
 ```bash
 # Loo backend ressursid
 terraform init
@@ -167,7 +165,6 @@ Probleemid hard-code'imisega:
 ### 2.2 Lahendus
 
 Data source'd pärivad infot olemasolevate ressursside kohta runtime'il. Need ei loo uusi ressursse, vaid otsivad ja loevad olemasolevaid. Saate filtreerida tag'ide, nimede või muude atribuutide järgi.
-
 ```hcl
 data "aws_vpc" "existing" {
   filter {
@@ -244,7 +241,6 @@ VPC data source otsib tag'i järgi VPC'd nimega "company-main-vpc". Subnets data
 - Filtreeri AMI'd nime pattern'i järgi: `ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*`
 
 **Testimine:**
-
 ```bash
 # Testi data source'e console'is
 terraform console
@@ -287,7 +283,6 @@ Probleemid default käitumisega:
 ### 3.2 Lahendus
 
 Lifecycle rule `create_before_destroy` muudab järjekorda - loob uue enne vana kustutamist. See võimaldab zero-downtime uuendusi. Kombineerides Auto Scaling Group'iga ja instance refresh'iga saab uuendada servereid järk-järgult.
-
 ```hcl
 resource "aws_launch_template" "web" {
   name_prefix   = "web-"
@@ -384,7 +379,6 @@ Launch template määrab, kuidas instance'd luuakse. Create before destroy tagab
 - Kasuta `curl` loopis load balancer'i testimiseks uuenduse ajal
 
 **Testimine:**
-
 ```bash
 # Loo infrastruktuur
 terraform apply

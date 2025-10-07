@@ -34,7 +34,6 @@ See modulaarsus toob kaasa ka testimise lihtsuse. Iga rolli saab testida isoleer
 ### Galaxy Standard
 
 Ansible Galaxy on rollide jagamise platvorm, kuid see määratleb ka standardi rolli struktuuri kohta. See standard pole suvaline - see on praktikas väljakujunenud parim lähenemine. Kui kõik rollid järgivad sama struktuuri, siis ükskõik kelle rolli te vaatate, oskate kohe öelda kus asuvad tasks, kus template'id, kus muutujad.
-
 ```
 nginx-webserver/
 ├── defaults/
@@ -64,7 +63,6 @@ Allikas: [Ansible Galaxy](https://galaxy.ansible.com/ui/)
 ### Rollide Anatoomia
 
 Vaatleme iga komponenti lähemalt, alustades metadata'st. Meta kaust sisaldab `main.yml` faili, mis kirjeldab rolli ennast - autor, toetatud platvormid, sõltuvused teistest rollidest. See ei mõjuta käitumist, aga on kriitiline kui jagame rolli teistega või kasutame Galaxy'st allalaetud rolle.
-
 ```yaml
 # meta/main.yml
 galaxy_info:
@@ -91,7 +89,6 @@ Tasks kaust sisaldab tegevuste definitsioone. Peamine `main.yml` toimib tavalise
 Ansible'il on keeruline muutujate prioriteetide süsteem, kuid rollide kontekstis on kaks peamist kohta: `defaults/main.yml` ja `vars/main.yml`. Nende erinevus pole ainult nimes - nad teenivad erinevaid strateegilisi eesmärke ja omavad drastiliselt erinevaid prioriteete.
 
 Defaults on madalama prioriteediga muutujad. Peaaegu kõik muu võib neid üle kirjutada - inventory muutujad, playbook vars, group_vars. Need on mõeldud mõistlikeks vaikeväärtusteks, mida kasutaja peaks saama kergesti muuta. Näiteks nginx rolli puhul võiks defaults sisaldada HTTP porti, worker processes arvu, timeout väärtusi. Need on parameetrid, mida erinevates keskkondades sageli koohandatakse.
-
 ```yaml
 # defaults/main.yml
 nginx_http_port: 80
@@ -103,7 +100,6 @@ nginx_client_max_body_size: "1m"
 ```
 
 Vars on kõrgema prioriteediga ja neid on raskem üle kirjutada. Need on mõeldud väärtustele, mis on rolli sisemise loogika jaoks kriitilised. OS-spetsiifilised paketinimed, konfiguratsioonifailide asukohad, teenuse nimed - need ei tohiks kasutaja poolt juhuslikult muutuda. Kui keegi proovib Ubuntu süsteemis nginx paketi nimeks määrata "httpd", peaks see ebaõnnestuma.
-
 ```yaml
 # vars/main.yml
 _nginx_packages:
@@ -124,7 +120,6 @@ Allikas: [Ansible Variable Precedence — Ivan Krizsan](https://www.ivankrizsan.
 Jinja2 template'id võimaldavad konfiguratsioone dünaamiliseks muuta, kuid nende oskuslik kasutamine nõuab strateegilist mõtlemist. Iga template muutuja on sõltuvus - punkt, kus käitumine muutub. Liiga palju muutujaid teeb rolli raskesti hooldatavaks, liiga vähe muutujaid teeb selle jäigaks.
 
 Hea praktika on pakkuda mõistlikke vaikeväärtusi ja lubada neid vajadusel kohandada. Näiteks nginx'i worker processes võiks vaikimisi vastata CPU tuumade arvule, aga produktsioonis võib soovida selle käsitsi seadistada kõrgema väärtuse peale koormuse testimise põhjal.
-
 ```nginx
 # templates/nginx.conf.j2
 user {{ nginx_user | default('www-data') }};
@@ -140,7 +135,6 @@ events {
 Jinja2 `default()` filter on turvavariant. Kui muutujat pole defineeritud, kasutatakse default väärtust. See muudab template vastupidavamaks vigadele, kuid loob ka implitsiitseid sõltuvusi. Dokumentatsioonis peab selgitama mitte ainult millised muutujad on saadaval, vaid ka mis on nende vaikeväärtused template tasandil.
 
 Conditional logic template'ides võimaldab käitumise kohandamist. SSL konfiguratsiooni saab kaasata ainult kui SSL on lubatud. Gzip kompressioon aktiveerub optional seadistuse põhjal. See teeb ühest template'ist mitme variandi allikas, vältides konfiguratsioonifailide proliferatsiooni.
-
 ```nginx
 http {
     {% if nginx_gzip_enabled | default(true) %}
@@ -166,7 +160,6 @@ http {
 Ansible pakub kahte mehhanismi tasks'ide eraldamiseks: `include_tasks` ja `import_tasks`. Nende valik pole triviaalne - neil on erinev käitumine ja jõudlus. Import on staatiline, juhtub playbook'i parse'imise ajal. Include on dünaamiline, juhtub käitamise ajal.
 
 Import on kiirem ja võimaldab Ansible'il kogu playbook'i struktuuri kohe valideerida. Kui teil on süntaksiviga imporditud tasks'is, Ansible leiab selle enne käitamise algust. Include on paindlikum - saab kasutada conditionals'ega ja loops'idega dünaamiliselt määramaks milliseid tasks'e käivitada. Tavaliselt rollides kasutatakse include_tasks, sest paindlikkus on olulisem kui minimaalne jõudluse võit.
-
 ```yaml
 # tasks/main.yml
 - name: "Validate configuration"
@@ -197,7 +190,6 @@ Ansible'i fundamentaalne printsiip on idempotentsus - playbook'i saab käivitada
 Mõned moodulid on automaatselt idempotentsed. File moodul kontrollib faili olemasolu ja õigusi enne midagi muutmast. Package moodul kontrollib kas pakett on juba paigaldatud. Template moodul võrdleb olemasolevat faili uue sisuga ja kopeerib ainult kui need erinevad. Need moodulid teevad idempotentsuse lihtsamaks.
 
 Command ja shell moodulid on probleemsed. Need käivitavad käsu alati, olenemata olekust. Kui käsk on `rm -rf /tmp/mydir`, siis esimesel korral see eemaldab kausta, teisel korral ebaõnnestub sest kaust puudub. Idempotentsuse tagamiseks tuleb kasutada `creates` või `removes` parameetreid, või vältida neid mooduleid üldse kui on olemas parem alternatiiv.
-
 ```yaml
 - name: "Generate SSL certificate"
   command: >
@@ -219,7 +211,6 @@ Allikas : [What is Idempotency in Ansible](https://medium.com/@haroldfinch01/wha
 ### Handlers'i Roll
 
 Handlers on spetsiaalne tasks'i tüüp, mis käivitatakse ainult kui neid "notifitakse" ja ainult playbook'i lõpus. See on kriitiline teenuste haldamiseks. Kui muudate nginx'i konfiguratsiooni kümnes kohas, te ei taha et nginx restart'itaks kümme korda - üks kord lõpus on piisav.
-
 ```yaml
 # handlers/main.yml
 - name: restart nginx
@@ -239,7 +230,6 @@ Handlers on spetsiaalne tasks'i tüüp, mis käivitatakse ainult kui neid "notif
 Restart vs reload valik on oluline. Restart peatab teenuse täielikult ja käivitab uuesti - see katkestab aktiivsed ühendused. Reload loeb konfiguratsiooni uuesti ilma teenust peatamata - aktiivsed ühendused jätkuvad, uued ühendused kasutavad uut konfiguratsiooni. Produktsioonis eelistatakse reload'i, aga mõned muudatused (näiteks SSL sertifikaadi vahetus) võivad nõuda restart'i.
 
 Tasks'id notifivad handlers'eid muudatuste korral. Ansible jälgib iga task'i "changed" staatust. Kui task muudab midagi, ta märgib end muudetuks ja käivitab notify direktiivi. Kui task ei muuda midagi (näiteks fail on juba olemas õigete õigustega), notify'i ei käivitata.
-
 ```yaml
 # tasks/configure.yml
 - name: "Copy main nginx config"
@@ -267,7 +257,6 @@ Allikas: [How to Use Handlers in Ansible](https://medium.com/cloudnloud/how-to-u
 ### Teenuse State Management
 
 Service moodul haldab systemd teenuseid, kuid sellel on nüansse. State parameeter võib olla started, stopped, restarted, reloaded. Enabled parameeter määrab kas teenus käivitatakse boot'imisel. Need on sõltumatud - teenus võib olla started aga mitte enabled, või enabled aga mitte started.
-
 ```yaml
 - name: "Ensure nginx is running and enabled"
   service:
@@ -285,7 +274,6 @@ Rollides on tavaline pattern kontrollida teenuse olekut mitmetes kohtades. Insta
 ### Meta Dependencies
 
 Rollid ei eksisteeri isolatsioonis - nad sõltuvad teineteisest. Nginx roll võib vajada firewall'i, mis avab HTTP ja HTTPS pordid. Rakenduse roll vajab andmebaasi rolli. Monitoring roll sõltub kõikidest teistest rollidest, sest ta peab neid monitorima. Need sõltuvused deklareeritakse meta/main.yml failis.
-
 ```yaml
 # meta/main.yml
 dependencies:
@@ -309,7 +297,6 @@ Dependencies võivad omakorda omada dependencies. See loob dependency graafi, mi
 ### Shared State
 
 Rollid jagavad muutujaid läbi erinevate Ansible scope'ide. Playbook vars on kõikidele rollidele nähtavad. Group_vars kohalduvad teatud host'ide gruppidele. Host_vars on spetsiifilised üksikutele host'idele. Rollide vaheline kommunikatsioon toimub peamiselt läbi nende jagatud muutujate.
-
 ```yaml
 # group_vars/webservers/shared.yml
 app_user: webapp
@@ -329,7 +316,6 @@ app_run_as_user: "{{ app_user }}"
 See lähenemine võimaldab rollide koordineerimist ilma et nad otse teineteisest sõltuksid. Nginx roll ei pea teadma application rolli sisemisest struktuurist - mõlemad kasutavad jagatud muutujaid kui lepingut. Kui muudate app_port'i väärtust, mõlemad rollid kohanduvad automaatselt.
 
 Registered variables võimaldavad rollide vahelist andmete edasiandmist käitusajal. Kui üks roll genereerib parooli või võtme, saab selle registreerida ja teised rollid saavad seda kasutada. See on võimas, aga nõuab hoolikat dokumenteerimist - ei ole ilmne milliseid muutujaid roll ekspordib.
-
 ```yaml
 - name: "Generate database password"
   set_fact:
@@ -348,7 +334,6 @@ Registered variables võimaldavad rollide vahelist andmete edasiandmist käitusa
 Rollide testimine erineb playbook'ide testimisest. Roll peab töötama isoleeritult, erinevates operatsioonisüsteemides, erinevate parameetritega. Molecule on de facto standard rolli testimiseks - see loob ajutisi teste keskkondi (Docker containers, Vagrant VMs), käivitab rolli nendega ja kontrollib tulemust.
 
 Testimise kihid algavad süntaksi valideerimisest. Ansible-lint kontrollib common anti-pattern'eid - deprecated moodulid, ebaefektiivsed konstruktsioonid, turvaprobleemid. Yamllint tagab YAML süntaksi korrektsuse. Need tööriistad leiavad põhivead enne kui playbook üldse käivitatakse.
-
 ```yaml
 # .ansible-lint
 skip_list:
@@ -359,7 +344,6 @@ warn_list:
 ```
 
 Integration tests kontrollivad kas roll tegelikult teeb seda, mida lubab. Pärast nginx rolli käivitamist peaks nginx olema käimas, kuulama õigeid porte, serveeriva kohandatud konfiguratsiooni. Molecule võimaldab kirjutada verify tasks'e, mis kontrollivad neid tingimusi.
-
 ```yaml
 # molecule/default/verify.yml
 - name: Verify nginx is running
@@ -379,7 +363,6 @@ Integration tests kontrollivad kas roll tegelikult teeb seda, mida lubab. Päras
 ### Continuous Integration
 
 Rollid peaksid olema testitud igal commit'il. GitHub Actions, GitLab CI, Jenkins - kõik võimaldavad automatiseeritud testimist. Tüüpiline CI pipeline käivitab linting'i, siis Molecule teste erinevates OS'ides, siis publitseerib rolli Galaxy'sse kui kõik õnnestub.
-
 ```yaml
 # .github/workflows/test.yml
 name: CI
@@ -405,7 +388,6 @@ See matrix strategy testib rolli kolmes erinevas distributsionis paralleelselt. 
 ### Publishing Best Practices
 
 Ansible Galaxy on rollide jagamise platvorm, kuid hea roll pole ainult töötav kood - see on dokumentatsioon, näited, versioonihaldus. README.md on esimene punkt kus potentsiaalne kasutaja otsustab kas teie rolli kasutada. See peab sisaldama selget kirjeldust, installatsiooni juhiseid, muutujate dokumentatsiooni, kasutusnäiteid.
-
 ```markdown
 # Ansible Role: nginx-pro
 
@@ -432,14 +414,12 @@ Production-ready Nginx role with SSL, virtual hosts, and performance tuning.
         nginx_ssl_enabled: true
         nginx_vhosts:
           - name: example.com
-            root: /var/www/example
-```
+            root: /var/www/example```
 ```
 
 Semantic versioning on oluline. Versioon 1.2.3 tähendab: major.minor.patch. Patch muudatused on bugfixid, mis ei muuda API'd. Minor muudatused lisavad funktsionaalsusi tagasiühilduvalt. Major muudatused võivad murda olemasolevat kasutust. Kasutajad peavad saama usaldada et kui nad lukustavad rolli versioonile 1.x, ei murra uuendused nende playbook'e.
 
 Galaxy import käsib lokaalset Git repositooryt. Tag'id muutuvad Galaxy versioonideks. Iga muudatus peab olema git tag'itud enne Galaxy'sse importimist. See annab selge ajaloo ja võimaldab kasutajatel valida täpset versiooni mida nad usaldavad.
-
 ```bash
 git tag -a v1.2.0 -m "Add virtual hosts support"
 git push origin v1.2.0

@@ -13,7 +13,6 @@ See fail sisaldab lisaharjutusi ja edasijõudnud teemasid Docker Compose mooduli
 Build dependencies suurendavad image'i mahtu. Node.js rakenduse image võib olla 1.2GB, kuigi runtime vajab ainult 150MB.
 
 ### 1.2 Lahendus: Multi-Stage Build
-
 ```dockerfile
 # Build stage
 FROM node:18 AS builder
@@ -64,7 +63,6 @@ Looge multi-stage Dockerfile Python Flask rakendusele:
 Container jookseb aga rakendus sees on hangund või ei vasta enam. Docker arvab et kõik on OK, sest protsess töötab.
 
 ### 2.2 Lahendus: Health Checks
-
 ```yaml
 version: '3.8'
 
@@ -106,8 +104,7 @@ Looge `docker-compose.yml` mis sisaldab:
 - `wget --spider` ei lae sisu, ainult kontrollib HTTP status
 - `pg_isready` on PostgreSQL'i built-in health check
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 docker compose up -d
 docker compose ps  # peaks näitama "(healthy)"
 
@@ -132,7 +129,6 @@ watch docker compose ps
 Development vajab hot reload ja debug mode. Production vajab resource limits, turvalisust ja optimeerimist. Üks `docker-compose.yml` ei sobi mõlemale.
 
 ### 3.2 Lahendus: Override Files
-
 ```
 project/
 ├── docker-compose.yml          # Base config
@@ -143,8 +139,7 @@ project/
 └── .env.prod                   # NOT in git
 ```
 
-**Base docker-compose.yml:**
-```yaml
+**Base docker-compose.yml:**```yaml
 version: '3.8'
 
 services:
@@ -156,8 +151,7 @@ services:
       - .env
 ```
 
-**docker-compose.dev.yml:**
-```yaml
+**docker-compose.dev.yml:**```yaml
 version: '3.8'
 
 services:
@@ -170,8 +164,7 @@ services:
       - DEBUG=*
 ```
 
-**docker-compose.prod.yml:**
-```yaml
+**docker-compose.prod.yml:**```yaml
 version: '3.8'
 
 services:
@@ -186,8 +179,7 @@ services:
     restart: always
 ```
 
-**Käivitamine:**
-```bash
+**Käivitamine:**```bash
 # Development
 docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d
 
@@ -206,8 +198,7 @@ Looge projekti struktuur koos deployment script'iga:
 - [ ] `deploy.sh` script mis käivitab õige keskkonna
 - [ ] `.env.example` on git'is, `.env.*` on `.gitignore`'s
 
-**deploy.sh näide:**
-```bash
+**deploy.sh näide:**```bash
 #!/bin/bash
 
 ENV=${1:-dev}
@@ -229,8 +220,7 @@ case $ENV in
 esac
 ```
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 chmod +x deploy.sh
 
 ./deploy.sh dev

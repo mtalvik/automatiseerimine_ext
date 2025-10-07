@@ -19,7 +19,6 @@ OS'ide erinevused pole triviasalsed. Paketihaldur on erinev (apt vs yum vs dnf).
 Lahendus kasutab Ansible facts'e OS tuvastamiseks ja conditional logic'ut õige konfiguratsiooni valimiseks. Facts nagu `ansible_os_family`, `ansible_distribution` ja `ansible_distribution_major_version` võimaldavad rolli käitumist dünaamiliselt kohandada.
 
 Loome OS-spetsiifilised variables failid vars kaustas. Include_vars direktiiv laadib õige faili runtime'il. Tasks kasutavad when conditionals OS-spetsiifiliste operatsioonide jaoks.
-
 ```yaml
 # vars/Debian.yml
 ---
@@ -40,7 +39,6 @@ nginx_user: "nginx"
 ```
 
 Tasks failis laadime õiged variables:
-
 ```yaml
 # tasks/main.yml
 ---
@@ -70,7 +68,6 @@ Tasks failis laadime õiged variables:
 ```
 
 OS-agnostic alternatiiv on package moodul, mis automaatselt valib õige package manager'i:
-
 ```yaml
 - name: "Install nginx (OS-agnostic)"
   package:
@@ -99,7 +96,6 @@ Kohandage oma laboris loodud nginx rolli töötama nii Ubuntu kui CentOS süstee
 - Molecule võimaldab testida mitut platvormi Docker container'ites
 
 **Testimine:**
-
 ```bash
 # Ubuntu VM
 ansible-playbook -i ubuntu_host, site.yml
@@ -130,7 +126,6 @@ Halvim lähenemine on luua kolm erinevat rolli või kolm koopiat samast konfigur
 Lahendus on variables layering - mitmetasandiline muutujate süsteem, kus üldised defaults kirjutatakse üle environment-specific variables'iga. Ansible variables precedence order võimaldab seda loomulikult.
 
 Defaults määravad base configuration. Group_vars kirjeldavad environment'i. Extra_vars lubavad runtime override'e. Iga kiht lisab või kirjutab üle eelmist.
-
 ```yaml
 # defaults/main.yml - Base configuration
 ---
@@ -163,7 +158,6 @@ ssl_session_cache: "shared:SSL:10m"
 ```
 
 Template kasutab conditionals environment-specific käitumiseks:
-
 ```jinja2
 # templates/nginx.conf.j2
 worker_processes {{ nginx_worker_processes }};
@@ -217,7 +211,6 @@ Implementeerige kolme environment'i tugi oma nginx rollile: dev, staging, prod.
 - Loo Makefile või wrapper script kergeks environment switch'imiseks
 
 **Testimine:**
-
 ```bash
 # Deploy development
 ansible-playbook -i inventory/development site.yml
@@ -248,7 +241,6 @@ Mõned proovivad eraldi secrets management süsteeme (HashiCorp Vault, AWS Secre
 Ansible Vault krüpteerib faile või üksikuid muutujaid AES256 krüpteerimisega. Vault'itud failid on turvalised commit'ida Git'i. Deployment'i ajal Ansible dekrüpteerib need vault password'iga.
 
 Rolli struktuuris loome eraldi vault.yml faili vars kaustas, krüpteerime selle, ja viitame krüpteeritud muutujatele defaults'ist.
-
 ```bash
 # Loo vault fail
 cat > roles/nginx/vars/vault.yml << 'EOF'
@@ -273,7 +265,6 @@ cat roles/nginx/vars/vault.yml
 ```
 
 Defaults viitab vault muutujatele:
-
 ```yaml
 # defaults/main.yml
 ---
@@ -283,7 +274,6 @@ db_password: "{{ vault_db_password }}"
 ```
 
 Tasks kasutab neid nagu tavalist muutujat:
-
 ```yaml
 # tasks/ssl.yml
 ---
@@ -296,7 +286,6 @@ Tasks kasutab neid nagu tavalist muutujat:
 ```
 
 Playbook käivitamine vault password'iga:
-
 ```bash
 # Küsi interactively
 ansible-playbook site.yml --ask-vault-pass
@@ -334,7 +323,6 @@ Lisage oma nginx rollile Ansible Vault tugi SSL private key'de ja API token'ite 
 - Kaasluge ansible.cfg default vault_password_file path
 
 **Testimine:**
-
 ```bash
 # Krüpteeri vault
 ansible-vault create roles/nginx/vars/vault.yml

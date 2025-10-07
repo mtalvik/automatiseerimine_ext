@@ -17,7 +17,6 @@ Meeskonnas juhtub, et keegi commit'ib koodi, mis sisaldab süntaksi vigu, debug 
 Git hooks on skriptid `.git/hooks/` kaustas, mis käivituvad automaatselt. Pre-commit hook käivitub enne commit'i tegemist - kui script ebaõnnestub, commit tühistatakse.
 
 Näide Python projektile:
-
 ```bash
 #!/bin/bash
 # .git/hooks/pre-commit
@@ -51,7 +50,6 @@ echo "Pre-commit checks passed!"
 ```
 
 Commit sõnumite kontroll:
-
 ```bash
 #!/bin/bash
 # .git/hooks/commit-msg
@@ -79,8 +77,7 @@ fi
 - Ajutine vahele jätmine: `git commit --no-verify`
 - Kontrolli ainult staged faile: `git diff --cached --name-only`
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 echo "print('debug')" > test.py
 git add test.py
 git commit -m "feat: test"  # Peaks ebaõnnestuma
@@ -104,7 +101,6 @@ Meeskonnas push'itakse PR'e iga päev. Kui ei käivita teste automaatselt, võib
 GitHub Actions käivitab workflow'sid iga push/PR peale. Workflow on YAML fail `.github/workflows/` kaustas.
 
 Põhiline CI workflow:
-
 ```yaml
 name: CI Pipeline
 
@@ -141,7 +137,6 @@ jobs:
 ```
 
 Matrix strategy (mitu versiooni paralleelselt):
-
 ```yaml
 jobs:
   test:
@@ -161,7 +156,6 @@ jobs:
 ```
 
 Artifacts ja deployment:
-
 ```yaml
 jobs:
   build:
@@ -198,8 +192,7 @@ jobs:
 - Kasuta `npm ci` mitte `npm install`
 - Cache dependency'sid: `cache: 'npm'`
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 mkdir -p .github/workflows
 # Lisa CI YAML fail
 git add .github/
@@ -224,13 +217,11 @@ Teed feature jaoks 7 commit'i: feat, typo fix, oops, wip, actually fix, final, r
 ### 3.2 Lahendus
 
 Interactive rebase võimaldab ajaloo ümberkirjutamist: squash commit'id kokku, muuda sõnumeid, eemalda commit'e.
-
 ```bash
 git rebase -i HEAD~5
 ```
 
 Avaneb editor:
-
 ```
 pick a1b2c3d feat(auth): add login
 pick d4e5f6g fix: typo
@@ -240,7 +231,6 @@ pick n4o5p6q fix: oops
 ```
 
 Puhasta:
-
 ```
 pick a1b2c3d feat(auth): add login
 fixup d4e5f6g fix: typo
@@ -252,7 +242,6 @@ fixup n4o5p6q fix: oops
 Tulemus: 5 commit → 2 commit. Commands: `pick` (use), `reword` (edit message), `squash` (merge, keep message), `fixup` (merge, discard message), `drop` (remove).
 
 Rebase main'i peale:
-
 ```bash
 git checkout feature
 git rebase main
@@ -273,8 +262,7 @@ git rebase main
 - Kui läks katki: `git rebase --abort`
 - Force push pärast: `git push --force-with-lease`
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 git checkout -b feature/cleanup
 for i in {1..5}; do
   echo "v$i" > file.txt

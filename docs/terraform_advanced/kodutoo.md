@@ -25,7 +25,6 @@ See ei ole toy project - see on päris minimaalne architecture, mis sarnaneb rea
 ## 1. Projekti Struktuur
 
 Looge selline failide struktuur:
-
 ```
 terraform-aws-homework/
 ├── main.tf
@@ -46,7 +45,6 @@ terraform-aws-homework/
 Esmalt looge rakendus, mida deploy'ida.
 
 ### app/package.json
-
 ```json
 {
   "name": "todo-api",
@@ -62,7 +60,6 @@ Esmalt looge rakendus, mida deploy'ida.
 ```
 
 ### app/server.js
-
 ```javascript
 const express = require('express');
 const app = express();
@@ -109,7 +106,6 @@ app.listen(PORT, '0.0.0.0', () => {
 ```
 
 ### app/Dockerfile
-
 ```dockerfile
 FROM node:18-alpine
 
@@ -130,7 +126,6 @@ CMD ["npm", "start"]
 ## 3. Terraform Konfiguratsioon
 
 ### variables.tf
-
 ```hcl
 variable "aws_region" {
   description = "AWS region"
@@ -156,14 +151,12 @@ variable "docker_image" {
 ```
 
 ### terraform.tfvars
-
 ```hcl
 project_name = "nimi-projekti"  # MUUTKE OMA NIMEKS!
 my_ip        = "0.0.0.0/0"      # MUUTKE OMA IP'KS! (curl ifconfig.me)
 ```
 
 ### main.tf - VPC ja Võrk
-
 ```hcl
 terraform {
   required_version = ">= 1.0"
@@ -234,7 +227,6 @@ resource "aws_route_table_association" "public" {
 ```
 
 ### main.tf - Security Group
-
 ```hcl
 # Security Group
 resource "aws_security_group" "app" {
@@ -280,7 +272,6 @@ resource "aws_security_group" "app" {
 ```
 
 ### main.tf - EC2 Instance
-
 ```hcl
 # SSH Key
 resource "aws_key_pair" "deployer" {
@@ -334,7 +325,6 @@ resource "aws_instance" "app" {
 ```
 
 ### outputs.tf
-
 ```hcl
 output "instance_public_ip" {
   description = "EC2 public IP"
@@ -364,7 +354,6 @@ output "ssh_command" {
 ### 4.1 Lokaalne Testimine
 
 Enne AWS'i deploy'imist teste lokaalselt:
-
 ```bash
 cd app/
 
@@ -383,7 +372,6 @@ docker stop $(docker ps -q --filter ancestor=todo-api)
 ```
 
 ### 4.2 Terraform Deploy
-
 ```bash
 # Initsialiseerige
 terraform init
@@ -400,7 +388,6 @@ terraform apply
 Terraform on loonud serveri, aga app pole veel seal. Teil on 3 võimalust:
 
 **Variant A: Manual Deploy (kõige lihtsam õppimiseks)**
-
 ```bash
 # SSH serverisse
 ssh -i ~/.ssh/id_rsa ec2-user@<PUBLIC_IP>
@@ -436,7 +423,6 @@ curl localhost:3000/health
 **Variant B: GitHub Deploy (professionaalne)**
 
 Pange app kaust GitHubi ja muutke user_data:
-
 ```bash
 #!/bin/bash
 # ...docker install...
@@ -457,7 +443,6 @@ Upload app failid S3'i ja download user_data's.
 ## 5. Testimine
 
 Kui app jookseb, teste:
-
 ```bash
 # Health check
 curl http://<PUBLIC_IP>:3000/health
@@ -485,7 +470,6 @@ http://<PUBLIC_IP>:3000/todos
 ## 6. README.md
 
 Kirjutage projekti dokumentatsioon. README.md peab sisaldama:
-
 ```markdown
 # Terraform AWS Docker Deployment
 
@@ -510,20 +494,17 @@ Kirjutage projekti dokumentatsioon. README.md peab sisaldama:
 1. Clone repo:
 ```bash
 git clone <repo-url>
-cd terraform-aws-homework
-```
+cd terraform-aws-homework```
 
 2. Muuda `terraform.tfvars`:
 ```hcl
 project_name = "minu-nimi"
-my_ip        = "xxx.xxx.xxx.xxx/32"  # curl ifconfig.me
-```
+my_ip        = "xxx.xxx.xxx.xxx/32"  # curl ifconfig.me```
 
 3. Deploy:
 ```bash
 terraform init
-terraform apply
-```
+terraform apply```
 
 4. Deploy app (vaata juhendit allpool)
 
@@ -536,14 +517,12 @@ terraform apply
 curl http://<IP>:3000/todos
 
 # Health check
-curl http://<IP>:3000/health
-```
+curl http://<IP>:3000/health```
 
 ## Cleanup
 **OLULINE!** Kustuta ressursid kulude vältimiseks:
 ```bash
-terraform destroy
-```
+terraform destroy```
 
 ## Refleksioon
 
@@ -659,7 +638,6 @@ Lisa:
 ## Troubleshooting
 
 ### App ei vasta port 3000'l
-
 ```bash
 # SSH serverisse
 ssh -i ~/.ssh/id_rsa ec2-user@<IP>
@@ -678,7 +656,6 @@ sudo docker restart todo-api
 ```
 
 ### Security Group blokeerib
-
 ```bash
 # Kontrolli security group rules AWS konsoolist
 # EC2 → Security Groups → terraform-...-app-sg
@@ -686,7 +663,6 @@ sudo docker restart todo-api
 ```
 
 ### User Data skript ei käivitunud
-
 ```bash
 # Vaata user data logi
 ssh ...

@@ -25,7 +25,6 @@ Pärast lisapraktikat oskate:
 ##  Count ja For_Each
 
 ### Count - Lihtne Loop
-
 ```hcl
 # Loo 5 faili
 resource "local_file" "logs" {
@@ -38,7 +37,6 @@ resource "local_file" "logs" {
 ```
 
 ### For_Each - Map-Based
-
 ```hcl
 variable "users" {
   type = map(object({
@@ -74,7 +72,6 @@ Loo Terraform kood, mis genereerib:
 ##  Data Sources
 
 ### Existing Resources
-
 ```hcl
 # Leia olemasolev fail
 data "local_file" "existing" {
@@ -89,7 +86,6 @@ resource "local_file" "derived" {
 ```
 
 ### External Data
-
 ```hcl
 data "external" "git_info" {
   program = ["bash", "-c", <<-EOT
@@ -113,7 +109,6 @@ resource "local_file" "build_info" {
 ##  Terraform Functions
 
 ### String Functions
-
 ```hcl
 locals {
   upper_env = upper(var.environment)     # "PROD"
@@ -123,7 +118,6 @@ locals {
 ```
 
 ### Collection Functions
-
 ```hcl
 variable "ports" {
   default = [80, 443, 8080]
@@ -142,7 +136,6 @@ locals {
 ```
 
 ### Map/Object Functions
-
 ```hcl
 locals {
   defaults = {
@@ -175,7 +168,6 @@ Loo Terraform kood, mis:
 ##  Conditional Logic
 
 ### Count Tricks
-
 ```hcl
 variable "create_backup" {
   type    = bool
@@ -190,7 +182,6 @@ resource "local_file" "backup" {
 ```
 
 ### Conditional Expressions
-
 ```hcl
 locals {
   environment = var.env == "prod" ? "production" : "development"
@@ -204,7 +195,6 @@ locals {
 ```
 
 ### Dynamic Blocks
-
 ```hcl
 variable "enable_https" {
   type = bool
@@ -226,7 +216,6 @@ resource "something" "example" {
 ---
 
 ##  Real-World Scenario: Web Stack
-
 ```hcl
 # variables.tf
 variable "environments" {
@@ -289,7 +278,6 @@ Loo terraform projekt, mis genereerib:
 ---
 
 ##  Lifecycle Rules
-
 ```hcl
 resource "local_file" "important" {
   filename = "important.txt"
@@ -313,7 +301,6 @@ resource "local_file" "important" {
 ##  Modules Advanced
 
 ### Module with Conditional Resources
-
 ```hcl
 # modules/webserver/main.tf
 variable "enable_monitoring" {
@@ -345,7 +332,6 @@ module "web_prod" {
 ```
 
 ### Module Outputs as Inputs
-
 ```hcl
 module "network" {
   source = "./modules/network"
@@ -363,8 +349,7 @@ module "servers" {
 
 **Ülesanne:** Loo "Infrastructure as Data" generaator
 
-**Input** (`infrastructure.yaml`):
-```yaml
+**Input** (`infrastructure.yaml`):```yaml
 projects:
   - name: web-app
     environments:
@@ -414,4 +399,3 @@ projects:
 ---
 
 **Edu advanced Terraform'iga!** 
-

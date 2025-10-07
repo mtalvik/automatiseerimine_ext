@@ -172,8 +172,7 @@ Traditsiooniline veebirakendus koosneb kolmest põhikihist: frontend (kasutajali
 - CI/CD pipeline testib ja deploy'ib automaatselt
 - Monitoring jälgib latency't ja error rate'e
 
-**Näide Arhitektuurist:**
-```
+**Näide Arhitektuurist:**```
 [Kasutaja] → [Load Balancer] → [Frontend Pod'id]
                                       ↓
                             [Backend API Pod'id]
@@ -260,7 +259,6 @@ Komponentide kirjeldus peaks sisaldama:
 **Tehniliste Otsuste Dokumenteerimine:**
 
 Iga oluline tehniline valik vajab dokumenteerimist Architecture Decision Record (ADR) formaadis:
-
 ```
 ## Otsus: PostgreSQL kui Primaarset Andmebaas
 
@@ -306,8 +304,7 @@ Git workflow peaks olema struktureeritud:
 - Pull request'id läbivad code review'
 - Merge toimub alles peale testide läbimist
 
-Commit messages peaksid olema kirjeldavad:
-```
+Commit messages peaksid olema kirjeldavad:```
 feat: Lisa Prometheus monitoring support
 
 - Configura /metrics endpoint
@@ -321,7 +318,6 @@ Closes #42
 **Testimise Strateegiad:**
 
 Testide püramiid näitab, kui palju milliseid teste peaks olema:
-
 ```
         /\
        /E2E\          Vähe - aeglased, haaravad
@@ -373,7 +369,6 @@ Demo ajal võib tekkida tehnilisi probleeme. Varuplaan:
 README on projekti esimene kontaktpunkt. Selle kvaliteet mõjutab kogu projekti tajutavat professionaalsust.
 
 **Minimaalselt Vajalik Sisu:**
-
 ```markdown
 # Projekti Nimi
 
@@ -439,7 +434,6 @@ Arhitektuuridokument selgitab süsteemi struktuuri ja põhjendab disainiotsuseid
 **Komponendid Üksikasjad:**
 
 Iga suurem komponent vajab kirjeldust:
-
 ```markdown
 ### Frontend Service
 
@@ -464,7 +458,6 @@ Iga suurem komponent vajab kirjeldust:
 **Andmevoo Dokumenteerimine:**
 
 Andmevoo diagramm näitab kuidas info liigub läbi süsteemi:
-
 ```
 User Request
     ↓
@@ -494,7 +487,6 @@ Iga noole juurde peaks kirjeldama:
 Deployment guide peab võimaldama reprodutseeritavat deployment'i nullist working state'ini.
 
 **Keskkonna Ettevalmistus:**
-
 ```markdown
 ## Keskkonna Seadistamine
 
@@ -566,7 +558,6 @@ Tähtsam on test coverage kvaliteet:
 **Linting ja Code Style:**
 
 Automaatne linting tagab ühtse code style'i:
-
 ```yaml
 # .eslintrc.yml näide
 rules:
@@ -578,7 +569,6 @@ rules:
 ```
 
 Pre-commit hook'id jõustavad neid reegleid:
-
 ```bash
 # .git/hooks/pre-commit
 #!/bin/sh
@@ -589,7 +579,6 @@ npm run test
 **Dependency Management:**
 
 Dependency vulnerabilities on tõsine turvaoht. Automaatne skaneerimine:
-
 ```yaml
 # Dependabot config
 version: 2
@@ -606,7 +595,6 @@ updates:
 **Terraform Kvaliteedikontroll:**
 
 Terraform kood peaks järgima best practices:
-
 ```hcl
 # Hea: Kasuta module'eid reusability jaoks
 module "vpc" {
@@ -625,7 +613,6 @@ resource "aws_vpc" "main" {
 ```
 
 Terraform validation:
-
 ```bash
 terraform fmt -check     # Kontrolli formatting
 terraform validate       # Kontrolli syntax
@@ -634,7 +621,6 @@ tfsec                    # Security scanning
 ```
 
 **Kubernetes Manifest'ide Kvaliteet:**
-
 ```yaml
 # Hea: Resource limits määratud
 apiVersion: v1
@@ -654,7 +640,6 @@ spec:
 ```
 
 Kubernetes manifest validation:
-
 ```bash
 kubectl apply --dry-run=client -f manifest.yaml
 kubeval manifest.yaml
@@ -676,7 +661,6 @@ Checklist hea README jaoks:
 **API Dokumentatsiooni Standard:**
 
 OpenAPI/Swagger spetsifikatsioon peaks olema genereeritud koodist, mitte käsitsi kirjutatud:
-
 ```javascript
 // Code comment becomes API documentation
 /**
@@ -728,7 +712,6 @@ Komponentide integreerimine on sage pain point. Lokaalselt töötab kõik, aga k
 **API Contract Testing:**
 
 Consumer-driven contract testing tagab, et provider ja consumer on sync'is:
-
 ```javascript
 // Consumer defineerib mida ta ootab
 describe('User API contract', () => {
@@ -746,7 +729,6 @@ Provider käivitab need testid oma koodis veendumaks, et ta täidab contract'i.
 **Service Mesh'id:**
 
 Service mesh (nt Istio, Linkerd) abstraheerib networking'u service-to-service communication jaoks:
-
 ```yaml
 # Istio VirtualService - traffic routing
 apiVersion: networking.istio.io/v1beta1
@@ -778,7 +760,6 @@ Terraform state on critiline - selle kaotamine või corruption tähendab, et Ter
 **Remote State Backend:**
 
 Kasuta remote state backend'i alati:
-
 ```hcl
 terraform {
   backend "s3" {
@@ -792,7 +773,6 @@ terraform {
 ```
 
 DynamoDB table state locking jaoks ennetab concurrent modifications:
-
 ```hcl
 resource "aws_dynamodb_table" "terraform_locks" {
   name         = "terraform-locks"
@@ -809,7 +789,6 @@ resource "aws_dynamodb_table" "terraform_locks" {
 **State Backup:**
 
 Automatiseeri state backup:
-
 ```bash
 #!/bin/bash
 # backup-terraform-state.sh
@@ -833,7 +812,6 @@ Google SRE raamat defineerib 4 golden signals:
 4. **Saturation** - Kui täis on süsteemi ressursid?
 
 Prometheus queries nende jaoks:
-
 ```promql
 # Latency (95th percentile)
 histogram_quantile(0.95, 
@@ -858,7 +836,6 @@ Alert'ide põhimõtted:
 - Alert ainult actionable problems korral
 - Alert severity järgi urgency't (critical, warning, info)
 - Dokumenteeri iga alert'i runbook'is "mida teha?"
-
 ```yaml
 # Prometheus AlertManager rule
 groups:

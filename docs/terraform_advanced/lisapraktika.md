@@ -15,7 +15,6 @@ Pärast kodutöö tegemist on teil üks keskkond. Aga päris elus on vaja mitut:
 ### 1.2 Lahendus
 
 Terraform workspaces võimaldavad sama koodi kasutada mitme eraldatud keskkonna loomiseks. Iga workspace'il on oma state fail, seega ressursid ei kattu.
-
 ```hcl
 # variables.tf lisage:
 variable "environment_config" {
@@ -107,8 +106,7 @@ Võtke oma kodutöö projekt ja tehke sellest multi-environment:
 - Kui workspace on "dev", kasutage 10.0.0.0/16, kui "staging", siis 10.1.0.0/16 jne
 - Testige iga workspace'i eraldi: `terraform workspace select dev && terraform apply`
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # Dev keskkond
 terraform workspace select dev
 terraform apply
@@ -138,7 +136,6 @@ Praegu on teie state fail arvutis. Kui töökolleeg tahab same projekti kallal t
 ### 2.2 Lahendus
 
 Remote state S3'is koos DynamoDB lockinguga lahendab need probleemid.
-
 ```hcl
 # 1. Looge S3 bucket ja DynamoDB tabel (tehke see eraldi projektina!)
 # s3-backend/main.tf
@@ -247,8 +244,7 @@ Seadistage remote state ja testige locking'ut.
 - Käivitage `terraform init -migrate-state`
 - Lokaalne state fail jääb alles backup'ina - ärge kustutage kohe
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # Terminalis 1
 terraform plan
 # Hoidke plani oodates...
@@ -274,7 +270,6 @@ Teie kodutöö kood töötab, aga on spetsiifiline ühele projektile. Kui peaksi
 ### 3.2 Lahendus
 
 Terraform modules võimaldavad luua taaskasutatavaid infrastruktuuri komponente.
-
 ```
 terraform-modules/
 ├── modules/
@@ -291,7 +286,6 @@ terraform-modules/
 ```
 
 Module näide:
-
 ```hcl
 # modules/aws-vpc/variables.tf
 variable "project_name" {
@@ -454,8 +448,7 @@ Looge taaskasutatav VPC module ja kasutage seda kahes erinevas projektis.
 - Kasutage `count` või `for_each` subnet'ide loomiseks
 - Dokumenteerige inputs, outputs ja kasutamisnäide README'sse
 
-**Testimine:**
-```bash
+**Testimine:**```bash
 # Projekt A
 cd projects/project-a
 terraform init

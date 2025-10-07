@@ -39,7 +39,6 @@ Mõlemad peavad olema samas võrgus ja omavahel suhtlema saama.
 ### 1.2. Kasutaja loomine mõlemas VM-is
 
 Ansible vajab spetsiaalset kasutajat, kellel on sudo õigused. Tehke järgmist MÕLEMAS virtuaalmasinas:
-
 ```bash
 # Kontrolli kes sa praegu oled
 whoami
@@ -65,7 +64,6 @@ groups                    # Peaks sisaldama: ansible sudo
 OLULINE: Kõik järgnevad sammud tehke ansible kasutajana, mitte root'ina.
 
 ### 1.3. SSH teenuse kontrollimine VM2-s
-
 ```bash
 # VM2 peal kontrolli et SSH server töötab
 sudo systemctl status ssh
@@ -93,7 +91,6 @@ sudo ss -tulpn | grep :22
 SSH võtmed võimaldavad turvalist, paroolivaba ühendust serverite vahel. See on Ansible'i jaoks kriitilise tähtsusega, kuna Ansible teeb palju SSH ühendusi. Selle ülesande täitmine võtab umbes 15 minutit.
 
 ### 2.1. SSH võtmepaari genereerimine VM1-s
-
 ```bash
 # VM1 peal, ansible kasutajana
 # Kontrolli et oled õiges kasutajas
@@ -116,7 +113,6 @@ cat ~/.ssh/id_ed25519.pub
 ```
 
 ### 2.2. Avaliku võtme kopeerimine VM2-sse
-
 ```bash
 # VM1 peal
 ssh-copy-id ansible@192.168.56.11
@@ -129,7 +125,6 @@ ssh-copy-id ansible@192.168.56.11
 ```
 
 ### 2.3. Ühenduse testimine
-
 ```bash
 # VM1 peal - nüüd peaks saama sisse logida ilma paroolita
 ssh ansible@192.168.56.11
@@ -160,7 +155,6 @@ Troubleshooting: Kui palub parooli, kontrolli:
 Ansible paigaldatakse ainult control node'i (VM1). Target serverid ei vaja Ansible'i installimist. See ülesanne võtab umbes 10 minutit.
 
 ### 3.1. Ansible installimine VM1-s
-
 ```bash
 # VM1 peal, ansible kasutajana
 sudo apt update
@@ -175,7 +169,6 @@ ansible --version
 ```
 
 ### 3.2. Projekti kausta loomine
-
 ```bash
 # VM1 peal
 mkdir ~/ansible_tutorial
@@ -188,13 +181,11 @@ pwd    # Peaks näitama: /home/ansible/ansible_tutorial
 ### 3.3. Inventory faili loomine
 
 Inventory fail sisaldab serverite nimekirja ja nende konfiguratsiooni. Looge fail nimega `inventory.ini`:
-
 ```bash
 nano inventory.ini
 ```
 
 Sisestage järgmine sisu (kohandage IP aadresse vastavalt oma VM-idele):
-
 ```ini
 # Ansible controller (VM1)
 [control]
@@ -226,7 +217,6 @@ OLULINE: Muutke `192.168.56.11` oma VM2 tegeliku IP aadressiga.
 Ad-hoc käsud võimaldavad kiireid ühekordseid toiminguid serverites ilma playbook'e kirjutamata. Need on ideaalsed testimiseks ja kiireks info kogumiseks. Selle ülesande läbitegemiseks kulub umbes 20 minutit.
 
 ### 4.1. Ping test
-
 ```bash
 # VM1 peal, ~/ansible_tutorial kaustas
 ansible -i inventory.ini all -m ping
@@ -239,7 +229,6 @@ ansible -i inventory.ini all -m ping
 Kui näete SUCCESS, siis Ansible saab mõlema serveriga ühendust.
 
 ### 4.2. Süsteemiinfo kogumine
-
 ```bash
 # Küsi serverite hostname
 ansible -i inventory.ini all -m shell -a "hostname"
@@ -255,7 +244,6 @@ ansible -i inventory.ini all -m shell -a "df -h"
 ```
 
 ### 4.3. Failide kopeerimine
-
 ```bash
 # Loo testfail
 echo "Test from Ansible" > test.txt
@@ -268,7 +256,6 @@ ansible -i inventory.ini webservers -m shell -a "cat /tmp/test.txt"
 ```
 
 ### 4.4. Tarkvara paigaldamine
-
 ```bash
 # Paigalda htop (vajab sudo õigusi)
 ansible -i inventory.ini webservers -m apt -a "name=htop state=present" --become --ask-become-pass
@@ -279,7 +266,6 @@ ansible -i inventory.ini webservers -m shell -a "which htop"
 ```
 
 ### 4.5. Kasutaja loomine
-
 ```bash
 # Loo testkasutaja
 ansible -i inventory.ini webservers -m user -a "name=testuser shell=/bin/bash" --become --ask-become-pass
@@ -289,7 +275,6 @@ ansible -i inventory.ini webservers -m shell -a "id testuser" --become --ask-bec
 ```
 
 ### 4.6. Faktide kogumine
-
 ```bash
 # Kogu kõik faktid serverite kohta
 ansible -i inventory.ini webservers -m setup
@@ -322,7 +307,6 @@ Troubleshooting:
 Playbook on YAML vormingus fail, mis sisaldab ülesannete jada. Erinevalt ad-hoc käskudest saate playbook'ides kirjeldada keerukamaid töövoogusid. Selle ülesande täitmine võtab umbes 30 minutit.
 
 ### 5.1. Playbook'ide kausta loomine
-
 ```bash
 # VM1 peal, ~/ansible_tutorial kaustas
 mkdir playbooks
@@ -331,13 +315,11 @@ mkdir playbooks
 ### 5.2. Info kogumise playbook
 
 Looge fail `playbooks/01_info.yml`:
-
 ```bash
 nano playbooks/01_info.yml
 ```
 
 Sisestage järgmine sisu:
-
 ```yaml
 ---
 - name: "System information gathering"
@@ -365,7 +347,6 @@ Sisestage järgmine sisu:
 ```
 
 ### 5.3. Playbook'i käivitamine
-
 ```bash
 # Käivita playbook
 ansible-playbook -i inventory.ini playbooks/01_info.yml
@@ -387,7 +368,6 @@ Väljundi selgitus:
 - `failed` - ülesanne ebaõnnestus
 
 ### 5.4. Idempotentsuse testimine
-
 ```bash
 # Käivita sama playbook teist korda
 ansible-playbook -i inventory.ini playbooks/01_info.yml
@@ -413,13 +393,11 @@ Selles ülesandes paigaldate nginx veebiserveri kasutades Ansible playbook'i. Õ
 ### 6.1. Nginx playbook loomine
 
 Looge fail `playbooks/02_nginx.yml`:
-
 ```bash
 nano playbooks/02_nginx.yml
 ```
 
 Sisestage järgmine sisu:
-
 ```yaml
 ---
 - name: "Install and configure Nginx"
@@ -467,7 +445,6 @@ Sisestage järgmine sisu:
 ```
 
 ### 6.2. Playbook'i käivitamine
-
 ```bash
 # Käivita playbook (küsib sudo parooli)
 ansible-playbook -i inventory.ini playbooks/02_nginx.yml --ask-become-pass
@@ -475,7 +452,6 @@ ansible-playbook -i inventory.ini playbooks/02_nginx.yml --ask-become-pass
 ```
 
 ### 6.3. Tulemuse kontrollimine
-
 ```bash
 # Kontrolli kas nginx töötab
 ansible -i inventory.ini webservers -m service -a "name=nginx" --become --ask-become-pass
@@ -498,7 +474,6 @@ Handlers on spetsiaalsed taskid mis:
 Näide: Kui muudate nginx konfiguratsiooni 3 korda ja kõik kutsuvad "restart nginx", siis restart toimub ainult üks kord lõpus.
 
 ### 6.5. Idempotentsuse test
-
 ```bash
 # Käivita sama playbook teist korda
 ansible-playbook -i inventory.ini playbooks/02_nginx.yml --ask-become-pass
@@ -523,7 +498,6 @@ ansible-playbook -i inventory.ini playbooks/02_nginx.yml --ask-become-pass
 Template'd võimaldavad luua dünaamilisi konfiguratsiooni- või HTML faile kasutades Jinja2 süntaksit. See on võimas vahend, mis võimaldab sama template'i kasutada erinevates serverites erineva sisuga. Ülesanne võtab umbes 25 minutit.
 
 ### 7.1. Templates kausta loomine
-
 ```bash
 # VM1 peal
 mkdir templates
@@ -532,13 +506,11 @@ mkdir templates
 ### 7.2. HTML template loomine
 
 Looge fail `templates/website.html.j2`:
-
 ```bash
 nano templates/website.html.j2
 ```
 
 Sisestage:
-
 ```jinja2
 <!DOCTYPE html>
 <html>
@@ -590,13 +562,11 @@ Sisestage:
 ### 7.3. Template playbook loomine
 
 Looge fail `playbooks/03_template.yml`:
-
 ```bash
 nano playbooks/03_template.yml
 ```
 
 Sisestage:
-
 ```yaml
 ---
 - name: "Deploy website from template"
@@ -626,7 +596,6 @@ Sisestage:
 ```
 
 ### 7.4. Käivitamine ja testimine
-
 ```bash
 # Käivita playbook
 ansible-playbook -i inventory.ini playbooks/03_template.yml --ask-become-pass
@@ -653,13 +622,11 @@ Selles ülesandes õpite kasutama muutujaid ja loop tsükleid, et vältida koodi
 ### 8.1. Kasutajate ja pakettide playbook
 
 Looge fail `playbooks/04_users.yml`:
-
 ```bash
 nano playbooks/04_users.yml
 ```
 
 Sisestage:
-
 ```yaml
 ---
 - name: "User and package management"
@@ -704,13 +671,11 @@ Sisestage:
 ```
 
 ### 8.2. Käivitamine
-
 ```bash
 ansible-playbook -i inventory.ini playbooks/04_users.yml --ask-become-pass
 ```
 
 ### 8.3. Kontrollimine
-
 ```bash
 # Kontrolli kasutajaid
 ansible -i inventory.ini webservers -m shell -a "cat /etc/passwd | grep -E 'developer|tester'" --become --ask-become-pass
@@ -733,7 +698,6 @@ ansible -i inventory.ini webservers -m shell -a "dpkg -l | grep -E 'htop|curl|wg
 Professionaalsed Ansible projektid kasutavad eraldi kaustasid muutujatele ja ülesannetele. Selles ülesandes organiseerite projekti paremini. Ülesanne võtab umbes 20 minutit.
 
 ### 9.1. Group variables loomine
-
 ```bash
 # Loo group_vars kaustad
 mkdir -p group_vars/all
@@ -744,7 +708,6 @@ nano group_vars/all/main.yml
 ```
 
 Sisestage `group_vars/all/main.yml`:
-
 ```yaml
 ---
 company: "IT College"
@@ -753,13 +716,11 @@ timezone: "Europe/Tallinn"
 ```
 
 Looge `group_vars/webservers/main.yml`:
-
 ```bash
 nano group_vars/webservers/main.yml
 ```
 
 Sisestage:
-
 ```yaml
 ---
 nginx_port: 80
@@ -768,7 +729,6 @@ mysql_port: 3306
 ```
 
 ### 9.2. Taaskasutatavad taskid
-
 ```bash
 # Loo tasks kaust
 mkdir tasks
@@ -777,7 +737,6 @@ nano tasks/install_packages.yml
 ```
 
 Sisestage:
-
 ```yaml
 ---
 - name: "Update apt cache"
@@ -798,13 +757,11 @@ Sisestage:
 ### 9.3. Peamine playbook
 
 Looge `playbooks/05_main.yml`:
-
 ```bash
 nano playbooks/05_main.yml
 ```
 
 Sisestage:
-
 ```yaml
 ---
 - name: "Main playbook using includes"
@@ -823,13 +780,11 @@ Sisestage:
 ### 9.4. Ansible.cfg loomine
 
 Looge projekti juurkausta `ansible.cfg`:
-
 ```bash
 nano ansible.cfg
 ```
 
 Sisestage:
-
 ```ini
 [defaults]
 inventory = inventory.ini
@@ -842,7 +797,6 @@ become_ask_pass = False
 ```
 
 ### 9.5. Testimine
-
 ```bash
 # Nüüd ei vaja enam -i inventory.ini
 ansible all -m ping
@@ -875,7 +829,6 @@ Enne labori lõpetamist kontrollige:
 - [ ] Projekti struktuur on korras
 
 Projekti lõplik struktuur peaks olema:
-
 ```
 ansible_tutorial/
 ├── ansible.cfg
@@ -905,8 +858,7 @@ ansible_tutorial/
 
 Probleem: "Permission denied (publickey)"
 
-Lahendus:
-```bash
+Lahendus:```bash
 # Kontrolli kas võti on õiges kohas
 ls -la ~/.ssh/
 
@@ -921,8 +873,7 @@ ssh-copy-id -i ~/.ssh/id_ed25519.pub ansible@192.168.56.11
 
 Probleem: "Failed to connect to host"
 
-Lahendus:
-```bash
+Lahendus:```bash
 # Kontrolli inventory IP aadresse
 cat inventory.ini
 
@@ -937,8 +888,7 @@ ansible-playbook playbooks/02_nginx.yml -vvv
 
 Probleem: "sudo: a password is required"
 
-Lahendus:
-```bash
+Lahendus:```bash
 # Kasuta --ask-become-pass lippu
 ansible-playbook playbooks/02_nginx.yml --ask-become-pass
 
@@ -962,7 +912,6 @@ Lahendus:
 ## Kasulikud käsud
 
 Debugimine:
-
 ```bash
 # Verbose režiim (rohkem infot)
 ansible-playbook playbook.yml -v
@@ -982,7 +931,6 @@ ansible-playbook playbook.yml --limit webservers
 ```
 
 Moodulite dokumentatsioon:
-
 ```bash
 # Näita kõiki mooduleid
 ansible-doc -l

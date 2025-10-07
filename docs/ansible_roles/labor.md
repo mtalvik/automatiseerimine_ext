@@ -19,14 +19,12 @@ Selles laboris ehitate professionaalse nginx rolli, mis sisaldab SSL tuge, virtu
 ## 1. Töökeskkonna Ettevalmistus
 
 Esimene samm on luua puhta testkeskkonna. Vagrant võimaldab disposable virtuaalmasinaid, kus saate eksperimenteerida ilma oma süsteemi mõjutamata. Iga labor algab puhtalt lehelt.
-
 ```bash
 mkdir -p ~/ansible-roles-lab
 cd ~/ansible-roles-lab
 ```
 
 ### Vagrantfile loomine
-
 ```ruby
 # Vagrantfile
 Vagrant.configure("2") do |config|
@@ -51,14 +49,12 @@ end
 Port forwarding võimaldab ligi pääseda VM'is töötavale nginx'ile oma host masina brauserist. Port 80 VM'is → port 8080 hostis. See võimaldab testimist ilma VM'i sisse logimata.
 
 ### VM käivitamine ja ühenduse testimine
-
 ```bash
 vagrant up
 vagrant ssh
 ```
 
 VM peaks käivituma paar minutit. Kui ühendus õnnestub, näete Ubuntu command prompti. Kontrollime kas Python on olemas - Ansible vajab seda target masinas.
-
 ```bash
 python3 --version
 # Python 3.8.10
@@ -79,7 +75,6 @@ Kui mõni punkt ebaõnnestub, vaadake Vagrantfile süntaksi ja VirtualBox instal
 ## 2. Rolli Struktuuri Loomine
 
 Ansible Galaxy pakub init käsku, mis genereerib standardse rolli struktuuri. See on õige viis alustada - ära kunagi loo kaustu käsitsi.
-
 ```bash
 # VM'is
 mkdir -p ~/roles
@@ -88,7 +83,6 @@ ansible-galaxy init nginx-webserver
 ```
 
 Tulem on Directory tree:
-
 ```
 nginx-webserver/
 ├── README.md
@@ -110,7 +104,6 @@ nginx-webserver/
 ```
 
 Uurime struktuuri lähemalt. Iga kaust omab eesmärki.
-
 ```bash
 tree nginx-webserver/
 cat nginx-webserver/tasks/main.yml  # Praegu tühi
@@ -120,7 +113,6 @@ cat nginx-webserver/meta/main.yml   # Galaxy info template
 ### Metadata konfiguratsioon
 
 Muudame `meta/main.yml` faili, et kirjeldada meie rolli.
-
 ```yaml
 # nginx-webserver/meta/main.yml
 ---
@@ -157,7 +149,6 @@ Platforms seksioon määrab toetatud OS'id. Galaxy näitab seda kasutajatele. Mi
 - [ ] Meta/main.yml on täidetud
 - [ ] Kõik standard kaustad eksisteerivad
 - [ ] Tree command näitab õiget struktuuri
-
 ```bash
 # Test
 ansible-galaxy list
@@ -172,7 +163,6 @@ cd nginx-webserver && ls -la
 Rollid peavad olema konfigureeritavad. Defaults pakub mõistlikud vaikeväärtused, mida kasutaja saab üle kirjutada.
 
 ### Defaults loomine
-
 ```yaml
 # defaults/main.yml
 ---
@@ -204,7 +194,6 @@ nginx_client_max_body_size: "1m"
 Ansible facts nagu `ansible_processor_vcpus` detekteeritakse automaatselt. Default filter pakub fallback väärtust kui fact pole saadaval.
 
 ### OS-spetsiifilised variables
-
 ```yaml
 # vars/main.yml
 ---
@@ -229,7 +218,6 @@ nginx_service_name: "nginx"
 Sõnastik võimaldab OS-põhist valikut. RedHat süsteemid kasutavad teisi pakette kui Debian. Default fallback tagab töö isegi tundmatus OS'is.
 
 ### Validation
-
 ```bash
 # Test variable loading
 ansible localhost -m debug -a "var=nginx_worker_processes" \
@@ -251,7 +239,6 @@ ansible localhost -m debug -a "var=nginx_packages" \
 Tasks kaust sisaldab tegelikku tööd. Hea praktika on eraldada task'id loogilistesse failidesse.
 
 ### Main tasks orchestration
-
 ```yaml
 # tasks/main.yml
 ---
@@ -283,7 +270,6 @@ Tasks kaust sisaldab tegelikku tööd. Hea praktika on eraldada task'id loogilis
 Include_tasks on dünaamiline - when conditionals töötavad. Failed_when false tähendab et kui OS-spetsiifilist faili pole, jätkame vaikimisi väärtustega.
 
 ### Validation tasks
-
 ```yaml
 # tasks/validate.yml
 ---
@@ -316,7 +302,6 @@ Include_tasks on dünaamiline - when conditionals töötavad. Failed_when false 
 Assert moodul peatab playbook'i kui tingimus ebaõnnestub. Quiet flag peidab verbose output'i õnnestumise korral.
 
 ### Install tasks
-
 ```yaml
 # tasks/install.yml
 ---
@@ -337,12 +322,13 @@ Assert moodul peatab playbook'i kui tingimus ebaõnnestub. Quiet flag peidab ver
     enabled: yes
 ```
 
-Cache_valid_time: 3600 tähendab "kui apt cache on värskem kui 1h, ära uuenda". See kiirendab korduvaid käivitamisi. Package moodul on OS-agnostic - töötab nii apt kui yum'iga.
+Cache_valid_time:
+- 3600 tähendab "kui apt cache on värskem kui 1h, ära uuenda". See kiirendab korduvaid käivitamisi. Package moodul on OS-agnostic
+- töötab nii apt kui yum'iga.
 
 ### Validation
 
 Testme kas install töötab:
-
 ```bash
 cd ~/roles
 ansible-playbook -i localhost, -c local tests/test.yml
@@ -352,7 +338,6 @@ ansible localhost -m include_role -a name=nginx-webserver --become
 ```
 
 Kontrollige tulemust:
-
 ```bash
 systemctl status nginx
 # Should be active (running)
@@ -374,7 +359,6 @@ which nginx
 Templates võimaldavad dünaamilisi konfiguratsioone. Jinja2 süntaks on sarnane Python'i string formatting'ule.
 
 ### Peamine nginx.conf template
-
 ```jinja2
 # templates/nginx.conf.j2
 # {{ ansible_managed }}
@@ -423,7 +407,6 @@ http {
 Ansible_managed muutuja genereerib kommentaari "This file is managed by Ansible". Conditional blocks (`{% if %}`) lubavad SSL konfiguratsiooni ainult vajadusel.
 
 ### Virtual host template
-
 ```jinja2
 # templates/vhost.conf.j2
 {% if item.ssl | default(nginx_ssl_enabled) %}
@@ -469,7 +452,6 @@ server {
 Item viitab loop muutujale. Template renderdatakse iga virtual hosti jaoks eraldi. Default filter pakub fallback väärtusi.
 
 ### Configure tasks
-
 ```yaml
 # tasks/configure.yml
 ---
@@ -506,7 +488,6 @@ Item viitab loop muutujale. Template renderdatakse iga virtual hosti jaoks erald
 Validate parameeter testib konfiguratsiooni enne deployment'i. %s asendatakse temp failiga. Kui nginx -t ebaõnnestub, template ei deploy'ta.
 
 ### Validation
-
 ```bash
 # Apply role
 ansible-playbook tests/test.yml
@@ -530,7 +511,6 @@ sudo cat /etc/nginx/nginx.conf
 SSL võimaldab HTTPS ühendusi. Isegi kui kasutate ise-allkirjastatud sertifikaate (testimiseks), on konfiguratsioon sama mis produktsioonis CA sertifikaatidega.
 
 ### SSL tasks
-
 ```yaml
 # tasks/ssl.yml
 ---
@@ -567,7 +547,6 @@ SSL võimaldab HTTPS ühendusi. Isegi kui kasutate ise-allkirjastatud sertifikaa
 Creates parameeter tagab idempotentsuse. Kui sertifikaat eksisteerib, käsk ei käivitu. Mode 0600 tähendab ainult owner saab lugeda private key't.
 
 ### Virtual hosts tasks
-
 ```yaml
 # tasks/vhosts.yml
 ---
@@ -619,7 +598,6 @@ Creates parameeter tagab idempotentsuse. Kui sertifikaat eksisteerib, käsk ei k
 Symlink sites-enabled'is aktiveerib virtual hosti. Selle eemaldamine deaktiveerib ilma config faili kustutamata.
 
 ### Test playbook virtual hostidega
-
 ```yaml
 # tests/test.yml
 ---
@@ -641,7 +619,6 @@ Symlink sites-enabled'is aktiveerib virtual hosti. Selle eemaldamine deaktiveeri
 ```
 
 ### Validation
-
 ```bash
 # Apply
 ansible-playbook tests/test.yml
@@ -677,7 +654,6 @@ ls -la /var/www/
 Handlers käivitavad teenuse restardi ainult muudatuste korral. See on efektiivsem kui restart iga task'i järel.
 
 ### Handlers definitsioon
-
 ```yaml
 # handlers/main.yml
 ---
@@ -702,7 +678,6 @@ Handlers käivitavad teenuse restardi ainult muudatuste korral. See on efektiivs
 Listen direktiiv võimaldab mitmel handleriel sama nime. Changed_when: false tähendab et see task ei muuda süsteemi olekut.
 
 ### Service tasks
-
 ```yaml
 # tasks/service.yml
 ---
@@ -723,7 +698,6 @@ Check_mode: no tähendab et see task käivitatakse ka dry-run režiimis. Validat
 ### Validation
 
 Testme kas handlers töötavad:
-
 ```bash
 # Muuda config
 echo "# test comment" | sudo tee -a /etc/nginx/nginx.conf
@@ -762,7 +736,6 @@ Enne töö lõpetamist kontrollige:
 ## Troubleshooting
 
 ### Vagrant VM ei käivitu
-
 ```bash
 # Check VirtualBox
 vboxmanage --version
@@ -776,7 +749,6 @@ vagrant up
 ```
 
 ### Ansible ei leia rolli
-
 ```bash
 # Check roles path
 ansible-config dump | grep ROLES_PATH
@@ -789,7 +761,6 @@ export ANSIBLE_ROLES_PATH=~/roles
 ```
 
 ### Nginx config test ebaõnnestub
-
 ```bash
 # Manual test
 sudo nginx -t
@@ -805,7 +776,6 @@ sudo journalctl -u nginx -n 50
 ```
 
 ### SSL sertifikaat ei genereeru
-
 ```bash
 # Check openssl
 which openssl
@@ -824,7 +794,6 @@ sudo openssl req -x509 -nodes -days 365 \
 ```
 
 ### Handlers ei käivitu
-
 ```bash
 # Check if tasks changed
 ansible-playbook tests/test.yml -v
@@ -838,7 +807,6 @@ ansible-playbook tests/test.yml --syntax-check
 ```
 
 ### Port forwarding ei tööta
-
 ```bash
 # Check Vagrant
 vagrant reload

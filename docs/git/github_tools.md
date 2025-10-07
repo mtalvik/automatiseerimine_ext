@@ -9,7 +9,6 @@
 Automatiseeritud töövood - testid, build, deployment käivituvad automaatselt.
 
 **Näide:** Test käivitub iga push'i peale
-
 ```yaml
 name: CI
 on: [push]

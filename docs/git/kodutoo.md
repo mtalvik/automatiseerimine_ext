@@ -36,14 +36,12 @@ Logige GitHub'i ja looge uus repositoorium:
 - Lisa MIT License
 
 ### 2.2 Kloonimine ja Initsiaalseadistamine
-
 ```bash
 git clone git@github.com:TEIE-KASUTAJANIMI/git-homework.git
 cd git-homework
 ```
 
 Kontrollige:
-
 ```bash
 git status
 git remote -v
@@ -59,8 +57,7 @@ Valige ÜKS järgnevatest. Ärge üle keeruliseks tehke - fookus on Git'il, mitt
 
 Looge 2 faili:
 
-**calculator.py:**
-```python
+**calculator.py:**```python
 def add(a, b):
     """Liida kaks arvu."""
     return a + b
@@ -86,8 +83,7 @@ if __name__ == "__main__":
     print("10 / 2 =", divide(10, 2))
 ```
 
-**.gitignore:**
-```
+**.gitignore:**```
 __pycache__/
 *.pyc
 .vscode/
@@ -98,8 +94,7 @@ __pycache__/
 
 Looge 3 faili:
 
-**index.html:**
-```html
+**index.html:**```html
 <!DOCTYPE html>
 <html lang="et">
 <head>
@@ -120,8 +115,7 @@ Looge 3 faili:
 </html>
 ```
 
-**style.css:**
-```css
+**style.css:**```css
 body {
     font-family: Arial, sans-serif;
     max-width: 800px;
@@ -139,8 +133,7 @@ ul {
 }
 ```
 
-**.gitignore:**
-```
+**.gitignore:**```
 .DS_Store
 Thumbs.db
 .vscode/
@@ -150,8 +143,7 @@ Thumbs.db
 
 Looge 2 skripti:
 
-**backup.sh:**
-```bash
+**backup.sh:**```bash
 #!/bin/bash
 # Lihtne varundusskript
 
@@ -165,8 +157,7 @@ tar -czf "$BACKUP_DIR/backup_$DATE.tar.gz" "$SOURCE_DIR"
 echo "Backup created: $BACKUP_DIR/backup_$DATE.tar.gz"
 ```
 
-**cleanup.sh:**
-```bash
+**cleanup.sh:**```bash
 #!/bin/bash
 # Puhasta ajutised failid
 
@@ -176,16 +167,14 @@ find . -name "*.tmp" -delete
 echo "Cleanup complete!"
 ```
 
-**.gitignore:**
-```
+**.gitignore:**```
 *.log
 *.tmp
 backups/
 .DS_Store
 ```
 
-Tee skriptid käivitatavaks:
-```bash
+Tee skriptid käivitatavaks:```bash
 chmod +x backup.sh cleanup.sh
 ```
 
@@ -196,7 +185,6 @@ chmod +x backup.sh cleanup.sh
 Tehke vähemalt 5 commit'i järgmises stiilis. Iga commit teeb ÜHE loogilise asja.
 
 ### Commit 1: Algstruktuur
-
 ```bash
 touch README.md
 git add README.md
@@ -205,7 +193,6 @@ git push origin main
 ```
 
 ### Commit 2: Lisa .gitignore
-
 ```bash
 # Loo .gitignore fail (vali variant projektile)
 git add .gitignore
@@ -214,7 +201,6 @@ git push origin main
 ```
 
 ### Commit 3: Lisa põhifail
-
 ```bash
 # Loo põhifail (calculator.py, index.html või backup.sh)
 git add calculator.py  # või teine fail
@@ -223,7 +209,6 @@ git push origin main
 ```
 
 ### Commit 4: Lisa teine komponent
-
 ```bash
 # Loo teine fail (style.css, cleanup.sh vms)
 git add style.css  # või teine fail
@@ -232,7 +217,6 @@ git push origin main
 ```
 
 ### Commit 5: Täienda README
-
 ```bash
 # Kirjuta README.md (vt sektsioon 5)
 git add README.md
@@ -242,16 +226,14 @@ git push origin main
 
 **Oluline:** Iga commit sõnum peab olema kirjeldav ja selgitama MIKS.
 
-**Head näited:**
-```
+**Head näited:**```
 Add calculator module with basic operations
 Fix division by zero error handling
 Add CSS styling for better readability
 Update README with installation instructions
 ```
 
-**Halvad näited (ära kasuta):**
-```
+**Halvad näited (ära kasuta):**```
 update
 fix
 asdf
@@ -264,7 +246,6 @@ changes
 ## 5. README.md Dokumentatsioon
 
 Teie README.md peab sisaldama järgmisi sektsioone:
-
 ```markdown
 # Projekti Nimi
 
@@ -287,8 +268,7 @@ Lühike kirjeldus 1-2 lausega.
 
 ```bash
 git clone git@github.com:KASUTAJANIMI/git-homework.git
-cd git-homework
-```
+cd git-homework```
 
 ### Käivitamine
 
@@ -297,8 +277,7 @@ python calculator.py
 # või
 open index.html
 # või
-./backup.sh
-```
+./backup.sh```
 
 ## Failide Struktuur
 
@@ -307,8 +286,7 @@ git-homework/
 ├── calculator.py  (või teised failid)
 ├── README.md
 ├── .gitignore
-└── LICENSE
-```
+└── LICENSE```
 
 ## Autor
 
@@ -353,7 +331,6 @@ Seletage Git'i väärtust lihtsas keeles ilma tehnilise žargoonita. Kasutage an
 Mis aspekt oli kõige õpetlikum või huvitavam? Miks?
 
 **Näide refleksioonist:**
-
 ```markdown
 ## Refleksioon
 
@@ -415,8 +392,7 @@ Esitage järgmine informatsioon:
 
 **E-mail teema:** Git Kodutöö - [Teie Nimi]
 
-**E-mail sisu:**
-```
+**E-mail sisu:**```
 Tere,
 
 Esitan Git kodutöö:
@@ -449,7 +425,6 @@ Parimate soovidega,
 ## Boonus (Valikuline, +10%)
 
 **Git Branch (+5%):** Tee üks feature branch, arenda seal, merge tagasi main'i.
-
 ```bash
 git checkout -b feature/new-function
 # tee muudatus
@@ -461,7 +436,6 @@ git push origin main
 ```
 
 **GitHub README Badge (+5%):** Lisa README.md'sse badge (näiteks litsents või tähed).
-
 ```markdown
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ```
@@ -488,8 +462,7 @@ Levinud probleemid:
 
 **Probleem:** Unustasin midagi commit'ist välja jätta.
 
-**Lahendus:**
-```bash
+**Lahendus:**```bash
 # Lisa fail ja muuda viimast commit'i
 git add forgotten-file.txt
 git commit --amend --no-edit
@@ -498,8 +471,7 @@ git push --force-with-lease origin main
 
 **Probleem:** Committisin .env faili kogemata.
 
-**Lahendus:**
-```bash
+**Lahendus:**```bash
 # Lisa .gitignore'sse
 echo ".env" >> .gitignore
 
@@ -511,8 +483,7 @@ git push origin main
 
 **Probleem:** Commit sõnum on vale.
 
-**Lahendus:**
-```bash
+**Lahendus:**```bash
 # Muuda viimast commit sõnumit
 git commit --amend -m "Parandatud sõnum"
 git push --force-with-lease origin main

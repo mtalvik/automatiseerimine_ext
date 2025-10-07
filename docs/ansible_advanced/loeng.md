@@ -30,7 +30,6 @@ Kujutage ette arengut:
 **Kuu 6:** 40 serverit kolmes keskkonnas (dev, staging, prod). Nüüd on teil 6 playbook'i. Muudatus tähendab 6 faili muutmist. Teete vea ühes, sama viga korduv kuues.
 
 **Aasta 1:** 100+ serverit, mitu keskkonda, erinevad OS-id, erinevad konfiguratsioonid. Playbook'e on kümneid. Muudatuste tegemine võtab tunde. Code review on võimatu - keegi ei mäleta, mis kus on.
-
 ```mermaid
 graph TD
     A[3 serverit<br/>1 playbook] --> B[15 serverit<br/>2 playbook'i]
@@ -69,7 +68,6 @@ Kuidas kirjutada ÜKS playbook, mis töötab kõigis nendes kontekstides?
 ### Lahendus: Hierarhiline Override System
 
 Ansible rakendab prioriteetide süsteemi - spetsiifilisem alati võidab üldisema. See pole juhuslik - see peegeldab, kuidas inimesed mõtlevad konfiguratsioonist.
-
 ```mermaid
 graph BT
     A[Role Defaults<br/>kõige üldisem] --> B[Group Variables<br/>grupile]
@@ -95,7 +93,6 @@ Hierarhia võimaldab järgida **DRY (Don't Repeat Yourself)** printsiipi. Define
 ### Praktiline Näide
 
 Kujutage ette, et konfigureerite web servereid:
-
 ```yaml
 # Kõigile serveritele - üldine reegel
 max_connections: 100
@@ -110,7 +107,6 @@ max_connections: 5000
 ```
 
 Playbook kasutab lihtsalt `{{ max_connections }}` - Ansible valib automaatselt õige väärtuse.
-
 ```mermaid
 graph LR
     A[dev-server] -->|max: 100| E[Default rakendub]
@@ -132,7 +128,6 @@ Ansible kogub automaatselt iga serveri kohta faktiinfot. See on nagu automaatne 
 **Miks see oluline?**
 
 Saate teha intelligentseid otsuseid ilma käsitsi konfiguratsiooni kirjutamata:
-
 ```yaml
 # Apache workers automaatselt CPU järgi
 apache_workers: "{{ ansible_processor_vcpus * 2 }}"
@@ -171,7 +166,6 @@ Staatiline lähenemine = kaks faili. Muudatus tähendab kahe faili muutmist. Cop
 ### Lahendus: Üks Mall, Palju Väljundeid
 
 Template on fail, kus osad asjad on **parameetrid**, mitte fikseeritud väärtused. Üks mall genereerib erinevaid väljundeid vastavalt kontekstile.
-
 ```mermaid
 graph LR
     A[Template<br/>nginx.conf.j2] --> B{Keskkond?}
@@ -191,8 +185,7 @@ Template sisaldab:
 
 Jinja2 on template engine - see teisendab malli lõplikuks failiks.
 
-**Tingimused:**
-```jinja2
+**Tingimused:**```jinja2
 {% if environment == 'production' %}
 # Production seaded
 {% else %}
@@ -202,8 +195,7 @@ Jinja2 on template engine - see teisendab malli lõplikuks failiks.
 
 See pole lihtsalt teksti asendamine - see on **programmeerimiskeeleline loogika** faili genereerimiseks.
 
-**Tsüklid:**
-```jinja2
+**Tsüklid:**```jinja2
 {% for vhost in virtual_hosts %}
 <VirtualHost>
   ServerName {{ vhost.domain }}
@@ -213,8 +205,7 @@ See pole lihtsalt teksti asendamine - see on **programmeerimiskeeleline loogika*
 
 Kui teil on list 3 domeenist, genereerib see 3 VirtualHost plokki. Lisate 4. domeeni listile - mall genereerib automaatselt 4 plokki.
 
-**Filtrid:**
-```jinja2
+**Filtrid:**```jinja2
 {{ ansible_memtotal_mb * 0.7 | int }}M
 ```
 
@@ -237,8 +228,7 @@ Template'id lahendavad configuration management'i fundamentaalse probleemi - kui
 
 Konfiguratsioonifaili muutmine nõuab teenuse taaskäivitamist. Aga teil on 5 task'i, mis muudavad 5 erinevat Apache konfiguratsioonifaili.
 
-Naiivne lähenemine:
-```
+Naiivne lähenemine:```
 Task 1: Muuda config1 → Restart Apache
 Task 2: Muuda config2 → Restart Apache  
 Task 3: Muuda config3 → Restart Apache
@@ -247,7 +237,6 @@ Task 5: Muuda config5 → Restart Apache
 ```
 
 Apache taaskäivitub 5 korda. Iga restart katkestab ühendused. Kasutajad näevad vigu. Aega läheb raisku.
-
 ```mermaid
 sequenceDiagram
     participant P as Playbook
@@ -268,7 +257,6 @@ Handler on **laisalt täidetav task**. See:
 1. Käivitub ainult kui midagi **tegelikult muutus**
 2. Käivitub ainult **üks kord**
 3. Käivitub **playbook'i lõpus**, mitte kohe
-
 ```yaml
 tasks:
   - name: Config 1
@@ -285,7 +273,6 @@ handlers:
 ```
 
 Isegi kui 5 task'i teavitavad handler'it, käivitub see ainult üks kord lõpus.
-
 ```mermaid
 sequenceDiagram
     participant T as Tasks
@@ -323,7 +310,6 @@ Paljud teenused toetavad kahte viisi:
 - Piisav enamike muudatuste jaoks
 
 Handler võimaldab valida õige strateegia:
-
 ```yaml
 notify: reload apache  # Väike muudatus
 notify: restart apache # Suur muudatus
@@ -338,7 +324,6 @@ Handler'id lahendavad teenuste haldamise fundamentaalse probleemi - kuidas taask
 ### Probleem: Paroolid Koodis
 
 Teie playbook vajab MySQL parooli. Kõige lihtsam viis:
-
 ```yaml
 mysql_password: "SuperSecret123"
 ```
@@ -365,7 +350,6 @@ Kui parool lekkib (ja private repo'st võib lekkida):
 ### Lahendus: Krüpteerimine
 
 Vault krüpteerib failid AES-256 algoritmiga. Krüpteeritud fail näeb välja nii:
-
 ```
 $ANSIBLE_VAULT;1.1;AES256
 66383439383437366337643938376139323531...
@@ -373,7 +357,6 @@ $ANSIBLE_VAULT;1.1;AES256
 ```
 
 Ilma vault paroolita on see lihtsalt juhuslik andmehunnik. Isegi kui keegi saab repo kätte, ei saa ta paroole kätte.
-
 ```mermaid
 graph LR
     A[Plain Text<br/>Password123] -->|ansible-vault encrypt| B[Encrypted<br/>$ANSIBLE_VAULT...]
@@ -404,7 +387,6 @@ graph LR
 ### Organisatsiooni Mudel
 
 Best practice: eraldi vault failid tavalistest failidest.
-
 ```
 group_vars/
   production/
@@ -412,15 +394,13 @@ group_vars/
     vault.yml      # Krüpteeritud - paroolid
 ```
 
-**vars.yml** (avalik, Git'is):
-```yaml
+**vars.yml** (avalik, Git'is):```yaml
 database_host: "prod-db.example.com"
 database_user: "app_user"
 database_password: "{{ vault_database_password }}"
 ```
 
-**vault.yml** (krüpteeritud, Git'is):
-```yaml
+**vault.yml** (krüpteeritud, Git'is):```yaml
 vault_database_password: "ActualSecretPassword123"
 ```
 
@@ -450,7 +430,6 @@ Vault lahendab configuration management'i turvaprobleemi - kuidas hoida saladusi
 ## 6. Kõik Koos: Arhitektuuri Mõistmine
 
 Need neli kontseptsiooni ei ole isoleeritud trikid - need töötavad koos, moodustades skaleeritava arhitektuuri.
-
 ```mermaid
 graph TD
     A[Muutujate Hierarhia] --> E[Skaleeritav Infrastruktuur]
@@ -491,7 +470,6 @@ graph TD
 ### Tulemus
 
 Üks playbook käivitub erinevates keskkondades:
-
 ```bash
 # Development
 ansible-playbook site.yml -i inventory/dev --ask-vault-pass

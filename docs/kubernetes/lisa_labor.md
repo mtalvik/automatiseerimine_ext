@@ -34,7 +34,6 @@ Service teeb round-robin load balancing: päring 1 → pod 1, päring 2 → pod 
 ### 1.2 Lahendus
 
 Kubernetes Service teeb automaatset load balancing'ut kõigi tervete pod'ide vahel. Kui skaleeriksime backend'i 5 pod'iks, jagab Service päringud ühtlaselt kõigi vahel.
-
 ```bash
 # Vaata praegust seisu
 kubectl get pods -l app=backend
@@ -53,14 +52,12 @@ kubectl get pods -l app=backend
 **Testimine:**
 
 Lisa backend koodi juurde pod hostname, et näha kumba pod'i päring läks.
-
 ```bash
 # Muuda backend ConfigMap
 nano ~/k8s-lab/backend/1-configmap.yaml
 ```
 
 Lisa `server.js` faili `/api/products` endpoint'i juurde hostname:
-
 ```javascript
     // API: kõik tooted
     app.get('/api/products', async (req, res) => {
@@ -78,7 +75,6 @@ Lisa `server.js` faili `/api/products` endpoint'i juurde hostname:
       }
     });
 ```
-
 ```bash
 # Rakenda muudatus
 kubectl apply -f ~/k8s-lab/backend/1-configmap.yaml
@@ -115,7 +111,6 @@ Näed erinevaid pod nimesid - päringud jaotuvad kõigi pod'ide vahel!
 - Vähenda replikaid kui VM'il pole piisavalt ressursse
 
 **Testimine:**
-
 ```bash
 # Kontrolli et Service leiab kõik pod'id
 kubectl get endpoints backend-service
@@ -149,7 +144,6 @@ Kubernetes rolling update garanteerib, et alati on vähemalt 1 pod töötamas. P
 2. Oota kuni see valmis (readiness probe)
 3. Kustuta 1 vana pod
 4. Korda kuni kõik uuendatud
-
 ```bash
 # Vaata praegust versiooni
 kubectl rollout history deployment/frontend
@@ -159,16 +153,13 @@ nano ~/k8s-lab/frontend/1-html.yaml
 ```
 
 Muuda:
-1. Background gradient (rea ~13):
-```html
+1. Background gradient (rea ~13):```html
 background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);  <!-- Roosa -->
 ```
 
-2. Versiooni number (rea ~25):
-```html
+2. Versiooni number (rea ~25):```html
 <p><strong>Versioon:</strong> <span style="color: blue;">v2.0</span></p>
 ```
-
 ```bash
 # Rakenda muudatus
 kubectl apply -f ~/k8s-lab/frontend/1-html.yaml
@@ -181,7 +172,6 @@ kubectl rollout status deployment/frontend
 ```
 
 **Rollback kui vaja:**
-
 ```bash
 # Vaata ajalugu
 kubectl rollout history deployment/frontend
@@ -208,7 +198,6 @@ kubectl rollout status deployment/frontend
 - Update'i ajal peaks alati olema vähemalt 2 pod'i running (kui 3 kokku)
 
 **Testimine:**
-
 ```bash
 # Muuda strategy
 kubectl edit deployment frontend
@@ -242,14 +231,12 @@ Backend vajab uut endpoint'i, aga ConfigMap muutmine ei rakendu automaatselt pod
 ### 3.2 Lahendus
 
 Muuda ConfigMap'i ja restart pod'id rolling update'iga. Pod'id võtavad uue ConfigMap'i sisu käivituse ajal.
-
 ```bash
 # Lisa backend'i uus endpoint
 nano ~/k8s-lab/backend/1-configmap.yaml
 ```
 
 Lisa `server.js` faili lõppu:
-
 ```javascript
     // Uus endpoint - info
     app.get('/api/info', (req, res) => {
@@ -261,7 +248,6 @@ Lisa `server.js` faili lõppu:
       });
     });
 ```
-
 ```bash
 # Rakenda ConfigMap muudatus
 kubectl apply -f ~/k8s-lab/backend/1-configmap.yaml
@@ -300,7 +286,6 @@ kill %1
 - Rolling restart: `kubectl rollout restart deployment backend-api`
 
 **Testimine:**
-
 ```bash
 # Kontrolli ConfigMap
 kubectl describe configmap backend-code | grep -A10 "/api/health"

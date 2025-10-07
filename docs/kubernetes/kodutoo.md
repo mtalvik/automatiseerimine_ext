@@ -20,7 +20,6 @@ Laboris tegime e-poe kus kood oli ConfigMap'is. See on halb praktika. Nüüd tee
 ### 1.1 Backend Docker Image
 
 #### Samm 1: Kopeeri kood laborist
-
 ```bash
 # Loo kaustad
 mkdir -p ~/kodutoo/docker/backend
@@ -42,11 +41,9 @@ nano package.json
 ```
 
 #### Samm 2: Loo Dockerfile
-
 ```bash
 nano Dockerfile
 ```
-
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -59,7 +56,6 @@ CMD ["node", "server.js"]
 ```
 
 #### Samm 3: Build ja Push
-
 ```bash
 # Docker Hub konto vaja!
 # Mine https://hub.docker.com → Sign Up
@@ -84,7 +80,6 @@ docker push valixyz/shop-backend:v1.0
 ### 1.2 Frontend Docker Image
 
 #### Samm 1: Kopeeri kood
-
 ```bash
 cd ~/kodutoo/docker/frontend
 
@@ -102,11 +97,9 @@ nano nginx.conf
 ```
 
 #### Samm 2: Dockerfile
-
 ```bash
 nano Dockerfile
 ```
-
 ```dockerfile
 FROM nginx:alpine
 COPY index.html /usr/share/nginx/html/
@@ -115,20 +108,17 @@ EXPOSE 80
 ```
 
 #### Samm 3: Build ja Push
-
 ```bash
 docker build -t valixyz/shop-frontend:v1.0 .
 docker push valixyz/shop-frontend:v1.0
 ```
 
 ### 1.3 Uuenda Kubernetes Deployments
-
 ```bash
 cd ~/kodutoo/kubernetes
 ```
 
-**backend-deployment.yaml:**
-```yaml
+**backend-deployment.yaml:**```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -171,8 +161,7 @@ spec:
   - port: 3000
 ```
 
-**frontend-deployment.yaml:**
-```yaml
+**frontend-deployment.yaml:**```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -207,7 +196,6 @@ spec:
 ```
 
 ### 1.4 Deploy ja Test
-
 ```bash
 # Deploy PostgreSQL (sama mis laboris)
 kubectl apply -f ~/k8s-lab/postgres/
@@ -233,7 +221,6 @@ kubectl port-forward service/frontend-service 8080:80
 Dashboard näitab mis klastris toimub. See on GUI kubectl'i asemel.
 
 ### Enable Dashboard
-
 ```bash
 # Minikube'is lihtne
 minikube dashboard
@@ -265,7 +252,6 @@ kubectl proxy
 ### Valik A: Auto-Scaling (HPA)
 
 HPA skaleerib pod'e automaatselt kui koormus kasvab. Näiteks kui CPU > 50%, lisab pod'e. Kui koormus langeb, vähendab pod'e. See säästab ressursse ja hoiab app'i töös.
-
 ```bash
 # 1. Enable metrics
 minikube addons enable metrics-server
@@ -274,7 +260,6 @@ minikube addons enable metrics-server
 # 2. Loo HPA
 nano hpa.yaml
 ```
-
 ```yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -295,7 +280,6 @@ spec:
         type: Utilization
         averageUtilization: 50
 ```
-
 ```bash
 # 3. Apply
 kubectl apply -f hpa.yaml
@@ -313,7 +297,6 @@ while true; do wget -q -O- http://backend-service:3000/api/products; done
 ### Valik B: Blue-Green Deployment
 
 Blue-Green tähendab 2 versiooni korraga. Blue töötab, Green on uuendus. Saad vahetada ilma katkestuseta. Kui Green on katki, vaheta tagasi Blue.
-
 ```bash
 # 1. Tee 2 erinevat frontend versiooni
 cd ~/kodutoo/docker/frontend
@@ -334,7 +317,6 @@ nano index.html
 docker build -t valixyz/shop-frontend:green .
 docker push valixyz/shop-frontend:green
 ```
-
 ```yaml
 # 2. blue-green.yaml
 apiVersion: apps/v1
@@ -389,7 +371,6 @@ spec:
   - port: 80
   type: NodePort
 ```
-
 ```bash
 # 3. Deploy mõlemad
 kubectl apply -f blue-green.yaml
@@ -411,7 +392,6 @@ kubectl patch service frontend-service -p '{"spec":{"selector":{"version":"blue"
 ### Valik C: Helm Chart
 
 Helm on nagu package manager. Ühe käsuga saad installida/uuendada/kustutada kogu app'i. Values.yaml's saad muuta seadeid. Hea kui on dev/test/prod environment'id.
-
 ```bash
 # 1. Install Helm
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -423,7 +403,6 @@ helm create eshop
 # 3. Muuda values
 nano eshop/values.yaml
 ```
-
 ```yaml
 backend:
   image: valixyz/shop-backend:v1.0
@@ -438,12 +417,10 @@ frontend:
 postgres:
   enabled: true
 ```
-
 ```yaml
 # 4. Muuda template
 nano eshop/templates/backend.yaml
 ```
-
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -465,7 +442,6 @@ spec:
         ports:
         - containerPort: 3000
 ```
-
 ```bash
 # 5. Install
 helm install myshop ./eshop
@@ -483,7 +459,6 @@ helm uninstall myshop
 ---
 
 ## README.md Mall
-
 ```markdown
 # Kubernetes E-Shop Production
 
@@ -532,7 +507,6 @@ helm uninstall myshop
 ---
 
 ## Esitamine
-
 ```
 kodutoo/
 ├── README.md           (kirjeldus)

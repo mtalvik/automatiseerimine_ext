@@ -17,14 +17,12 @@ Pärast seda lab'i oskad:
 ## 1. Ettevalmistus
 
 ### 1.1 Kontrolli Docker installatsioon
-
 ```bash
 docker --version
 docker-compose --version
 ```
 
 Kui EI OLE installitud:
-
 ```bash
 # Ubuntu/Debian VM
 sudo apt update
@@ -48,8 +46,7 @@ Host masinas (Windows/Mac):
 - Lae alla: https://code.visualstudio.com/
 - Installi "Remote - SSH" extension
 
-Või kasuta VM-is:
-```bash
+Või kasuta VM-is:```bash
 # Kui tahad VSCode otse VM-is
 sudo snap install code --classic
 ```
@@ -74,7 +71,6 @@ Nüüd saad HOST masinas avada: `http://localhost:8080`
 ## 2. Projekti loomine
 
 ### 2.1 Loo projekt kaust VM-is
-
 ```bash
 cd ~
 mkdir todo-app
@@ -83,8 +79,7 @@ cd todo-app
 
 ### 2.2 Ava VSCode
 
-Kui VSCode on VM-is:
-```bash
+Kui VSCode on VM-is:```bash
 code .
 ```
 
@@ -101,8 +96,7 @@ VSCode'is vajuta **New Folder** ikooni ja loo:
 - `frontend`
 - `nginx`
 
-Kontrolli et su kausad näevad välja nii:
-```
+Kontrolli et su kausad näevad välja nii:```
 todo-app/
 ├── api/
 ├── database/
@@ -119,7 +113,6 @@ Andmebaas hoiab meie todos'e. PostgreSQL on eraldi konteineris, et saaksime seda
 ### 3.1 Loo fail `database/init.sql`
 
 VSCode'is: Right click `database` kaust → New File → `init.sql`
-
 ```sql
 -- Lubame UUID-d kasutada
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -147,7 +140,6 @@ INSERT INTO todos (title, description) VALUES
 API on vahendaja frontendi ja andmebaasi vahel. Node.js töötab eraldi konteineris.
 
 ### 4.1 Loo fail `api/.dockerignore`
-
 ```
 node_modules
 npm-debug.log
@@ -156,7 +148,6 @@ npm-debug.log
 ```
 
 ### 4.2 Loo fail `api/package.json`
-
 ```json
 {
   "name": "todo-api",
@@ -174,7 +165,6 @@ npm-debug.log
 ```
 
 ### 4.3 Loo fail `api/server.js`
-
 ```javascript
 const express = require('express');
 const { Pool } = require('pg');
@@ -359,7 +349,6 @@ app.listen(PORT, '0.0.0.0', () => {
 ```
 
 ### 4.4 Loo fail `api/Dockerfile`
-
 ```dockerfile
 FROM node:16-alpine
 
@@ -388,7 +377,6 @@ CMD ["node", "server.js"]
 Frontend on kasutajaliides brauseris. See on eraldi konteineris, et frontend arendajad saaksid töötada ilma backend'i puutumata.
 
 ### 5.1 Loo fail `frontend/.dockerignore`
-
 ```
 node_modules
 npm-debug.log
@@ -398,7 +386,6 @@ build
 ```
 
 ### 5.2 Loo fail `frontend/package.json`
-
 ```json
 {
   "name": "todo-frontend",
@@ -433,7 +420,6 @@ VSCode'is loo:
 - `frontend/src/` kaust
 
 ### 5.4 Loo fail `frontend/public/index.html`
-
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -452,7 +438,6 @@ VSCode'is loo:
 ```
 
 ### 5.5 Loo fail `frontend/src/index.js`
-
 ```javascript
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -468,7 +453,6 @@ root.render(
 ```
 
 ### 5.6 Loo fail `frontend/src/index.css`
-
 ```css
 * {
   margin: 0;
@@ -491,7 +475,6 @@ code {
 ```
 
 ### 5.7 Loo fail `frontend/src/App.js`
-
 ```javascript
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -686,7 +669,6 @@ export default App;
 ```
 
 ### 5.8 Loo fail `frontend/src/App.css`
-
 ```css
 .App {
   min-height: 100vh;
@@ -954,7 +936,6 @@ export default App;
 ```
 
 ### 5.9 Loo fail `frontend/Dockerfile`
-
 ```dockerfile
 # Stage 1: Build React app
 FROM node:16-alpine AS builder
@@ -996,7 +977,6 @@ CMD ["nginx", "-g", "daemon off;"]
 Nginx on värav mis suunab päringuid. `/api` läheb API konteinerisse, ülejäänud frontend konteinerisse. Nii töötab kõik ühest portist.
 
 ### 6.1 Loo fail `nginx/nginx.conf`
-
 ```nginx
 events {
     worker_connections 1024;
@@ -1059,7 +1039,6 @@ http {
 See fail ütleb Docker'ile kuidas kõik konteinerid koos töötavad - võrgud, sõltuvused, portid.
 
 ### 7.1 Loo fail `docker-compose.yml` (juurkaustas!)
-
 ```yaml
 version: '3.8'
 
@@ -1155,7 +1134,6 @@ volumes:
 ## 8. Kontrolli faile
 
 Enne käivitamist kontrolli et KÕIK failid on olemas:
-
 ```bash
 cd ~/todo-app
 
@@ -1181,7 +1159,6 @@ find . -type f -name "*.js" -o -name "*.json" -o -name "*.sql" -o -name "*.yml" 
 ---
 
 ## 9. Ehita ja käivita
-
 ```bash
 cd ~/todo-app
 
@@ -1202,8 +1179,7 @@ docker-compose up --build
 # Creating todo_nginx ... done
 ```
 
-OOTA kuni näed:
-```
+OOTA kuni näed:```
 todo_db       | PostgreSQL init process complete; ready for start up.
 todo_api      | Connected to PostgreSQL
 todo_api      | API server running on port 3000
@@ -1212,7 +1188,6 @@ todo_nginx    | (nginx startup logs)
 ```
 
 Ava uus terminal (ära sulge esimest!) ja kontrolli:
-
 ```bash
 # Kontrolli konteinerite staatust
 docker-compose ps
@@ -1230,7 +1205,6 @@ docker-compose ps
 ## 10. Testimine
 
 ### 10.1 Test VM-ist
-
 ```bash
 # Test health check
 curl http://localhost/health
@@ -1253,7 +1227,6 @@ Kui kasutad VirtualBox port forwarding:
 3. Peaksid nägema Todo rakendust!
 
 Kui kasutad Bridged network:
-
 ```bash
 # VM-is saa IP aadressi
 ip addr show
@@ -1272,7 +1245,6 @@ ip addr show
 ---
 
 ## 11. Logide vaatamine
-
 ```bash
 # Vaata kõiki logisid
 docker-compose logs
@@ -1296,8 +1268,7 @@ docker-compose logs database
 
 ### Probleem 1: "Cannot connect from HOST machine"
 
-Diagnoos:
-```bash
+Diagnoos:```bash
 # VM-is
 curl http://localhost/health
 # Kas töötab? JA
@@ -1314,8 +1285,7 @@ Lahendus:
    - Guest Port: 80
    - Siis HOST-is: http://localhost:8080
 
-2. Või kasuta VM IP:
-```bash
+2. Või kasuta VM IP:```bash
 # VM-is
 ip addr show | grep "inet "
 # Otsi 192.168.x.x
@@ -1326,15 +1296,13 @@ http://192.168.1.100
 
 ### Probleem 2: "API konteiner crashib"
 
-Diagnoos:
-```bash
+Diagnoos:```bash
 docker-compose logs api
 ```
 
 Kui näed: "Cannot connect to database"
 
-Lahendus:
-```bash
+Lahendus:```bash
 # Restart API (andmebaas võtab kauem käivituda)
 docker-compose restart api
 
@@ -1348,8 +1316,7 @@ Diagnoos:
 - Vaata Network tab
 - Kas API päringud ebaõnnestuvad?
 
-Lahendus 1: nginx konfiguratsioon on vale
-```bash
+Lahendus 1: nginx konfiguratsioon on vale```bash
 # Kontrolli nginx.conf
 cat nginx/nginx.conf
 
@@ -1357,8 +1324,7 @@ cat nginx/nginx.conf
 docker-compose restart nginx
 ```
 
-Lahendus 2: Frontend build failed
-```bash
+Lahendus 2: Frontend build failed```bash
 # Vaata frontend logisid
 docker-compose logs frontend
 
@@ -1367,7 +1333,6 @@ docker-compose up --build frontend
 ```
 
 ### Probleem 4: "Permission denied"
-
 ```bash
 # Kui näed: permission denied on docker socket
 # Lisa ennast docker gruppi
@@ -1383,7 +1348,6 @@ groups
 ```
 
 ### Probleem 5: "Port 80 already in use"
-
 ```bash
 # Kontrolli mis kasutab porti
 sudo lsof -i :80
@@ -1398,7 +1362,6 @@ ports:
 ---
 
 ## 13. Peatamine ja cleanup
-
 ```bash
 # Peata konteinerid (andmed jäävad)
 docker-compose down
@@ -1445,22 +1408,19 @@ docker system prune -a --volumes
 
 Kui see töötab, proovi:
 
-1. Lisa Redis cache'iks:
-```yaml
+1. Lisa Redis cache'iks:```yaml
 redis:
   image: redis:alpine
   networks:
     - backend
 ```
 
-2. Lisa environment file (.env):
-```yaml
+2. Lisa environment file (.env):```yaml
 env_file:
   - .env
 ```
 
-3. Development mode - hot reload:
-```yaml
+3. Development mode - hot reload:```yaml
 api:
   volumes:
     - ./api:/app
@@ -1468,8 +1428,7 @@ api:
   command: npm run dev
 ```
 
-4. Scaling - mitme API instantsi:
-```bash
+4. Scaling - mitme API instantsi:```bash
 docker-compose up --scale api=3
 ```
 
@@ -1488,7 +1447,6 @@ docker-compose up --scale api=3
 ---
 
 ## Kasulikud käsud kokkuvõte
-
 ```bash
 # EHITAMINE JA KÄIVITAMINE
 docker-compose up                 # Käivita foreground

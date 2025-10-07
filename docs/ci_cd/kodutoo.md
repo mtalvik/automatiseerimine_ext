@@ -25,7 +25,6 @@ Siin on kolm varianti. Vali üks, mida lab'is ei kasutanud.
 **Variant A: Go API**
 
 Loo töökaust ja failid. Main.go fail sisaldab lihtsaid HTTP endpoint'e:
-
 ```go
 // main.go
 package main
@@ -57,7 +56,6 @@ func main() {
 ```
 
 Go.mod fail defineerib mooduli:
-
 ```go
 // go.mod
 module myapp
@@ -66,7 +64,6 @@ go 1.21
 ```
 
 Main_test.go fail sisaldab teste:
-
 ```go
 // main_test.go
 package main
@@ -91,7 +88,6 @@ func TestHealth(t *testing.T) {
 ```
 
 Dockerfile multi-stage build'iga:
-
 ```dockerfile
 # Dockerfile
 FROM golang:1.21-alpine AS builder
@@ -109,7 +105,6 @@ CMD ["/main"]
 **Variant B: Node.js API**
 
 App.js fail Express rakendusega:
-
 ```javascript
 // app.js
 const express = require('express');
@@ -134,7 +129,6 @@ module.exports = app;
 ```
 
 Package.json fail dependencies'ga:
-
 ```json
 {
   "name": "myapp",
@@ -155,7 +149,6 @@ Package.json fail dependencies'ga:
 ```
 
 App.test.js fail testidega:
-
 ```javascript
 // app.test.js
 const request = require('supertest');
@@ -171,7 +164,6 @@ test('GET /health returns healthy', async () => {
 ```
 
 Dockerfile:
-
 ```dockerfile
 # Dockerfile
 FROM node:18-alpine
@@ -187,7 +179,6 @@ CMD ["npm", "start"]
 **Variant C: Python FastAPI**
 
 Main.py fail FastAPI rakendusega:
-
 ```python
 # main.py
 from fastapi import FastAPI
@@ -206,7 +197,6 @@ def hello():
 ```
 
 Requirements.txt fail:
-
 ```
 fastapi==0.104.0
 uvicorn==0.24.0
@@ -215,7 +205,6 @@ pytest==7.4.0
 ```
 
 Test_main.py fail:
-
 ```python
 # test_main.py
 from fastapi.testclient import TestClient
@@ -232,7 +221,6 @@ def test_health():
 ```
 
 Dockerfile:
-
 ```dockerfile
 # Dockerfile
 FROM python:3.11-slim
@@ -248,7 +236,6 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 ### Testimine Lokaalselt
 
 Go rakenduse testimine:
-
 ```bash
 go run main.go
 # Teises terminalis:
@@ -257,7 +244,6 @@ go test ./...
 ```
 
 Node.js rakenduse testimine:
-
 ```bash
 npm install
 npm start
@@ -267,7 +253,6 @@ npm test
 ```
 
 Python rakenduse testimine:
-
 ```bash
 pip install -r requirements.txt
 uvicorn main:app --reload
@@ -277,7 +262,6 @@ pytest
 ```
 
 Docker testimine kõigi variantide jaoks:
-
 ```bash
 docker build -t myapp .
 docker run -p 8080:8080 myapp
@@ -338,7 +322,6 @@ Põhjendus (üks kuni kaks lauset): Kuidas see aitab rollback'i teha?
 ## 3. Pipeline'i Implementeerimine
 
 Loo fail .github/workflows/ci.yml:
-
 ```yaml
 name: CI/CD Pipeline
 
@@ -407,7 +390,6 @@ Oluline on asendada test käsud õigega vastavalt tehnoloogiale. Pipeline peab v
 ## 4. Dokumentatsioon
 
 Loo README.md fail:
-
 ```markdown
 # [Projekti Nimi]
 
@@ -533,7 +515,6 @@ Vali üks variant boonuspunktide saamiseks (pluss kümme protsenti):
 
 Lisa dependency caching pipeline'i:
 
-
 ```yaml
 - name: Cache dependencies
   uses: actions/cache@v3
@@ -573,7 +554,6 @@ Kontrolli järgmist:
 ### Test Stage Failib
 
 Debug järgmiselt:
-
 
 ```bash
 # Testi lokaalses samas image'is

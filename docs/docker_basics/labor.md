@@ -21,7 +21,6 @@ Pärast seda labor'it oskad:
 ## 1. Docker Installatsiooni Kontrollimine
 
 Kontrollige, et Docker on installitud ja töötab:
-
 ```bash
 docker --version
 docker info
@@ -30,14 +29,12 @@ docker info
 Oodatav tulemus: versiooninumber (20.10+) ja süsteemi info ilma vigadeta.
 
 Kui Docker nõuab `sudo`:
-
 ```bash
 sudo usermod -aG docker $USER
 newgrp docker
 ```
 
 **Validation:** Käivitage testimiseks:
-
 ```bash
 docker run hello-world
 ```
@@ -51,7 +48,6 @@ Peaksite nägema "Hello from Docker!" sõnumit.
 ### 2.1 Nginx Web Server
 
 Käivitage Nginx container:
-
 ```bash
 docker run -d --name web -p 8080:80 nginx
 ```
@@ -65,7 +61,6 @@ Käsu selgitus:
 **Validation:** Avage brauseris `http://localhost:8080` - peaksite nägema Nginx tervituslehte.
 
 ### 2.2 Container'ite Vaatamine
-
 ```bash
 # Töötavad container'id
 docker ps
@@ -81,7 +76,6 @@ docker stats web --no-stream
 ```
 
 ### 2.3 Logide Vaatamine
-
 ```bash
 # Vaata logisid
 docker logs web
@@ -96,7 +90,6 @@ docker logs --tail 10 web
 **Validation:** Refresh'ige brauserit ja vaadake `docker logs web` - näete GET päringu logis.
 
 ### 2.4 Container'isse Sisenemine
-
 ```bash
 # Käivita bash container'is
 docker exec -it web bash
@@ -108,7 +101,6 @@ exit
 ```
 
 ### 2.5 Container'i Peatamine ja Kustutamine
-
 ```bash
 docker stop web
 docker rm web
@@ -124,14 +116,12 @@ docker rm -f web
 ### 3.1 Lihtsa HTML Rakenduse Loomine
 
 Looge töökaust:
-
 ```bash
 mkdir docker-web-app
 cd docker-web-app
 ```
 
 Looge fail `index.html`:
-
 ```html
 <!DOCTYPE html>
 <html>
@@ -176,7 +166,6 @@ Asendage `[TEIE NIMI]` oma nimega.
 ### 3.2 Dockerfile Kirjutamine
 
 Looge fail `Dockerfile`:
-
 ```dockerfile
 FROM nginx:alpine
 
@@ -194,13 +183,11 @@ Käskude selgitus:
 - `CMD` - vaikimisi käsk
 
 ### 3.3 Image'i Ehitamine
-
 ```bash
 docker build -t minu-web:v1 .
 ```
 
 Näete build protsessi:
-
 ```
 [+] Building 2.3s (7/7) FINISHED
 => [internal] load build definition
@@ -212,7 +199,6 @@ Näete build protsessi:
 ```
 
 **Validation:**
-
 ```bash
 # Kontrolli, et image loodi
 docker images | grep minu-web
@@ -221,12 +207,13 @@ docker images | grep minu-web
 docker run -d -p 8081:80 --name minu-app minu-web:v1
 ```
 
-Avage `http://localhost:8081` - peaks näitama teie HTML lehte.
+Avage `http:
+- //localhost:8081`
+- peaks näitama teie HTML lehte.
 
 ### 3.4 Image'i Modifitseerimine
 
 Muutke `index.html` faili - lisage midagi uut. Ehitage uus versioon:
-
 ```bash
 docker build -t minu-web:v2 .
 docker run -d -p 8082:80 --name minu-app-v2 minu-web:v2
@@ -235,7 +222,6 @@ docker run -d -p 8082:80 --name minu-app-v2 minu-web:v2
 **Validation:** Avage `http://localhost:8082` - näete uut versiooni.
 
 Võrrelge image'ide suurusi:
-
 ```bash
 docker images | grep minu-web
 ```
@@ -247,14 +233,12 @@ docker images | grep minu-web
 ### 4.1 Layer Caching Näide
 
 Looge kaust Python rakendusele:
-
 ```bash
 mkdir docker-python-app
 cd docker-python-app
 ```
 
 Looge `app.py`:
-
 ```python
 from flask import Flask
 import datetime
@@ -274,7 +258,6 @@ if __name__ == '__main__':
 ```
 
 Looge `requirements.txt`:
-
 ```
 Flask==3.0.0
 ```
@@ -282,7 +265,6 @@ Flask==3.0.0
 ### 4.2 Algne Dockerfile (Optimeerimata)
 
 Looge `Dockerfile.bad`:
-
 ```dockerfile
 FROM python:3.11
 
@@ -298,7 +280,6 @@ CMD ["python", "app.py"]
 ```
 
 Ehitage:
-
 ```bash
 docker build -t python-app:bad -f Dockerfile.bad .
 ```
@@ -308,7 +289,6 @@ Muutke `app.py` faili (lisage kommentaar). Ehitage uuesti ja jälgige, et `pip i
 ### 4.3 Optimeeritud Dockerfile
 
 Looge `Dockerfile`:
-
 ```dockerfile
 FROM python:3.11-alpine
 
@@ -328,7 +308,6 @@ CMD ["python", "app.py"]
 ```
 
 Ehitage:
-
 ```bash
 docker build -t python-app:good .
 ```
@@ -336,7 +315,6 @@ docker build -t python-app:good .
 Muutke `app.py` ja ehitage uuesti. Märkige, et `pip install` kasutab cache'i.
 
 **Validation:** Käivitage:
-
 ```bash
 docker run -d -p 5000:5000 --name python-api python-app:good
 curl http://localhost:5000
@@ -345,7 +323,6 @@ curl http://localhost:5000
 ### 4.4 .dockerignore
 
 Looge `.dockerignore`:
-
 ```
 __pycache__/
 *.pyc
@@ -357,7 +334,6 @@ venv/
 ```
 
 Ehitage image uuesti ja võrrelge suurust:
-
 ```bash
 docker build -t python-app:final .
 docker images | grep python-app
@@ -368,7 +344,6 @@ docker images | grep python-app
 ## 5. Volumes ja Andmete Säilitamine
 
 ### 5.1 Probleem Demonstratsioon
-
 ```bash
 # Käivita container
 docker run -d --name demo-db alpine sh -c 'echo "andmed" > /data/file.txt && sleep 3600'
@@ -385,7 +360,6 @@ docker logs demo-db  # cat: can't open '/data/file.txt'
 ```
 
 ### 5.2 Named Volume
-
 ```bash
 # Loo volume
 docker volume create testdata
@@ -407,7 +381,6 @@ docker logs demo-vol2  # "püsivad andmed"
 **Validation:** Andmed säilivad!
 
 ### 5.3 Bind Mount (Arendus)
-
 ```bash
 # Loo kaust host'is
 mkdir ~/shared-data
@@ -427,7 +400,6 @@ docker exec bind-test cat /app/test.txt
 ```
 
 ### 5.4 PostgreSQL Volume Näide
-
 ```bash
 # Loo volume
 docker volume create pgdata
@@ -469,7 +441,6 @@ docker exec postgres2 psql -U postgres -c "\l" | grep testdb
 ## 6. Networking
 
 ### 6.1 Default Behavior
-
 ```bash
 # Käivita 2 container'it
 docker run -d --name cont1 alpine sleep 3600
@@ -480,7 +451,6 @@ docker exec cont1 ping -c 2 cont2  # Ebaõnnestub
 ```
 
 ### 6.2 Custom Network
-
 ```bash
 # Loo network
 docker network create mynet
@@ -499,7 +469,6 @@ docker exec cont3 ping -c 2 cont4
 **Validation:** Ping õnnestub - DNS resolution toimib.
 
 ### 6.3 Multi-Container Rakendus
-
 ```bash
 # Loo network
 docker network create webapp
@@ -527,7 +496,6 @@ docker run --rm --network webapp alpine sh -c 'ping -c 2 db && ping -c 2 cache'
 ## 7. Troubleshooting
 
 ### 7.1 Container Ei Käivitu
-
 ```bash
 # Vaata vigasid
 docker logs container-name
@@ -540,7 +508,6 @@ docker history image-name
 ```
 
 ### 7.2 Port Ei Ole Kättesaadav
-
 ```bash
 # Kontrolli port mapping
 docker port container-name
@@ -553,7 +520,6 @@ sudo ufw status
 ```
 
 ### 7.3 Volume Probleemid
-
 ```bash
 # Volume asukoht
 docker volume inspect volume-name
@@ -570,7 +536,6 @@ docker exec container-name ls -la /mounted/path/
 ## 8. Cleanup
 
 ### 8.1 Puhastamine
-
 ```bash
 # Peata kõik container'id
 docker stop $(docker ps -q)
@@ -589,7 +554,6 @@ docker system prune -a --volumes
 ```
 
 ### 8.2 Kettaruumi Vaatamine
-
 ```bash
 docker system df
 docker system df -v

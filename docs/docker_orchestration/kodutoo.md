@@ -28,7 +28,6 @@ Todo rakendus pärib praegu alati andmebaasist. Lisa Redis cache et kiirendada `
 ### 1.2 Muuda `docker-compose.yml`
 
 Lisa Redis teenus:
-
 ```yaml
   redis:
     image: redis:7-alpine
@@ -57,7 +56,6 @@ volumes:
 ### 1.3 Muuda API koodi
 
 Muuda `api/package.json` - lisa dependency:
-
 ```json
 {
   "dependencies": {
@@ -70,7 +68,6 @@ Muuda `api/package.json` - lisa dependency:
 ```
 
 Muuda `api/server.js` - lisa Redis cache:
-
 ```javascript
 const express = require('express');
 const { Pool } = require('pg');
@@ -293,7 +290,6 @@ app.listen(PORT, '0.0.0.0', () => {
 ```
 
 ### 1.4 Rebuild ja test
-
 ```bash
 # Rebuild API konteiner
 docker-compose build api
@@ -319,7 +315,6 @@ curl http://localhost/api/todos  # Cache HIT
 ### 2.1 Lisa health checks
 
 Muuda `docker-compose.yml` - lisa health checks API'le ja frontend'ile:
-
 ```yaml
   api:
     build:
@@ -360,7 +355,6 @@ Muuda `docker-compose.yml` - lisa health checks API'le ja frontend'ile:
 ```
 
 ### 2.2 Test health checks
-
 ```bash
 docker-compose up -d
 
@@ -380,7 +374,6 @@ docker inspect todo_api | grep -A 10 Health
 ### 3.1 Loo `docker-compose.dev.yml`
 
 Development keskkond kus kood on bind-mounted (live reload):
-
 ```yaml
 version: '3.8'
 
@@ -403,20 +396,17 @@ services:
 
 ### 3.2 Loo `.env.dev` ja `.env.prod`
 
-`.env.dev`:
-```bash
+`.env.dev`:```bash
 COMPOSE_PROJECT_NAME=todo-dev
 DB_PASSWORD=devpassword
 ```
 
-`.env.prod`:
-```bash
+`.env.prod`:```bash
 COMPOSE_PROJECT_NAME=todo-prod
 DB_PASSWORD=prodpassword123
 ```
 
 ### 3.3 Test
-
 ```bash
 # Development
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up -d
@@ -430,7 +420,6 @@ docker-compose --env-file .env.prod up -d
 ## 4. Deployment Script
 
 ### 4.1 Loo `deploy.sh`
-
 ```bash
 #!/bin/bash
 
@@ -466,13 +455,11 @@ esac
 echo "Done!"
 docker-compose ps
 ```
-
 ```bash
 chmod +x deploy.sh
 ```
 
 ### 4.2 Kasuta
-
 ```bash
 ./deploy.sh dev     # Development
 ./deploy.sh prod    # Production
@@ -486,7 +473,6 @@ chmod +x deploy.sh
 ## 5. Dokumentatsioon
 
 ### 5.1 Uuenda `README.md`
-
 ```markdown
 # Todo App with Redis Cache
 
@@ -495,8 +481,7 @@ chmod +x deploy.sh
 ```
 Nginx (80) → Frontend → API → Database
                         ↓
-                      Redis
-```
+                      Redis```
 
 ## Services
 
@@ -510,20 +495,17 @@ Nginx (80) → Frontend → API → Database
 
 ### Development
 ```bash
-./deploy.sh dev
-```
+./deploy.sh dev```
 
 ### Production
 ```bash
-./deploy.sh prod
-```
+./deploy.sh prod```
 
 ## Testing
 
 ```bash
 curl http://localhost/health
-curl http://localhost/api/todos
-```
+curl http://localhost/api/todos```
 
 ## Cache Testing
 
@@ -532,8 +514,7 @@ curl http://localhost/api/todos
 time curl http://localhost/api/todos
 
 # Second request - cache HIT (faster)
-time curl http://localhost/api/todos
-```
+time curl http://localhost/api/todos```
 
 ## Environment Variables
 
@@ -541,8 +522,7 @@ Create `.env.dev` and `.env.prod`:
 
 ```bash
 COMPOSE_PROJECT_NAME=todo-dev
-DB_PASSWORD=yourpassword
-```
+DB_PASSWORD=yourpassword```
 
 ## Health Checks
 
@@ -554,8 +534,7 @@ All services have health checks:
 
 Check status:
 ```bash
-docker-compose ps
-```
+docker-compose ps```
 ```
 
 **SCREENSHOT 3:** Brauseris töötav rakendus + cache testimine terminalis
@@ -565,7 +544,6 @@ docker-compose ps
 ## Esitamine
 
 ### GitHub repository sisaldab:
-
 ```
 docker-compose-homework/
 ├── api/
@@ -656,7 +634,6 @@ Kontrolli need asjad enne esitamist:
 ## Troubleshooting
 
 ### Redis connection error:
-
 ```bash
 # Kontrolli kas Redis töötab
 docker-compose logs redis
@@ -666,7 +643,6 @@ docker-compose restart api
 ```
 
 ### Cache ei tööta:
-
 ```bash
 # Kontrolli API logisid
 docker-compose logs api | grep -i cache
@@ -676,7 +652,6 @@ docker-compose exec redis redis-cli ping
 ```
 
 ### Health check fails:
-
 ```bash
 # Vaata täpsemalt
 docker inspect todo_api | grep -A 20 Health
