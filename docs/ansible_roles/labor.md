@@ -4,6 +4,8 @@
 **Platvorm:** Ansible 2.9+, Ubuntu 20.04+, Vagrant/Docker  
 **Kestus:** 2 × 45 minutit
 
+---
+
 ## Õpiväljundid
 
 Pärast laborit õppija:
@@ -11,7 +13,7 @@ Pärast laborit õppija:
 - Mõistab miks rollid on vajalikud läbi praktilise probleemi (korduvkasutus, hooldus)
 - Refaktoreerib mitut playbook'i üheks rolliks
 - Loob Galaxy standardi järgi struktureeritud rolli
-- Eristab defaults/ ja vars/ kaustade kasutust
+- Eristab `defaults/` ja `vars/` kaustade kasutust
 - Kasutab Jinja2 template'e ja muutujaid erinevate keskkondade jaoks
 - Testib rolli idempotentsust
 - Avaldab rolli GitHub'is
@@ -23,9 +25,9 @@ Pärast laborit õppija:
 Kontrolli et sul on:
 
 ```bash
-vagrant --version  # 2.2+
-vboxmanage --version
-ansible --version  # 2.9+
+vagrant --version      # 2.2+
+vboxmanage --version   # VirtualBox
+ansible --version      # 2.9+
 git --version
 ```
 
@@ -86,7 +88,7 @@ end
 !!! info "Miks kaks VM'i"
     Simuleerime reaalset olukorda kus on eraldi development ja production keskkonnad. Nii näeme probleemi mida rollid lahendavad.
 
-### Käivita Mõlemad VM'd
+### Käivita mõlemad VM'd
 
 ```bash
 vagrant up
@@ -108,9 +110,10 @@ prod ansible_host=127.0.0.1 ansible_port=2200 ansible_user=vagrant ansible_ssh_p
 
 [all:vars]
 ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 ```
 
-### Test Ühendust
+### Test ühendust
 
 ```bash
 ansible all -i inventory -m ping
@@ -320,7 +323,7 @@ Loo playbook production keskkonnale:
 !!! warning "Pane tähele"
     Mõlemad playbook'id on peaaegu identsed. Ainult `vars` sektsioon erineb. Kõik task'id on kopeeritud.
 
-### Käivita Mõlemad
+### Käivita mõlemad
 
 ```bash
 # Development
@@ -330,7 +333,7 @@ ansible-playbook -i inventory dev-nginx.yml
 ansible-playbook -i inventory prod-nginx.yml
 ```
 
-### Kontrolli Brauseris
+### Kontrolli brauseris
 
 - Development: `http://localhost:8080` (oranž taust)
 - Production: `http://localhost:8081` (roheline taust)
@@ -356,7 +359,7 @@ Vaata kaht playbook'i kõrvuti ja mõtle:
 !!! danger "DRY printsiibi rikkumine"
     Don't Repeat Yourself - iga koodiosa peaks eksisteerima täpselt üks kord. Praegu on duplikatsioon.
 
-### Simuleerime Viga
+### Simuleerime viga
 
 Oletame et nginx paketi nimi on valesti! Peab olema `nginx-full` mitte `nginx`.
 
@@ -378,7 +381,7 @@ Ebamugav, eks? Kaks faili muuta sama asja jaoks. Nüüd kujuta ette 5 keskkonda 
 
 Nüüd võtame kogu selle duplikatsiooni ja paneme **ühte** rolli.
 
-### Samm 1: Loo Roll
+### Samm 1: Loo roll
 
 ```bash
 mkdir -p roles
@@ -389,7 +392,7 @@ cd ..
 
 **Tulemus:**
 
-```plaintext
+```
 roles/nginx/
 ├── defaults/main.yml
 ├── vars/main.yml
@@ -402,7 +405,7 @@ roles/nginx/
 !!! tip "Galaxy init"
     Loob automaatselt standardse kaustade struktuuri. Iga Ansible roll järgib sama struktuuri.
 
-### Samm 2: Liiguta Tasks
+### Samm 2: Liiguta tasks
 
 Võta **kummastki** playbook'ist tasks sektsioon (need on identsed!).
 
@@ -439,7 +442,7 @@ Ava `roles/nginx/tasks/main.yml`:
     enabled: yes
 ```
 
-### Samm 3: Liiguta Handlers
+### Samm 3: Liiguta handlers
 
 Ava `roles/nginx/handlers/main.yml`:
 
@@ -451,7 +454,7 @@ Ava `roles/nginx/handlers/main.yml`:
     state: reloaded
 ```
 
-### Samm 4: Liiguta Template'id
+### Samm 4: Liiguta template'id
 
 ```bash
 mv nginx.conf.j2 roles/nginx/templates/
@@ -475,7 +478,7 @@ Loo `roles/nginx/templates/index.html.j2`:
 </html>
 ```
 
-### Samm 5: Defineeri Muutujad
+### Samm 5: Defineeri muutujad
 
 #### defaults/main.yml
 
@@ -512,7 +515,7 @@ nginx_user: "www-data"
 !!! warning "Miks vars"
     Need on süsteemi-spetsiifilised väärtused. Kasutaja ei tohiks neid muuta, muidu roll läheb katki.
 
-### Samm 6: Uuenda Template
+### Samm 6: Uuenda template
 
 Ava `roles/nginx/templates/nginx.conf.j2`:
 
@@ -551,7 +554,7 @@ http {
 }
 ```
 
-### Samm 7: Uued Playbook'id
+### Samm 7: Uued playbook'id
 
 #### dev.yml
 
@@ -639,7 +642,7 @@ ansible-playbook -i inventory prod.yml
 
 Vaata - üks muudatus, mõlemad keskkonnad saavad paranduse automaatselt.
 
-### Lisame Kolmanda Keskkonna
+### Lisame kolmanda keskkonna
 
 Kui tahad staging keskkonda:
 
@@ -670,7 +673,7 @@ Kui tahad staging keskkonda:
 
 ### defaults/main.yml
 
-**Kasutaja TOHIB muuta playbook'is:**
+**Kasutaja TOHIB muuta** playbook'is:
 
 ```yaml
 nginx_workers: 2        # Dev: 1, Prod: 4
@@ -682,7 +685,7 @@ site_color: "#CCC"      # Iga keskkond erinev
 
 ### vars/main.yml
 
-**Rolli SISEMISED väärtused, kasutaja EI TOHIKS muuta:**
+**Rolli SISEMISED väärtused**, kasutaja **EI TOHIKS** muuta:
 
 ```yaml
 nginx_package: "nginx"     # OS-spetsiifiline
@@ -771,6 +774,7 @@ Pushkin
 ```
 
 ---
+
 ## 9. GitHub Avaldamine
 
 ```bash
@@ -811,7 +815,7 @@ ansible-playbook -i inventory prod.yml
 # Teine käivitus: changed=0
 ```
 
-### Test 2: Keskkonnad Erinevad
+### Test 2: Keskkonnad erinevad
 
 ```bash
 # Development
@@ -823,7 +827,7 @@ curl http://localhost:8081 | grep "Production"
 curl http://localhost:8081 | grep "Workers: 4"
 ```
 
-### Test 3: Üks Muudatus, Kõik Keskkonnad
+### Test 3: Üks muudatus, kõik keskkonnad
 
 Muuda `roles/nginx/defaults/main.yml`:
 
@@ -860,7 +864,7 @@ Mõlemad saavad uue default värvi (kui playbook ei kirjuta üle).
 
 **Järgmised sammud:**
 
-- Kodutöö: Võta oma projekt ja refaktoreeri rolliks
+- Võta oma projekt ja refaktoreeri rolliks
 - Lisapraktika: Dependencies, molecule testing
 
 Rollid lahendavad reaalse probleemi mida nägime täna - korduvkasutatavus ja hooldatavus.
