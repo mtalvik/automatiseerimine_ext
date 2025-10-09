@@ -1,12 +1,12 @@
 # Ansible Rollid Kodutöö: PostgreSQL Andmebaasi Roll
 
-!!! info "Üldinfo"
-    **Eeldused:** Labor läbitud, Ansible rollide põhimõtted selged  
-    **Ajakulu:** ~1.5 tundi  
-    **Esitamine:** GitHub repository URL + refleksioon  
-    **Tähtaeg:** 1 nädal pärast laborit
+\!\!\! info "Üldinfo"
+**Eeldused:** Labor läbitud, Ansible rollide põhimõtted selged  
+**Ajakulu:** \~1.5 tundi  
+**Esitamine:** GitHub repository URL + refleksioon  
+**Tähtaeg:** 1 nädal pärast laborit
 
----
+-----
 
 ## Ülesande Kirjeldus
 
@@ -14,89 +14,100 @@ Laboris lõid Nginx veebiserveri rolli.
 Nüüd tuleb **rakendada samu põhimõtteid uue tehnoloogiaga** – PostgreSQL andmebaasiga.
 
 **Miks PostgreSQL?**
-- Teine tehnoloogia (andmebaas, mitte veebiserver)
-- Sama loogika (install, configure, templates)
-- Reaalne olukord: iga rakendus vajab andmebaasi
-- Harjutad rollide mõistet sügavamalt
 
-!!! warning
-    PostgreSQL roll ei tohi olla lihtsalt koopia Nginx rollist!  
-    Kasuta sarnast struktuuri, aga uue tehnoloogia jaoks sobivaid tasks’e ja template’e.
+  - Teine tehnoloogia (andmebaas, mitte veebiserver)
+  - Sama loogika (install, configure, templates)
+  - Reaalne olukord: iga rakendus vajab andmebaasi
+  - Harjutad rollide mõistet sügavamalt
 
----
+\!\!\! warning
+PostgreSQL roll ei tohi olla lihtsalt koopia Nginx rollist\!  
+Kasuta sarnast struktuuri, aga uue tehnoloogia jaoks sobivaid tasks’e ja template’e.
 
-## 1. Rolli Struktuur (15 min)
+-----
+
+## 1\. Rolli Struktuur (15 min)
 
 ### Loo roll
 
 ```bash
+# Liigu oma rollide kausta
 cd ~/ansible-roles-lab/roles
+
+# Loo uus postgresql roll
 ansible-galaxy init postgresql
+
+# Liigu uude rolli kausta
 cd postgresql
-````
+```
 
 **Kontrolli, et struktuur on korrektne:**
 
-* `defaults/main.yml` — muutujad, mida kasutaja saab muuta
-* `vars/main.yml` — süsteemispetsiifilised väärtused
-* `tasks/main.yml` — rolli põhiloogika
-* `templates/` — konfiguratsioonifailid (`postgresql.conf`, `pg_hba.conf`)
-* `handlers/main.yml` — teenuse restart/reload
-* `meta/main.yml` — sõltuvused (vajadusel)
+  * `defaults/main.yml` — muutujad, mida kasutaja saab muuta
+  * `vars/main.yml` — süsteemispetsiifilised väärtused
+  * `tasks/main.yml` — rolli põhiloogika
+  * `templates/` — konfiguratsioonifailid (`postgresql.conf`, `pg_hba.conf`)
+  * `handlers/main.yml` — teenuse restart/reload
+  * `meta/main.yml` — sõltuvused (vajadusel)
 
----
+-----
 
-## 2. Põhilised Tasks’id (20 min)
+## 2\. Põhilised Tasks’id (20 min)
 
 ### Eesmärk
 
 Luua Ansible roll, mis:
 
-1. Paigaldab PostgreSQL-i
-2. Käivitab ja lubab teenuse
-3. Loob andmebaasi ja kasutaja
-4. Rakendab konfiguratsiooni
+1.  Paigaldab PostgreSQL-i
+2.  Käivitab ja lubab teenuse
+3.  Loob andmebaasi ja kasutaja
+4.  Rakendab konfiguratsiooni
 
----
+-----
 
-### 1. PostgreSQL paigaldamine
+### 1\. PostgreSQL paigaldamine
 
 ```yaml
-- name: Install PostgreSQL
+# tasks/main.yml
+- name: Install PostgreSQL and dependencies
   apt:
     name:
       - postgresql
       - postgresql-contrib
-      - python3-psycopg2  # vajalik Ansible postgres moodulitele
+      - python3-psycopg2  # Vajalik Ansible postgres moodulitele
     state: present
+    update_cache: yes
 ```
 
-### 2. Teenuse kontroll
+### 2\. Teenuse kontroll
 
 ```yaml
-- name: Ensure PostgreSQL is started
+# tasks/main.yml
+- name: Ensure PostgreSQL service is started and enabled
   service:
-    name: postgresql
+    name: "{{ postgres_service_name }}"
     state: started
     enabled: yes
 ```
 
-### 3. Andmebaasi loomine
+### 3\. Andmebaasi loomine
 
 ```yaml
+# tasks/main.yml
 - name: Create application database
-  postgresql_db:
+  community.postgresql.postgresql_db:
     name: "{{ postgres_db_name }}"
     state: present
   become: yes
   become_user: postgres
 ```
 
-### 4. Kasutaja loomine
+### 4\. Kasutaja loomine
 
 ```yaml
+# tasks/main.yml
 - name: Create database user
-  postgresql_user:
+  community.postgresql.postgresql_user:
     name: "{{ postgres_user }}"
     password: "{{ postgres_password }}"
     db: "{{ postgres_db_name }}"
@@ -106,53 +117,65 @@ Luua Ansible roll, mis:
   become_user: postgres
 ```
 
-!!! tip
-PostgreSQL käsud peavad jooksma `postgres` kasutajana, mitte root’ina.
+\!\!\! tip
+PostgreSQL käsud peavad jooksma `postgres` kasutajana, mitte root’ina. Selleks kasutame `become: yes` ja `become_user: postgres`.
 
----
+-----
 
-## 3. Muutujad (10 min)
+## 3\. Muutujad (10 min)
 
 Roll peab kasutama hästi struktureeritud muutujaid:
 
-* **`defaults/main.yml`** – vaikeseaded, mida kasutaja saab muuta
-* **`vars/main.yml`** – süsteemispetsiifilised väärtused, mida tavaliselt ei muudeta
+  * **`defaults/main.yml`** – vaikeseaded, mida kasutaja saab muuta
+  * **`vars/main.yml`** – süsteemispetsiifilised väärtused, mida tavaliselt ei muudeta
 
----
+-----
 
 ### defaults/main.yml
 
 ```yaml
 ---
+# defaults/main.yml
+
 postgres_version: 14
 postgres_port: 5432
+postgres_listen_addresses: 'localhost'
 
+# Database and user settings
 postgres_db_name: myapp_db
 postgres_user: myapp_user
-postgres_password: "changeme"  # soovita muuta!
+postgres_password: "changeme"  # Soovita muuta!
 
+# Performance settings
 postgres_max_connections: 100
 postgres_shared_buffers: "128MB"
 postgres_work_mem: "4MB"
 
-postgres_log_destination: stderr
-postgres_logging_collector: on
+# Logging settings
+postgres_log_destination: 'stderr'
+postgres_logging_collector: 'on'
+
+# Remote access settings (for pg_hba.conf)
+postgres_allow_remote: false
+postgres_remote_subnet: '0.0.0.0/0'
 ```
 
----
+-----
 
 ### vars/main.yml
 
 ```yaml
 ---
+# vars/main.yml
+
 _postgres_packages:
   Debian:
-    - postgresql-{{ postgres_version }}
-    - postgresql-contrib-{{ postgres_version }}
+    - "postgresql-{{ postgres_version }}"
+    - "postgresql-contrib-{{ postgres_version }}"
     - python3-psycopg2
   RedHat:
-    - postgresql{{ postgres_version }}-server
-    - postgresql{{ postgres_version }}-contrib
+    - "postgresql{{ postgres_version }}-server"
+    - "postgresql{{ postgres_version }}-contrib"
     - python3-psycopg2
 
 postgres_config_dir: "/etc/postgresql/{{ postgres_version }}/main"
@@ -162,21 +185,21 @@ postgres_service_name: "postgresql"
 
 **Selgitus:**
 
-* `defaults` – annab paindlikkuse (kasutaja saab muuta)
-* `vars` – fikseeritud süsteemiseaded
+  * `defaults` – annab paindlikkuse (kasutaja saab muuta)
+  * `vars` – fikseeritud süsteemiseaded
 
----
+-----
 
-## 4. Template’id (25 min)
+## 4\. Template’id (25 min)
 
-### 1. PostgreSQL konfiguratsioon
+### 1\. PostgreSQL konfiguratsioon
 
 Loo fail `templates/postgresql.conf.j2`:
 
 ```ini
 # PostgreSQL Configuration (Generated by Ansible)
 
-listen_addresses = '{{ postgres_listen_addresses | default("localhost") }}'
+listen_addresses = '{{ postgres_listen_addresses }}'
 port = {{ postgres_port }}
 max_connections = {{ postgres_max_connections }}
 
@@ -186,32 +209,39 @@ work_mem = {{ postgres_work_mem }}
 logging_collector = {{ postgres_logging_collector }}
 log_directory = 'log'
 log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_destination = '{{ postgres_log_destination }}'
 ```
 
----
+-----
 
-### 2. Autentimise fail
+### 2\. Autentimise fail
 
 Loo fail `templates/pg_hba.conf.j2`:
 
 ```jinja
 # PostgreSQL Client Authentication (Generated by Ansible)
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
 
-local   all   all                 peer
-host    all   all   127.0.0.1/32  md5
-host    all   all   ::1/128       md5
+# "local" is for Unix domain socket connections only
+local   all             all                                     peer
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            md5
+# IPv6 local connections:
+host    all             all             ::1/128                 md5
 
-{% if postgres_allow_remote | default(false) %}
-host    {{ postgres_db_name }}  {{ postgres_user }}  {{ postgres_remote_subnet | default('0.0.0.0/0') }}  md5
+# Allow remote connections for the application user if enabled
+{% if postgres_allow_remote %}
+host    {{ postgres_db_name }}  {{ postgres_user }}  {{ postgres_remote_subnet }}  md5
 {% endif %}
 ```
 
----
+-----
 
-### 3. Lisa template’ide rakendamine tasks’i lõppu
+### 3\. Lisa template’ide rakendamine tasks’i lõppu
 
 ```yaml
-- name: Configure PostgreSQL
+# tasks/main.yml
+- name: Configure PostgreSQL settings
   template:
     src: postgresql.conf.j2
     dest: "{{ postgres_config_dir }}/postgresql.conf"
@@ -230,14 +260,15 @@ host    {{ postgres_db_name }}  {{ postgres_user }}  {{ postgres_remote_subnet |
   notify: restart postgresql
 ```
 
----
+-----
 
-## 5. Handlers (10 min)
+## 5\. Handlers (10 min)
 
 Loo `handlers/main.yml`:
 
 ```yaml
 ---
+# handlers/main.yml
 - name: restart postgresql
   service:
     name: "{{ postgres_service_name }}"
@@ -249,19 +280,20 @@ Loo `handlers/main.yml`:
     state: reloaded
 ```
 
-!!! question
+\!\!\! question
 Kas oled kasutanud `notify: restart postgresql` kõikides tasks’ides, mis muudavad konfiguratsiooni?
 
----
+-----
 
-## 6. Test Playbook (5 min)
+## 6\. Test Playbook (5 min)
 
-Loo fail `test-postgresql.yml`:
+Loo fail `test-postgresql.yml` **projekti juurkausta** (mitte rolli sisse):
 
 ```yaml
 ---
+# test-postgresql.yml
 - name: Test PostgreSQL Role
-  hosts: webservers
+  hosts: all
   become: yes
   roles:
     - role: postgresql
@@ -278,16 +310,16 @@ Käivita:
 ansible-playbook -i inventory test-postgresql.yml
 ```
 
-Kontrolli idempotentsust:
+Kontrolli idempotentsust (käivita teist korda):
 
 ```bash
 ansible-playbook -i inventory test-postgresql.yml
 # PEAB OLEMA: changed=0
 ```
 
----
+-----
 
-## 7. Kontroll ja Testimine (15 min)
+## 7\. Kontroll ja Testimine (15 min)
 
 ### Serveris
 
@@ -300,19 +332,20 @@ sudo -u postgres psql
 ### PostgreSQL-is
 
 ```sql
-\l            -- list databases
-\du           -- list users
-\c testapp_db -- connect to database
-\q
+\l              -- list databases
+\du             -- list users
+\c testapp_db   -- connect to database
+\q              -- quit
 ```
 
 ### Ansible test
 
-Lisa `tasks/main.yml` lõppu:
+Lisa `tasks/main.yml` lõppu, et kontrollida ühendust automaatselt:
 
 ```yaml
+# tasks/main.yml
 - name: Test database connection
-  postgresql_query:
+  community.postgresql.postgresql_query:
     db: "{{ postgres_db_name }}"
     login_user: "{{ postgres_user }}"
     login_password: "{{ postgres_password }}"
@@ -320,87 +353,89 @@ Lisa `tasks/main.yml` lõppu:
   become: yes
   become_user: postgres
   register: db_version
+  changed_when: false # See task ei muuda kunagi süsteemi
 
 - name: Show database version
   debug:
     var: db_version.query_result
 ```
 
----
+-----
 
-## 8. Esitamine
+## 8\. Esitamine
 
 **Struktuur peab olema:**
 
 ```
 ansible-role-postgresql/
 ├── defaults/
-├── vars/
-├── tasks/
-├── templates/
 ├── handlers/
 ├── meta/
-└── README.md
+├── README.md
+├── tasks/
+├── templates/
+└── vars/
 ```
 
 ### README.md peab sisaldama:
 
-* Rolli kirjeldust
-* Nõudeid
-* Muutujaid (default & internal)
-* Näidist playbook’i
-* Testimisjuhendit
-* Litsentsi ja autorit
+  * Rolli kirjeldust
+  * Nõudeid
+  * Muutujaid (default & internal)
+  * Näidist playbook’i
+  * Testimisjuhendit
+  * Litsentsi ja autorit
 
----
+-----
 
 ## Refleksioon
 
 Lisa `README.md` lõppu või eraldi faili `REFLECTION.md`:
 
-1. Mis oli kõige raskem ja kuidas lahendasid?
-2. Milline kontseptsioon oli suurim “ahaa!” hetk?
-3. Kuidas kasutaksid PostgreSQL rolli tulevikus?
-4. Kuidas selgitaksid sõbrale, mis on Ansible rollid?
-5. Mis oli sarnane ja mis erinev Nginx rolliga?
+1.  Mis oli kõige raskem ja kuidas lahendasid?
+2.  Milline kontseptsioon oli suurim “ahaa\!” hetk?
+3.  Kuidas kasutaksid PostgreSQL rolli tulevikus?
+4.  Kuidas selgitaksid sõbrale, mis on Ansible rollid?
+5.  Mis oli sarnane ja mis erinev Nginx rolliga?
 
----
+-----
 
 ## Hindamiskriteeriumid
 
-| Kriteerium    | Punktid | Kirjeldus                              |
-| ------------- | ------- | -------------------------------------- |
-| Struktuur     | 15      | Galaxy standard                        |
-| Tasks         | 20      | Paigaldamine, DB ja kasutaja loomine   |
-| Idempotentsus | 15      | changed=0 teisel käivitamisel          |
-| Muutujad      | 10      | defaults vs vars õigesti kasutatud     |
-| Template’id   | 15      | postgresql.conf + pg_hba.conf töötavad |
-| Handlers      | 10      | Restart/reload korrektsed              |
-| README        | 10      | Täielik dokumentatsioon                |
-| Refleksioon   | 5       | Kõik 5 küsimust vastatud               |
-| **Kokku**     | **100** |                                        |
+| Kriteerium    | Punktid | Kirjeldus                      |
+| ------------- | ------- | ------------------------------ |
+| Struktuur      | 15      | Galaxy standard                |
+| Tasks         | 20      | Paigaldamine, DB ja kasutaja loomine |
+| Idempotentsus | 15      | `changed=0` teisel käivitamisel    |
+| Muutujad      | 10      | `defaults` vs `vars` õigesti kasutatud |
+| Template’id   | 15      | `postgresql.conf` + `pg_hba.conf` töötavad |
+| Handlers      | 10      | Restart/reload korrektsed      |
+| README        | 10      | Täielik dokumentatsioon        |
+| Refleksioon   | 5       | Kõik 5 küsimust vastatud       |
+| **Kokku** | **100** |                                |
 
 ### Boonus (+10 punkti)
 
-* Multi-OS tugi
-* Backup cron job
-* Replication setup
+  * Multi-OS tugi
+  * Backup cron job
+  * Replication setup
 
----
+-----
 
 ## Kasulikud Ressursid
 
-* [PostgreSQL Ansible Modules](https://docs.ansible.com/ansible/latest/collections/community/postgresql/)
-* [PostgreSQL Official Docs](https://www.postgresql.org/docs/14/)
-* [Ansible Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
+  * [PostgreSQL Ansible Modules](https://docs.ansible.com/ansible/latest/collections/community/postgresql/)
+  * [PostgreSQL Official Docs](https://www.postgresql.org/docs/14/)
+  * [Ansible Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
 
-!!! tip
-- Kui `pg_hba.conf` muudatused ei mõju → tee **restart**, mitte reload
-- Kui “permission denied” → kasuta `become_user: postgres`
-- Kui template muutujad puuduvad → lisa need `defaults/main.yml`
-- Kui idempotentsus ei tööta → väldi `command` ja `shell` mooduleid
+\!\!\! tip
 
----
+  - Kui `pg_hba.conf` muudatused ei mõju → tee **restart**, mitte reload.
+  - Kui “permission denied” → kontrolli, et kasutad `become_user: postgres`.
+  - Kui template muutujad puuduvad → lisa need `defaults/main.yml` faili.
+  - Kui idempotentsus ei tööta → väldi `command` ja `shell` mooduleid; kasuta spetsiifilisi Ansible mooduleid.
+
+-----
 
 ## Esitamine
 
@@ -409,8 +444,7 @@ GitHub public repository (nt `https://github.com/SINU-USERNAME/ansible-role-post
 **Millal:**
 1 nädal pärast laborit
 **Formaat:**
-Public repo + README või REFLECTION.md
+Public repo URL + README või REFLECTION.md
+-----
 
----
-
-**Edu! 🚀**
+**Edu\! 🚀**
