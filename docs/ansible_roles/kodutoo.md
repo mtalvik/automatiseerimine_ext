@@ -33,7 +33,7 @@ Nüüd tuleb **rakendada samu põhimõtteid uue tehnoloogiaga** – PostgreSQL a
 cd ~/ansible-roles-lab/roles
 ansible-galaxy init postgresql
 cd postgresql
-````
+```
 
 **Kontrolli, et struktuur on korrektne:**
 
