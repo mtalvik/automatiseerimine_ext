@@ -7,6 +7,26 @@ Labor keskendub praktilisele Docker'i kasutamisele. Loote image'eid, käivitate 
 
 ---
 
+## Video Demo: Flask App Docker'is
+
+Enne alustamist vaata, kuidas Dockerfile'i luua ja container'i käivitada (10 min):
+
+<video width="100%" controls>
+  <source src="videos/docker-demo.mp4" type="video/mp4">
+  Teie brauser ei toeta video elementi.
+</video>
+
+**Video näitab:**
+- Dockerfile kirjutamine (optimeeritud layer caching)
+- `docker build -t flask-demo:v1 .`
+- `docker run -d -p 5000:5000 --name myapp flask-demo:v1`
+- `docker exec -it myapp sh`
+- Cleanup
+
+Nüüd proovime ise!
+
+---
+
 ## Õpiväljundid
 
 Pärast seda labor'it oskad:

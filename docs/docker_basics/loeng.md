@@ -434,4 +434,16 @@ Docker lahendab keskkondade sünkroniseerimise probleemi container'ite kaudu. Co
 
 Praktiline kasutus nõuab mõistmist image optimeerimisest, turvalisusest ja orchestration'ist. Järgmises lab'is rakendame neid teadmisi praktikas.
 
-**Järgmised sammud:** Labor, kodutöö, Kubernetes tutvustus.
+## Enesekontroll - Docker Quiz
+
+Testi oma teadmisi Docker põhimõtete kohta. Quiz sisaldab 10 küsimust ja annab kohese tagasiside.
+
+**[➡️ Ava Docker Quiz](https://docs.google.com/forms/d/e/1FAIpQLSdzu28vxMQHzW_qcUxXDe5nNmrRfs0OWg2_n3LNZMR4puxkNA/viewform)**
+
+!!! info "Quiz sisaldab"
+    - 10 multiple choice küsimust
+    - Automaatne hindamine
+    - Kohene tagasiside
+    - Aeg: ~5-10 minutit
+
+---
