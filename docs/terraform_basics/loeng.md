@@ -1,308 +1,1481 @@
-# Terraform: Infrastruktuur Koodina
+# Terraform Alused - Self-Study Materjal
 
-**Eeldused:** Linux CLI põhiteadmised, teksteditori kasutamine, versioonihalduse alused
+**Eeldused:** Linux CLI, Git, teksteditor
 
 **Platvorm:** Terraform (kohalik)
 
+**Ajakulu:** ~4-6 tundi (võid teha osade kaupa)
+
+**Dokumentatsioon:** [developer.hashicorp.com/terraform](https://developer.hashicorp.com/terraform)
+
+---
+
+## Kuidas Seda Materjali Kasutada
+
+See on **self-study** materjal - disainitud, et saad iseseisvalt läbi töötada ilma õpetajata.
+
+**Struktuur:**
+- 📖 **Teooria** - mõista kontseptsioone
+- ⚡ **Praktiline harjutus** - kohe proovi ise
+- ✅ **Checkpoint** - kontrolli kas said õigesti
+- 🔧 **Troubleshooting** - kui midagi ei tööta
+
+**Nõuanne:** Ära loe lihtsalt - **TEE harjutused**. Programmeerimist õpitakse programmeerides, mitte lugemisega.
+
+---
+
 ## Õpiväljundid
 
-Pärast seda moodulit õpilane:
+Pärast selle materjali läbimist sa:
 
-- Selgitab Infrastructure as Code kontseptsiooni ja selle eeliseid traditsioonilistele meetoditele
-- Mõistab Terraform'i arhitektuuri, state haldamist ja provider süsteemi
-- Kirjutab HCL süntaksit kasutades ressursse, muutujaid ja väljundeid
-- Võrdleb erinevaid IaC tööriistu ja nende kasutusjuhte
-- Rakendab Terraform workflow'i: init, plan, apply, destroy
-
----
-
-## 1. Infrastructure as Code Mõiste ja Vajadus
-
-Tänapäeva IT-süsteemid arenevad kiiresti ja nõuavad paindlikku, korduvkasutatavat infrastruktuuri haldamist. Infrastructure as Code (IaC) on lähenemisviis, kus infrastruktuuri komponendid kirjeldatakse deklaratiivse koodi abil, mitte konfigureeritakse käsitsi.
-
-### Probleemid traditsionaalse lähenemisega
-
-Traditsiooniline käsitsi konfiguratsioon toob kaasa mitmed väljakutsed. Inimeste tehtud vead on vältimatud, kui servereid konfigureeritakse käsitsi läbi graafilise liidese või käsurea. Iga muudatus võib tuua kaasa erinevuse võrreldes dokumentatsiooniga, sest dokumentatsioon ja reaalne olek lähevad ajapikku lahku. Skaleerumine muutub võimatuks, kui iga uus server vajab tunde aega käsitsi seadistamiseks.
-
-Näiteks kui arendusmeeskond vajab uut testikeskkonda, võib käsitsi seadistamine võtta päevi. Iga server tuleb seadistada eraldi, kontrollida võrguseadeid, installida vajalik tarkvara ning veenduda, et kõik vastab tootmiskeskkonnale. Selle protsessi käigus on lihtne jätta mõni samm vahele või teha viga konfiguratsioonis, mis võib põhjustada probleeme hiljem.
-
-### Infrastructure as Code lähenemisviis
-
-IaC muudab infrastruktuuri haldamise fundamentaalselt. Kogu infrastruktuur kirjeldatakse koodis, mis on versioonihalduses ja mida saab testida nagu igat muud tarkvara. Kui teil on vaja uut serverit, ei hakka te käsitsi nupule vajutama, vaid muudate koodi ja lasete tööriistal see luua.
-
-Selle lähenemise peamine eelis on konsistentsus. Kui infrastruktuur on kirjeldatud koodis, siis iga kord kui seda koodi käivitatakse, tekib täpselt sama tulemus. See välistab "töötab minu masinas" probleemi, sest kõik keskkonnad luuakse samast koodist. Lisaks võimaldab kood automatiseerida korduvaid ülesandeid, mis vähendab ajakulu ja vigu.
-
-IaC toob kaasa ka parema koostöö võimaluse. Kuna infrastruktuurikood on Git'is, saavad meeskonnaliikmed teha code review'd, kommenteerida muudatusi ja hoida ajalugu. Iga muudatus on dokumenteeritud ning vajadusel saab tagasi pöörata varasema versiooni juurde.
-
-### IaC põhimõtted ja eelised
-
-Infrastructure as Code rajaneb mitmele olulisele põhimõttele. Esiteks on deklaratiivsus - kirjeldate, mida soovite, mitte kuidas seda saavutada. Näiteks ütlete "tahan kolme serveriga klastrit", mitte "loo esimene server, seejärel teine, siis kolmas". Tööriist väljastab kuidas see tehakse.
-
-Idempotentsus on teine oluline põhimõte. Sama koodi korduvad käivitamised annavad alati sama tulemuse. Kui infrastruktuur on juba õiges olekus, ei tee tööriist midagi. Kui midagi on muutunud, taastatakse õige olek. See tähendab, et võite julgelt käivitada koodi mitu korda ilma muretsemata, et midagi läheb katki.
-
-Versioonihaldus on lahutamatu osa IaC-st. Kogu infrastruktuurikood elab Git repositooriumis koos rakenduskoodiga. See võimaldab jälgida, kes tegi millal milliseid muudatusi ja miks. Kui mõni muudatus tekitab probleeme, saate kiiresti rollback'i teha varasema versiooni juurde.
-
-Testimine muutub võimalikuks, kui infrastruktuur on kood. Saate kirjutada teste, mis kontrollivad, kas infrastruktuur vastab nõuetele. Näiteks saate automaatselt kontrollida, kas tulemüüri reeglid on õiged või kas andmebaasi backup on aktiveeritud. Need testid käivituvad enne tootmisse juurutamist ja hoiatavad probleemidest ette.
+- Selgitad Infrastructure as Code eeliseid konkreetsete näidetega
+- Eristad Terraform'i teistest IaC tööriistadest (Ansible, CloudFormation)
+- Kirjeldad Terraform'i arhitektuuri (Core, Providers, State)
+- Mõistad deklaratiivset lähenemist vs imperatiivne
+- Kirjutad töötavat HCL koodi
+- Kasutad Terraform workflow'i: init, plan, apply, destroy
 
 ---
 
-## 2. Terraform Arhitektuur ja Põhikomponendid
+## 1. Miks Infrastructure as Code?
 
-Terraform on HashiCorp'i loodud avatud lähtekoodiga tööriist, mis võimaldab infrastruktuuri kirjeldada deklaratiivse konfiguratsiooni kaudu. Erinevalt paljudest teistest tööriistadest on Terraform multi-cloud ja suudab hallata erinevaid platvorme ühtse süntaksiga.
+### Probleem: Käsitsi Seadistamine
 
-### Terraform'i arhitektuur
+Kujuta ette olukorda: Sul on vaja luua 5 identset serverit AWS'is. Käsitsi seadistamine tähendab:
 
-Terraform'i tuumik koosneb mitmest komponendist, mis töötavad koos. Core engine loeb konfiguratsiooni faile, ehitab ressursside graafi ja määrab, millises järjekorras ressursse luua või muuta. See engine on kirjutatud Go keeles ja on sõltumatu konkreetsetest pilveteenustest.
+1. Logi sisse AWS Console
+2. EC2 → Launch Instance
+3. Vali AMI (Amazon Linux 2)
+4. Vali instance type (t3.micro)
+5. Seadista network (VPC, subnet, security group)
+6. Seadista storage
+7. Lisa tags
+8. Käivita
 
-Provider'id on pluginad, mis võimaldavad Terraform'il suhelda erinevate teenustega. Iga teenus (AWS, Azure, Docker, kohalik failisüsteem) vajab oma provider'it. Provider teab, kuidas konkreetse teenuse API'ga suhelda ja kuidas Terraform'i deklaratiivset koodi tõlkida API päringuteks. Näiteks AWS provider oskab luua EC2 instansse, S3 bucket'eid ja VPC'd.
+Korda seda 5 korda. **Ajakulu:** 2-3 tundi.
 
-State management on Terraform'i võtmekomponent. State fail sisaldab teavet selle kohta, millised ressursid on loodud, millised on nende ID'd ja atribuudid. Ilma state failita ei teaks Terraform, mis on juba olemas ja mida on vaja muuta. State fail on nagu infrastruktuuri "mälu", mis hoiab koodi ja reaalsuse vahelist seost.
+**Probleemid:**
+- Aeganõudev - iga server võtab 20-30 min
+- Vigaderohke - inimene eksib, unustas pordi 443 avada
+- Dokumenteerimata - 6 kuud hiljem ei tea keegi, mis seal oli
+- Ei kordu - iga server veidi erinev ("snowflake")
+- Koostöö raske - kaks inimest ei saa korraga töötada
 
-Provisioner'id võimaldavad käivitada skripte või konfiguratsioonihaldustarkvara pärast ressursi loomist. Näiteks pärast serveri loomist võite installida seal tarkvara või seadistada teenuseid. Provisioner'id on aga pigem viimane abinõu - enamasti peaks infrastruktuurikood olema piisavalt deklaratiivne ilma nendeta.
+### Lahendus: Infrastructure as Code
 
-### Provider süsteem
+**IaC** tähendab: kirjuta infrastruktuuri koodina.
 
-Provider'id on Terraform'i laiendused, mis lisavad toe konkreetsetele teenustele. Iga provider avaldab ressursse ja data source'e, mida saate oma konfiguratsioonis kasutada. Näiteks AWS provider pakub üle 900 erineva ressursi tüübi, alates lihtsatest S3 bucket'itest kuni keerukate EKS klastriteni.
-
-Provider'ite installimine toimub automaatselt `terraform init` käsuga. Terraform loeb teie konfiguratsioonist, milliseid provider'eid vajate, laeb need alla Terraform Registry'st ja salvestab `.terraform` kausta. Versioonihalduks saate määrata, milliseid versioone lubada, mis tagab stabiilsuse ja aitab vältida ootamatuid muudatusi.
-
-Meie kursusel keskendume local provider'ile, mis võimaldab hallata kohalikke faile ja katalooge. See on suurepärane õppimiseks, kuna ei vaja pilve kontot ega maksmist. Local provider pakub lihtsat viisi mõista Terraform'i põhimõtteid ilma keerukate cloud keskkondadeta. Hiljem saate samu põhimõtteid rakendada mis tahes teise provider'iga.
-
-### State haldamine
-
-State fail on JSON vormingus dokument, mis sisaldab täielikku pilti teie infrastruktuurist Terraform'i perspektiivist. Iga ressurss, mille Terraform on loonud, on state failis kirjas koos oma ID, atribuutide ja sõltuvustega. Kui käivitate `terraform plan`, võrdleb Terraform teie koodi state failiga, et kindlaks teha, mis on muutunud ja mida on vaja teha.
-
-State faili asukoht on kriitiline otsus. Vaikimisi salvestatakse see kohalikku faili `terraform.tfstate`, mis on lihtne alustamiseks, aga ei toimi meeskonnatöös. Mitme inimese korral peab state olema jagatud asukohas, näiteks AWS S3 või Terraform Cloud'is. Remote state võimaldab ka state locking'ut, mis väldib samaaegseid muudatusi.
-
-State faili turvalisus on oluline, kuna see võib sisaldada tundlikku informatsiooni. Näiteks andmebaasi paroolid või API võtmed võivad state failis nähtavad olla. Seetõttu peab state fail olema krüpteeritud ja juurdepääs piiratud. Ärge kunagi pange state faili Git repositooriumisse - see kuulub `.gitignore` faili.
-
----
-
-## 3. HCL Konfiguratsioonikeel
-
-HashiCorp Configuration Language (HCL) on Terraform'i konfiguratsioonikeel, mis ühendab inimloetavuse masinate parsitavusega. HCL on deklaratiivne keel, mis tähendab, et kirjeldate soovitud lõpptulemust, mitte samme sinna jõudmiseks.
-
-### HCL süntaksi põhielemendid
-
-HCL koosneb blokkidest, argumentidest ja avaldistest. Plokk algab võtmesõnaga, millele järgnevad sildid ja looksulud. Ploki sees on argumendid, mis määravad selle ploki omadused. Näiteks ressursi plokk kirjeldab infrastruktuuri komponenti, mida soovite luua.
-
-Ressursi definitsioon algab võtmesõnaga `resource`, millele järgnevad kaks stringi: ressursi tüüp ja kohalik nimi. Ressursi tüüp määrab, mis liiki ressursiga on tegemist (näiteks `local_file`), ja kohalik nimi on teie valitud identifikaator, mida saate kasutada viitamiseks teistes kohtades. Ploki sees määrate argumendid, mis konfigureerivad seda konkreetset ressurssi.
 ```hcl
-resource "local_file" "example" {
-  content  = "Hello, Terraform!"
-  filename = "${path.module}/example.txt"
-}
-```
-
-Selles näites loome kohaliku faili. Argument `content` määrab faili sisu ja `filename` määrab kuhu see salvestada. `path.module` on sisseehitatud muutuja, mis viitab praeguse mooduli asukohale.
-
-### Muutujad ja väljundid
-
-Muutujad võimaldavad teha konfiguratsioonist dünaamilise. Selle asemel et kirjutada väärtusi otse koodi, saate need defineerida muutujatena ja anda väärtused eraldi failist või käsurea kaudu. See võimaldab sama koodi kasutada erinevates keskkondades, muutes ainult muutujate väärtusi.
-
-Muutuja definitsioon sisaldab tüüpi, vaikeväärtust ja kirjeldust. Tüüp võib olla lihtne (string, number, bool) või keerukas (list, map, object). Vaikeväärtus on oluline, kui te ei anna muutujale väärtust teisest allikast. Kirjeldus aitab teistel mõista, mida see muutuja teeb.
-```hcl
-variable "environment" {
-  description = "Deployment environment (development, staging, production)"
-  type        = string
-  default     = "development"
+# Lihtne näide - ära proovi veel käivitada!
+resource "aws_instance" "web" {
+  count         = 5
+  ami           = "ami-12345"
+  instance_type = "t3.micro"
   
-  validation {
-    condition     = contains(["development", "staging", "production"], var.environment)
-    error_message = "Environment must be one of: development, staging, production."
+  tags = {
+    Name = "web-${count.index + 1}"
   }
 }
 ```
 
-Validatsioon võimaldab kontrollida, et muutuja väärtus vastab teie nõuetele. Selles näites lubame ainult kolme spetsiifilist väärtust. Kui keegi proovib kasutada mõnda muud väärtust, annab Terraform veateate juba planeerimise faasis.
+Käivita: `terraform apply`
 
-Väljundid on viis jagada informatsiooni pärast infrastruktuuri loomist. Näiteks kui loote serveri, tahate tõenäoliselt teada selle IP aadressi. Väljund võimaldab selle väärtuse kuvada pärast `terraform apply` või kasutada seda teistes moodulites.
+**Tulemus:** 5 identset serverit 3-5 minutiga.
+
+### IaC Eelised
+
+| Aspekt | Käsitsi | IaC (Terraform) |
+|--------|---------|-----------------|
+| **Kiirus** | 5 serverit = 2-3h | 5 serverit = 3-5 min |
+| **Korratavus** | Iga kord erinev | Alati identne |
+| **Versioonihaldus** | Confluence (aegunud) | Git (alati ajakohane) |
+| **Dokumentatsioon** | Pole/aegunud | Kood ON dokumentatsioon |
+| **Koostöö** | Konfliktid | Pull request + review |
+| **Testimine** | Raske/võimatu | Dev → Staging → Prod |
+
+### Kontrolli Ennast
+
+<details>
+<summary><strong>Küsimus 1:</strong> Miks on käsitsi seadistamine probleemne? (nimetada 3 põhjust)</summary>
+
+**Vastus:**
+1. **Aeganõudev** - iga server võtab kaua aega
+2. **Vigaderohne** - inimene teeb vigu (unustab seadeid, valesti sisestab)
+3. **Ei kordu** - iga kord tuleb natuke erinev ("snowflake servers")
+4. **Dokumenteerimata** - mälu/Confluence ei ole piisav
+5. **Koostöö raske** - kaks inimest korraga = kaos
+
+(Iga kolm õige põhjus on OK vastus)
+</details>
+
+<details>
+<summary><strong>Küsimus 2:</strong> Mis on IaC peamine idee?</summary>
+
+**Vastus:**
+Infrastructure as Code = infrastruktuur kirjutatakse **koodina** (fail), mitte klõbisedes UI'des.
+
+Sarnaselt rakenduse koodiga:
+- Versioonihaldus (Git)
+- Review (pull request)
+- Testimine (dev/staging/prod)
+- Dokumentatsioon (kood ise on dok)
+</details>
+
+---
+
+## 2. Mis on Terraform?
+
+Terraform on HashiCorp'i loodud **Infrastructure as Code** tööriist.
+
+**Loodud:** 2014 (üle 10 aasta kasutuses)  
+**Keel:** Go  
+**Litsents:** Open-source (tasuta)  
+**Kasutajaid:** 1000+ ettevõtet (AWS, Microsoft, Google, GitLab, ...)
+
+### Terraform Roll
+
+Terraform **loob** infrastruktuuri. See ei konfigureeri rakendusi.
+
+**Analoogi:**
+
+```
+Maja ehitamine:
+├── Terraform ───> Ehitab maja (vundament, seinad, elekter)
+├── Ansible ────> Sisekujundus (mööbel, värv, dekoratsioonid)
+└── Kubernetes ─> Kolija (paigutab asjad õigetesse tubadesse)
+```
+
+**Näide:**
+
+| Tööriist | Roll | Näide |
+|----------|------|-------|
+| Terraform | Loob serveri | AWS EC2 instance, 2GB RAM, Ubuntu 22.04 |
+| Ansible | Seadistab serveri | Installib Nginx, MySQL, seadistab firewall |
+| Kubernetes | Deploy'b rakenduse | Paigutab konteinerid serveritele |
+
+**Tavaliselt koos:**
+```
+1. Terraform → loob 10 serverit AWS'is
+2. Ansible → installib Nginx kõigile
+3. Kubernetes → deploy'b rakenduse
+```
+
+### Terraform Tugevused
+
+#### 1. Multi-Cloud
+
+Sama kood töötab AWS'is, Azure'is, GCP's.
+
 ```hcl
-output "file_path" {
-  description = "Path to the created file"
-  value       = local_file.example.filename
+# AWS
+resource "aws_instance" "web" {
+  ami           = "ami-12345"
+  instance_type = "t3.micro"
+}
+
+# Azure (sama loogika!)
+resource "azurerm_virtual_machine" "web" {
+  name     = "web-vm"
+  size     = "Standard_B1s"
 }
 ```
 
-### Avaldised ja funktsioonid
+**Miks oluline:** Täna kasutad AWS, homme võib vaja Azure. Terraform oskad juba.
 
-HCL toetab mitmesuguseid avaldisi ja funktsioone, mis võimaldavad dünaamilist konfiguratsiooni. Ternary operator võimaldab tingimuslikku loogikat: `condition ? true_value : false_value`. See on kasulik, kui vajate erinevaid väärtusi sõltuvalt keskkonnast või teistest tingimustest.
+#### 2. Deklaratiivne
+
+Sa ütled **MIDA** tahad, mitte **KUIDAS**.
+
+```
+Imperatiivne (Bash):
+1. create_server "web1"
+2. wait_for_ready
+3. attach_security_group
+... (20 rida)
+
+Deklaratiivne (Terraform):
+resource "aws_instance" "web" {
+  count = 3
+}
+```
+
+Terraform arvutab ise, mida vaja teha.
+
+#### 3. Suur Kogukond
+
+**Terraform Registry:** [registry.terraform.io](https://registry.terraform.io/)
+
+- 3000+ **providers** (AWS, Azure, Docker, Kubernetes, GitHub, ...)
+- 10,000+ **mooduleid** (valmis lahendused)
+
+### Terraform vs Ansible
+
+| | Terraform | Ansible |
+|---|-----------|---------|
+| **Mis teeb** | Loob infrastruktuuri | Seadistab infrastruktuuri |
+| **Näide** | "Loo 10 serverit" | "Installi Nginx kõigile" |
+| **Keel** | HCL (deklaratiivne) | YAML (imperatiivne) |
+| **State** | On (terraform.tfstate) | Ei ole |
+| **Kasuta kui** | Vajad uut infrastruktuuri | Seadistad olemasolevat |
+
+### Kontrolli Ennast
+
+<details>
+<summary><strong>Küsimus 3:</strong> Mis vahe on Terraform'il ja Ansible'il?</summary>
+
+**Vastus:**
+
+**Terraform:** Loob infrastruktuuri (serverid, võrgud, andmebaasid)  
+**Ansible:** Seadistab/konfigureerib infrastruktuuri (installib tarkvara, muudab seadeid)
+
+**Analoogi:**
+- Terraform = ehitaja (ehitab maja)
+- Ansible = sisekujundaja (paneb mööbli, värvi, dekoratsioonid)
+</details>
+
+<details>
+<summary><strong>Küsimus 4:</strong> Miks Terraform on "multi-cloud"?</summary>
+
+**Vastus:**
+
+Terraform kasutab **providers** (pluginad), mis räägivad erinevate platvormidega:
+- aws provider → Amazon Web Services
+- azurerm provider → Microsoft Azure
+- google provider → Google Cloud
+
+Sama HCL süntaks, erinev provider. Õpid ühe korra, kasutad kõikjal.
+</details>
+
+---
+
+## 3. Terraform Arhitektuur
+
+Terraform = 3 komponenti:
+
+```
+┌─────────────────┐
+│  Terraform Core │  ← Aju (planeerib, otsustab)
+│     (Go)        │
+└────────┬────────┘
+         │
+    ┌────┴─────┐
+    │          │
+┌───▼───┐  ┌──▼────┐
+│AWS    │  │Azure  │  ← Käed (täidavad)
+│Provider│  │Provider│
+└───┬───┘  └──┬────┘
+    │          │
+┌───▼──────────▼───┐
+│  State File      │  ← Mälu (mäletab)
+│ terraform.tfstate│
+└──────────────────┘
+```
+
+### 1. Terraform Core (Aju)
+
+Core on Terraform'i peaprotsessor. Go keeles kirjutatud.
+
+**Mis teeb:**
+- Loeb `.tf` faile (sinu konfiguratsiooni)
+- Võrdleb: **soovitud** (kood) vs **praegune** (state)
+- Teeb plaani (mis muuta?)
+- Täidab plaani (loob/muudab/kustutab)
+
+**Analoogi:** Ehituse projektijuht. Vaatab joonist, vaatab mis ehitatud, planeerib järgmised sammud.
+
+### 2. Providers (Käed)
+
+Providers = pluginad, mis räägivad API'dega.
+
+**Konfiguratsioon:**
+
+```hcl
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "eu-north-1"  # Stockholm
+}
+```
+
+**Kuidas töötab:**
+
+```
+Sina: "Tahan serveri"
+  ↓
+Core: "OK, kasutan AWS provider'it"
+  ↓
+AWS Provider: "CreateInstance API call..."
+  ↓
+AWS: "Valmis! ID: i-12345"
+  ↓
+Core: "Salvestan state'i"
+```
+
+**Populaarsed providers:**
+
+| Provider | Kasutus |
+|----------|---------|
+| **aws** | Amazon Web Services |
+| **azurerm** | Microsoft Azure |
+| **google** | Google Cloud Platform |
+| **docker** | Docker konteinerid |
+| **kubernetes** | Kubernetes klaster |
+| **local** | Lokaalsed failid (õppimiseks!) |
+
+### 3. State File (Mälu)
+
+State = `terraform.tfstate` fail. JSON vormingus.
+
+**Miks oluline:**
+
+```
+Sina: "Tahan 3 serverit"
+  ↓
+Terraform: *vaatab state'i*
+Terraform: "Praegu on 2, loon 1 juurde"
+```
+
+**Ilma state'ita:**
+
+```
+Terraform: "Loon 3 uut!"
+AWS: "Aga sul on juba 2..."
+Terraform: *loob ikka*
+Tulemus: 5 serverit. Ootamatu arve.
+```
+
+**State sisaldab:**
+- Kõik loodud ressursid
+- ID'd (i-12345, sg-67890)
+- Atribuudid (IP, subnet, jne)
+- Sõltuvused
+
+**KRIITILINE:** State võib sisaldada saladusi (paroolid, API key'd).
+
+**ÄRA PANE GIT'I!**
+
+```gitignore
+# .gitignore
+*.tfstate
+*.tfstate.*
+.terraform/
+```
+
+### Kontrolli Ennast
+
+<details>
+<summary><strong>Küsimus 5:</strong> Mis on Terraform Core, Provider ja State roll?</summary>
+
+**Vastus:**
+
+- **Core** = Aju (planeerib, otsustab, koordineerib)
+- **Provider** = Käed (räägivad API'dega, täidavad käske)
+- **State** = Mälu (mäletab, mis on loodud)
+
+**Analoogi:** Projektijuht (Core) annab käsu ehitajatele (Provider) ja märgib päevikusse (State) mis on tehtud.
+</details>
+
+<details>
+<summary><strong>Küsimus 6:</strong> Miks state fail on oluline?</summary>
+
+**Vastus:**
+
+State fail hoiab **päris infrastruktuuri seisu**. Ilma selleta Terraform ei tea:
+- Mis ressursid on juba loodud
+- Millised ID'd neil on
+- Kas midagi on muutunud
+
+Kui state kadub = Terraform on pime. Ta ei tea, mis AWS'is on, ja võib hakata looma duplikaate.
+
+**Tähtis:** State sisaldab saladusi → ära pane Git'i!
+</details>
+
+---
+
+## 4. Deklaratiivne vs Imperatiivne
+
+See on Terraform'i **kõige olulisem** kontseptsioon. Kui mõistad seda, mõistad Terraform'i.
+
+### Imperatiivne (KUIDAS?)
+
+Kirjeldad **samme**. Annad täpsed instruktsionid.
+
+**Näide - Bash:**
+
+```bash
+#!/bin/bash
+# Imperatiivne: kirjeldad samme
+
+echo "Loon security group..."
+aws ec2 create-security-group --group-name web-sg
+
+echo "Avan pordi 80..."
+aws ec2 authorize-security-group-ingress \
+  --group-name web-sg --port 80
+
+echo "Loon 5 serverit..."
+for i in {1..5}; do
+    aws ec2 run-instances --instance-type t3.micro
+done
+```
+
+**Probleem:** Käivita teist korda:
+
+```bash
+./create-servers.sh
+
+# Tulemus: 10 serverit!
+# Script ei tea, et 5 on juba olemas.
+```
+
+### Deklaratiivne (MIDA?)
+
+Kirjeldad **tulemust**. Tööriist väljastab samme ise.
+
+**Näide - Terraform:**
+
+```hcl
+# Deklaratiivne: kirjeldad tulemust
+
+resource "aws_security_group" "web" {
+  name = "web-sg"
+  
+  ingress {
+    from_port = 80
+    to_port   = 80
+    protocol  = "tcp"
+  }
+}
+
+resource "aws_instance" "web" {
+  count         = 5
+  instance_type = "t3.micro"
+  
+  vpc_security_group_ids = [aws_security_group.web.id]
+}
+```
+
+**Käivita mitu korda:**
+
+```bash
+terraform apply  # 1. kord: loob 5 serverit
+terraform apply  # 2. kord: ei tee midagi
+terraform apply  # 3. kord: ei tee midagi
+```
+
+Terraform teab (tänu state'ile), mis on olemas. **Idempotent!**
+
+### Võrdlus
+
+| Aspekt | Imperatiivne | Deklaratiivne |
+|--------|--------------|---------------|
+| **Kirjeldad** | KUIDAS (sammud) | MIDA (tulemus) |
+| **Näide** | "Loo server, siis võrk" | "Tahan 5 serverit" |
+| **Kordamine** | Loob duplikaate | Idempotent (ei muuda 2. kord) |
+| **State** | Sina pead meeles pidama | Tööriist mäletab |
+| **Fail** | Kasvab pidevalt | Jääb lühikeseks |
+
+### Update Stsenaarium
+
+**Olukord:** Sul on 5 serverit. Tahad nüüd 7.
+
+#### Imperatiivne:
+
+```bash
+#!/bin/bash
+# Pead ise arvestama
+
+# Lisa 2 serverit (5 + 2 = 7)
+for i in {1..2}; do
+    aws ec2 run-instances --instance-type t3.micro
+done
+```
+
+Pead ise arvutama: "5 → 7 = 2 juurde".
+
+#### Deklaratiivne:
+
+```hcl
+resource "aws_instance" "web" {
+  count = 7  # Muutsime 5 → 7
+  instance_type = "t3.micro"
+}
+```
+
+```bash
+terraform apply
+# Terraform: "On 5, peab olema 7. Loon 2."
+```
+
+Sa ei pea arvutama. Terraform teeb ise.
+
+### Kontrolli Ennast
+
+<details>
+<summary><strong>Küsimus 7:</strong> Mis vahe on imperatiivsel ja deklaratiivsel lähenemisel?</summary>
+
+**Vastus:**
+
+**Imperatiivne:** Kirjeldad **KUIDAS** (sammud)
+- Näide: "Esmalt loo security group, siis ava port 80, siis loo 5 serverit"
+- Probleem: Kordamine loob duplikaate
+
+**Deklaratiivne:** Kirjeldad **MIDA** (tulemus)
+- Näide: "Tahan 5 serverit"
+- Eelis: Idempotent - 2. kord ei muuda midagi
+</details>
+
+<details>
+<summary><strong>Küsimus 8:</strong> Miks Terraform on idempotent?</summary>
+
+**Vastus:**
+
+**Idempotent** = sama käsk mitu korda ei muuda tulemust.
+
+Terraform kasutab **state faili** - ta teab, mis on juba loodud. Kui käivitad `terraform apply` uuesti:
+1. Terraform loeb state'i
+2. Võrdleb koodiga
+3. Kui midagi pole muutunud → ei tee midagi
+
+Tulemus: Turvaline käivitada mitu korda, ei teki duplikaate.
+</details>
+
+---
+
+## 5. HCL Keel - HashiCorp Configuration Language
+
+HCL on Terraform'i konfiguratsioonikeel. Disainitud inimestele loetavaks.
+
+### Põhisüntaks
+
+```hcl
+<TYPE> "<LABEL>" "<LABEL>" {
+  argument = value
+}
+```
+
+**Näide:**
+
+```hcl
+resource "local_file" "greeting" {
+  filename = "/tmp/hello.txt"
+  content  = "Tere, Terraform!"
+}
+```
+
+**Selgitus:**
+- `resource` = block type
+- `"local_file"` = ressursi tüüp (lokaalne fail)
+- `"greeting"` = meie antud nimi (võid valida mis tahes)
+- `filename`, `content` = argumendid
+
+### Resources
+
+Resource = miski, mida Terraform loob.
+
+**Lokaalne fail:**
+
 ```hcl
 resource "local_file" "config" {
-  content = var.environment == "production" ? "prod_config" : "dev_config"
-  filename = "${path.module}/config.txt"
+  filename        = "app.conf"
+  content         = "port=8080\ndebug=true"
+  file_permission = "0644"
 }
 ```
 
-Sisseehitatud funktsioonid pakuvad võimsaid töötlusvõimalusi. `jsonencode` ja `yamlencode` konverteerivad Terraform'i objekte JSON või YAML vormingusse. `file` funktsioon loeb faili sisu. `concat` ja `merge` võimaldavad nimekirju ja mape kombineerida. `lookup` otsib väärtust mapist vaikeväärtusega.
+**Selgitus rea-haaval:**
+1. `resource "local_file"` - ressursi tüüp (lokaalne fail)
+2. `"config"` - meie nimi (viitamiseks)
+3. `filename` - faili asukoht
+4. `content` - faili sisu
+5. `file_permission` - õigused (644 = rw-r--r--)
 
-Stringide interpolatsioon võimaldab dünaamiliselt ehitada stringe, kombineerides staatilise teksti ja muutujaid. Kasutatakse `${}` süntaksit muutuja või avaldise sisestamiseks stringi sisse. See on eriti kasulik failinimede, tagide või sõnumite loomisel.
+**AWS server:**
 
-### Tsüklid ja iteratsioon
-
-Terraform võimaldab luua mitut sarnast ressurssi kahe erineva lähenemisega: `count` ja `for_each`. Count on lihtsam, kasutades numbrilist indeksit, samas kui for_each on võimsam, lubades itereerida üle mapide või setide.
-
-Count kasutamisel viitate konkreetsele instantsile `count.index` kaudu, mis on nullist algav täisarv. See on hea, kui vajate kindlat arvu sarnaseid ressursse ja järjekord ei ole oluline.
 ```hcl
-resource "local_file" "example" {
-  count    = 3
-  content  = "File number ${count.index}"
-  filename = "${path.module}/file_${count.index}.txt"
-}
-```
-
-For_each on paindlikum, võimaldades kasutada nii mape kui sette. Viitate praegusele elemendile `each.key` ja `each.value` kaudu, mis teeb koodi loetavamaks ja haldatavamaks. For_each on eelistatud, kui ressursside identiteet on oluline või kui võite vajada ressursse hiljem eemaldada keskel.
-```hcl
-variable "files" {
-  type = map(string)
-  default = {
-    "config"  = "Configuration file"
-    "data"    = "Data file"
-    "log"     = "Log file"
+resource "aws_instance" "web" {
+  ami           = "ami-12345"           # Amazon Machine Image
+  instance_type = "t3.micro"            # Serveri suurus
+  
+  tags = {
+    Name = "WebServer"
+    Env  = "Dev"
   }
 }
+```
 
-resource "local_file" "files" {
-  for_each = var.files
-  content  = each.value
-  filename = "${path.module}/${each.key}.txt"
+### Sõltuvused
+
+Terraform loob automaatselt sõltuvusi.
+
+```hcl
+# 1. Esmalt security group
+resource "aws_security_group" "web" {
+  name = "web-sg"
 }
+
+# 2. Siis server (kasutab SG'd)
+resource "aws_instance" "web" {
+  ami                    = "ami-12345"
+  instance_type          = "t3.micro"
+  vpc_security_group_ids = [aws_security_group.web.id]
+  # ↑ automaatne sõltuvus!
+}
+```
+
+Terraform teab: "Teen SG enne, siis serveri."
+
+```
+aws_security_group.web → aws_instance.web
+```
+
+### Variables (Muutujad)
+
+Muutujad = dünaamilised väärtused.
+
+```hcl
+variable "environment" {
+  description = "Keskkond: dev või prod"
+  type        = string
+  default     = "dev"
+}
+
+resource "aws_instance" "app" {
+  instance_type = var.environment == "prod" ? "t3.large" : "t3.micro"
+  
+  tags = {
+    Env = var.environment
+  }
+}
+```
+
+**Selgitus:**
+- `variable` block - deklareerib muutuja
+- `var.environment` - kasutab muutujat
+- Ternary operator: `condition ? if_true : if_false`
+
+**Kasutamine:**
+
+```bash
+terraform apply -var="environment=prod"
+```
+
+### Outputs (Väljundid)
+
+Outputs = info pärast loomist.
+
+```hcl
+output "server_ip" {
+  description = "Serveri avalik IP"
+  value       = aws_instance.web.public_ip
+}
+```
+
+Pärast `terraform apply`:
+
+```
+Outputs:
+server_ip = "13.51.123.45"
+```
+
+### Funktsioonid
+
+HCL sisaldab kasulikke funktsioone.
+
+```hcl
+# Faili sisu
+content = file("config.json")
+
+# JSON encode
+metadata = jsonencode({
+  name = "app"
+  version = "1.0"
+})
+
+# String template
+message = "Tere, ${var.name}!"
+
+# Timestamp
+created_at = timestamp()
+
+# Format string
+name = format("server-%03d", count.index + 1)
+# Tulemus: server-001, server-002, ...
+```
+
+### ⚡ Praktiline Harjutus 1: Esimene Terraform Kood
+
+**Eesmärk:** Loo lokaalne fail Terraform'iga.
+
+**Sammud:**
+
+1. **Loo kaust:**
+
+```bash
+mkdir ~/terraform-test && cd ~/terraform-test
+```
+
+2. **Loo fail `main.tf`:**
+
+```hcl
+resource "local_file" "hello" {
+  filename = "/tmp/terraform-hello.txt"
+  content  = "Tere, see on minu esimene Terraform fail!"
+}
+
+output "file_path" {
+  value = local_file.hello.filename
+}
+```
+
+3. **Salvesta fail** (Ctrl+O, Enter, Ctrl+X kui kasutad `nano`)
+
+✅ **Checkpoint:** `ls -la` peaks näitama `main.tf` faili.
+
+**Märkused:**
+- `resource "local_file"` - lokaalne fail (ei vaja AWS/Azure)
+- `"hello"` - meie nimi (võid muuta)
+- `/tmp/terraform-hello.txt` - kuhu fail luuakse
+- `output` - näitab meile faili teed
+
+---
+
+## 6. Terraform Workflow
+
+Terraform'i kasutamine = 4 sammu tsükkel:
+
+```
+init → plan → apply → (destroy)
+  ↑                         ↓
+  └─────────────────────────┘
+```
+
+### 1. terraform init
+
+Valmistab projekti ette.
+
+```bash
+terraform init
+```
+
+**Mis toimub:**
+- Laeb provider'id (local, aws, azure, ...)
+- Seadistab backend'i (kus state salvestatakse)
+- Init-ib moodulid
+
+**Output:**
+
+```
+Initializing the backend...
+Initializing provider plugins...
+- Finding latest version of hashicorp/local...
+- Installing hashicorp/local v2.4.0...
+
+Terraform has been successfully initialized!
+```
+
+**Millal käivita:**
+- Esimest korda projektis
+- Lisad uue provider'i
+- Clone'id repo Git'ist
+
+**Kui unustada:**
+
+```bash
+terraform plan
+# Error: Could not load plugin
+# Run: terraform init
+```
+
+### 2. terraform plan
+
+Näitab, mis muutub. **EI MUUDA MIDAGI!**
+
+```bash
+terraform plan
+```
+
+**Sümbolid:**
+
+| Sümbol | Tähendus | Näide |
+|--------|----------|-------|
+| `+` | Luuakse | Uus server |
+| `-` | Kustutatakse | Vana server |
+| `~` | Muudetakse | Port 80 → 443 |
+| `-/+` | Replace | Instance type muutus |
+
+**Output:**
+
+```terraform
+Terraform will perform the following actions:
+
+  # local_file.hello will be created
+  + resource "local_file" "hello" {
+      + content              = "Tere, see on minu esimene Terraform fail!"
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "/tmp/terraform-hello.txt"
+      + id                   = (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+```
+
+**ALATI tee plan enne apply!** See näitab, mis juhtub.
+
+### 3. terraform apply
+
+Rakendab muudatused **PÄRISELT**.
+
+```bash
+terraform apply
+```
+
+Küsib kinnitust:
+
+```
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+```
+
+**Output:**
+
+```
+local_file.hello: Creating...
+local_file.hello: Creation complete after 0s [id=abc123...]
+
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+Outputs:
+file_path = "/tmp/terraform-hello.txt"
+```
+
+**Automaatne (ohtlik!):**
+
+```bash
+terraform apply -auto-approve
+```
+
+Kasuta ainult kui **100% kindel**!
+
+### 4. terraform destroy
+
+Kustutab **KÕIK** ressursid.
+
+```bash
+terraform destroy
+```
+
+**HOIATUS:** Pöördumatu!
+
+**Output:**
+
+```
+local_file.hello: Destroying... [id=abc123...]
+local_file.hello: Destruction complete after 0s
+
+Destroy complete! Resources: 1 destroyed.
+```
+
+### ⚡ Praktiline Harjutus 2: Terraform Workflow
+
+**Eesmärk:** Läbi kogu Terraform tsükkel.
+
+**Sammud:**
+
+1. **Init (kui pole veel teinud):**
+
+```bash
+cd ~/terraform-test
+terraform init
+```
+
+✅ **Checkpoint:** Peaks ilmuma `.terraform/` kaust ja `terraform.lock.hcl` fail.
+
+2. **Plan:**
+
+```bash
+terraform plan
+```
+
+✅ **Checkpoint:** Peaks näitama:
+```
+Plan: 1 to add, 0 to change, 0 to destroy.
+```
+
+3. **Apply:**
+
+```bash
+terraform apply
+```
+
+Sisesta: `yes`
+
+✅ **Checkpoint:** Peaks näitama:
+```
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+```
+
+4. **Kontrolli:**
+
+```bash
+cat /tmp/terraform-hello.txt
+```
+
+✅ **Checkpoint:** Peaks näitama: `Tere, see on minu esimene Terraform fail!`
+
+5. **Vaata state'i:**
+
+```bash
+cat terraform.tfstate
+```
+
+✅ **Checkpoint:** JSON fail, sisaldab `local_file.hello` infot.
+
+6. **Apply uuesti (idempotence test):**
+
+```bash
+terraform apply
+```
+
+✅ **Checkpoint:** Peaks näitama:
+```
+No changes. Your infrastructure matches the configuration.
+```
+
+7. **Destroy:**
+
+```bash
+terraform destroy
+```
+
+Sisesta: `yes`
+
+✅ **Checkpoint:** Fail `/tmp/terraform-hello.txt` on kustutatud.
+
+```bash
+ls -la /tmp/terraform-hello.txt
+# ls: cannot access '/tmp/terraform-hello.txt': No such file or directory
+```
+
+### 🔧 Troubleshooting
+
+**Probleem 1:** `terraform: command not found`
+
+**Lahendus:** Terraform pole installitud või pole PATH'is.
+
+```bash
+# Kontrolli:
+which terraform
+
+# Kui puudub, installi:
+# Ubuntu/Debian
+sudo apt update
+sudo apt install -y gnupg software-properties-common
+wget -O- https://apt.releases.hashicorp.com/gpg | \
+    gpg --dearmor | \
+    sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+    https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+    sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update
+sudo apt install terraform
+
+# macOS
+brew install terraform
+```
+
+**Probleem 2:** `Error: Could not load plugin`
+
+**Lahendus:** Käivita `terraform init` uuesti.
+
+```bash
+rm -rf .terraform
+terraform init
+```
+
+**Probleem 3:** `Error: Permission denied: /tmp/terraform-hello.txt`
+
+**Lahendus:** Sul pole õigust `/tmp/` kirjutada (ebatavaline) või fail on olemas ja on read-only.
+
+```bash
+# Kontrolli:
+ls -la /tmp/terraform-hello.txt
+
+# Kui on read-only:
+chmod 644 /tmp/terraform-hello.txt
+rm /tmp/terraform-hello.txt
+
+# Proovi uuesti:
+terraform apply
+```
+
+**Probleem 4:** `Error: Unsupported block type`
+
+**Lahendus:** Süntaksi viga `main.tf` failis. Kontrolli:
+- Kas `resource` on õigesti kirjutatud?
+- Kas kõik sulgud `{ }` on paarid?
+- Kas stringid on jutumärkides `" "`?
+
+```bash
+# Kontrolli süntaksit:
+terraform validate
 ```
 
 ---
 
-## 4. Terraform Workflow
+## 7. State Haldamine
 
-Terraform'i kasutamine järgib kindlat töövoogu, mis koosneb neljast põhilisest sammust. Iga samm täidab konkreetset rolli ja koos moodustavad need turvalise ja ennustatava viisi infrastruktuuri haldamiseks.
+State fail on Terraform'i **kõige kriitilisem** komponent.
 
-### Initialization (terraform init)
+### State'i Sisemus
 
-Esimene samm igal projektiga on initsialisatsioon. Käsuga `terraform init` ettevalmistame töökataloogi Terraform'i kasutamiseks. See käsk laeb alla vajalikud provider pluginad, seadistab backend'i state haldamiseks ja initsialiseerib moodulid.
+Ava `terraform.tfstate` fail:
 
-Initsialisatsioon loeb teie konfiguratsiooni failidest, milliseid provider'eid ja mooduleid vajate. Seejärel kontrollib Terraform Registry'st nende viimaste versioone (või kasutab teie määratud versioone) ja laeb need alla. Pluginad salvestatakse `.terraform` kausta, mida tuleks lisada `.gitignore` faili.
+```bash
+cat terraform.tfstate
+```
 
-Backend konfigureerimine määrab, kuhu state fail salvestatakse. Vaikimisi kasutatakse local backend'i, mis salvestab state faili samasse kausta. Tootmiskeskkondades tuleks kasutada remote backend'i, nagu AWS S3 või Terraform Cloud, mis võimaldab meeskonnatööd ja state locking'ut.
+See on JSON. **Ära muuda käsitsi!**
 
-Initsialisatsioon on ohutu operatsioon, mida saate käivitada mitu korda. Kui lisate uue provider'i või mooduli, käivitage uuesti `terraform init`. See ei mõjuta teie olemasolevat infrastruktuuri ega state faili.
+**Struktuur:**
 
-### Planning (terraform plan)
+```json
+{
+  "version": 4,
+  "terraform_version": "1.6.0",
+  "serial": 1,
+  "lineage": "abc-123-def",
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "local_file",
+      "name": "hello",
+      "provider": "provider[\"registry.terraform.io/hashicorp/local\"]",
+      "instances": [
+        {
+          "attributes": {
+            "content": "Tere, see on minu esimene Terraform fail!",
+            "filename": "/tmp/terraform-hello.txt",
+            "id": "abc123...",
+            "content_md5": "xyz789..."
+          }
+        }
+      ]
+    }
+  ]
+}
+```
 
-Planeerimise samm on Terraform'i võtmevõimalus - see näitab teile, mida käsk `terraform apply` teeks, ilma midagi tegelikult muutmata. Plan võrdleb teie konfiguratsiooni (soovitud olek) state failiga (praegune olek) ja määrab vajalikud muudatused.
+**Sisaldab:**
+- `version` - state formaat
+- `terraform_version` - Terraform versioon
+- `serial` - inkrementeeruv number (iga apply suurendab)
+- `resources` - kõik loodud ressursid
 
-Plan väljund kasutab sümboleid näitamaks operatsiooni tüüpi. Plussmärk tähendab uue ressursi loomist. Miinusmärk näitab kustutamist. Tilde märgib in-place uuendust, kus ressurss muudetakse ilma seda kustutamata. Miinus-pluss kombinatsioon tähendab, et ressurss kustutatakse ja luuakse uuesti.
+### State'i Elutsükkel
 
-Plan on oluline turvalisuse mehhanism. See laseb teil kontrollida muudatusi enne nende rakendamist, andes võimaluse avastada vigu või soovimatud mõjud. Tootmiskeskkonnas peaks plan alati review'tama enne apply käsu käivitamist, võimalusel teise inimese poolt.
+```
+terraform apply
+    ↓
+Read current state
+    ↓
+Compare with config
+    ↓
+Differences?
+    ↓
+Yes → Make changes → Update state
+No  → Do nothing
+```
 
-Plani saate salvestada faili kasutades `-out` lippu. See loob binaarse faili, mis sisaldab täpset tegevuskava. Hiljem saate seda kasutada `terraform apply` käsuga, mis tagab, et rakendatakse täpselt see, mida planeeriti, isegi kui konfiguratsioon või state on vahepeal muutunud.
+### State Lock
 
-### Applying (terraform apply)
+Kui kaks inimest käivitab `terraform apply` samaaegselt, tekib kaos.
 
-Apply samm viib muudatused ellu. See loob, muudab või kustutab ressursse vastavalt planeeritud tegevuskavale. Vaikimisi käivitab apply esmalt plani ja küsib seejärel kinnitust enne jätkamist, pakkudes viimast võimalust muudatusi üle vaadata.
+**State lock** kaitseb selle eest:
 
-Apply käib läbi ressursse kindlas järjekorras, austades sõltuvusi. Kui ressurss A sõltub ressursist B, loob Terraform esmalt B, seejärel A. Need sõltuvused tuvastatakse automaatselt koodist - kui viitate teise ressursi atribuudile, loob Terraform sõltuvuse. Vajadusel saate kasutada `depends_on` argumenti eksplitseetse sõltuvuse määramiseks.
+```bash
+# Terminal 1
+$ terraform apply
+Acquiring state lock. This may take a few moments...
 
-Apply käigus näete reaalajas progressi. Terraform kuvab, milline ressurss on parasjagu töös ja kui kaua see on võtnud. Mõned operatsioonid, nagu suurte serverite käivitamine, võivad võtta mitu minutit. Terraform ootab, kuni ressurss on täielikult valmis enne järgmise juurde liikumist.
+# Terminal 2 (samaaegselt)
+$ terraform apply
+Error: Error acquiring the state lock
+Lock ID: abc-123
+```
 
-Kui apply ebaõnnestub pooleli, jääb teie infrastruktuur osaliselt rakendatud olekusse. Terraform salvestab state faili kõik edukalt loodud ressursid ja järgmine apply proovib jätkata sealt, kus pooleli jäi. Seetõttu on oluline hoida state fail kaitstud ja syncis.
+Teine protsess **ootab**, kuni esimene lõpetab.
 
-### Destruction (terraform destroy)
+**Märkus:** Lokaalne state ei kasuta lock'i. Remote backend (S3 + DynamoDB) kasutab.
 
-Destroy käsk eemaldab kogu Terraform'i poolt hallatud infrastruktuuri. See loeb state faili, määrab kõik ressursid ja kustutab need vastupidises järjekorras võrreldes nende loomisega. Kui ressurss A sõltub B-st, kustutatakse esmalt A, seejärel B.
+### State'i Ohud
 
-Enne kustutamist näitab Terraform, mida ta kavatseb eemaldada, ja küsib kinnitust. See on ohutu mehhanism juhusliku infrastruktuuri hävitamise vältimiseks. Tootmiskeskkondades võite kasutada lifecycle plokis `prevent_destroy = true`, mis keeldub ressurssi kustutamast isegi destroy käsuga.
+**1. Saladused**
 
-Osalist kustutamist saate teha kasutades `-target` lippu, mis määrab konkreetsed ressursid eemaldamiseks. See on kasulik arenduses, kuid tootmises tuleks vältida, kuna võib tekitada sõltuvusprobleeme. Parem on eemaldada ressursi definitsioon koodist ja lasta apply'l see kustutada.
+State fail sisaldab **kõike**, sh saladusi.
 
-Pärast destroy on state fail tühi, aga fail ise jääb alles. Kui hiljem käivitate uuesti apply, loob Terraform kõik ressursid uuesti, aga need saavad uued ID'd ja algavad puhtalt lehelt.
+```hcl
+resource "aws_db_instance" "main" {
+  username = "admin"
+  password = "SuperSecret123!"
+}
+```
+
+Pärast `terraform apply` → `terraform.tfstate` sisaldab:
+
+```json
+{
+  "resources": [{
+    "attributes": {
+      "username": "admin",
+      "password": "SuperSecret123!"  ← PLAIN TEXT!
+    }
+  }]
+}
+```
+
+**Lahendus:** Kasuta remote backend (S3) + encryption.
+
+**2. State kaotsiminek**
+
+Kui `terraform.tfstate` kustub → Terraform ei tea, mis on loodud.
+
+**Stsenaarium:**
+
+```bash
+$ rm terraform.tfstate  # Kogemata
+$ terraform apply
+# Terraform: "Pole midagi, loon kõik uuesti!"
+# AWS: Tulemus - duplikaadid
+```
+
+**Lahendus:** Alati backup! Kasuta remote backend (S3) + versioning.
+
+### ⚡ Praktiline Harjutus 3: State Manipulatsioon
+
+**Eesmärk:** Mõista, kuidas state mõjutab Terraform'i käitumist.
+
+**Sammud:**
+
+1. **Loo ressurss:**
+
+```bash
+cd ~/terraform-test
+
+# main.tf peaks olemas olema
+terraform apply -auto-approve
+```
+
+✅ **Checkpoint:** Fail `/tmp/terraform-hello.txt` on loodud.
+
+2. **Vaata state'i:**
+
+```bash
+cat terraform.tfstate | grep "filename"
+```
+
+✅ **Checkpoint:** Peaks näitama: `"filename": "/tmp/terraform-hello.txt"`
+
+3. **Muuda faili käsitsi (mitte Terraform'iga!):**
+
+```bash
+echo "Muudetud käsitsi!" > /tmp/terraform-hello.txt
+```
+
+4. **Käivita plan:**
+
+```bash
+terraform plan
+```
+
+✅ **Checkpoint:** Terraform **ei märka** muudatust!
+
+**Miks?** Terraform võrdleb ainult:
+- Config (`main.tf`) vs State (`terraform.tfstate`)
+
+Ta **ei kontrolli** päris faili sisu!
+
+5. **Force update:**
+
+```bash
+terraform apply -replace="local_file.hello"
+```
+
+✅ **Checkpoint:** Fail taastatud originaal sisuga.
+
+6. **Kustuta state (TEST!):**
+
+```bash
+rm terraform.tfstate
+rm terraform.tfstate.backup
+```
+
+7. **Käivita plan:**
+
+```bash
+terraform plan
+```
+
+✅ **Checkpoint:** Terraform arvab, et midagi pole loodud:
+
+```
+Plan: 1 to add, 0 to change, 0 to destroy.
+```
+
+Aga fail `/tmp/terraform-hello.txt` on **ikka olemas**!
+
+8. **Apply (loob duplikaadi?):**
+
+```bash
+terraform apply -auto-approve
+```
+
+**Tulemus:** Fail üle kirjutatud (local_file ei saa duplikaate, aga AWS'is tekiks!).
+
+9. **Cleanup:**
+
+```bash
+terraform destroy -auto-approve
+```
+
+### Kontrolli Ennast
+
+<details>
+<summary><strong>Küsimus 9:</strong> Mis on state fail ja miks see on oluline?</summary>
+
+**Vastus:**
+
+**State fail** (`terraform.tfstate`) = JSON fail, kus Terraform hoiab infot loodud ressursside kohta.
+
+**Sisaldab:**
+- Kõik ressursi ID'd
+- Atribuudid (IP'd, nimesid, jne)
+- Sõltuvused
+
+**Miks oluline:**
+- Ilma selleta Terraform ei tea, mis on loodud
+- Kasutatakse võrdlemiseks: config vs tegelikkus
+- Võimaldab idempotentsust
+
+**HOIATUS:** Sisaldab saladusi → ära pane avalikku Git'i!
+</details>
+
+<details>
+<summary><strong>Küsimus 10:</strong> Mida teeb Terraform, kui state fail kaob?</summary>
+
+**Vastus:**
+
+Kui state fail kaob:
+1. Terraform arvab, et **midagi pole loodud**
+2. `terraform plan` näitab: "Loon kõik ressursid"
+3. `terraform apply` proovib **uuesti luua**
+
+**Tulemus:**
+- Lokaalsed ressursid (failid) → üle kirjutatud
+- Cloud ressursid (AWS/Azure) → **duplikaadid**, konfliktid, vead
+
+**Õppetund:** Alati backup state! Kasuta remote backend (S3) + versioning.
+</details>
 
 ---
 
-## 5. Best Practices ja Levinud Mustrid
+## 8. Kokkuvõte ja Järgmised Sammud
 
-Terraform'i efektiivne kasutamine nõuab rohkemat kui ainult süntaksi tundmist. Aastaid kogunenud kogemus on välja kujundanud parimad praktikad, mis aitavad vältida levinud vigu ja teevad teie infrastruktuuri hallatavaks.
+### Mida Sa Nüüd Oskad
 
-### Koodi organisatsioon
+✅ **IaC Kontseptsioon:**
+- Infrastruktuur koodina
+- Versioonihaldus, korratavus, dokumentatsioon
 
-Failide struktuur peaks olema loogiline ja järjekindel. Algajatele sobib lihtne kolme faili muster: `main.tf` ressursside jaoks, `variables.tf` sisendite jaoks ja `outputs.tf` väljundite jaoks. See hoiab asju organiseerituna ilma üleliigse keerukuseta.
+✅ **Terraform Arhitektuur:**
+- Core (aju), Providers (käed), State (mälu)
 
-Kui projekt kasvab, tasub kaaluda temaatilist jaotust. Võrguseadistused võivad olla `network.tf` failis, andmebaasid `database.tf` failis ja nii edasi. See teeb spetsiifiliste komponentide leidmise lihtsamaks ja vähendab merge konfliktide tõenäosust meeskonnatöös.
+✅ **Deklaratiivne Lähenemine:**
+- Kirjelda MIDA, mitte KUIDAS
+- Idempotentsus - turvaline käivitada mitu korda
 
-Moodulite kasutamine võimaldab koodi taaskasutamist. Tavaline muster on luua `modules/` kaust, kus iga alamkaust esindab taaskasutatavat komponenti. Näiteks `modules/web-server/` võib sisaldada kõike vajalikku veebiserveri loomiseks, mida saate kasutada erinevates keskkondades või projektides.
+✅ **HCL Keel:**
+- `resource`, `variable`, `output`
+- Sõltuvused, funktsioonid
 
-Keskkondade eristamine on samuti oluline. Üks lähenemine on kasutada eraldi katalooge iga keskkonna jaoks: `environments/dev/`, `environments/staging/`, `environments/prod/`. Iga kaust sisaldab oma `terraform.tfvars` faili keskkonnaspetsiifiliste väärtustega, aga jagab sama põhikoodi läbi moodulite.
+✅ **Terraform Workflow:**
+- `init` → `plan` → `apply` → (`destroy`)
 
-### Versioonihaldus
+✅ **State Haldamine:**
+- Mis on state fail
+- Miks see on kriitiline
+- Kuidas seda kaitsta
 
-Terraform'i konfiguratsiooni peab hoidma versioonihalduses, kuid mitte kõik failid kuuluvad Git'i. State failid, `.terraform/` kaust ja plaanifailid tuleb lisada `.gitignore` faili. Need sisaldavad kas tundlikku informatsiooni või on masinloetavad binaarfailid, mis ei kuulu source control'i.
+### Praktiline Test (Testimiseks)
 
-Git workflow peaks toetama review protsessi. Iga muudatus peaks tulema läbi pull request'i, kus vähemalt üks teine inimene vaatab üle. Pull request'i kirjelduses tuleks selgitada, miks muudatus on vajalik ja mida see mõjutab. Ideaalis peaks pull request sisaldama ka `terraform plan` väljundit, et reviewer näeks täpset mõju.
+Proovi luua see ilma vaatamata:
 
-Commit sõnumid peaksid olema kirjeldavad. Selle asemel et kirjutada "update config", kirjutage "Add monitoring to production web servers". Hea commit sõnum vastab küsimusele "mida see commit teeb" ja annab konteksti.
+**Ülesanne:** Loo Terraform konfiguratsioon, mis:
+1. Loob 3 lokaalselt faili `/tmp/file-1.txt`, `/tmp/file-2.txt`, `/tmp/file-3.txt`
+2. Iga fail sisaldab: "See on fail number X"
+3. Kasuta `count` atribuuti
 
-Tagide kasutamine on soovitav production deploymentide jaoks. Iga kord kui midagi production'i viiakse, tehke Git tag vastava versiooninumbriga. See võimaldab vajadusel täpselt teada, mis versioon oli parasjagu production'is, ja hõlbustab rollback'i.
+<details>
+<summary><strong>Lahendus</strong></summary>
 
-### Turvalisus
+```hcl
+resource "local_file" "test" {
+  count    = 3
+  filename = "/tmp/file-${count.index + 1}.txt"
+  content  = "See on fail number ${count.index + 1}"
+}
 
-Tundlike andmete hoidmine on kriitiline teema. Paroolid, API võtmed ja muud saladused ei tohi kunagi olla koodis hard-coded. Kasutage keskkonna muutujaid, secrets management süsteeme (nagu AWS Secrets Manager või HashiCorp Vault) või Terraform'i encrypted variables.
+output "file_names" {
+  value = local_file.test[*].filename
+}
+```
 
-State faili turvalisus on samuti oluline, kuna see võib sisaldada tundlikku teavet. Remote backend'id nagu S3 peaksid olema krüpteeritud rest'is ja transit'is. Juurdepääs state failile peaks olema piiratud ainult neile, kel seda tõesti vaja on.
+**Käivita:**
 
-Minimaalsete õiguste põhimõte kehtib ka infrastruktuurikoodi puhul. Terraform'i credentials peaksid andma ainult need õigused, mis on vajalikud konkreetsete ressursside haldamiseks. Ärge kasutage admin õigusi, kui piisab väiksematest.
+```bash
+terraform init
+terraform plan
+terraform apply -auto-approve
 
-Koodiskaneerimine peaks olema osa CI/CD pipeline'ist. Tööriistad nagu tfsec, checkov või Terraform Sentinel saavad leida turvalisuse probleeme enne production'i jõudmist. Need kontrollivad näiteks, kas S3 bucket on avalik, kas krüpteerimine on lubatud või kas logid on aktiveeritud.
+# Kontrolli:
+cat /tmp/file-1.txt
+cat /tmp/file-2.txt
+cat /tmp/file-3.txt
 
-### Testimine ja valideerimine
+# Cleanup:
+terraform destroy -auto-approve
+```
 
-Koodi kvaliteedi kontrollimine peaks olema automatiseeritud. `terraform fmt` standardiseerib koodi vormindust. `terraform validate` kontrollib süntaksi ja sisemist loogikat. Need käsud peaksid käima enne iga commit'i või vähemalt pull request'i review's.
+**Selgitus:**
+- `count = 3` → loob 3 instantsi
+- `count.index` → 0, 1, 2
+- `count.index + 1` → 1, 2, 3
+- `local_file.test[*].filename` → kõik failide nimed
+</details>
 
-Planeerimise faas on osa testimisest. Iga pull request peaks sisaldama `terraform plan` väljundit. See annab reviewerile võimaluse näha täpset mõju ilma infrastruktuuri muutmata. Mõned meeskonnad isegi automaatpostitavad plani tulemuse pull request'i kommentaarina.
+### Järgmised Sammud
 
-Integratsioonitestid infrastruktuuri jaoks on võimalikud, kuigi keerulisemad kui rakendustestid. Tööriistad nagu Terratest (Go) või kitchen-terraform (Ruby) võimaldavad kirjutada teste, mis loovad ajutise infrastruktuuri, kontrollivad selle tööd ja kustutavad pärast. Need testid on kallid aja ja raha poolest, aga tasuvad end ära kriitilistel komponentidel.
+**1. AWS/Azure Providers**
+
+Järgmine samm: tee sama AWS/Azure'iga (päris cloud ressursid).
+
+**Õppematerjalid:**
+- [Terraform AWS Tutorial](https://developer.hashicorp.com/terraform/tutorials/aws-get-started)
+- [Terraform Azure Tutorial](https://developer.hashicorp.com/terraform/tutorials/azure-get-started)
+
+**2. Remote State**
+
+Õpi salvestama state remote backend'is (S3, Azure Storage).
+
+**Miks oluline:**
+- Meeskonnatöö (state lock)
+- Backup (versioning)
+- Turvalisus (encryption)
+
+**3. Moodulid**
+
+Korduvkasutatavad komponendid.
+
+```hcl
+module "network" {
+  source = "./modules/network"
+  
+  vpc_cidr = "10.0.0.0/16"
+}
+```
+
+**4. Workspaces**
+
+Erinevad keskkonnad (dev, staging, prod).
+
+```bash
+terraform workspace new dev
+terraform workspace new prod
+```
+
+### Kasulikud Ressursid
+
+**Dokumentatsioon:**
+- [Terraform Docs](https://developer.hashicorp.com/terraform/docs)
+- [HCL Syntax](https://developer.hashicorp.com/terraform/language/syntax)
+- [Registry](https://registry.terraform.io/)
+- [State Documentation](https://developer.hashicorp.com/terraform/language/state)
+
+**Õppimine:**
+- [HashiCorp Learn](https://developer.hashicorp.com/terraform/tutorials)
+- [Terraform Best Practices](https://www.terraform-best-practices.com/)
+
+**Kogukond:**
+- [Terraform GitHub](https://github.com/hashicorp/terraform)
+- [Terraform Discuss](https://discuss.hashicorp.com/c/terraform-core)
+
+**Eesti:**
+- DevOps Estonia meetup'id
+- TalTech/Tartu Ülikool kursused
 
 ---
 
-## 6. Terraform vs Teised IaC Tööriistad
+## Lisaküsimused (Self-Check)
 
-Terraform ei ole ainus Infrastructure as Code tööriist turul. Igaühel on oma tugevused, nõrkused ja ideaalne kasutusjuht. Õige tööriista valimine sõltub teie konkreetsetest vajadustest, meeskonna oskustest ja tehnilisest keskkonnast.
+Vastata pole vaja kirjalikult, aga mõtle läbi:
 
-### Ansible vs Terraform
+1. **Miks on IaC parem kui käsitsi seadistamine?**
+   - Kiirus, korratavus, dokumentatsioon, versioonihaldus
 
-Ansible on konfiguratsiooni halduse tööriist, mis sarnaneb Terraform'iga, aga on loodud teiste eesmärkide jaoks. Ansible on imperatiivne, mis tähendab, et kirjutate samme, mida täita. Terraform on deklaratiivne, kirjeldades soovitud lõpptulemust.
+2. **Mis vahe on Terraform'il ja Ansible'il?**
+   - Terraform loob, Ansible seadistab
 
-Ansible töötab agentless'ina üle SSH, mis teeb algseadistamise lihtsaks. Te ei pea installima midagi sihtmasinatele. Terraform vajab iga teenuse jaoks provider'it, mis lisab kompleksust, aga annab tüübi kontrolli ja parema integratsiooni.
+3. **Mis on Terraform Core, Provider ja State?**
+   - Core = aju, Provider = käed, State = mälu
 
-Praktikas kasutatakse neid sageli koos. Terraform loob infrastruktuuri (serverid, võrgud, load balancer'id), samas kui Ansible konfigureerib tarkvara nendel serveritel. See kombinatsioon kasutab iga tööriista tugevusi: Terraform infrastruktuuri orkestreerimiseks, Ansible rakenduste deployment'iks.
+4. **Miks on deklaratiivne parem kui imperatiivne?**
+   - Idempotentsus, lihtsam kood, automaatne planeerimine
 
-Ansible'i õppimiskõver on laugem. YAML süntaks on tuttav ja playbook'ide kontseptsioon on intuitiivne. Terraform'i HCL ja state management võivad algul tunduda võõrad. Aga kui need on omandatud, pakub Terraform võimsamat infrastruktuuri haldust.
+5. **Mis on state fail ja miks see on kriitiline?**
+   - Hoiab loodud ressursse, võimaldab võrdlust, sisaldab saladusi
 
-### CloudFormation vs Terraform
+6. **Mis juhtub, kui state fail kaob?**
+   - Terraform loob duplikaate või tekivad vead
 
-AWS CloudFormation on Amazon'i natiivne IaC tööriist. See on tihedalt integreeritud AWS teenustega ja toetab sageli uusi AWS funktsioone varem kui Terraform. CloudFormation template'id on JSON või YAML vormingus ja järgivad AWS spetsiifilist struktuuri.
+7. **Mis on Terraform workflow sammud?**
+   - init → plan → apply → destroy
 
-CloudFormation'i suurim piirang on vendor lock-in. See töötab ainult AWS'iga, mis tähendab, et kui teil on multi-cloud strateegia või kasutate muid teenuseid, vajate erinevaid tööriistu. Terraform on multi-cloud vaikimisi, võimaldades hallata AWS, Azure, GCP ja sadu teisi teenuseid ühtse süntaksiga.
-
-State haldamine erineb oluliselt. CloudFormation haldab state'd AWS'i poolel automaatselt läbi stack'ide, mis lihtsustab seadistamist. Terraform state nõuab rohkem tähelepanu, eriti meeskonnatöös, aga annab ka rohkem kontrolli.
-
-Praktiline valik sõltub teie vajadusest. Kui olete 100% AWS'is ja ei plaani lahkuda, võib CloudFormation olla piisav ja lihtsam. Kui soovite paindlikkust, multi-cloud võimekust või kasutate juba Terraform't teiste teenuste jaoks, on mõistlik jääda Terraform'i juurde.
-
-### Pulumi vs Terraform
-
-Pulumi on uuem IaC tööriist, mis eristub sellega, et kasutab üldisi programmeerimiskeeli (Python, TypeScript, Go, C#) Domain Specific Language'i asemel. See tähendab, et saate kirjutada infrastruktuuri koodi keeles, mida juba tunnete, kasutades IDE'd, debugger'it ja teste, nagu tavakoodi puhul.
-
-Pulumi tugevus on keerukuses. Kui teil on vaja keerukat loogikat või arvutusi infrastruktuuris, on üldised programmeerimiskeeled võimsamad kui HCL. Saate kasutada library'sid, kirjutada funktsioone, teha objektorienteeritud disaini. See on eriti kasulik suurte, keerukate infrastruktuuride puhul.
-
-Terraform'i HCL on lihtsam ja deklaratiivsem, mis on eelis enamikus kasutusjuhtudes. Piiratud süntaks sunnib teid mõtlema deklaratiivselt ja hoiab koodi loetavana. Üldiste programmeerimiskeelte paindlikkus võib viia ka imperatiivsema ja raskemini hallatava koodini.
-
-Community ja ökosüsteem on Terraform'il palju suurem. Rohkem dokumentatsiooni, näiteid, mooduleid ja Stack Overflow vastuseid. Pulumi on uuem ja väiksem, kuigi kasvav. Meeskonna oskuste vaade on samuti oluline - kui teie meeskonnal on tugevad programmeerimise oskused, võib Pulumi olla loomulik valik.
+8. **Miks kasutada `terraform plan` enne `terraform apply`?**
+   - Näed, mis muutub, vältid üllatusi
 
 ---
 
-## Kokkuvõte
+## Lõppmärkused
 
-Infrastructure as Code muudab infrastruktuuri haldamise lähenemist fundamentaalselt. Kood võimaldab konsistentsust, korduvkasutamist, versioonihaldust ja automatiseerimist viisil, mis käsitsi konfiguratsiooniga võimatu on.
+**Õnnitlused!** Oled läbinud Terraform alused.
 
-Terraform on üks populaarsemaid IaC tööriistu tänu oma deklaratiivsele lähenemusele, multi-cloud võimekusele ja tugevale provider ökosüsteemile. HCL keel pakub head tasakaalu loetavuse ja võimsuse vahel, samas kui state management võimaldab Terraform'il täpselt jälgida infrastruktuuri.
+**Eesti DevOps mantra:** "Plan enne Apply't, backup enne Destroy'd, kohv enne debugimist."
 
-Selles moodulis õppisime Terraform'i põhikontseptsioone: kuidas HCL töötab, mis on provider'id ja state, kuidas Terraform workflow käib ning milliseid parimaid praktikaid järgida. Järgmises praktikas rakendame neid teadmisi konkreetsete ülesannete lahendamiseks, luues ja haldades infrastruktuuri Terraform'iga.
+**Mis edasi?**
 
-Infrastruktuuri kui koodi käsitlemine on oskus, mis kasvab praktikaga. Esimesed sammud võivad tunduda keerulised, aga põhimõtted muutuvad loomulikuks. Oluline on mõista, miks asju teatud viisil tehakse, mitte ainult kuidas. See arusaam aitab teid teha paremaid otsuseid ja vältida levinud lõkse.
+Nüüd oled valmis praktiseerima päris projektidega:
+- Loo AWS/Azure ressursse
+- Kasuta remote state (S3)
+- Kirjuta mooduleid
+- Töötavad meeskonnas (Git + Terraform)
+
+**Küsimused?** Küsi õpetajalt või DevOps kogukonnast.
+
+**Head programmeerimist!** 🚀
