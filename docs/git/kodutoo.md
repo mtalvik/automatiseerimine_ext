@@ -345,9 +345,14 @@ Kontrollige, et olete kõik teinud:
 - [ ] Projekt töötab (saab käivitada)
 - [ ] Kõik on push'itud GitHub'i
 
+Kohustuslikud asendused enne esitamist:
+
+- [ ] README alguses on autor: `Autor: [Sinu Nimi]` (asendatud sinu nimega)
+- [ ] Kõik näited ja lingid kasutavad sinu GitHubi kasutajanime (asenda `TEIE-KASUTAJANIMI` → sinu kasutajanimi)
+
 ### Esitamise Formaat
 
-upEsitage Google Classroom'is:
+Esitage Google Classroom'is:
 
 **Repository link:** `https://github.com/teie-kasutajanimi/git-homework`
 

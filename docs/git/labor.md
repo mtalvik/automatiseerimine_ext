@@ -1,5 +1,7 @@
 # Git Labor
 
+> Algajatele: Kui sul pole veel GitHubi kontot, loo see enne SSH võtme lisamist. Allpool on lühijuhend.
+
 **Eeldused:** Käsurea põhitõed, teksti redaktor (VS Code, nano, vim)  
 **Platvorm:** Git, GitHub  
 **Kestus:** Umbes 3 tundi (võib teha mitmes sessioonis)
@@ -16,11 +18,31 @@ Pärast laborit oskate:
 
 ---
 
+## Kuidas seda laborit teha (ülevaade)
+
+> Kiirvaade sammudele. Järgi neid järjekorras; detailid on allpool igas peatükis.
+
+1) Seadista keskkond: (valikuline) Vagrant + VS Code Remote‑SSH või kasuta oma olemasolevat Linux/macOS/WSL terminali.
+2) Pane Git tööle: `git --version`, `git config user.name/email`, editor.
+3) Alusta repo: `git init`, loo failid, tee esimesed commit’id.
+4) Puhas repo: loo `.gitignore`, kontrolli, et .env/logid ei lähe commit’i.
+5) Harud: loo branch, tööta seal, vaheta harude vahel.
+6) Ühenda tagasi: tee merge (fast‑forward / three‑way), kustuta haru.
+7) Konfliktid: loo tahtlik konflikt, lahenda rahulikult.
+8) GitHub: SSH võti, remote `origin`, `push`/`pull`.
+9) Koostöö: tee Pull Request, vaata üle, merge’i, tõmba muudatused alla.
+
+Nõuanne: Windowsis eelista Git Bash’i või VS Code’i Remote‑SSH terminali; kõik bash‑näited töötavad seal muutmata kujul.
+
 ## 1. Git Keskkonna Seadistamine
+
+> Mida see tähendab: Paned Git'i tööle oma nime ja e‑postiga ning kontrollid, et käsud toimivad. Nii jääb sinu töö autorlus korrektselt tallele.
+
+IMPORTANT: Selles laboris teeme KÕIK sammud Ubuntu Vagrant VM-is (`controller`) läbi VS Code Remote‑SSH terminali. Ära paigalda ega konfigureeri Git’i host‑masinas.
 
 Esimene samm on kontrollida, et Git on installitud ja õigesti konfigureeritud. Seadistus on ühekordne tegevus, kuid oluline - iga commit salvestab sinu nime ja e-maili.
 
-### 1.1 Installatsioonikontroll
+### 1.1 Installatsioonikontroll (VM-is)
 
 Ava terminal ja kontrolli Git'i olemasolu:
 ```bash
@@ -32,23 +54,235 @@ Oodatav väljund on midagi sarnast:
 git version 2.40.0
 ```
 
-Kui Git'i ei ole, paigalda see:
+### GitHub konto loomine ja esmased seaded (algajale)
 
-**Windows:**
-```bash
-winget install --id Git.Git -e --source winget
-```
+1. Ava `https://github.com` ja kliki Sign up.
+2. Vali kasutajanimi, e‑post, parool; lõpeta registreerimine ja kinnita e‑post.
+3. Lülita sisse 2FA: Settings → Password and authentication → Two‑factor authentication → Set up (authenticator app soovitatav).
+4. Profiil: Settings → Profile → Name (võid panna oma nime) ja Public email (valikuline).
+5. E‑posti privaatsus commit'ides (soovi korral): Settings → Emails → "Keep my email addresses private"; kasuta Git konfis GitHubi pakutud no‑reply e‑posti.
+6. SSH võti lisatakse hiljem all oleva juhendi järgi (Remote Repository peatükis).
 
-**macOS:**
-```bash
-brew install git
-```
+Kui Git’i ei ole VM-is, paigalda see (Ubuntu):
 
-**Linux (Ubuntu/Debian):**
 ```bash
 sudo apt update
-sudo apt install git
+sudo apt install -y git
 ```
+
+### Windows algajatele (lihtsaim tee)
+
+Windowsis kasuta soovitatavalt Git Bash'i (tuleb koos Git for Windows'iga) – kõik allolevad Bash käsud töötavad seal muutmata kujul. Kui eelistad PowerShelli, kasuta allolevaid vasteid.
+
+#### PowerShell vasted levinud käskudele
+
+```powershell
+# Kaust ja failid
+ls -la                            # PowerShell: Get-ChildItem -Force
+cat README.md                     # PowerShell: Get-Content README.md
+echo "rida" > fail.txt            # PowerShell: Set-Content -Path fail.txt -Value "rida"
+echo "rida" >> fail.txt           # PowerShell: Add-Content -Path fail.txt -Value "rida"
+touch uus.txt                     # PowerShell: New-Item -ItemType File -Path uus.txt | Out-Null
+
+# Heredoc (faili kirjutamine mitme reaga)
+# Bash:
+#   cat > hello.py << 'EOF'
+#   print("Hello")
+#   EOF
+# PowerShell:
+@'
+print("Hello")
+'@ | Set-Content -Path hello.py -Encoding UTF8
+
+# Python venv aktiveerimine
+# Bash: source venv/bin/activate
+# PowerShell: .\\venv\\Scripts\\Activate.ps1
+
+# SSH agent Windowsis (vajadusel)
+# Bash: eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519
+# PowerShell (admin soovitatav esmakordsel seadistusel):
+Start-Service ssh-agent
+Set-Service -Name ssh-agent -StartupType Automatic
+ssh-add $env:USERPROFILE\.ssh\id_ed25519
+```
+
+## Eelhäälestus (valikuline): VS Code + Multi-VM Vagrant
+
+Kui plaanid automation kursuse jaoks mitut Linuxi masinat, saad kõik teha ühtselt VS Code'is. Allpool on lihtne 3 VM näide: kontroller + 2 sõlme.
+
+> Mida see tähendab: Seadistad lihtsa Linuxi arenduskeskkonna (üks või mitu VM‑i) ja ühendad VS Code’iga, et kõik järgnevad sammud toimuksid ühtses tööruumis.
+
+### 0.1 Nõuded
+
+- VirtualBox
+- Vagrant
+- VS Code + Remote SSH laiendus
+
+### 0.2 Vagrantfile (3 VM-i)
+
+Loo projekti kausta `Vagrantfile` ja kleebi:
+
+```ruby
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+
+  config.vm.define "controller" do |c|
+    c.vm.hostname = "controller"
+    c.vm.network "private_network", ip: "192.168.56.10"
+  end
+
+  config.vm.define "node1" do |n|
+    n.vm.hostname = "node1"
+    n.vm.network "private_network", ip: "192.168.56.11"
+  end
+
+  config.vm.define "node2" do |n|
+    n.vm.hostname = "node2"
+    n.vm.network "private_network", ip: "192.168.56.12"
+  end
+end
+```
+
+Käivita:
+
+```bash
+vagrant up
+vagrant status
+vagrant ssh-config  # näeb SSH parameetrid iga VM jaoks
+```
+
+### 0.3 VS Code Remote-SSH ühendus
+
+Sul ei ole vaja faile sünkida – avad kausta otse VM-is.
+
+1. VS Code → Command Palette → "Remote-SSH: Add New SSH Host"
+2. Kasuta `vagrant ssh-config` väljundit, nt:
+
+```text
+ssh controller -p 2222 -i PATH/TO/.vagrant/machines/controller/virtualbox/private_key -l vagrant -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+```
+
+3. "Remote-SSH: Connect to Host" → vali `controller`
+4. Open Folder → vali VM-i kaust (nt `/home/vagrant` või `/vagrant`)
+
+Soovi korral lisa need kirjed `~/.ssh/config` faili (host aliastega) ja kasuta neid VS Code'is.
+
+### 0.4 Ansible inventar (valikuline)
+
+Ansible saab kasutada Vagranti privaatvõtmeid – pole vaja eraldi SSH võtmete jagamist sõlmedele.
+
+```ini
+[controllers]
+controller ansible_host=127.0.0.1 ansible_port=2222 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/controller/virtualbox/private_key
+
+[nodes]
+node1 ansible_host=127.0.0.1 ansible_port=2201 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/node1/virtualbox/private_key
+node2 ansible_host=127.0.0.1 ansible_port=2202 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/node2/virtualbox/private_key
+```
+
+Märkus: portnumbrid võivad erineda. Vaata `vagrant ssh-config` väljundit ja kohanda `ansible_port` ning `ansible_ssh_private_key_file` vastavalt.
+
+### 0.2.1 Windows koolivõrgu variant (Git‑only VM, public + private intnet)
+
+Kui soovid hoida kooli näidetest tuttavat võrgu‑seadetust (bridged public_network + VirtualBox sisemine intnet), kasuta ühte VM‑i Git laboriks:
+
+```ruby
+Vagrant.configure("2") do |config|
+  config.vm.define "gitlab" do |vm|
+    vm.vm.box = "generic/ubuntu2204"    # Windows + VirtualBox sõbralik
+    vm.vm.hostname = "gitlab"
+
+    # Avalik (bridged) – võib küsida adapteri valikut esmakordsel käivitamisel
+    vm.vm.network "public_network"
+
+    # Sisemine privaatvõrk (VirtualBox intnet) – sama nimi mis kooli materjalides
+    vm.vm.network "private_network", ip: "10.11.12.21", virtualbox__intnet: "ansible_lab"
+
+    # (Valikuline) sünkkaust host↔VM
+    # vm.vm.synced_folder "./git_data", "/vagrant_data"
+
+    vm.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "1024"]
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.name = "GIT-LAB"
+    end
+
+    # Minimaalne provisioneerimine: Git
+    vm.vm.provision "shell", inline: <<-SHELL
+      apt-get update
+      apt-get install -y git
+    SHELL
+  end
+end
+```
+
+Kasutamine Windowsis (PowerShell): `vagrant validate` → `vagrant up` → `vagrant ssh-config` (kasuta Remote‑SSH hosti loomiseks). Töötle kogu Git laborit selle VM‑i sees (VS Code Remote‑SSH).
+
+### 0.5 Windows kontrollid (ilma paigalduseta)
+
+PowerShellis:
+
+```powershell
+# Vagrant olemasolu
+vagrant --version
+
+# VirtualBox CLI
+VBoxManage --version
+
+# OpenSSH kliendi olemasolu
+ssh -V
+
+# Kus programmid asuvad
+(Get-Command vagrant).Path
+(Get-Command VBoxManage).Path
+```
+
+Kui `VBoxManage` puudub, kontrolli, kas VirtualBox on paigaldatud või PATH lisatud.
+
+### 0.6 Kiirstart: Vagrant → VS Code → SSH võti → Git
+
+1) **Vagrant VM** (projektikaustas):
+
+```bash
+vagrant up
+vagrant ssh-config   # salvesta väljund
+```
+
+2) **VS Code Remote-SSH**:
+- Remote-SSH: Add New SSH Host → kasuta `vagrant ssh-config` parameetreid (User: vagrant, Port, IdentityFile)
+- Remote-SSH: Connect to Host → vali `controller` → Open Folder → `/vagrant`
+
+3) **SSH võti GitHub'ile** (VM-is, kasutaja vagrant):
+
+```bash
+ssh-keygen -t ed25519 -C "sinu.email@example.com"
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+cat ~/.ssh/id_ed25519.pub
+```
+
+Lisa võti GitHub'i → Settings → SSH and GPG keys → New SSH key → test: `ssh -T git@github.com`.
+
+4) **Git** (VM-is):
+
+```bash
+git config --global user.name "Sinu Nimi"
+git config --global user.email "sinu.email@example.com"
+git config --global core.editor "code --wait"
+mkdir git-labor && cd git-labor
+git init
+echo "# Git Labor Projekt" > README.md
+git add README.md
+git commit -m "Esimene commit: lisa README"
+```
+
+Loo tühi repo GitHubis → lisa remote ja push:
+
+```bash
+git remote add origin git@github.com:TEIE-KASUTAJANIMI/git-labor.git
+git push -u origin main
+```
+
 
 ### 1.2 Kasutajainfo Seadistamine
 
@@ -99,6 +333,8 @@ Enne edasi liikumist veendu:
 ## 2. Esimene Repositoorium ja Põhitöövoog
 
 Nüüd lood oma esimese Git repositooriumi ja õpid põhilist töövoogu: muuda faile → lisa staging area'sse → tee commit.
+
+> Mida see tähendab: Alustad uut Git projekti ja harjutad tavapärast tsüklit – muudatus, lisamine (stage) ja salvestus (commit).
 
 ### 2.1 Repositooriumi Loomine
 
@@ -307,6 +543,8 @@ git reset HEAD fail.txt
 
 Kõik failid ei peaks repositooriumis olema. Õpime, mida ignoreerida ja miks.
 
+> Mida see tähendab: Hoidud juhuslikult committimast suuri, ajutisi või salajasi faile, et repo oleks turvaline ja kerge.
+
 ### 3.1 Probleemsed Failid
 
 Loo mõned failid, mida ei peaks versioonihaldusse panema:
@@ -410,7 +648,7 @@ Ava .gitignore ja vaata iga sektsiooni:
 ### Kontrollnimekiri
 
 - [ ] `.gitignore` fail on loodud ja committitud
-- [ ] Debug.log, .env ja __pycache__ ei ilmu `git status` väljundis
+- [ ] debug.log, .env ja __pycache__ ei ilmu `git status` väljundis
 - [ ] Mõistad, miks keskkonna muutujaid ei tohi repositooriumisse panna
 
 ### Troubleshooting
@@ -428,6 +666,8 @@ git commit -m "Eemalda .env repositooriumist"
 ## 4. Branching: Paralleeltöö
 
 Branch'id võimaldavad arendada uusi funktsioone ilma põhikoodi segamata. Õpime branch'ide loomist, vahetamist ja merge'imist.
+
+> Mida see tähendab: Eraldi haru on turvaline liivakast – saad katsetada, ilma et mõjutaksid `main` haru.
 
 ### 4.1 Branch'ide Vaatamine ja Loomine
 
@@ -560,6 +800,8 @@ Näed mitut "haru" - branch'id on divergeerunud.
 
 Nüüd ühendame branch'ide tööd tagasi main'i.
 
+> Mida see tähendab: Kui harutöö valmis, liidad selle tagasi põhi harusse – kas kiire nihutus (fast‑forward) või kolmeversiooniline merge.
+
 ### 5.1 Fast-Forward Merge
 
 Vaheta main'i:
@@ -641,6 +883,8 @@ Jäi ainult `main`.
 ## 6. Merge Konfliktid
 
 Konfliktid juhtuvad, kui kaks branch'i muudavad sama faili sama kohta. Õpime neid lahendama.
+
+> Mida see tähendab: Kui Git ei oska ise otsustada, kumb muudatus jääb, juhendad teda käsitsi.
 
 ### 6.1 Konflikti Loomine
 
@@ -779,6 +1023,8 @@ git log --oneline --graph --all
 
 Nüüd ühendame kohaliku repositooriumi GitHub'iga.
 
+> Mida see tähendab: Laed oma commit'id turvaliselt pilve ja saad töötada koos teistega (push/pull).
+
 ### 7.1 SSH Võtmete Seadistamine
 
 Kontrolli, kas SSH võtmed on olemas:
@@ -914,6 +1160,41 @@ cat README.md
 
 Näed GitHub'is tehtud muudatust!
 
+### 7.6 Lõpetamine ja esitamine (klass)
+
+Kui labor on tehtud, push'i oma töö oma GitHubi repositooriumisse ja esita link Google Classroom'is.
+
+```bash
+# Veendu, et kõik on commit'itud
+git status
+
+# Push peaharusse
+git push origin main
+
+# (Kui harudes tegid tööd, push ka need)
+git push --all origin
+
+# Vaata remote'id ja URL
+git remote -v
+```
+
+Esitamisel lisa link kujul: `https://github.com/TEIE-KASUTAJANIMI/git-labor`.
+
+Kontroll enne esitamist (täida ja muuda kohustuslikult):
+
+- [ ] Asenda kõik kohad: `TEIE-KASUTAJANIMI` oma GitHubi kasutajanimega
+- [ ] Lisa oma nimi README faili algusesse (nt: "Autor: [Sinu Nimi]")
+- [ ] Git identiteet VM-is on õige:
+  ```bash
+  git config --global user.name
+  git config --global user.email
+  ```
+  Kui vaja, paranda:
+  ```bash
+  git config --global user.name "Sinu Nimi"
+  git config --global user.email "sinu.email@example.com"
+  ```
+
 ### Kontrollnimekiri
 
 - [ ] SSH võtmed on seadistatud ja testitud
@@ -927,6 +1208,8 @@ Näed GitHub'is tehtud muudatust!
 ## 8. Pull Requests ja Koostöö
 
 Pull request (PR) on GitHub'i mehhanism koodi ülevaatuseks enne merge'imist.
+
+> Mida see tähendab: PR võimaldab arutada muudatusi, saada tagasisidet ja merge'ida läbipaistvalt.
 
 ### 8.1 Feature Branch Loomine
 
@@ -1065,6 +1348,8 @@ Näed merge commit'i PR'ist.
 
 Enne laborit lõpetatuks lugemist veendu:
 
+> Mida see tähendab: Kiire kontroll, et kõik olulised oskused on läbi proovitud ja keskkond töötab.
+
 - [ ] Git on seadistatud: nimi, e-mail, editor
 - [ ] Oskad luua repositooriume ja teha commit'e
 - [ ] Mõistad staging area rolli
@@ -1133,3 +1418,161 @@ Oled nüüd läbinud Git'i põhitõed! Edasi:
 3. **Praktiline:** Alusta oma projekti Git'iga, tee commit'e iga päev
 
 Edu!
+
+---
+
+## Algaja käsiraamat: Vagrant + VS Code + SSH + Git (samm-sammult)
+
+Allpool on täpne teekond nullist töötava Linux VM‑i, VS Code Remote‑SSH ühenduse, GitHubi SSH võtme ja esimese Git reponi loomiseni. Kõik sammud on mõeldud algajale.
+
+### Samm 1 — Kiirkontroll Windowsis (ei paigalda midagi)
+
+```powershell
+vagrant --version          # peab näitama versiooni
+VBoxManage --version       # peab näitama versiooni
+ssh -V                     # OpenSSH klient (versioon)
+(Get-Command vagrant).Path # kus vagrant asub
+(Get-Command VBoxManage).Path
+```
+
+Kui Vagrant/VirtualBox ei ole saada või käske ei leita, ava nende installerid ja lõpeta paigaldus enne jätkamist.
+
+### Samm 2 — Loo projektikaust ja Vagrantfile (1 VM)
+
+```bash
+mkdir -p vagrant-lab && cd vagrant-lab
+```
+
+Loo `Vagrantfile` sisuga (üks Ubuntu VM nimega controller):
+
+```ruby
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+
+  config.vm.define "controller" do |c|
+    c.vm.hostname = "controller"
+    c.vm.network "private_network", ip: "192.168.56.10"
+  end
+end
+```
+
+Valikuline: Multi‑VM (controller + 2 nodes). Asenda ülalolev järgmisega:
+
+```ruby
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+
+  config.vm.define "controller" do |c|
+    c.vm.hostname = "controller"
+    c.vm.network "private_network", ip: "192.168.56.10"
+  end
+
+  config.vm.define "node1" do |n|
+    n.vm.hostname = "node1"
+    n.vm.network "private_network", ip: "192.168.56.11"
+  end
+
+  config.vm.define "node2" do |n|
+    n.vm.hostname = "node2"
+    n.vm.network "private_network", ip: "192.168.56.12"
+  end
+end
+```
+
+Käivita VM‑id:
+
+```bash
+vagrant up
+vagrant ssh-config
+```
+
+### Samm 3 — Lisa SSH config (VS Code Remote‑SSH jaoks)
+
+Avatud kasutaja SSH config: `~/.ssh/config` (Windows: `C:\Users\SINUNIMI\.ssh\config`).
+
+Ühe VM näide (port ja failitee võta `vagrant ssh-config` väljundist):
+
+```sshconfig
+Host controller
+    HostName 127.0.0.1
+    Port 2222
+    User vagrant
+    IdentityFile ~/.vagrant/machines/controller/virtualbox/private_key
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+```
+
+Multi‑VM näide:
+
+```sshconfig
+Host controller
+    HostName 127.0.0.1
+    Port 2222
+    User vagrant
+    IdentityFile ~/.vagrant/machines/controller/virtualbox/private_key
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+
+Host node1
+    HostName 127.0.0.1
+    Port 2201
+    User vagrant
+    IdentityFile ~/.vagrant/machines/node1/virtualbox/private_key
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+
+Host node2
+    HostName 127.0.0.1
+    Port 2202
+    User vagrant
+    IdentityFile ~/.vagrant/machines/node2/virtualbox/private_key
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+```
+
+### Samm 4 — Ühenda VS Code Remote‑SSH‑ga
+
+1. Paigalda VS Code laiendus: Remote - SSH.
+2. Command Palette → "Remote-SSH: Connect to Host" → vali `controller`.
+3. Kui küsitakse, vali "Linux".
+4. Open Folder → vali `/vagrant` (jagatud kaust sinu hostiprojekti kaustaga).
+
+### Samm 5 — Loo SSH võti VM‑is (kasutaja: vagrant) ja lisa GitHubi
+
+```bash
+ssh-keygen -t ed25519 -C "sinu.email@example.com"
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+cat ~/.ssh/id_ed25519.pub
+```
+
+GitHub (veeb): Settings → SSH and GPG keys → New SSH key → kleebi avalik võti → Add.
+
+Testi:
+
+```bash
+ssh -T git@github.com
+```
+
+### Samm 6 — Git seadistus ja esimene push
+
+```bash
+git config --global user.name "Sinu Nimi"
+git config --global user.email "sinu.email@example.com"
+git config --global core.editor "code --wait"
+
+mkdir git-labor && cd git-labor
+git init
+echo "# Git Labor Projekt" > README.md
+git add README.md
+git commit -m "Esimene commit: lisa README"
+```
+
+Loo tühi repositoorium GitHubis (ilma README/.gitignore/license). Seejärel:
+
+```bash
+git remote add origin git@github.com:TEIE-KASUTAJANIMI/git-labor.git
+git push -u origin main
+```
+
+Valmis! Edasi saad jätkata selle labori ülejäänud peatükkidega (branchid, merge, konfliktid jne) otse VS Code’is, VM‑i terminalis.
