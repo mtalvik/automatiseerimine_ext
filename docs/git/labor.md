@@ -28,20 +28,14 @@ VBoxManage --version
 code --version
 ```
 
-Kui midagi puudub, paigalda enne jätkamist.
-
 ### 1.2 Loo Vagrantfile
-
-Loo projektikaust:
 
 ```bash
 mkdir git-labor-vm
 cd git-labor-vm
 ```
 
-Loo fail `Vagrantfile` (vali ÜKS variant):
-
-**Variant A: Üks VM (piisav Git laboriks)**
+Loo fail `Vagrantfile`:
 
 ```ruby
 Vagrant.configure("2") do |config|
@@ -54,33 +48,6 @@ Vagrant.configure("2") do |config|
 end
 ```
 
-**Variant B: Kolm VM-i (Ansible/Automation laboriks)**
-
-```ruby
-Vagrant.configure("2") do |config|
-  config.vm.define "gitlab" do |vm|
-    vm.box = "generic/ubuntu2204"
-    vm.hostname = "gitlab"
-    
-    vm.network "public_network"
-    vm.network "private_network", ip: "10.11.12.21", virtualbox__intnet: "git_lab"
-    
-    vm.provider :virtualbox do |vb|
-      vb.customize ["modifyvm", :id, "--memory", "1024"]
-      vb.customize ["modifyvm", :id, "--cpus", "1"]
-      vb.name = "GIT-LAB"
-    end
-    
-    vm.provision "shell", inline: <<-SHELL
-      apt-get update
-      apt-get install -y git
-    SHELL
-  end
-end
-```
-
-**Git laboriks piisab Variant A.**
-
 ### 1.3 Käivita VM
 
 ```bash
@@ -88,53 +55,54 @@ vagrant up
 vagrant status
 ```
 
-Kontrolli SSH parameetreid:
+### 1.4 Loo SSH võti (Windows)
+
+**PowerShell/CMD:**
 
 ```bash
-vagrant ssh-config
+ssh-keygen -t ed25519 -C "sinu@email.com"
 ```
 
-Salvesta väljund - vajad VS Code ühenduseks.
+- Fail: default Enter
+- Passphrase: tühi Enter
 
-### 1.4 Ühenda VS Code Remote-SSH
+**Saada võti VM-i:**
 
-**Samm 1: Lisa SSH Config**
+```bash
+type C:\Users\SINUNIMI\.ssh\id_ed25519.pub | vagrant ssh -- "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && chmod 700 ~/.ssh"
+```
 
-VS Code: `Ctrl+Shift+P` → `Remote-SSH: Open SSH Configuration File`
+Kui ei tööta:
 
-Vali esimene fail (`C:\Users\SINUNIMI\.ssh\config`)
+```bash
+vagrant upload C:\Users\SINUNIMI\.ssh\id_ed25519.pub /tmp/key.pub
+vagrant ssh -c "mkdir -p ~/.ssh && cat /tmp/key.pub >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && chmod 700 ~/.ssh"
+```
 
-Lisa (võta `Port` ja `IdentityFile` väärtused `vagrant ssh-config` väljundist):
+### 1.5 VS Code Remote-SSH
+
+`Ctrl+Shift+P` → `Remote-SSH: Open SSH Configuration File`
 
 ```sshconfig
 Host controller
     HostName 127.0.0.1
     Port 2222
     User vagrant
-    IdentityFile C:/path/to/git-labor-vm/.vagrant/machines/controller/virtualbox/private_key
+    IdentityFile C:/Users/SINUNIMI/.ssh/id_ed25519
     StrictHostKeyChecking no
-    UserKnownHostsFile /dev/null
 ```
 
-Salvesta (`Ctrl+S`)
+Ühenda: `Ctrl+Shift+P` → `Remote-SSH: Connect to Host` → `controller`
 
-**Samm 2: Ühenda**
+Platform: `Linux`
 
-`Ctrl+Shift+P` → `Remote-SSH: Connect to Host` → vali `controller`
+Open Folder → `/home/vagrant`
 
-Vali platform: `Linux`
-
-**Samm 3: Ava Kaust**
-
-Open Folder → vali `/vagrant` (jagatud kaust) või `/home/vagrant`
-
-**Kontrolli:** VS Code vasakul all nurgas: `SSH: controller`
+Kontrolli: VS Code vasakul all `SSH: controller`
 
 ---
 
 ## 2. Git Seadistamine VM-is
-
-> Kõik järgnevad käsud: VS Code terminal (ühendatud VM-iga)
 
 ### 2.1 Kontrolli Git
 
@@ -149,12 +117,12 @@ sudo apt update
 sudo apt install -y git
 ```
 
-### 2.2 Konfigureeri Kasutajainfo
+### 2.2 Konfigureeri
 
 ```bash
 git config --global user.name "Sinu Nimi"
 git config --global user.email "sinu.email@example.com"
-git config --global core.editor "code --wait"
+git config --global core.editor "nano"
 ```
 
 Kontrolli:
@@ -163,22 +131,16 @@ Kontrolli:
 git config --list | grep user
 ```
 
-Peaksid nägema:
-```
-user.name=Sinu Nimi
-user.email=sinu.email@example.com
-```
+### 2.3 GitHub Konto
 
-### 2.3 GitHub Konto (kui puudub)
-
-1. Mine `https://github.com` → Sign up
+1. `https://github.com` → Sign up
 2. Kinnita e-post
-3. Settings → Password and authentication → Lülita sisse 2FA
+3. Settings → 2FA
 
 ### Kontrollnimekiri
 
-- [ ] `git --version` töötab VM-is
-- [ ] `git config user.name` näitab sinu nime
+- [ ] `git --version` töötab
+- [ ] `git config user.name` näitab nime
 - [ ] GitHub konto olemas
 
 ---
@@ -193,75 +155,63 @@ cd git-labor
 git init
 ```
 
-Väljund:
-```
-Initialized empty Git repository in /home/vagrant/git-labor/.git/
-```
-
 ### 3.2 Loo README ja Commit
 
 ```bash
-echo "# Git Labor Projekt" > README.md
-echo "See on minu esimene Git repositoorium." >> README.md
+cat > README.md << 'EOF'
+# Git Labor Projekt
+
+See on minu esimene Git repositoorium.
+
+## Eesmärk
+Õppida Git põhitõdesid ja workflow'sid.
+EOF
 
 git status
-```
-
-Lisa ja commit:
-
-```bash
 git add README.md
 git commit -m "Esimene commit: lisa README"
-```
-
-Vaata ajalugu:
-
-```bash
 git log --oneline
 ```
 
 ### 3.3 Lisa Failid
 
-Loo Python fail:
+Loo bash script:
 
 ```bash
-cat > hello.py << 'EOF'
-def greet(name):
-    return f"Tere, {name}!"
+cat > hello.sh << 'EOF'
+#!/bin/bash
+echo "Tere, Git!"
+EOF
 
-if __name__ == "__main__":
-    print(greet("Git"))
+chmod +x hello.sh
+```
+
+Loo tekstifail:
+
+```bash
+cat > notes.txt << 'EOF'
+Git Labor Märkmed
+=================
+
+1. Git init - loo repo
+2. Git add - lisa staged
+3. Git commit - salvesta
 EOF
 ```
 
-Loo kalkulaator:
-
-```bash
-cat > calculator.py << 'EOF'
-def add(a, b):
-    return a + b
-
-def subtract(a, b):
-    return a - b
-
-if __name__ == "__main__":
-    print("2 + 3 =", add(2, 3))
-    print("5 - 2 =", subtract(5, 2))
-EOF
-```
-
-Lisa ja commit korraga:
+Commit:
 
 ```bash
 git add .
-git commit -m "Lisa Python skriptid"
+git commit -m "Lisa skriptid ja märkmed"
+git log --oneline --graph
 ```
 
 ### Kontrollnimekiri
 
-- [ ] Vähemalt 2 commit'i tehtud
-- [ ] `git status` näitab "working tree clean"
-- [ ] `git log --oneline` näitab ajalugu
+- [ ] Vähemalt 2 commit'i
+- [ ] `git status` näitab "clean"
+- [ ] `git log` näitab ajalugu
 
 ---
 
@@ -271,8 +221,8 @@ git commit -m "Lisa Python skriptid"
 
 ```bash
 echo "Error log" > debug.log
-mkdir __pycache__
-touch __pycache__/test.pyc
+mkdir temp
+touch temp/cache.tmp
 cat > .env << 'EOF'
 API_KEY=secret123
 DATABASE_URL=postgresql://localhost/db
@@ -283,28 +233,18 @@ EOF
 
 ```bash
 cat > .gitignore << 'EOF'
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Virtuaalsed keskkonnad
-venv/
-env/
-
-# IDE
-.vscode/
-.idea/
-
-# Keskkonna muutujad
-.env
-.env.local
-
 # Logid
 *.log
 
-# OS failid
+# Temp
+temp/
+*.tmp
+
+# Secrets
+.env
+.env.local
+
+# OS
 .DS_Store
 Thumbs.db
 EOF
@@ -316,9 +256,7 @@ Kontrolli:
 git status
 ```
 
-Näed ainult `.gitignore` - teised failid on ignoreeritud!
-
-Commit:
+Näed ainult `.gitignore`!
 
 ```bash
 git add .gitignore
@@ -328,7 +266,7 @@ git commit -m "Lisa .gitignore"
 ### Kontrollnimekiri
 
 - [ ] `.gitignore` loodud
-- [ ] `.env` ei ilmu `git status` väljundis
+- [ ] `.env` ignoreeritud
 
 ---
 
@@ -337,74 +275,55 @@ git commit -m "Lisa .gitignore"
 ### 5.1 Loo Branch
 
 ```bash
-git branch feature/string-utils
-git checkout feature/string-utils
-```
-
-Või lühemalt:
-
-```bash
-git checkout -b feature/math-operations
+git checkout -b feature/scripts
 ```
 
 ### 5.2 Tööta Branch'is
 
-Oled `feature/math-operations` branch'is:
-
 ```bash
-cat >> calculator.py << 'EOF'
-
-def multiply(a, b):
-    return a * b
-
-def divide(a, b):
-    if b == 0:
-        return "Error: division by zero"
-    return a / b
+cat > backup.sh << 'EOF'
+#!/bin/bash
+echo "Backup started..."
+tar -czf backup.tar.gz notes.txt
+echo "Backup complete!"
 EOF
-```
 
-Commit:
+chmod +x backup.sh
 
-```bash
-git add calculator.py
-git commit -m "Lisa korrutamine ja jagamine"
+git add backup.sh
+git commit -m "Lisa backup skript"
 ```
 
 ### 5.3 Vaheta Branch
 
 ```bash
 git checkout main
+ls -la
 ```
 
-Kontrolli - `calculator.py` muudatusi pole siin näha!
+`backup.sh` puudub main'is!
 
 ### 5.4 Teine Branch
 
 ```bash
-git checkout -b feature/string-utils
+git checkout -b feature/docs
 ```
 
-Loo uus fail:
-
 ```bash
-cat > string_utils.py << 'EOF'
-def reverse(text):
-    return text[::-1]
+cat > INSTALL.md << 'EOF'
+# Paigaldusjuhend
 
-def count_words(text):
-    return len(text.split())
+## Eeldused
+- Git 2.0+
+- Bash
 
-if __name__ == "__main__":
-    print(reverse("tere"))
+## Sammud
+1. Clone repo
+2. Käivita skriptid
 EOF
-```
 
-Commit:
-
-```bash
-git add string_utils.py
-git commit -m "Lisa string utils"
+git add INSTALL.md
+git commit -m "Lisa paigaldusjuhend"
 ```
 
 Vaata branch'e:
@@ -415,9 +334,9 @@ git log --oneline --graph --all
 
 ### Kontrollnimekiri
 
-- [ ] Lõid vähemalt 2 branch'i
-- [ ] Tegid commit'e branch'ides
-- [ ] `git branch` näitab kõiki branch'e
+- [ ] 2+ branch'i loodud
+- [ ] Commit'id branch'ides
+- [ ] `git branch` näitab kõiki
 
 ---
 
@@ -427,47 +346,33 @@ git log --oneline --graph --all
 
 ```bash
 git checkout main
-git merge feature/string-utils
-```
-
-Väljund: "Fast-forward"
-
-Kontrolli:
-
-```bash
+git merge feature/docs
 ls -la
 ```
 
-`string_utils.py` on nüüd main'is!
+`INSTALL.md` on nüüd main'is!
 
 ### 6.2 Three-Way Merge
 
 ```bash
-git merge feature/math-operations
+git merge feature/scripts
 ```
 
-Git avab editori - salvesta ja sulge.
-
-Väljund: "Merge made by the 'recursive' strategy"
+Nano avaneb - salvesta `Ctrl+O`, sulge `Ctrl+X`.
 
 ### 6.3 Kustuta Branch'id
 
 ```bash
-git branch -d feature/string-utils
-git branch -d feature/math-operations
-```
-
-Kontrolli:
-
-```bash
+git branch -d feature/docs
+git branch -d feature/scripts
 git branch
 ```
 
 ### Kontrollnimekiri
 
-- [ ] Merge'isid mõlemad branch'id
+- [ ] Merge'isid branch'id
 - [ ] Branch'id kustutatud
-- [ ] Main'is on mõlema branch'i kood
+- [ ] Main'is mõlema kood
 
 ---
 
@@ -479,14 +384,12 @@ Branch 1:
 
 ```bash
 git checkout -b fix/greeting-estonian
-cat > hello.py << 'EOF'
-def greet(name):
-    return f"Tere, {name}! Kuidas läheb?"
-
-if __name__ == "__main__":
-    print(greet("Git"))
+cat > hello.sh << 'EOF'
+#!/bin/bash
+echo "Tere, Git! Kuidas läheb?"
 EOF
-git add hello.py
+
+git add hello.sh
 git commit -m "Lisa pikem tervitus eesti keeles"
 ```
 
@@ -494,14 +397,12 @@ Branch 2 (main):
 
 ```bash
 git checkout main
-cat > hello.py << 'EOF'
-def greet(name):
-    return f"Hello, {name}! Welcome!"
-
-if __name__ == "__main__":
-    print(greet("Git"))
+cat > hello.sh << 'EOF'
+#!/bin/bash
+echo "Hello, Git! Welcome!"
 EOF
-git add hello.py
+
+git add hello.sh
 git commit -m "Muuda tervitus inglise keeleks"
 ```
 
@@ -511,92 +412,76 @@ Merge - konflikt:
 git merge fix/greeting-estonian
 ```
 
-Väljund: "CONFLICT (content): Merge conflict in hello.py"
+Väljund: "CONFLICT (content): Merge conflict"
 
 ### 7.2 Lahenda Konflikt
 
-Vaata faili:
-
 ```bash
-cat hello.py
+cat hello.sh
 ```
 
-Näed konfliktimärke:
+Näed:
 
-```python
-def greet(name):
+```bash
+#!/bin/bash
 <<<<<<< HEAD
-    return f"Hello, {name}! Welcome!"
+echo "Hello, Git! Welcome!"
 =======
-    return f"Tere, {name}! Kuidas läheb?"
+echo "Tere, Git! Kuidas läheb?"
 >>>>>>> fix/greeting-estonian
-
-if __name__ == "__main__":
-    print(greet("Git"))
 ```
 
-Redigeeri faili - vali või kombineeri:
+Redigeeri:
 
 ```bash
-cat > hello.py << 'EOF'
-def greet(name):
-    """Tervitab mõlemas keeles."""
-    return f"Tere / Hello, {name}!"
-
-if __name__ == "__main__":
-    print(greet("Git"))
+cat > hello.sh << 'EOF'
+#!/bin/bash
+echo "Tere / Hello, Git!"
 EOF
 ```
 
-Märgi lahendatuks ja lõpeta:
+Lõpeta:
 
 ```bash
-git add hello.py
+git add hello.sh
 git commit
 ```
 
-Git avab editori - salvesta ja sulge.
+Nano - salvesta ja sulge.
 
 ### Kontrollnimekiri
 
-- [ ] Lõid konflikti
-- [ ] Lahendas käsitsi
+- [ ] Konflikt loodud
+- [ ] Lahendatud käsitsi
 - [ ] Merge lõpetatud
 
 ---
 
 ## 8. GitHub ja SSH
 
-### 8.1 Loo SSH Võti VM-is
+### 8.1 SSH Võti VM-is
 
 ```bash
 ssh-keygen -t ed25519 -C "sinu.email@example.com"
 ```
 
-Vajuta Enter kõigile küsimustele.
-
-Käivita SSH agent:
+Enter kõigile.
 
 ```bash
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
-```
-
-Kopeeri avalik võti:
-
-```bash
 cat ~/.ssh/id_ed25519.pub
 ```
 
 Kopeeri väljund.
 
-### 8.2 Lisa Võti GitHub'i
+### 8.2 Lisa GitHub'i
 
-1. GitHub → Settings (paremal üleval)
+1. GitHub → Settings
 2. SSH and GPG keys
 3. New SSH key
 4. Title: "VM controller"
-5. Key: kleebi avalik võti
+5. Key: kleebi
 6. Add SSH key
 
 Testi:
@@ -605,33 +490,26 @@ Testi:
 ssh -T git@github.com
 ```
 
-Oodatav: "Hi KASUTAJANIMI! You've successfully authenticated..."
+Oodatav: "Hi KASUTAJANIMI!..."
 
 ### 8.3 Loo GitHub Repo
 
 1. GitHub → "+" → New repository
 2. Name: `git-labor`
-3. Jäta tühjaks (EI lisa README)
+3. Jäta tühjaks
 4. Create repository
 
 ### 8.4 Ühenda Remote
 
 ```bash
-git remote add origin git@github.com:TEIE-KASUTAJANIMI/git-labor.git
+git remote add origin git@github.com:KASUTAJANIMI/git-labor.git
 git push -u origin main
-```
-
-Asenda `TEIE-KASUTAJANIMI` oma GitHub kasutajanimega.
-
-Kontrolli:
-
-```bash
 git remote -v
 ```
 
 ### 8.5 Push ja Pull
 
-Tee kohalik muudatus:
+Kohalik muudatus:
 
 ```bash
 echo "" >> README.md
@@ -642,14 +520,14 @@ git commit -m "Dokumenteeri GitHub"
 git push
 ```
 
-Tee muudatus GitHub'is (veebis):
+GitHub'is (veebis):
 
 1. Ava README.md
-2. Edit (pliiats)
-3. Lisa rida: "Muudatus GitHub'ist"
+2. Edit
+3. Lisa: "Muudatus GitHub'ist"
 4. Commit changes
 
-Pull muudatused:
+Pull:
 
 ```bash
 git pull
@@ -658,7 +536,7 @@ cat README.md
 
 ### Kontrollnimekiri
 
-- [ ] SSH võti seadistatud
+- [ ] SSH seadistatud
 - [ ] Remote lisatud
 - [ ] Push töötab
 - [ ] Pull töötab
@@ -673,48 +551,33 @@ cat README.md
 git checkout -b feature/documentation
 ```
 
-Loo USAGE.md:
-
 ```bash
 cat > USAGE.md << 'EOF'
 # Kasutamisjuhend
 
 ## Skriptid
 
-### hello.py
-Tervitusprogramm kahes keeles.
-
+### hello.sh
+Tervitusprogramm.
 ```bash
-python3 hello.py
+./hello.sh
 ```
 
-### calculator.py
-Matemaatilised operatsioonid.
-
+### backup.sh
+Varundamine.
 ```bash
-python3 calculator.py
-```
-
-### string_utils.py
-Stringide töötlemine.
-
-```bash
-python3 string_utils.py
+./backup.sh
 ```
 
 ## Arendamine
 
 1. Loo branch: `git checkout -b feature/uus`
 2. Tee muudatused
-3. Commit: `git commit -m "Lisa uus funktsioon"`
+3. Commit: `git commit -m "Lisa uus"`
 4. Push: `git push origin feature/uus`
-5. Tee Pull Request GitHub'is
+5. Tee Pull Request
 EOF
-```
 
-Commit ja push:
-
-```bash
 git add USAGE.md
 git commit -m "Lisa kasutamisjuhend"
 git push -u origin feature/documentation
@@ -722,9 +585,9 @@ git push -u origin feature/documentation
 
 ### 9.2 Tee Pull Request
 
-GitHub (veeb):
+GitHub:
 
-1. Näed bänneri: "feature/documentation had recent pushes"
+1. "feature/documentation had recent pushes"
 2. Compare & pull request
 3. Title: "Lisa kasutamisjuhend"
 4. Description:
@@ -732,7 +595,7 @@ GitHub (veeb):
 ```
 ## Muudatused
 - Lisasin USAGE.md
-- Dokumenteeritud kõik skriptid
+- Dokumenteeritud skriptid
 
 ## Kontroll
 - [x] Testitud
@@ -743,13 +606,13 @@ GitHub (veeb):
 
 ### 9.3 Merge PR
 
-1. Vaata "Files changed"
-2. Approve (enda PR puhul)
+1. Files changed
+2. Approve
 3. Merge pull request
-4. Confirm merge
+4. Confirm
 5. Delete branch
 
-### 9.4 Uuenda Lokaalne Repo
+### 9.4 Uuenda Lokaalne
 
 ```bash
 git checkout main
@@ -759,24 +622,24 @@ git branch -d feature/documentation
 
 ### Kontrollnimekiri
 
-- [ ] Lõid PR
-- [ ] Merge'isid GitHub'is
-- [ ] Pull'isid muudatused
-- [ ] Kustutad local branch
+- [ ] PR loodud
+- [ ] Merge'itud GitHub'is
+- [ ] Pull'itud
+- [ ] Local branch kustutatud
 
 ---
 
 ## Lõplik Kontrollnimekiri
 
-- [ ] Vagrant VM töötab ja VS Code ühendatud
-- [ ] Git konfigureeritud VM-is
-- [ ] Vähemalt 5 commit'i
+- [ ] Vagrant VM töötab, VS Code ühendatud
+- [ ] Git konfigureeritud
+- [ ] 5+ commit'i
 - [ ] .gitignore olemas
-- [ ] 2+ branch'i loodud ja merge'itud
+- [ ] 2+ branch'i merge'itud
 - [ ] Konflikt lahendatud
-- [ ] SSH GitHub'iga seadistatud
+- [ ] SSH GitHub'iga
 - [ ] Remote push/pull töötab
-- [ ] PR workflow läbi proovitud
+- [ ] PR workflow tehtud
 
 ---
 
@@ -814,16 +677,14 @@ git branch -D branch-name
 
 ## Esitamine
 
-Enne esitamist:
-
-1. Push kõik muudatused:
+1. Push kõik:
 
 ```bash
-git status  # peab olema clean
+git status
 git push --all origin
 ```
 
-2. README algusesse lisa:
+2. README algusesse:
 
 ```markdown
 # Git Labor Projekt
@@ -832,5 +693,5 @@ git push --all origin
 **Kuupäev:** 2025-XX-XX
 ```
 
-3. Kontrolli GitHub'is - kõik failid peavad olemas olema
-4. Esita Google Classroom'is link: `https://github.com/TEIE-KASUTAJANIMI/git-labor`
+3. Kontrolli GitHub'is
+4. Esita link: `https://github.com/KASUTAJANIMI/git-labor`
