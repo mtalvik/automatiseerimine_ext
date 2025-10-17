@@ -66,17 +66,36 @@ ssh-keygen -t ed25519 -C "sinu@email.com"
 - Fail: default Enter
 - Passphrase: tühi Enter
 
-**Saada võti VM-i:**
+**Saada võti VM-i (vali meetod):**
+
+**Meetod 1: ssh-copy-id (lihtsaim)**
 
 ```bash
-type C:\Users\SINUNIMI\.ssh\id_ed25519.pub | vagrant ssh -- "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && chmod 700 ~/.ssh"
+ssh-copy-id -i C:\Users\SINUNIMI\.ssh\id_ed25519.pub vagrant@192.168.56.10
 ```
 
-Kui ei tööta:
+Parool: `vagrant`
+
+**Meetod 2: Vagrantfile provisioning**
+
+Lisa Vagrantfile'i (enne `end`):
+
+```ruby
+config.vm.provision "shell" do |s|
+  ssh_pub_key = File.readlines("C:/Users/SINUNIMI/.ssh/id_ed25519.pub").first.strip
+  s.inline = <<-SHELL
+    mkdir -p /home/vagrant/.ssh
+    echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+    chmod 600 /home/vagrant/.ssh/authorized_keys
+    chmod 700 /home/vagrant/.ssh
+  SHELL
+end
+```
+
+Siis:
 
 ```bash
-vagrant upload C:\Users\SINUNIMI\.ssh\id_ed25519.pub /tmp/key.pub
-vagrant ssh -c "mkdir -p ~/.ssh && cat /tmp/key.pub >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && chmod 700 ~/.ssh"
+vagrant provision
 ```
 
 ### 1.5 VS Code Remote-SSH
