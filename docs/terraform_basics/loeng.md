@@ -141,7 +141,7 @@ resource "google_compute_instance" "web" {
 }
 ```
 
-![Multi-Cloud Support](https://miro.medium.com/v2/resize:fit:1400/1*QlqZdh6-8WXFzbVRWKLZSw.png)
+![Multi-Cloud Support](https://miro.medium.com/v2/resize:fit:627/1*OiA514LNzKtDij8cSVrKeA.png)
 *Terraform Multi-Cloud Architecture*
 
 Sama loogika, erinevad provider'id. See tähendab, et täna kasutad AWS'i, homme kui tarvis on Azure'i, sa ei pea õppima täiesti uut süsteemi. Terraform oskused on portaalsed.
@@ -246,7 +246,7 @@ Iga provider laetakse alla terraform init käsuga. Provider'id elavad `.terrafor
 
 State on `terraform.tfstate` fail JSON vormingus. See on Terraform'i päevik - mäletab kõike, mis on loodud.
 
-![Terraform State Management](https://spacelift.io/wp-content/uploads/2022/02/TerraformStateFile2.png)
+![Terraform State Management](https://k21academy.com/wp-content/uploads/2023/06/TF-Statefile.webp)
 *Terraform State File Management*
 
 Miks oluline: sina ütled "Tahan 3 serverit". Terraform vaatab state'i, näeb et praegu on 2, loob 1 juurde. Ilma state'ita Terraform ei tea mis on loodud. Terraform arvaks "Pole midagi, loon 3 uut!" ja AWS vastaks "Aga sul on juba 2..." ja tulemus on 5 serverit. Ootamatu arve. CEO on vihane.
@@ -293,7 +293,7 @@ State kaotsimineku lugu: üks Eesti startup developer kustutas kogemata `terrafo
 
 "Imperatiivne: ütled KUIDAS. Deklaratiivne: ütled MIDA."
 
-![Declarative vs Imperative](https://spacelift.io/wp-content/uploads/2021/02/declarative-vs-imperative.png)
+![Declarative vs Imperative](https://dz2cdn1.dzone.com/storage/temp/14734695-1620752831798.png)
 *Declarative vs Imperative Infrastructure as Code*
 
 See on Terraform'i kõige olulisem kontseptsioon. Mõista seda ja sa mõistad Terraform'i. Mõista valesti ja sa võitad Terraform'iga igavesti.
@@ -623,7 +623,7 @@ Terraform dokumentatsioonis on kõik funktsioonid kirjeldatud. Näiteks faili lu
 
 "4 käsku: init, plan, apply, destroy"
 
-![Terraform Workflow Lifecycle](https://spacelift.io/wp-content/uploads/2023/08/Terraform-Workflow.png)
+![Terraform Workflow Lifecycle](https://miro.medium.com/v2/resize:fit:720/format:webp/1*mR0rGO72zDfP0UgRKMzDIQ.jpeg)
 *Terraform Workflow: Write → Init → Plan → Apply → Destroy*
 
 Terraform'i kasutamine järgib standardset workflow'd. Need käsud käivad alati samas järjekorras. Mõista workflow'd ja sa mõistad kuidas Terraform töötab.
