@@ -1,7 +1,3 @@
-Ah, **lisapraktika fail**! See mis dokumendis oli, aga nüüd **Ubuntu serveritele** mitte local failidele.
-
-Las ma teen üle:
-
 # Terraform Lisapraktika
 
 **Eeldused:** Terraform Alused Labor tehtud, SSH võtmed töötavad, Ubuntu-1 ja Ubuntu-2 saadaval
@@ -511,7 +507,3 @@ terraform apply -var-file="terraform.tfvars.prod"
 **Näited:**
 
 - HashiCorp Learn: https://learn.hashicorp.com/terraform
-
----
-
-Need harjutused on mõeldud süvendama teie Terraform oskusi. Alustage esimesest ja liikuge järk-järgult keerukamate poole.
