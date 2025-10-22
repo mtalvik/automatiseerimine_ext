@@ -8,8 +8,9 @@
 
 ## Õpiväljundid
 
+Pärast seda loengut sa:
 - Selgitad Infrastructure as Code eeliseid konkreetsete näidetega
-- Eristad Terraform'i teistest IaC tööriistadest
+- Eristad Terraform'i teistest IaC tööriistadest  
 - Kirjeldad Terraform'i arhitektuuri komponente
 - Mõistad deklaratiivset lähenemist vs imperatiivne
 - Kirjutad HCL koodi põhielemente
@@ -19,107 +20,271 @@
 
 ## 1. Miks Me Vajame Infrastructure as Code?
 
-Eesti DevOps tõde: "Kui teed midagi käsitsi üle kahe korra, oled sa juba teinud seda liiga palju kordi."
+Kujuta ette: Esmaspäev, kell 9:00 hommikul. CEO kirjutab Slackis: "Vajame test keskkonda, demo on reedel!"
 
-### Käsitsi Seadistamise Õudusunenägu
+Sa oled DevOps insener. Sul on 3 päeva. Sa avad AWS Console'i... ja seal on juba 47 tab'i eelmistest projektidest lahti.
 
-Kujutage ette tüüpilist esmaspäeva Tallinna startup'is. CEO teatab kell üheksa hommikul, et test keskkonda on vaja reedeks. DevOps insener avab AWS Console'i, loeb dokumentatsiooni, klõbistab nuppudel ja valib seadeid. Kell kaksteist selgub, et valitud on vale instance type. Kustutada kõik, alustada uuesti. Kell kaks päeval on lõpuks valmis. Kell kolm teatatakse, et tegelikult on vaja viis serverit, mitte üks. Sisse hingamine.
+**9:00** - Alustamine  
+**10:00** - Ikka veel dokumentatsiooni lugemine  
+**11:30** - Oops, vale instance type valitud  
+**12:00** - "Kurat, pean kõik kustutama ja uuesti alustama"  
+**14:00** - "LÕPUKS töötab!"  
+**15:00** - CEO: "Aa jaa, tegelikult vajame 5 serverit, mitte üht..."
 
-See pole naljaasi. See on päris elu paljudes ettevõtetes, kus infrastruktuuri seadistamine toimub käsitsi graafilises kasutajaliideses.
+*Sügav sissehingamine.*
 
-### Probleemid
+See pole ainult ühe halva päeva lugu. See on **reaalsus** paljudes ettevõtetes, kus infrastruktuuri seadistatakse käsitsi.
 
-Käsitsi seadistamine toob kaasa mitmeid fundamentaalseid probleeme. Aeglane: iga server võtab 20-30 minutit käsitsi seadistada, viis serverit tähendavad tervet päeva tööd. Pipedrive kogemused näitavad, et käsitsi seadistamine võttis kaks päeva seal, kus Terraform lahendab sama küsimuse kümneks minutiks.
+### Käsitsi Seadistamise Probleemid
 
-Vigaderohne: inimesed teevad vigu. Üks unustatud tulemüüri reegel, vale security group, vale instance type - ja kogu süsteem ei tööta ootuspäraselt. Uuringud näitavad, et käsitsi seadistatud keskkondades on kuni 40% infrastruktuurist erinev production ja staging vahel, sest keegi unustas midagi kopeerida või seadistas midagi teisiti.
+Mõtle selle peale nagu videomängus:
 
-Dokumenteerimata: 6 kuud hiljem ei tea keegi täpselt, mis seal AWS konsoolis tehti. Confluence dokumentatsioon on aegunud või puudulik. Algne insener on lahkunud. Uus inimene peab alustama nullist ja aimama.
+**Level 1: Aeglus**  
+Üks server = 30 minutit klõbistamist. Viis serverit = terve päev. Kümme serverit = kaks päeva. Sada serverit? Unusta ära.
 
-Ei kordu: iga kord kui seadistad käsitsi, tekib natuke erinev tulemus. Need on nn "snowflake" serverid - iga server on unikaalne lumehelves, mitte standardiseeritud toode. Debuggimine muutub keeruliseks.
+Pipedrive näide: käsitsi seadistamine võttis kaks päeva. Terraform'iga? Kümme minutit.
 
-Koostöö raske: kaks inimest ei saa samaaegselt töötada AWS konsoolis sama keskkonna kallal. Konfliktid on paratamatud. Keegi kirjutab teise muudatused üle, keegi ei tea mida teine tegi.
+**Level 2: Vead**  
+Inimesed teevad vigu. Unustasid ühe tulemüüri reegli? Süsteem ei tööta. Vale security group? Häkkerid võivad sisse pääseda. Andmebaas vales subnet'is? Mitte keegi ei saa ühendust.
 
-| Probleem | Põhjus | Mõju | Päris Näide |
-|----------|--------|------|-------------|
-| Aeglane | Iga server käsitsi | 5 serverit = terve päev | Pipedrive: 2 päeva vs 10 min |
-| Vigane | Inimesed eksivad | "Töötab minu masinas" | 40% infrastruktuur erinev |
-| Dokumenteerimata | Keegi ei viitsi | 6 kuud hiljem ??? | Confluence 3 kuud vana |
-| Ei kordu | Iga kord erinev | Unique snowflake | Iga server natuke teine |
-| Koostöö raske | Kaks inimest = kaos | Konfliktid | "Kes seda muutis?!" |
+Uuringud näitavad: **40% infrastruktuurist on erinev** production ja staging vahel. Miks? Keegi unustas midagi kopeerida.
+
+**Level 3: Dokumentatsioon puudub**  
+Kuus kuud hiljem keegi ei mäleta, mida AWS konsoolis tehti. Confluence dokumentatsioon on aegunud. Algne insener? Läks Bolt'i (parem palk). Uus inimene peab kõike aimama.
+
+**Level 4: Ei kordu**  
+Iga kord kui seadistad käsitsi, tuleb natuke erinev tulemus. Need on "snowflake serverid" - iga server on unikaalne nagu lumehelves. Debuggimine muutub põrguks.
+
+**Boss Level: Koostöö on võimatu**  
+Kaks inimest ei saa AWS konsoolis samaaegselt töötada. Konfliktid on paratamatud. Üks kirjutab teise muudatused üle. "KES KUSTUTAS MU SERVERI?!"
+
+| Probleem | Päris Näide |
+|----------|-------------|
+| Aeglane | Pipedrive: 2 päeva vs 10 minutit |
+| Vigaderohne | 40% infrastruktuurist erinev |
+| Dokumenteerimata | Confluence 3 kuud vana |
+| Ei kordu | "Töötab minu masinas" |
+| Koostöö raske | "Kes seda muutis?!" |
 
 ### Päris Lugu: 30,000 Euro Viga
 
-Tallinna fintech'is 2023. aastal seadistas DevOps insener production keskkonna käsitsi AWS'is. Kaks nädalat tööd. Kõik "dokumenteeritud" Confluence'is. Kolm kuud hiljem vajati staging keskkonda. Algne insener oli vahepeal lahkunud Bolt'i parema palga pärast.
+**Tallinn, 2023. Fintech startup.**
 
-Uus inimene proovis dokumentatsiooni järgida. Tulemus: staging oli 40% erinev production'ist. Bug'id, mis staging'us ei ilmnenud, plahvatasid production'is. Downtime. Kliendid vihased. CEO veel vihasem. Hind: 30,000 eurot + 200 tundi debuggimist + üks väga kurb DevOps insener. Õppetund: käsitsi seadistamine ei skaleeru.
+DevOps insener seadistab production keskkonna käsitsi AWS'is. Kulub kaks nädalat. Kõik "dokumenteeritud" Confluence'is.
+
+Kolm kuud hiljem: vaja staging keskkonda.
+
+**Plot twist:** Algne insener on vahepeal lahkunud.
+
+Uus inimene proovib dokumentatsiooni järgida:
+
+```
+Dokumentatsioon: "Lisa security group sg-abc123"
+Reaalsus: See group kustutati 2 kuud tagasi
+
+Dokumentatsioon: "Instance type: t2.medium"  
+Reaalsus: Keegi upgraderis t3.large peale
+
+Dokumentatsioon: "Database port: 5432"
+Reaalsus: Muudeti 3306 peale (keegi ei mäleta miks)
+```
+
+**Tulemus:**  
+Staging on 40% erinev production'ist. Bug'id, mis staging'us ei ilmnenud, plahvatasid production'is.
+
+**Kahju:**
+- 2 tundi downtime
+- 1000+ vihast klienti  
+- 30,000 eurot
+- 200 tundi debuggimist
+- Üks väga kurb DevOps insener
+
+**Õppetund:** Käsitsi seadistamine ei skaleeru.
 
 ### Lahendus: Infrastructure as Code
 
-IaC tähendab, et infrastruktuur kirjutatakse koodina. Mitte klõpsamine, mitte nuppude vajutamine - kood. Sama nagu rakenduse kood elab Git'is ja läbib code review protsessi, peaks ka infrastruktuur elama koodina.
+**Lihtne vastus:** Kirjuta infrastruktuur koodina. Mitte klõpsamine, mitte nuppude vajutamine - **kood**.
 
-Traditsiooniline lähenemine: ava AWS Console, klõpsa 50 nuppu, kulub 2-4 tundi, dokumenteeri (või pigem ära dokumenteeri). IaC lähenemine: kirjuta kood, käivita terraform apply, kulub 3-10 minutit, kood ON dokumentatsioon.
+```
+Vana viis:
+1. Ava AWS Console
+2. Klõpsa 50 nuppu
+3. Kulub 2-4 tundi
+4. "Dokumenteeri" (või pigem mitte)
+5. Unusta kuidas tegid
 
-Sama ülesanne kahe meetodiga:
+IaC viis:
+1. Kirjuta kood (15 min)
+2. terraform apply (3 min)
+3. Kood ON dokumentatsioon
+4. Git mäletab kõike
+```
 
-| Meetod | Aeg | Tulemus | Korratav? | Dokumenteeritud? |
-|--------|-----|---------|-----------|------------------|
-| Käsitsi AWS Console | 2-4h | "Unique snowflake" | Ei | Vahel |
-| Terraform | 3-10 min | Identne iga kord | Jah | Alati |
+Võrdlus:
 
+| Meetod | Aeg | Korratav? | Dokumenteeritud? | Vigade risk |
+|--------|-----|-----------|------------------|-------------|
+| Käsitsi | 2-4h | Ei | Vahel | Kõrge |
+| Terraform | 3-10 min | Jah | Alati | Madal |
 
 ![How Does IaC Work?](https://cdn.servermania.com/images/w_1024,h_494,c_scale/f_webp,q_auto:best/v1744146107/kb/2_351821c347/2_351821c347.png?_i=AA)
 
+### Miks IaC Päriselt Töötab?
 
-### IaC Eelised
+**1. Kiirus = Superpower**
 
-Kiirus on ilmne. Käsitsi: 10 serverit võtab 1-2 päeva. Terraform: 10 serverit võtab 5 minutit. Matemaatika on lihtne. See pole ainult aja kokkuhoid - see on võimalus eksperimenteerida, katsetada, kiirelt itereerida.
+Käsitsi: 10 serverit = 1-2 päeva  
+Terraform: 10 serverit = 5 minutit
 
-Korratavus on võib-olla kõige väärtuslikum omadus. Sama kood annab alati sama tulemuse. Käivita 100 korda, saad 100 identset keskkonda. Ei ole "töötab minu masinas" probleemi. Development, staging ja production on identsed, ainult parameetrid erinevad. See tähendab, et bug'id ilmnevad development'is, mitte production'is.
+Aga see pole ainult kiirus. See on **võimalus eksperimenteerida**. "Mis juhtub kui teen 100 serverit? Vaatame!" Testi, kustuta, testi uuesti. Käsitsi see oleks hullumeelne.
 
-Versioonihaldus tuleneb sellest, et kood elab Git'is. `git log` näitab täpselt kes mida muutis ja millal. Keegi kustutas production'i kell 3 öösel? Git teab täpselt mida tehti. Saab rollback'ida. Saab vaadata ajalugu. Saab blame'ida (konstruktiivselt).
+**2. Korratavus = Clone Magic**
 
-Dokumentatsioon muutub iseenesestmõistetavaks: kood ON dokumentatsioon. Alati up-to-date, sest kui kood ei ole ajakohane, süsteem ei tööta. Confluence ei vaja (tänu taevale). See on reaalne, töötav dokumentatsioon, mitte "loosely based on actual events" versioon mis kirjutati 6 kuud tagasi.
+Sama kood = alati sama tulemus.
 
-Meeskonnatöö muutub võimalikuks: pull request'id infrastruktuurile, code review enne production'i, nagu normaalne tarkvaraarendus. Kolm inimest saavad samaaegselt töötada erinevatel osadel. Konfliktid lahendatakse Git'is, mitte "viimane kirjutab üle" põhimõttel AWS konsoolis.
+```hcl
+resource "aws_instance" "web" {
+  count = 100  # Boom! 100 identset serverit
+}
+```
 
-Testimine lihtsustub: Dev -> Staging -> Prod. Sama kood, erinevad parameetrid. Testi julgelt, prod ei purune. Kui midagi läheb valesti staging'us, ei jõua see kunagi production'ini.
+Käivita 100 korda → saad 100 identset keskkonda. "Töötab minu masinas" probleem kaob.
 
-![How Terraform Helps in DevOps](https://media.geeksforgeeks.org/wp-content/uploads/20241212151316849879/How-does-Terraform-work.webp)
-*Example: How Terraform Helps in DevOps*
+Development = täpne koopia production'ist (ainult väiksem).  
+Bug ilmneb dev'is? Fiksid dev'is.  
+Fix töötab dev'is? Töötab ka production'is.
 
-### Pipedrive Näide
+**3. Versioonihaldus = Time Machine**
 
-Pipedrive kogemus Terraform'iga illustreerib hästi väärtust. Enne Terraform'i 2018. aastal võttis uue keskkonna loomine kaks päeva. Dokumentatsioon elas Confluence'is ja oli sageli aegunud. Vead olid tavalised, sest iga keskkond oli pisut erinev. Meeskond ei teadnud täpselt, mis production'is oli.
+Kood elab Git'is:
 
-Pärast Terraform'i kasutuselevõttu 2019. aastal võtab uue keskkonna loomine 10 minutit. Dokumentatsioon elab Git'is. Vigu on 90% vähem. Meeskond näeb `git log` kaudu kõike. ROI: 10x kiirem, 100,000+ eurot säästu aastas, üks väga õnnelik DevOps meeskond.
+```bash
+git log     # Näed kõike
+git blame   # Kes seda muutis?
+git revert  # Tagasi minevikku!
+```
+
+Keegi kustutas production'i kell 3 öösel?  
+Git teab **täpselt** mida tehti. Rollback võtab 2 minutit.
+
+**4. Dokumentatsioon = Self-Updating**
+
+Kood **ON** dokumentatsioon.
+
+Confluence:
+```
+Viimati uuendatud: 6 kuud tagasi
+Autor: lahkunud töötaja
+Õigsus: ~40%
+```
+
+Terraform fail:
+```
+Viimati uuendatud: täna (git log)
+Autor: sina (git blame)
+Õigsus: 100% (muidu ei tööta)
+```
+
+**5. Meeskonnatöö = Multiplayer Mode**
+
+```
+Käsitsi AWS:
+Mängija 1: "Teen serveri..."
+Mängija 2: "Ma ka..."
+*konflikt*
+"KES KUSTUTAS MU SERVERI?!"
+
+Terraform + Git:
+Mängija 1: git commit "Add server"
+Mängija 2: git commit "Add database"  
+git merge
+Code review
+Kõik õnnelikud
+```
+
+Pull request'id infrastruktuurile. Code review enne production'i. Nagu normaalne tarkvaraarendus.
+
+**6. Testimine = Safe Zone**
+
+```
+Dev keskkond (test siin)
+    ↓
+Staging (test veel kord)
+    ↓  
+Production (100% kindel)
+```
+
+Sama kood, erinevad parameetrid:
+
+```hcl
+# dev.tfvars
+instance_type = "t3.micro"  # odav
+
+# prod.tfvars  
+instance_type = "t3.large"  # võimas
+```
+
+Kui midagi läheb valesti staging'us → see ei jõua production'ini.
+
+![How Terraform Helps](https://media.geeksforgeeks.org/wp-content/uploads/20241212151316849879/How-does-Terraform-work.webp)
+
+### Pipedrive Success Story
+
+**Enne Terraform (2018):**
+- Uus keskkond: 2 päeva
+- Dokumentatsioon: Confluence (aegunud)
+- Vead: iga keskkond erinev
+- Meeskond: stress level 9000+
+
+**Pärast Terraform (2019):**
+- Uus keskkond: 10 minutit
+- Dokumentatsioon: Git (alati õige)
+- Vead: 90% vähem
+- Meeskond: chill
+
+**Tulemused:**
+- 10x kiirem
+- 100,000+ eurot säästu aastas
+- Õnnelik DevOps meeskond
+- CEO rahul
 
 ---
 
 ## 2. Mis on Terraform?
 
-"Terraform on nagu LEGO infrastruktuurile - ehitad samme koos ja saad täis süsteemi."
+Terraform on **infrastruktuuri ehitaja**. Mitte rakenduste installer - **maja ehitaja**.
 
-Terraform on HashiCorp'i loodud Infrastructure as Code tööriist. Loodud 2014. aastal, kirjutatud Go keeles, open-source ja täiesti tasuta. Üle 10 aasta praktilist kasutust tootmiskeskkondades, 1000+ ettevõtet (AWS, Microsoft, Google, GitLab kasutavad ise Terraform'i oma infrastruktuurile).
+```
+         TERRAFORM
+             ↓
+Ehitab infrastruktuuri
+     ↓           ↓
+Serverid     Võrgud
+     ↓           ↓  
+Andmebaasid  Firewall
+```
 
-### Terraform Roll
+Loodud: 2014  
+Autor: HashiCorp  
+Keel: Go  
+Litsents: Open-source (tasuta!)  
+Kasutajad: AWS, Microsoft, Google, GitLab, Pipedrive, Bolt...
 
-Terraform loob infrastruktuuri. See ei konfigureeri rakendusi. See on oluline vahe, mida algajad sageli ei mõista. Terraform ehitab maja - loob serveri, seadistab võrgu, avab tulemüüri reeglid. Terraform ei pane mööblit majja - see on Ansible'i või teiste konfigureerimistööriistade töö.
+### Analoogia: Maja Ehitamine
 
-Analoogi: maja ehitamine jaguneb osadeks. Terraform ehitab maja (vundament, seinad, katus, elektri juhtmestik). Ansible teeb sisekujunduse (installib mööbli, värvib seinad, paigaldab dekoratsioonid). Kubernetes on kolija (paigutab asjad õigetesse tubadesse ja haldab nende paigutust dünaamiliselt).
+| Roll | Tööriist | Mis teeb | Näide |
+|------|----------|----------|-------|
+| Ehitaja | Terraform | Loob infrastruktuuri | "Tee 10 serverit" |
+| Sisekujundaja | Ansible | Installib tarkvara | "Pane Nginx kõigile" |
+| Kolija | Kubernetes | Deploy rakendused | "Käivita 50 pod'i" |
 
-| Roll | Tööriist | Mis ta teeb |
-|------|----------|-------------|
-| Maja ehitaja | Terraform | Vundament, seinad, katus |
-| Sisekujundaja | Ansible | Mööbel, värvid, elekter |
-| Kolija | Kubernetes | Paigutab asjad õigetesse tubadesse |
+**OLULINE:** Terraform ei deploy rakendusi. See loob **koha**, kus rakendus jookseb. Nagu ehitaja ei pane tuppa diivanit - see on sisekujundaja töö.
 
-See on oluline: Terraform ei deploy rakendusi. See loob serveri, kus rakendus jookseb. Nagu ehitaja ei pane tuppa diivanit - see on sisekujundaja töö. Paljud algajad proovivad Terraform'iga teha asju, mis on mõeldud Ansible'ile või Kubernetes'ele.
+### Terraform Superpowerid
 
-### Terraform Tugevused
+**1. Multi-Cloud**
 
-Esimene suur tugevus on multi-cloud tugi. Sama süntaks töötab kõigile platvormidele. AWS, Azure, GCP - kõik kasutavad HCL keelt. Õpid ühe korra, kasutad kõikjal.
-
-Näiteks sama server AWS'is ja Azure'is:
+Õpid ühes kohas → töötad kõikjal:
 
 ```hcl
 # AWS
@@ -130,87 +295,139 @@ resource "aws_instance" "web" {
 
 # Azure (sama loogika!)
 resource "azurerm_virtual_machine" "web" {
-  name     = "web-vm"
-  size     = "Standard_B1s"
+  name = "web-vm"
+  size = "Standard_B1s"
 }
 
-# GCP
+# Google Cloud
 resource "google_compute_instance" "web" {
   name         = "web-instance"
   machine_type = "f1-micro"
 }
 ```
 
-![Multi-Cloud Support](https://miro.medium.com/v2/resize:fit:627/1*OiA514LNzKtDij8cSVrKeA.png)
-*Terraform Multi-Cloud Architecture*
+![Multi-Cloud](https://miro.medium.com/v2/resize:fit:627/1*OiA514LNzKtDij8cSVrKeA.png)
 
-Sama loogika, erinevad provider'id. See tähendab, et täna kasutad AWS'i, homme kui tarvis on Azure'i, sa ei pea õppima täiesti uut süsteemi. Terraform oskused on portaalsed.
+**Miks see on cool?**
+- Täna: AWS
+- Homme: Azure  
+- Sa ei pea õppima uut süsteemi
+- Terraform skills on portable
 
-Teine tugevus on deklaratiivne lähenemine. Ütled MIDA tahad, mitte KUIDAS. Imperatiivne kood Bash'is: create_server "web1", wait_for_ready, attach_security_group, ja veel 20 sammu. Deklaratiivne kood Terraform'is: resource "aws_instance" "web" { count = 3 }. Terraform väljastab samme ise. Sa ei pea muretsema järjekorra pärast, sõltuvuste pärast, ootamise pärast.
+**2. Deklaratiivne**
 
-Kolmas tugevus on suur kogukond. Terraform Registry sisaldab 3000+ provider'it ja 10,000+ moodulit. AWS, Azure, GCP, Docker, Kubernetes, GitHub, ja veel sadade platvormide toetus. See tähendab, et tõenäoliselt ei pea sa kirjutama ise provider'it või moodulit - keegi teine on seda juba teinud ja jagab avalikult.
+```
+Imperatiivne (Bash):
+1. create_server "web1"
+2. wait_for_ready  
+3. attach_security_group
+... (20 sammu)
 
-### Terraform vs Teised
+Deklaratiivne (Terraform):
+resource "aws_instance" "web" {
+  count = 3
+}
+# Terraform teab kuidas!
+```
 
-Terraform vs Ansible on üks sagedasemaid segadusi. Need tööriistad teevad erinevaid asju, kuigi mõlemat sageli kutsutakse "IaC" nime all. Terraform loob infrastruktuuri. Ansible seadistab infrastruktuuri. Näide: Terraform ütleb "Loo 10 serverit". Ansible ütleb "Installi Nginx kõigile neile 10 serverile". Keel: Terraform kasutab HCL'd (deklaratiivne), Ansible kasutab YAML'i (imperatiivne). Kasuta Terraform'i kui vajad uut infrastruktuuri, kasuta Ansible'i kui seadistad olemasolevat.
+**3. Suur Kogukond**
+
+Terraform Registry:
+- 3000+ provider'it
+- 10,000+ moodulit  
+- Aktiivne kogukond
+- Hulk tutorial'e
+
+Tõenäoliselt ei pea sa kunagi ise provider'it kirjutama - keegi on seda juba teinud.
+
+### Terraform vs Ansible
+
+See on kõige sagedasem küsimus:
 
 | | Terraform | Ansible |
 |---|-----------|---------|
-| Peamine ülesanne | Loo infrastruktuur | Seadista infrastruktuur |
-| Näide | Loo 10 serverit | Installi Nginx kõigile |
-| Keel | HCL (deklaratiivne) | YAML (imperatiivne) |
-| Kasuta kui | Vajad uut infrastruktuuri | Seadistad olemasolevat |
+| **Peamine töö** | Loo infrastruktuur | Seadista infrastruktuur |
+| **Näide** | "Tee 10 serverit" | "Installi Nginx kõigile" |
+| **Keel** | HCL (deklaratiivne) | YAML (imperatiivne) |
+| **Kasuta kui** | Vajad uut infrastruktuuri | Seadistad olemasolevat |
 
-![Ansible vs Terraform Differences](https://i.pinimg.com/originals/c4/49/5e/c4495ece1697f3f7e499e7ef719276ff.png)
-*Ansible vs Terraform: Understanding the Differences*
+**Praktikas koos:**
 
-Praktikas kasutatakse neid koos: Terraform loob 10 serverit AWS'is, Ansible installib Nginx kõigile, Kubernetes deploy'b rakenduse. Wise (endine TransferWise) kasutab mõlemat. Terraform loob infrastruktuuri, Ansible seadistab. Koos nad on võimsad, eraldi poolik töö.
+```
+Terraform → loob 10 serverit
+    ↓
+Ansible → installib Nginx kõigile  
+    ↓
+Kubernetes → deploy'b rakenduse
+```
 
-Terraform vs CloudFormation on teine oluline võrdlus. CloudFormation on Amazon'i enda IaC tööriist. Platvormid: Terraform töötab AWS'is, Azure'is, GCP's, ja 100+ teises platvormis. CloudFormation töötab ainult AWS'is. Süntaks: Terraform kasutab HCL'd (loetav ja kompaktne). CloudFormation kasutab JSON'i või YAML'i (verbose ja keeruline). Kogukond: Terraform'il on suur multi-cloud kogukond. CloudFormation on AWS-keskne.
+Wise (TransferWise) kasutab mõlemat. Terraform loob, Ansible seadistab. Koos nad on võimsad.
+
+### Terraform vs CloudFormation
 
 | | Terraform | CloudFormation |
 |---|-----------|----------------|
-| Platvormid | AWS, Azure, GCP, 100+ | Ainult AWS |
-| Süntaks | HCL (loetav) | JSON/YAML (verbose) |
-| Kogukond | Suur, multi-cloud | AWS-kesksed |
-| Kasuta kui | Multi-cloud või tulevikukindlus | 100% AWS forever |
+| **Platvormid** | AWS + Azure + GCP + 100+ | Ainult AWS |
+| **Süntaks** | HCL (loetav) | JSON/YAML (verbose) |
+| **Kogukond** | Suur, multi-cloud | AWS-focused |
 
-Eesti valik: 95% ettevõtteid valib Terraform. Isegi kui praegu ainult AWS, homme võib-olla Azure. Paindlikkus on kuningas. Terraform oskused on väärtuslikumad tööturul kui CloudFormation oskused.
+**Eesti valik:** 95% ettevõtteid valib Terraform.
+
+Miks? Isegi kui praegu ainult AWS, homme võib-olla Azure. **Paindlikkus > vendor lock-in**.
 
 ### Bolt Näide
 
-Bolt infrastruktuur 2024. aastal: 1000+ mikroteenust, 50+ riiki, AWS + GCP + Azure. Ilma Terraform'ita oleks see võimatu. Vajaks sadu DevOps insenere iga platvormi jaoks. Terraform'iga: väike meeskond haldab kõike. 1 moodul kirjutatakse korra, rakendatakse kõikjal. See on skaleeritavuse näide - Terraform võimaldab väiksel meeskonnal hallata tohutut infrastruktuuri.
+**Bolt infrastruktuur (2024):**
+- 1000+ mikroteenust
+- 50+ riiki
+- AWS + GCP + Azure
+
+**Ilma Terraform'ita:** Võimatu. Vajaks sadu insenere.
+
+**Terraform'iga:** Väike meeskond haldab kõike. 1 moodul → rakenda kõikjal.
 
 ---
 
 ## 3. Terraform Arhitektuur
 
-"Kolm osa: Aju, Käed, Mälu."
+Terraform = 3 komponenti: **Core** (aju), **Providers** (käed), **State** (mälu).
 
-![Terraform Architecture Components](https://media.geeksforgeeks.org/wp-content/uploads/20230529185228/git-merge-dev.png)
-*Components of Terraform Architecture*
+```
+      TERRAFORM CORE
+           (Aju)
+      Loeb faile
+      Teeb plaane
+           ↓
+    ┌──────┴──────┐
+    ↓             ↓
+PROVIDERS     STATE FILE
+  (Käed)        (Mälu)
+Räägivad    Mäletab mis
+API'dega    on loodud
+    ↓
+AWS, Azure...
+```
 
-Terraform koosneb kolmest põhikomponendist: Core (aju), Providers (käed), State (mälu). Iga komponent täidab spetsiifilist rolli ja nende koostöö võimaldab Terraform'i töötada.
+### 1. Core = Aju
 
-Core on Terraform'i peaprotsessor, kirjutatud Go keeles. Core loeb .tf faile (sinu konfiguratsioon), võrdleb soovitud seisundit praeguse seisundiga (state failist), teeb plaani (mis ressursse luua/muuta/kustutada), ja täidab plaani (kasutades provider'eid). Analoogi: ehituse projektijuht vaatab joonist (kood), vaatab mis on ehitatud (state), planeerib järgmised sammud, ja koordineerib ehitajaid (provider'eid).
+Core on peaprotsessor. Kirjutatud Go keeles.
 
-### Terraform Core (Aju)
+**Mis teeb:**
+1. Loeb `.tf` faile (sinu kood)
+2. Loeb `terraform.tfstate` (mis on olemas)
+3. Võrdleb: "mida tahan" vs "mis on"
+4. Teeb plaani
+5. Täidab plaani
+6. Uuendab state'i
 
-Core teeb kõik "mõtlemise". See ei räägi ühegi platvormi API'ga otse - see on provider'ite töö. Core ainult:
+**Analoogia:** Ehituse projektijuht.
+- Vaatab joonist (config)
+- Vaatab ehitust (state)
+- Planeerib järgmised sammud
 
-- Parsib HCL koodi
-- Ehitab sõltuvuste graafi (mis peab olema enne mida)
-- Arvutab mis muutub (diff)
-- Genereerib plaani
-- Täidab plaani järjestikku
+### 2. Providers = Käed
 
-Core on platvormist sõltumatu. Sama Core töötab AWS'i, Azure'i, GCP, Docker'i jaoks. See on Terraform'i võlu - üks tööriist, palju platvorme.
-
-### Providers (Käed)
-
-Providers on pluginad, mis räägivad platvormide API'dega. Provider on nagu tõlk. Sina räägid HCL't, AWS räägib REST API't, provider tõlgib.
-
-Näiteks AWS provider konfiguratsioon:
+Provider = plugin, mis räägib platvormi API'ga.
 
 ```hcl
 terraform {
@@ -227,7 +444,26 @@ provider "aws" {
 }
 ```
 
-Populaarsed provider'id:
+**Kuidas töötab:**
+
+```
+Sina: "Tahan serveri"
+  ↓
+Core: "Kasutan AWS provider'it"
+  ↓
+Provider: API call → AWS
+  ↓
+AWS: "OK! ID: i-12345"
+  ↓
+Core: Salvestan state'i
+```
+
+Provider on tõlk:
+- **Sina** räägid HCL't
+- **AWS** räägib API't
+- **Provider** tõlgib
+
+**Populaarsed:**
 
 | Provider | Ressursse | Kasutus |
 |----------|-----------|---------|
@@ -238,99 +474,116 @@ Populaarsed provider'id:
 | kubernetes | 200+ | K8s klastrid |
 | local | 5 | Failid (õppimiseks!) |
 
-Kuidas töötab: sina ütled "Tahan serveri", Core ütleb "OK, kasutan AWS provider'it", AWS Provider teeb CreateInstance API call'i, AWS vastab "Valmis! ID: i-12345", Core salvestab state'i. Provider on vahendaja Core ja platvormi vahel.
+### 3. State = Mälu
 
-Iga provider laetakse alla terraform init käsuga. Provider'id elavad `.terraform/` kataloogis. Neid EI PANDA Git'i - nad on suuremad ja genereeritavad.
+State = `terraform.tfstate` fail. JSON vormingus.
 
-### State File (Mälu)
-
-State on `terraform.tfstate` fail JSON vormingus. See on Terraform'i päevik - mäletab kõike, mis on loodud.
-
-![Terraform State Management](https://k21academy.com/wp-content/uploads/2023/06/TF-Statefile.webp)
-*Terraform State File Management*
-
-Miks oluline: sina ütled "Tahan 3 serverit". Terraform vaatab state'i, näeb et praegu on 2, loob 1 juurde. Ilma state'ita Terraform ei tea mis on loodud. Terraform arvaks "Pole midagi, loon 3 uut!" ja AWS vastaks "Aga sul on juba 2..." ja tulemus on 5 serverit. Ootamatu arve. CEO on vihane.
-
-State sisaldab: kõik loodud ressursid (serverid, võrgud, andmebaasid), nende ID'd (i-12345, sg-67890), atribuudid (IP aadressid, nimed, portid), sõltuvused (server sõltub võrgust).
-
-Kriitiline hoiatus: state võib sisaldada saladusi. Kui kirjutad koodis:
-
-```hcl
-resource "aws_db_instance" "main" {
-  username = "admin"
-  password = "SuperSecret123!"
-}
-```
-
-Siis pärast terraform apply sisaldab terraform.tfstate:
+**Näide:**
 
 ```json
 {
-  "resources": [{
-    "attributes": {
-      "username": "admin",
-      "password": "SuperSecret123!"
+  "version": 4,
+  "resources": [
+    {
+      "type": "aws_instance",
+      "name": "web",
+      "instances": [{
+        "id": "i-1234567890abcdef0",
+        "public_ip": "13.51.123.45"
+      }]
     }
-  }]
+  ]
 }
 ```
 
-Parool on plain text'is! Seetõttu: ÄRA PANE STATE FAILI GIT'I. Lisa .gitignore:
+**Miks KRIITILINE:**
+
+```
+ILMA State'ita:
+Sina: "Tahan 3 serverit"
+Terraform: "Loon 3!"
+AWS: "Sul on juba 2..."
+Terraform: *loob ikka 3*
+→ 5 serverit, suur arve, vihane CEO
+
+State'iga:
+Sina: "Tahan 3 serverit"  
+Terraform: *vaatab state'i*
+Terraform: "On 2, loon 1 juurde"
+→ 3 serverit, õige arve, õnnelik CEO
+```
+
+**State sisaldab:**
+- Kõik ressursid
+- ID'd
+- IP aadressid
+- Sõltuvused
+
+**KRIITILINE HOIATUS:**
+
+State võib sisaldada saladusi!
 
 ```gitignore
+# .gitignore
 *.tfstate
 *.tfstate.*
 .terraform/
 ```
 
-Hiljem õpid kasutama remote backend'i (S3 + encryption), kuid algajana õppides lokaalselt: hoia state privaatsena, tee backup'i regulaarselt, ära jaga kedagi.
+**ÄRA PANE GIT'I!**
 
-State kaotsimineku lugu: üks Eesti startup developer kustutas kogemata `terraform.tfstate`. Meeskond ei teadnud, mis production'is on. 4 tundi downtime. 20,000 eurot kahju. Üks väga kurb developer. Alati backup state! See pole valikuline soovitus.
+**Õppetund:**
+
+Üks startup kustutas kogemata state'i. 150 serverit AWS'is, keegi ei tea millised. 4 tundi downtime. 20,000 eurot kahju.
+
+**Õppetund:** ALATI backup state!
 
 ---
 
 ## 4. Deklaratiivne vs Imperatiivne
 
-"Imperatiivne: ütled KUIDAS. Deklaratiivne: ütled MIDA."
+**Kõige olulisem** kontseptsioon. Mõista seda = mõistad Terraform'i.
 
-![Declarative vs Imperative](https://dz2cdn1.dzone.com/storage/temp/14734695-1620752831798.png)
-*Declarative vs Imperative Infrastructure as Code*
+### Imperatiivne = KUIDAS
 
-See on Terraform'i kõige olulisem kontseptsioon. Mõista seda ja sa mõistad Terraform'i. Mõista valesti ja sa võitad Terraform'iga igavesti.
-
-### Imperatiivne (KUIDAS?)
-
-Imperatiivne kood kirjeldab samme. Annad täpsed instruktsionid, sammhaaval, järjekorras. Nagu retsept: võta muna, purusta, sega, küpseta.
-
-Näide Bash'is:
+Kirjeldad samme. Täpsed instruktsioonid.
 
 ```bash
 #!/bin/bash
-# Imperatiivne: kirjeldad samme
+# Imperatiivne
 
-echo "Loon security group..."
+echo "Samm 1: Security group..."
 aws ec2 create-security-group --group-name web-sg
 
-echo "Avan pordi 80..."
+echo "Samm 2: Port 80..."
 aws ec2 authorize-security-group-ingress \
   --group-name web-sg --port 80
 
-echo "Loon viis serverit..."
+echo "Samm 3: 5 serverit..."
 for i in {1..5}; do
     aws ec2 run-instances --instance-type t3.micro
 done
 ```
 
-Probleem: käivita teist korda ja script loob 10 serverit! Script ei tea, et 5 on juba olemas. Sa pead ise meeles pidama seisundit. Sa pead ise kontrollima "kas see on juba olemas?". Sa pead ise kirjutama cleanup loogikat. Sa pead ise tegelema vigadega (mida teha kui security group juba eksisteerib?).
+**Probleem:**
 
-### Deklaratiivne (MIDA?)
+```bash
+# 1. kord:
+./script.sh  # 5 serverit ✓
 
-Deklaratiivne kood kirjeldab lõpptulemust. TÃ¶Ã¶riist väljastab sammud. Sina ütled "Tahan 5 serverit" ja Terraform arvutab ise kuidas selleni jõuda.
+# 2. kord (kogemata):
+./script.sh  # 5 VEEL serverit  
+# Kokku: 10 serverit, 2x arve
+```
 
-Näide Terraform'is:
+Script ei tea mis juba olemas on.
+
+### Deklaratiivne = MIDA
+
+Kirjeldad tulemust. Tööriist väljastab samme.
 
 ```hcl
-# Deklaratiivne: kirjeldad tulemust
+# Deklaratiivne
 
 resource "aws_security_group" "web" {
   name = "web-sg"
@@ -343,52 +596,79 @@ resource "aws_security_group" "web" {
 }
 
 resource "aws_instance" "web" {
-  count         = 5
-  instance_type = "t3.micro"
-  
+  count                  = 5
+  instance_type          = "t3.micro"
   vpc_security_group_ids = [aws_security_group.web.id]
 }
 ```
 
-Käivita mitu korda: terraform apply esimesel korral loob 5 serverit. terraform apply teisel korral ei tee midagi (juba on 5). terraform apply kolmandal korral ei tee midagi (ikka 5). Terraform teab (tänu state'ile), mis on olemas. Idempotent! Turvaline käivitada mitu korda.
+**Maag:**
+
+```bash
+terraform apply  # 1. kord: loob 5 ✓
+terraform apply  # 2. kord: ei tee midagi ✓
+terraform apply  # 100. kord: ikka ei tee midagi ✓
+```
+
+Terraform **teab** (tänu state'ile) mis olemas on. **Idempotent!**
+
+### Võrdlus
+
+```
+IMPERATIIVNE           DEKLARATIIVNE
+
+create server 1        Desired: 3 servers
+     ↓                       ↓
+create server 2        Check state
+     ↓                   ┌───┴───┐
+create server 3      Has 0?  Has 3?
+     ↓                   ↓       ↓
+Run again?          Create 3  Do nothing
+     ↓
+Creates 3 MORE!
+(total: 6)
+```
 
 ### Update Stsenaarium
 
-Olukord: sul on 5 serverit. Tahad nüüd 7 serverit + uus firewall reegel + uued õigused.
+**Olukord:** Sul on 5 serverit. Tahad:
+- 7 serverit
+- HTTPS (port 443)
+- IAM õigus
 
-Imperatiivne Bash:
+#### Imperatiivne:
 
 ```bash
-#!/bin/bash
-# Pead ise arvestama
+# Pead ise arvutama
+current=$(aws ec2 describe-instances ...)
+needed=$((7 - current))
 
-# Lisa 2 serverit (5 + 2 = 7)
-for i in {1..2}; do
-    aws ec2 run-instances --instance-type t3.micro
+# Loo juurde  
+for i in $(seq 1 $needed); do
+    aws ec2 run-instances ...
 done
 
-# Lisa firewall reegel
-aws ec2 authorize-security-group-ingress \
-  --group-name web-sg --port 443
+# Port (kontrolli kas olemas?)
+aws ec2 authorize... || echo "Exists"
 
-# Lisa õigused
-aws iam attach-user-policy \
-  --user-name deploy --policy-arn ...
+# IAM (kontrolli kas...)
+aws iam attach... || echo "Exists"
 ```
 
-Pead ise arvutama: "5 -> 7 = 2 juurde". Kui eksid, on probleeme. Kui käivitad uuesti, on duplikaadid. Sa pead ise tegelema idempotentsusega.
+Pead:
+- Ise arvutama
+- Kontrollima
+- Error handling
+- Käsitsi kirjutama
 
-Deklaratiivne Terraform:
+#### Deklaratiivne:
 
 ```hcl
 resource "aws_instance" "web" {
-  count = 7  # Muutsime 5 -> 7
-  instance_type = "t3.micro"
+  count = 7  # Oli 5, nüüd 7
 }
 
 resource "aws_security_group" "web" {
-  name = "web-sg"
-  
   ingress {
     from_port = 443
     to_port   = 443
@@ -402,40 +682,37 @@ resource "aws_iam_user_policy_attachment" "deploy" {
 }
 ```
 
-Terraform: "On 5, peab olema 7. Loon 2." Terraform: "Firewall puudub. Lisan." Terraform: "Õigus puudub. Lisan." Sa ei pea arvutama. Terraform teeb ise.
+```bash
+terraform plan
+# "On 5, peab 7, loon 2"
+# "Port 443 puudub, lisan"
+# "IAM puudub, lisan"
 
-### Konfiguratsiooni Puhtus
+terraform apply
+# *teeb kõik automaatselt*
+```
 
-Imperatiivne fail pärast päevi kasutamist:
+### Faili Puhtus
+
+**Imperatiivne (aja jooksul):**
 
 ```bash
 # Day 1
 create_server 1
 create_server 2
-create_server 3
-create_server 4
-create_server 5
-
+...
 # Day 3
-add_firewall_rule 80
-
-# Day 7
-add_firewall_rule 443
-
+add_firewall 80
+# Day 7  
+add_firewall 443
 # Day 10
 remove_server 1
-remove_server 2
-
-# Day 14
-add_server 6
-add_server 7
-
-# ... (200+ rida ajalugu)
+...
+# 200+ rida ajalugu
+# Mis praegu olemas? 🤷
 ```
 
-Fail muutub pidevalt pikemaks. See on ajalugu, mitte seisund. Debuggimine nõuab kogu ajaloo mõistmist.
-
-Deklaratiivne fail (alati):
+**Deklaratiivne (alati):**
 
 ```hcl
 resource "aws_instance" "web" {
@@ -443,36 +720,34 @@ resource "aws_instance" "web" {
 }
 
 resource "aws_security_group" "web" {
-  # Rules here
+  # ...
 }
 
-# See on KÕIK!
+# 20 rida
+# Näitab PRAEGUST seisu
 ```
 
-Fail jääb alati puhtaks. See näitab PRAEGUST seisu, mitte ajalugu. Git log näitab ajalugu. Konfiguratsioon näitab seisundit.
+Ajalugu elab Git'is: `git log`
 
-| Aspekt | Imperatiivne | Deklaratiivne |
-|--------|--------------|---------------|
-| Kirjeldad | KUIDAS (sammud) | MIDA (tulemus) |
-| Näide | "Loo server, siis võrk" | "Tahan 5 serverit" |
-| Kordamine | Loob duplikaate | Idempotent |
-| State | Sina pead meeles pidama | Tööriist mäletab |
-| Fail | Kasvab pidevalt | Jääb lühikeseks |
-| Debuggimine | Raske | Lihtsam |
+### Tabel
 
-Eesti DevOps'ija ütlus: "Imperatiivne on nagu juhendada koerale, kuidas istuda. Deklaratiivne on nagu öelda 'Istu!' ja koer väljastab ise."
+| | Imperatiivne | Deklaratiivne |
+|---|--------------|---------------|
+| **Kirjeldad** | KUIDAS (sammud) | MIDA (tulemus) |
+| **Näide** | "Loo server, siis võrk..." | "Tahan 5 serverit" |
+| **Kordamine** | Loob duplikaate | Idempotent |
+| **State** | Sina mäletad | Tööriist mäletab |
+| **Fail** | Kasvab (200+ rida) | Jääb lühikeseks (20 rida) |
 
 ---
 
 ## 5. HCL Keel
 
-"HCL on nagu JSON, aga inimestele."
+HCL = HashiCorp Configuration Language. Terraform'i keel.
 
-HashiCorp Configuration Language on Terraform'i konfiguratsioonikeel. See on deklaratiivne, loetav, ja spetsiaalselt disainitud infrastruktuuri kirjeldamiseks.
+**Lihtne selgitus:** HCL on nagu JSON, aga loetavam.
 
 ### Põhisüntaks
-
-HCL struktuur:
 
 ```hcl
 <TYPE> "<LABEL>" "<LABEL>" {
@@ -480,7 +755,7 @@ HCL struktuur:
 }
 ```
 
-Näiteks lihtne fail:
+**Näide:**
 
 ```hcl
 resource "local_file" "greeting" {
@@ -489,27 +764,26 @@ resource "local_file" "greeting" {
 }
 ```
 
-Elemendid: resource on block type (mis liiki asi see on), "local_file" on ressursi tüüp (provider + ressurss), "greeting" on meie antud nimi (identifier), filename ja content on argumendid (parameetrid).
+- `resource` = block type
+- `"local_file"` = ressursi tüüp
+- `"greeting"` = meie nimi
+- `filename`, `content` = argumendid
 
 ### Resources
 
-Resource on miski, mida Terraform loob. Resource on Terraform'i põhielement. Kõik mis tahad luua, on resource.
+Resource = miski, mida Terraform loob.
 
-![Terraform Resource Syntax](https://k21academy.com/wp-content/uploads/2024/06/AWSResource.webp)
-*Terraform Resource Syntax*
-
-Lokaalne fail:
+**Fail:**
 
 ```hcl
 resource "local_file" "config" {
-  filename = "app.conf"
-  content  = "port=8080"
-  
+  filename        = "app.conf"
+  content         = "port=8080"
   file_permission = "0644"
 }
 ```
 
-AWS server:
+**AWS server:**
 
 ```hcl
 resource "aws_instance" "web" {
@@ -523,14 +797,12 @@ resource "aws_instance" "web" {
 }
 ```
 
-Iga provider defineerib oma ressursse. AWS provider pakub aws_instance, aws_s3_bucket, aws_db_instance. Azure provider pakub azurerm_virtual_machine, azurerm_storage_account. Dokumentatsioon on Terraform Registry's.
-
 ### Sõltuvused
 
-Terraform loob automaatselt sõltuvusi. Kui kasutad ühe ressursi atribuuti teises ressursis, Terraform teab järjekorda.
+Terraform loob automaatselt sõltuvusi.
 
 ```hcl
-# 1. Esmalt security group
+# 1. Security group esmalt
 resource "aws_security_group" "web" {
   name = "web-sg"
 }
@@ -540,25 +812,29 @@ resource "aws_instance" "web" {
   ami                    = "ami-12345"
   instance_type          = "t3.micro"
   vpc_security_group_ids = [aws_security_group.web.id]
-  # → automaatne sõltuvus!
+  # ↑ automaatne sõltuvus!
 }
 ```
 
-Terraform teab: "Teen SG enne, siis serveri." Ei pea ütlema depends_on. Terraform näeb, et server kasutab security group'i ID'd, järelikult peab security group olema enne.
+```
+aws_security_group.web
+        ↓
+aws_instance.web
+```
+
+Terraform teab: "Teen SG enne, siis serveri."
 
 ### Variables
 
-Muutujad võimaldavad dünaamilisi väärtusi. Muutujad teevad koodi taaskasutavaks.
-
 ```hcl
 variable "environment" {
-  description = "Keskkond: dev või prod"
+  description = "dev või prod"
   type        = string
   default     = "dev"
   
   validation {
     condition     = contains(["dev", "prod"], var.environment)
-    error_message = "Peab olema dev või prod!"
+    error_message = "Peab olema 'dev' või 'prod'!"
   }
 }
 
@@ -571,15 +847,13 @@ resource "aws_instance" "app" {
 }
 ```
 
-Kasutamine: terraform apply -var="environment=prod". Või loo terraform.tfvars fail:
+**Kasutamine:**
 
-```hcl
-environment = "prod"
+```bash
+terraform apply -var="environment=prod"
 ```
 
 ### Outputs
-
-Outputs näitavad infot pärast loomist. Outputs on kasulikud teiste moodulite jaoks või lihtsalt info näitamiseks.
 
 ```hcl
 output "server_ip" {
@@ -588,7 +862,7 @@ output "server_ip" {
 }
 ```
 
-Pärast terraform apply:
+Pärast apply't:
 
 ```
 Outputs:
@@ -597,87 +871,96 @@ server_ip = "13.51.123.45"
 
 ### Funktsioonid
 
-HCL sisaldab kasulikke built-in funktsioone:
-
 ```hcl
-# Faili sisu lugemine
+# Faili sisu
 content = file("config.json")
 
-# JSON encode
+# JSON
 metadata = jsonencode({
   name = "app"
 })
 
-# String interpolation
+# String template
 message = "Tere, ${var.name}!"
 
-# Timestamp
-created = timestamp()
+# Conditional  
+instance_type = var.env == "prod" ? "t3.large" : "t3.micro"
 ```
-
-Terraform dokumentatsioonis on kõik funktsioonid kirjeldatud. Näiteks faili lugemine võimaldab hoidda suuremad JSON/YAML failid eraldi ja laadida need Terraform'i.
 
 ---
 
 ## 6. Terraform Workflow
 
-"4 käsku: init, plan, apply, destroy"
+4 käsku: init, plan, apply, destroy.
 
-![Terraform Workflow Lifecycle](https://miro.medium.com/v2/resize:fit:720/format:webp/1*mR0rGO72zDfP0UgRKMzDIQ.jpeg)
-*Terraform Workflow: Write → Init → Plan → Apply → Destroy*
+```
+┌─────────────┐
+│ terraform   │ Valmista ette
+│   init      │
+└──────┬──────┘
+       ↓
+┌──────┴──────┐
+│ terraform   │ Vaata mis muutub
+│   plan      │
+└──────┬──────┘
+       ↓
+┌──────┴──────┐
+│ terraform   │ Rakenda
+│   apply     │
+└──────┬──────┘
+       ↓
+┌──────┴──────┐
+│ terraform   │ Kustuta kõik
+│   destroy   │
+└─────────────┘
+```
 
-Terraform'i kasutamine järgib standardset workflow'd. Need käsud käivad alati samas järjekorras. Mõista workflow'd ja sa mõistad kuidas Terraform töötab.
+### 1. terraform init
 
-### terraform init
-
-Esimene samm: terraform init. See valmistab projekti ette.
+Valmistab projekti.
 
 ```bash
 terraform init
 ```
 
-Mis toimub: Terraform laeb provider'id (.terraform/ kataloogi), seadistab backend'i (state'i salvestuskohta), init'ib moodulid (kui kasutad).
+**Mis toimub:**
+- Laeb provider'id
+- Seadistab backend'i
+- Init'ib moodulid
 
-Output:
+**Output:**
 
 ```
 Initializing provider plugins...
-- Finding hashicorp/local v2.4.0...
-- Installing hashicorp/local v2.4.0...
+- Finding hashicorp/aws v5.31.0...
+- Installing hashicorp/aws v5.31.0...
 
 Terraform has been successfully initialized!
 ```
 
-Millal käivita: esimest korda projektis, kui lisad uue provider'i, kui clone'id repo uuest kohast.
+**Millal:**
+- Esimest korda
+- Lisasid provider'i
+- Clone'isid repo
 
-Kui unustad init'i:
+### 2. terraform plan
 
-```bash
-terraform plan
-# Error: Could not load plugin
-# Run: terraform init
-```
-
-Terraform ütleb selgelt, et init on vaja. Provider'id ei ole laetud, seega Terraform ei saa töötada.
-
-### terraform plan
-
-Teine samm: terraform plan. See näitab mis muutub. KRIITILINE: EI MUUDA MIDAGI!
+Näitab mis muutub. **EI MUUDA MIDAGI!**
 
 ```bash
 terraform plan
 ```
 
-Sümbolid:
+**Sümbolid:**
 
-| Sümbol | Tähendus | Näide |
-|--------|----------|-------|
-| + | Luuakse | Uus server |
-| - | Kustutatakse | Vana server |
-| ~ | Muudetakse | Port 80 -> 443 |
-| -/+ | Replace | Instance type muutus |
+| Sümbol | Tähendus |
+|--------|----------|
+| `+` | Luuakse |
+| `-` | Kustutatakse |
+| `~` | Muudetakse |
+| `-/+` | Replace |
 
-Output:
+**Output:**
 
 ```terraform
 Terraform will perform the following actions:
@@ -686,71 +969,80 @@ Terraform will perform the following actions:
   + resource "local_file" "greeting" {
       + content  = "Tere!"
       + filename = "/tmp/test.txt"
-      + id       = (known after apply)
     }
 
 Plan: 1 to add, 0 to change, 0 to destroy.
 ```
 
-ALATI tee plan enne apply! Plan on sinu kindlus. Näed täpselt mis muutub. Näed kas tuleb üllatusi. Näed kas kustutad kogemata production serveri. Plan on tasuta, apply on kallis.
+**ALATI tee plan enne apply!**
 
-Eelistatavalt salvesta plan:
+Salvesta plan:
 
 ```bash
 terraform plan -out=tfplan
 terraform apply tfplan
 ```
 
-See tagab, et apply teeb täpselt seda, mida plan näitas. Vahepealsed muudatused (näiteks keegi teine tegi midagi) ei mõjuta.
+### 3. terraform apply
 
-### terraform apply
-
-Kolmas samm: terraform apply. See rakendab muudatused PÄRISELT. Nüüd tehakse päris tööd. Nüüd luuakse päris ressursid. Nüüd tulevad päris arved.
+Rakendab **PÄRISELT**.
 
 ```bash
 terraform apply
 ```
 
-Terraform küsib kinnitust:
+Küsib kinnitust:
 
 ```
 Do you want to perform these actions?
   Enter a value: yes
 ```
 
-Automaatne (ohtlik):
+**Automaatne (ohtlik!):**
 
 ```bash
 terraform apply -auto-approve
 ```
 
-Kasuta ainult kui 100% kindel! Development'is OK, production'is MITTE KUNAGI ilma plan'ita.
+Kasuta ainult kui **100% kindel**!
 
-Output:
+### 4. terraform destroy
 
-```
-local_file.greeting: Creating...
-local_file.greeting: Creation complete after 0s
-
-Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
-
-Outputs:
-file_path = "/tmp/test.txt"
-```
-
-### terraform destroy
-
-Neljas samm: terraform destroy. See kustutab KÕIK ressursid. See on pöördumatu. See on nagu rm -rf / - ohtlik ja võimas.
+Kustutab **KÕIK**. Pöördumatu!
 
 ```bash
 terraform destroy
 ```
 
-HOIATUS: Pöördumatu! Kõik ressursid kustutatakse. Kõik andmed kaovad. Kõik serverid lähevad maha. Kõik andmebaasid kustutatakse.
+**HOIATUS:**
+- Pöördumatu
+- Kõik kaob
+- Andmed kaovad
 
-Õuduslugu: Juunior developer production'is käivitas terraform destroy. Vajutas "yes" ilma mõtlemata. 5 minutit hiljem: 150 serverit kadunud, kliendid offline, CEO helistab. Kahjusumma umbes 500,000 eurot. Tulemus: "resume-generating event".
+**Õuduslugu:**
 
-Õppetund: Kontrolli 3x, kus oled. Lisa production'i prevent_destroy lifecycle policy. Kasuta workspace'e. Ära kunagi tee destroy production'is ilma backup'ita. Ära kunagi tee destroy enne kui oled 100% kindel.
+Juunior developer production'is:
+
+```bash
+$ terraform destroy
+  Enter a value: yes  # ilma mõtlemata
+
+5 min hiljem:
+- 150 serverit kadunud
+- Kliendid offline
+- CEO helistab
+- Kahju: ~500,000 eurot
+```
+
+**Kuidas vältida:**
+
+```hcl
+resource "aws_instance" "web" {
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+```
 
 ---
 
@@ -758,38 +1050,66 @@ HOIATUS: Pöördumatu! Kõik ressursid kustutatakse. Kõik andmed kaovad. Kõik 
 
 ### Õppisime
 
-Infrastructure as Code: kood vs käsitsi seadistamine. Kood on kiirem, korratavam, dokumenteeritum, testitavam.
+**IaC:** Kood vs käsitsi. 10x kiirem, korratav, dokumenteeritud.
 
-Terraform: provisioning tööriist infrastruktuuri loomiseks. Multi-cloud, deklaratiivne, suur kogukond.
+**Terraform:** Multi-cloud provisioning. Deklaratiivne. Suur kogukond.
 
-Arhitektuur: Core (aju loeb koodi ja planeerib), Providers (käed räägivad platvormidega), State (mälu mäletab mis on loodud).
+**Arhitektuur:**
+- Core = aju
+- Providers = käed  
+- State = mälu
 
-Deklaratiivne lähenemine: MIDA vs KUIDAS. Kirjelda tulemust, mitte samme. Idempotentne, turvaline, lihtne.
+**Deklaratiivne:** MIDA vs KUIDAS. Idempotent, turvaline, lihtne.
 
-HCL keel: konfiguratsioonikeel ressursside kirjeldamiseks. Resources, variables, outputs, functions.
+**HCL:** Resources, variables, outputs, functions.
 
-Workflow: init (valmista ette) -> plan (vaata mis muutub) -> apply (rakenda) -> destroy (kustuta kõik).
+**Workflow:** init → plan → apply → (destroy)
 
-### Terraform Võtmepunktid
+### Võtmepunktid
 
-Miks Terraform: Multi-cloud (AWS, Azure, GCP kõik ühe tööriista all). Deklaratiivne (ütle MIDA, mitte KUIDAS). Suur kogukond (3000+ providers, 10,000+ mooduleid). State haldamine (mäletab mis on loodud, võimaldab idempotentsust).
+**Miks Terraform?**
+- Multi-cloud
+- Deklaratiivne
+- Suur kogukond
+- State haldamine
 
-Kuidas töötab: Core loeb config faile ja state faili. Teeb plaani (mis muutub). Provider täidab plaani (kutsub API'sid). Uuendab state'i (salvestab mis loodi).
+**Kuidas töötab?**
+1. Core loeb config + state
+2. Teeb plaani
+3. Provider täidab
+4. Uuendab state'i
 
-Millal kasutada: Lood uut infrastruktuuri (serverid, võrgud, andmebaasid). Haldad olemasolevat (muudad, skaleeri, kustutad). Replitseerid keskkondi (dev, staging, prod identsed). Tahad koodi kui dokumentatsiooni (Git log näitab ajalugu).
+**Millal kasutada?**
+- Lood infrastruktuuri
+- Haldad olemasolevat
+- Replitseerid keskkondi
+- Tahad koodi kui dokumentatsiooni
 
 ### Järgmine Samm
 
-Järgmine tund: Labor - praktiline töö Terraform'iga. Loome päris ressursse. Käivitame päris käske. Teeme päris vigu (ohutult) ja õpime nendest.
+**Labor:** Praktiline töö. Loome päris ressursse.
+
+**Vaja:**
+- Terraform
+- Teksteditor
+- Terminal
+- Uudishimu
 
 ### Ressursid
 
-Dokumentatsioon: Terraform ametlik dokumentatsioon sisaldab kõike. developer.hashicorp.com/terraform/docs on peamine allikas. HCL süntaks on kirjeldatud developer.hashicorp.com/terraform/language/syntax. Terraform Registry registry.terraform.io sisaldab kõik providers ja mooduleid.
+**Dokumentatsioon:**
+- [Terraform Docs](https://developer.hashicorp.com/terraform/docs)
+- [HCL Syntax](https://developer.hashicorp.com/terraform/language/syntax)
+- [Registry](https://registry.terraform.io/)
 
-Õppimine: HashiCorp Learn developer.hashicorp.com/terraform/tutorials pakub interaktiivseid õpetusi. Terraform Best Practices terraform-best-practices.com kogub kogukonna parimad praktikad.
+**Õppimine:**
+- [HashiCorp Learn](https://developer.hashicorp.com/terraform/tutorials)
+- [Best Practices](https://www.terraform-best-practices.com/)
 
-Kogukond: Terraform GitHub github.com/hashicorp/terraform on avatud. DevOps Estonia meetup'id toimuvad regulaarselt Tallinnas.
+**Kogukond:**
+- [Terraform GitHub](https://github.com/hashicorp/terraform)
+- DevOps Estonia meetup'id
 
 ---
 
-Eesti DevOps mantra: "Plan enne Apply't, backup enne Destroy'd, kohv enne debugimist."
+**Eesti DevOps mantra:** "Plan enne Apply't, backup enne Destroy'd, kohv enne debugimist."
