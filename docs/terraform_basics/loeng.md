@@ -66,6 +66,10 @@ Sama ülesanne kahe meetodiga:
 | Käsitsi AWS Console | 2-4h | "Unique snowflake" | Ei | Vahel |
 | Terraform | 3-10 min | Identne iga kord | Jah | Alati |
 
+
+![How Does IaC Work?](https://cdn.servermania.com/images/w_1024,h_494,c_scale/f_webp,q_auto:best/v1744146107/kb/2_351821c347/2_351821c347.png?_i=AA)
+
+
 ### IaC Eelised
 
 Kiirus on ilmne. Käsitsi: 10 serverit võtab 1-2 päeva. Terraform: 10 serverit võtab 5 minutit. Matemaatika on lihtne. See pole ainult aja kokkuhoid - see on võimalus eksperimenteerida, katsetada, kiirelt itereerida.
