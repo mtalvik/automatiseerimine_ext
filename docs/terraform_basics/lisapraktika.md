@@ -1,410 +1,517 @@
-#  Terraform Lisapraktika
+Ah, **lisapraktika fail**! See mis dokumendis oli, aga nüüd **Ubuntu serveritele** mitte local failidele.
 
-**Eeltingimused:** Terraform põhiteadmised, HCL süntaks
+Las ma teen üle:
 
----
+# Terraform Lisapraktika
 
-##  Ülevaade
+**Eeldused:** Terraform Alused Labor tehtud, SSH võtmed töötavad, Ubuntu-1 ja Ubuntu-2 saadaval
 
-See fail sisaldab lisapraktikaid Terraform mooduli jaoks, sealhulgas advanced HCL, count/for_each, data sources, ja real-world scenarios.
+**Platvorm:** Terraform + SSH → Ubuntu serverid
 
----
-
-##  Õpiväljundid
-
-Pärast lisapraktikat oskate:
-
-- Kasutada `count` ja `for_each` dünaamiliste ressursside jaoks
-- Data sources'idega olemasolevaid ressursse leida
-- Conditional logic ja expressions HCL'is
-- Terraform functions (lookup, merge, join, etc.)
-- Complex variable structures (maps, objects)
+**Kestus:** ~60-90 min
 
 ---
 
-##  Count ja For_Each
+## Ülevaade
 
-### Count - Lihtne Loop
-```hcl
-# Loo 5 faili
-resource "local_file" "logs" {
-  count    = 5
-  filename = "log-${count.index}.txt"
-  content  = "Log file #${count.index}"
-}
+Kolm progresseerunud harjutust, mis ehitavad põhilabori peale. Igaüks õpetab üht olulist päris-maailma tehnikat:
 
-# Access: local_file.logs[0], local_file.logs[1], ...
-```
+1. **Multi-Server Deployment** - Count vs For_Each
+2. **Template-Based Configuration** - Templatefile() ja dynamic content
+3. **Conditional Deployment** - Environment-based logic
 
-### For_Each - Map-Based
-```hcl
-variable "users" {
-  type = map(object({
-    role  = string
-    email = string
-  }))
-  default = {
-    alice = { role = "admin", email = "alice@example.com" }
-    bob   = { role = "user", email = "bob@example.com" }
-  }
-}
-
-resource "local_file" "user_configs" {
-  for_each = var.users
-  filename = "users/${each.key}.json"
-  content = jsonencode({
-    username = each.key
-    role     = each.value.role
-    email    = each.value.email
-  })
-}
-```
-
-### Ülesanne 1: Dünaamiline Infrastructure
-
-Loo Terraform kood, mis genereerib:
-
-- 3 kausta: `dev/`, `staging/`, `prod/`
-- Igas kaustas: `config.yaml`, `secrets.txt` (encrypted), `README.md`
-- Kasuta `for_each` ja variables
+Iga harjutus järgib struktuuri: Probleem → Lahendus → Harjutus.
 
 ---
 
-##  Data Sources
+## 1. Multi-Server Deployment
 
-### Existing Resources
+### 1.1 Probleem
+
+Põhilabors deploy'sime ühe serveri käsitsi. Aga päris elus on mitu: web servers, API servers, database replicas. Copy-paste on aeglane ja veaaldis - kui muudad ühte, pead muutma kõiki.
+
+Terraform'il on kaks meetodit mitme ressursi loomiseks: `count` (lihtne numbriline loop) ja `for_each` (map-based, stabiilsem).
+
+### 1.2 Lahendus
+
+**Count näide:**
+
 ```hcl
-# Leia olemasolev fail
-data "local_file" "existing" {
-  filename = "path/to/existing.txt"
-}
-
-# Kasuta sisu
-resource "local_file" "derived" {
-  filename = "derived.txt"
-  content  = "Based on: ${data.local_file.existing.content}"
-}
-```
-
-### External Data
-```hcl
-data "external" "git_info" {
-  program = ["bash", "-c", <<-EOT
-    echo "{\"commit\":\"$(git rev-parse HEAD)\",\"branch\":\"$(git branch --show-current)\"}"
-  EOT
-  ]
-}
-
-resource "local_file" "build_info" {
-  filename = "build-info.json"
-  content = jsonencode({
-    commit = data.external.git_info.result.commit
-    branch = data.external.git_info.result.branch
-    time   = timestamp()
-  })
-}
-```
-
----
-
-##  Terraform Functions
-
-### String Functions
-```hcl
-locals {
-  upper_env = upper(var.environment)     # "PROD"
-  formatted = format("app-%s-%03d", var.env, var.instance)  # "app-dev-001"
-  joined    = join("-", ["web", "server", var.region])      # "web-server-eu"
-}
-```
-
-### Collection Functions
-```hcl
-variable "ports" {
-  default = [80, 443, 8080]
-}
-
-locals {
-  # Merge lists
-  all_ports = concat(var.ports, [9090, 3000])
-  
-  # Filter
-  secure_ports = [for p in var.ports : p if p > 443]
-  
-  # Transform
-  port_strings = [for p in var.ports : tostring(p)]
-}
-```
-
-### Map/Object Functions
-```hcl
-locals {
-  defaults = {
-    region = "eu-west-1"
-    env    = "dev"
-  }
-  
-  overrides = {
-    env = "prod"
-  }
-  
-  # Merge (overrides win)
-  config = merge(local.defaults, local.overrides)
-  # Result: { region = "eu-west-1", env = "prod" }
-  
-  # Lookup with default
-  timeout = lookup(var.settings, "timeout", 30)
-}
-```
-
-### Ülesanne 2: Dynamic Configuration Generator
-
-Loo Terraform kood, mis:
-
-- Võtab map of services (name → config)
-- Genereerib iga service jaoks nginx config
-- Kasuta `for_each`, `templatefile()`, ja `merge()`
-
----
-
-##  Conditional Logic
-
-### Count Tricks
-```hcl
-variable "create_backup" {
-  type    = bool
-  default = false
-}
-
-resource "local_file" "backup" {
-  count    = var.create_backup ? 1 : 0
-  filename = "backup.txt"
-  content  = "Backup enabled"
-}
-```
-
-### Conditional Expressions
-```hcl
-locals {
-  environment = var.env == "prod" ? "production" : "development"
-  
-  log_level = (
-    var.debug ? "DEBUG" :
-    var.env == "prod" ? "ERROR" :
-    "INFO"
-  )
-}
-```
-
-### Dynamic Blocks
-```hcl
-variable "enable_https" {
-  type = bool
-}
-
-resource "something" "example" {
-  name = "example"
-  
-  dynamic "https_config" {
-    for_each = var.enable_https ? [1] : []
-    content {
-      cert_path = "/path/to/cert"
-      key_path  = "/path/to/key"
-    }
-  }
-}
-```
-
----
-
-##  Real-World Scenario: Web Stack
-```hcl
-# variables.tf
-variable "environments" {
-  type = map(object({
-    replicas    = number
-    memory_mb   = number
-    enable_https = bool
-    domains     = list(string)
-  }))
-  default = {
-    dev = {
-      replicas     = 1
-      memory_mb    = 512
-      enable_https = false
-      domains      = ["dev.example.local"]
-    }
-    prod = {
-      replicas     = 3
-      memory_mb    = 2048
-      enable_https = true
-      domains      = ["example.com", "www.example.com"]
-    }
-  }
-}
-
 # main.tf
-resource "local_file" "nginx_configs" {
-  for_each = var.environments
-  
-  filename = "nginx/${each.key}.conf"
-  content = templatefile("templates/nginx.tpl", {
-    env          = each.key
-    replicas     = each.value.replicas
-    memory       = each.value.memory_mb
-    domains      = each.value.domains
-    enable_https = each.value.enable_https
-  })
+variable "server_ips" {
+  type    = list(string)
+  default = ["10.0.208.20", "10.0.208.21"]
 }
 
-# Output upstream servers
-output "upstreams" {
-  value = {
-    for env, config in var.environments :
-    env => [
-      for i in range(config.replicas) :
-      "server-${env}-${i}"
+resource "null_resource" "web_servers" {
+  count = length(var.server_ips)
+  
+  connection {
+    type        = "ssh"
+    host        = var.server_ips[count.index]
+    user        = "kasutaja"
+    private_key = file("~/.ssh/id_ed25519")
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt update -qq && sudo apt install -y nginx",
+      "echo '<h1>Server ${count.index + 1}</h1>' | sudo tee /var/www/html/index.html",
+      "sudo systemctl restart nginx",
     ]
   }
 }
 ```
 
-### Ülesanne 3: Multi-Environment Setup
+**For_each näide (parem):**
 
-Loo terraform projekt, mis genereerib:
-
-- Dev, staging, prod environments
-- Igal: nginx config, app config, database init script
-- Conditional: prod'is SSL, dev'is debug mode
-- Kasuta `for_each`, `dynamic`, `templatefile()`
-
----
-
-##  Lifecycle Rules
 ```hcl
-resource "local_file" "important" {
-  filename = "important.txt"
-  content  = var.content
+variable "servers" {
+  type = map(object({
+    ip   = string
+    port = number
+  }))
+  default = {
+    web1 = { ip = "10.0.208.20", port = 8080 }
+    web2 = { ip = "10.0.208.21", port = 8081 }
+  }
+}
+
+resource "null_resource" "web_servers" {
+  for_each = var.servers
   
-  lifecycle {
-    # Ära kunagi kustuta (even if removed from code)
-    prevent_destroy = true
-    
-    # Ignoreeri content muudatusi
-    ignore_changes = [content]
-    
-    # Loo uus enne vana kustutamist
-    create_before_destroy = true
+  connection {
+    type        = "ssh"
+    host        = each.value.ip
+    user        = "kasutaja"
+    private_key = file("~/.ssh/id_ed25519")
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt update -qq && sudo apt install -y nginx",
+      "echo 'server { listen ${each.value.port}; root /var/www/html; }' | sudo tee /etc/nginx/sites-available/${each.key}",
+      "sudo ln -sf /etc/nginx/sites-available/${each.key} /etc/nginx/sites-enabled/",
+      "echo '<h1>${each.key}</h1>' | sudo tee /var/www/html/index.html",
+      "sudo systemctl reload nginx",
+    ]
   }
 }
 ```
 
----
+**Erinevus:**
 
-##  Modules Advanced
+- `count`: ressursid on `[0]`, `[1]` → kui kustutad esimese, nihkub teine
+- `for_each`: ressursid on `["web1"]`, `["web2"]` → stabiilne
 
-### Module with Conditional Resources
-```hcl
-# modules/webserver/main.tf
-variable "enable_monitoring" {
-  type    = bool
-  default = false
-}
-
-resource "local_file" "app_config" {
-  filename = "config.yaml"
-  content  = "..."
-}
-
-resource "local_file" "monitoring_config" {
-  count    = var.enable_monitoring ? 1 : 0
-  filename = "monitoring.yaml"
-  content  = "..."
-}
-
-# Usage
-module "web_dev" {
-  source            = "./modules/webserver"
-  enable_monitoring = false
-}
-
-module "web_prod" {
-  source            = "./modules/webserver"
-  enable_monitoring = true
-}
-```
-
-### Module Outputs as Inputs
-```hcl
-module "network" {
-  source = "./modules/network"
-}
-
-module "servers" {
-  source     = "./modules/servers"
-  network_id = module.network.network_id  # Chaining!
-}
-```
-
----
-
-##  Challenge: Infrastructure Generator
-
-**Ülesanne:** Loo "Infrastructure as Data" generaator
-
-**Input** (`infrastructure.yaml`):
-```yaml
-projects:
-
-  - name: web-app
-    environments:
-
-      - name: dev
-        services:
-
-          - name: api
-            port: 8080
-            replicas: 1
-          - name: db
-            port: 5432
-            replicas: 1
-      - name: prod
-        services:
-
-          - name: api
-            port: 8080
-            replicas: 3
-          - name: db
-            port: 5432
-            replicas: 2
-```
-
-**Output:** Terraform genereerib:
-- Directory structure
-- Docker Compose files
-- Nginx configs
-- Init scripts
-- README'ed
+### 1.3 Harjutus: Deploy Nginx Mõlemale
 
 **Nõuded:**
 
-- [ ] Parse YAML (`yamldecode()`)
-- [ ] Nested `for_each` loops
-- [ ] Templates
-- [ ] Conditional logic
-- [ ] Outputs summary
+- [ ] Deploy nginx Ubuntu-1 (10.0.208.20:8080) ja Ubuntu-2 (10.0.208.21:8081)
+- [ ] Kasuta `for_each` (mitte count)
+- [ ] Ubuntu-1 HTML: "Frontend Server"
+- [ ] Ubuntu-2 HTML: "Backend Server"
+- [ ] Output mõlemad URL'id
 
+**Näpunäiteid:**
 
+```hcl
+variable "servers" {
+  default = {
+    frontend = { ip = "10.0.208.20", port = 8080, title = "Frontend Server" }
+    backend  = { ip = "10.0.208.21", port = 8081, title = "Backend Server" }
+  }
+}
+```
+
+**Testimine:**
+
+```powershell
+terraform apply
+# Kontrolli:
+# http://10.0.208.20:8080
+# http://10.0.208.21:8081
+```
+
+**Boonus:**
+
+- Lisa kolmas server (Alma-1: 10.0.208.30:8082)
 
 ---
 
-##  Kasulikud Ressursid
+## 2. Template-Based Configuration
 
-- **HCL Syntax**: https://developer.hashicorp.com/terraform/language/syntax
-- **Functions**: https://developer.hashicorp.com/terraform/language/functions
-- **Expressions**: https://developer.hashicorp.com/terraform/language/expressions
-- **Modules**: https://developer.hashicorp.com/terraform/language/modules
+### 2.1 Probleem
+
+Inline strings provisioner'ites on loetamatud ja raskesti muudetavad. Päris nginx config on 50+ rida. Kuidas hallata seda elegantelt?
+
+Terraform templatefile() funktsioon võimaldab eraldi template faile kasutada ja dynamic väärtused sisse süstida.
+
+### 2.2 Lahendus
+
+**Loo kaust ja template:**
+
+```
+terraform-advanced/
+├── main.tf
+├── templates/
+│   ├── nginx.conf.tpl
+│   └── index.html.tpl
+└── files/
+    └── (generated configs)
+```
+
+**templates/nginx.conf.tpl:**
+
+```nginx
+# ${server_name} - Generated by Terraform
+
+server {
+    listen ${port};
+    server_name _;
+    
+    root /var/www/${server_name};
+    index index.html;
+    
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    
+    %{ if enable_monitoring ~}
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+    %{ endif ~}
+    
+    add_header X-Server-Name "${server_name}";
+}
+```
+
+**templates/index.html.tpl:**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>${server_name}</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            background: ${bg_color}; 
+            color: white; 
+            padding: 50px; 
+            text-align: center; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 ${server_name}</h1>
+    <p>Role: <strong>${role}</strong></p>
+    <p>Port: <strong>${port}</strong></p>
+    <hr>
+    <small>Deployed: ${timestamp}</small>
+</body>
+</html>
+```
+
+**main.tf:**
+
+```hcl
+variable "servers" {
+  type = map(object({
+    ip                = string
+    port              = number
+    role              = string
+    bg_color          = string
+    enable_monitoring = bool
+  }))
+  default = {
+    web = {
+      ip                = "10.0.208.20"
+      port              = 8080
+      role              = "frontend"
+      bg_color          = "#0066cc"
+      enable_monitoring = true
+    }
+    api = {
+      ip                = "10.0.208.21"
+      port              = 8081
+      role              = "api"
+      bg_color          = "#cc6600"
+      enable_monitoring = true
+    }
+  }
+}
+
+# Generate config files locally first
+resource "local_file" "nginx_configs" {
+  for_each = var.servers
+  
+  filename = "${path.module}/files/${each.key}-nginx.conf"
+  content = templatefile("${path.module}/templates/nginx.conf.tpl", {
+    server_name       = each.key
+    port              = each.value.port
+    enable_monitoring = each.value.enable_monitoring
+  })
+}
+
+resource "local_file" "html_files" {
+  for_each = var.servers
+  
+  filename = "${path.module}/files/${each.key}-index.html"
+  content = templatefile("${path.module}/templates/index.html.tpl", {
+    server_name = each.key
+    role        = each.value.role
+    port        = each.value.port
+    bg_color    = each.value.bg_color
+    timestamp   = timestamp()
+  })
+}
+
+# Deploy to servers
+resource "null_resource" "deploy" {
+  for_each = var.servers
+  
+  depends_on = [
+    local_file.nginx_configs,
+    local_file.html_files
+  ]
+  
+  connection {
+    type        = "ssh"
+    host        = each.value.ip
+    user        = "kasutaja"
+    private_key = file("~/.ssh/id_ed25519")
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/files/${each.key}-nginx.conf"
+    destination = "/tmp/nginx.conf"
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/files/${each.key}-index.html"
+    destination = "/tmp/index.html"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt update -qq && sudo apt install -y nginx",
+      "sudo mkdir -p /var/www/${each.key}",
+      "sudo mv /tmp/index.html /var/www/${each.key}/",
+      "sudo mv /tmp/nginx.conf /etc/nginx/sites-available/${each.key}",
+      "sudo ln -sf /etc/nginx/sites-available/${each.key} /etc/nginx/sites-enabled/",
+      "sudo rm -f /etc/nginx/sites-enabled/default",
+      "sudo nginx -t && sudo systemctl reload nginx",
+    ]
+  }
+}
+```
+
+### 2.3 Harjutus: Custom Templates
+
+**Nõuded:**
+
+- [ ] Loo template nginx.conf ja index.html
+- [ ] Ubuntu-1: sinine taust (#0066cc), "Web Server"
+- [ ] Ubuntu-2: roheline taust (#00cc66), "API Server"  
+- [ ] HTML näitab deployment aega (`timestamp()`)
+- [ ] Nginx config sisaldab `/health` endpoint
+
+**Näpunäiteid:**
+
+- Template syntax: `${variable}` asendab, `%{ if }` on conditional
+- `templatefile(path, vars)` genereerib sisu
+- Esmalt loo `local_file`, siis upload `provisioner "file"`
+
+**Testimine:**
+
+```powershell
+curl http://10.0.208.20:8080/health
+# Peaks tagastama: healthy
+```
+
+**Boonus:**
+
+- Lisa `/metrics` endpoint, mis näitab serveri info't
+- Conditional SSL block template'is (kuigi cert'e pole)
 
 ---
 
-**Edu advanced Terraform'iga!** 
+## 3. Conditional Deployment
+
+### 3.1 Probleem
+
+Dev ja prod keskkonnad vajavad erinevat konfiguratsiooni. Dev'is debug mode, prod'is SSL ja monitoring. Kuidas hallata ühes Terraform projektis?
+
+Terraform toetab conditionals: `count = condition ? 1 : 0` ja dynamic blocks.
+
+### 3.2 Lahendus
+
+```hcl
+variable "environment" {
+  type    = string
+  default = "dev"
+  
+  validation {
+    condition     = contains(["dev", "prod"], var.environment)
+    error_message = "Must be dev or prod"
+  }
+}
+
+variable "servers" {
+  type = map(object({
+    ip   = string
+    port = number
+  }))
+}
+
+locals {
+  # Environment-specific configs
+  config = {
+    dev = {
+      replicas          = 1
+      enable_ssl        = false
+      enable_monitoring = false
+      log_level         = "debug"
+    }
+    prod = {
+      replicas          = 2
+      enable_ssl        = true
+      enable_monitoring = true
+      log_level         = "error"
+    }
+  }
+  
+  current_config = local.config[var.environment]
+}
+
+resource "null_resource" "deploy" {
+  for_each = var.servers
+  
+  connection {
+    type        = "ssh"
+    host        = each.value.ip
+    user        = "kasutaja"
+    private_key = file("~/.ssh/id_ed25519")
+  }
+
+  provisioner "remote-exec" {
+    inline = concat(
+      [
+        "sudo apt update -qq && sudo apt install -y nginx",
+        "echo 'Environment: ${var.environment}' | sudo tee /var/www/html/env.txt",
+      ],
+      
+      # Conditional: only in prod
+      local.current_config.enable_monitoring ? [
+        "sudo apt install -y prometheus-node-exporter",
+        "sudo systemctl enable prometheus-node-exporter",
+      ] : [],
+      
+      [
+        "echo 'log_level: ${local.current_config.log_level}' | sudo tee -a /var/www/html/env.txt",
+        "sudo systemctl reload nginx",
+      ]
+    )
+  }
+}
+
+# Conditional resource: monitoring only in prod
+resource "null_resource" "monitoring" {
+  count = var.environment == "prod" ? 1 : 0
+  
+  connection {
+    type        = "ssh"
+    host        = var.servers["web"].ip
+    user        = "kasutaja"
+    private_key = file("~/.ssh/id_ed25519")
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'Setting up production monitoring...'",
+      "# Install monitoring tools here",
+    ]
+  }
+}
+```
+
+**Kasutamine:**
+
+```powershell
+# Dev deployment
+terraform apply -var="environment=dev"
+
+# Prod deployment
+terraform apply -var="environment=prod"
+```
+
+### 3.3 Harjutus: Dev vs Prod
+
+**Nõuded:**
+
+- [ ] Loo terraform.tfvars.dev ja terraform.tfvars.prod
+- [ ] Dev: ainult Ubuntu-1, port 8080, debug mode
+- [ ] Prod: mõlemad Ubuntu'd, port 443, monitoring enabled
+- [ ] Kasuta `count` või `for_each` conditional'iga
+- [ ] HTML näitab environment'i
+
+**Näpunäiteid:**
+
+```hcl
+# terraform.tfvars.dev
+environment = "dev"
+servers = {
+  web = { ip = "10.0.208.20", port = 8080 }
+}
+
+# terraform.tfvars.prod
+environment = "prod"
+servers = {
+  web1 = { ip = "10.0.208.20", port = 443 }
+  web2 = { ip = "10.0.208.21", port = 443 }
+}
+```
+
+**Testimine:**
+
+```powershell
+# Dev
+terraform apply -var-file="terraform.tfvars.dev"
+
+# Prod
+terraform apply -var-file="terraform.tfvars.prod"
+```
+
+**Boonus:**
+
+- Prod'is enable firewall (`ufw`) automaatselt
+- Dev'is install development tools (`curl`, `vim`, `htop`)
+
+---
+
+## Kasulikud Ressursid
+
+**Dokumentatsioon:**
+
+- [Count and For_Each](https://developer.hashicorp.com/terraform/language/meta-arguments/count)
+- [Templatefile Function](https://developer.hashicorp.com/terraform/language/functions/templatefile)
+- [Conditional Expressions](https://developer.hashicorp.com/terraform/language/expressions/conditionals)
+
+**Tööriistad:**
+
+- **Terraform Console** - testi expressions: `terraform console`
+- **Terraform fmt** - vorminda kood: `terraform fmt`
+- **Terraform validate** - kontrolli syntax: `terraform validate`
+
+**Näited:**
+
+- HashiCorp Learn: https://learn.hashicorp.com/terraform
+
+---
+
+Need harjutused on mõeldud süvendama teie Terraform oskusi. Alustage esimesest ja liikuge järk-järgult keerukamate poole.
