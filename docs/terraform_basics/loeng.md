@@ -1,18 +1,14 @@
-# Terraform Alused - Self-Study Materjal
+# Terraform Alused
 
 **Eeldused:** Linux CLI, Git, teksteditor
 
 **Platvorm:** Terraform (kohalik)
-
-**Ajakulu:** ~4-6 tundi (võid teha osade kaupa)
 
 **Dokumentatsioon:** [developer.hashicorp.com/terraform](https://developer.hashicorp.com/terraform)
 
 ---
 
 ## Kuidas Seda Materjali Kasutada
-
-See on **self-study** materjal - disainitud, et saad iseseisvalt läbi töötada ilma õpetajata.
 
 **Struktuur:**
 - 📖 **Teooria** - mõista kontseptsioone
