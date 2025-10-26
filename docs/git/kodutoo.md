@@ -1,473 +1,689 @@
 # Git Kodutöö: Isiklik Projekt Repositoorium
 
-See kodutöö võtab umbes 1.5-2 tundi ja nõuab labori ajal õpitud Git oskuste rakendamist väikeses projektis. Loote GitHub repositooriumi ja rakendate põhilist Git workflow'i.
-
-**Eeldused:** Git Labor läbitud, GitHub konto olemas, SSH seadistatud  
-**Esitamine:** GitHub repositooriumi URL e-posti või Moodle kaudu  
-**Tähtaeg:** Nädal pärast laborit
+**Kestus:** 2-3h  
+**Eesmärk:** Õppida Git'i läbi reaalse töövoo, kus töötad nii lokaalselt kui GitHubis paralleelselt.
 
 ---
 
-## 1. Ülesande Kirjeldus
+## Mis sa õpid?
 
-Loote avaliku GitHub repositooriumi, mis sisaldab väikest projekti või skriptide kogumit. See ei pea olema keeruline - fookus on Git'i õigel kasutamisel, mitte programmeerimise keerukusel.
-
-Minimaalse nõuded:
-
-- Avalik GitHub repositoorium
-- Vähemalt 5 tähenduslikku commit'i
-- README.md koos projekti kirjelduse ja refleksiooniga
-- .gitignore fail
-- Vähemalt 3 erinevat faili projektis
-
-Valige üks projektitüüp allpool või pakkuge välja oma idee (lihtne variant).
+- ✅ Remote repo ühendamine
+- ✅ Branch'idega töötamine (eraldi arendus)
+- ✅ Merge konfliktide lahendamine
+- ✅ VSCode Source Control kasutamine
+- ✅ GitHub ja lokaali paralleelne jälgimine
+- ✅ Pull request workflow
+- ✅ Ajas liikumine (checkout vanad versioonid)
 
 ---
 
-## 2. Repositooriumi Loomine
+## Osa 1: Setup ja esimene push
 
-### 2.1 GitHub Setup
+### 1.1 GitHub repo loomine
 
-Logige GitHub'i ja looge uus repositoorium:
+1. Mine [github.com](https://github.com)
+2. **New repository**
+3. Nimi: `git-treening`
+4. **Public**
+5. **ÄRA** lisa README, .gitignore ega license
+6. **Create repository**
 
-- Nimi: `git-homework` või kirjeldav nimi
-- Kirjeldus: Lühike kokkuvõte
-- **Public** (avalik)
-- EI lisa README ega .gitignore (loote ise)
-- Lisa MIT License
+**GitHub näitab sulle nüüd kahte varianti:**
 
-### 2.2 Kloonimine ja Initsiaalseadistamine
 ```bash
-git clone git@github.com:TEIE-KASUTAJANIMI/git-homework.git
-cd git-homework
+# ...create a new repository on the command line
+echo "# git-treening" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/KASUTAJANIMI/git-treening.git
+git push -u origin main
 ```
 
-Kontrollige:
+**STOP!** Ära kopeeri veel. Vaatame, mis need käsud teevad.
+
+---
+
+### 1.2 Lokaalne repo loomine
+
+```bash
+mkdir git-treening
+cd git-treening
+git init
+```
+
+**Väljund:**
+```
+Initialized empty Git repository in /path/to/git-treening/.git/
+```
+
+**Kontrolli:**
 ```bash
 git status
-git remote -v
 ```
+
+**Näed:**
+```
+On branch master
+No commits yet
+nothing to commit (create/copy files and use "git add" to track)
+```
+
+**Ava VSCode:**
+```bash
+code .
+```
+
+**VSCode Source Control (Ctrl+Shift+G):**
+- Näitab: "No source control providers registered"
+- Või: tühi puu, kuna pole veel faile
 
 ---
 
-## 3. Projekti Valik
+### 1.3 Esimene fail ja commit
 
-Valige ÜKS järgnevatest. Ärge üle keeruliseks tehke - fookus on Git'il, mitte koodil.
-
-### Variant A: Python Kalkulaator (Lihtne)
-
-Looge 2 faili:
-
-**calculator.py:**
-```python
-def add(a, b):
-    """Liida kaks arvu."""
-    return a + b
-
-def subtract(a, b):
-    """Lahuta."""
-    return a - b
-
-def multiply(a, b):
-    """Korruta."""
-    return a * b
-
-def divide(a, b):
-    """Jaga."""
-    if b == 0:
-        return "Error: jagamine nulliga"
-    return a / b
-
-if __name__ == "__main__":
-    print("2 + 3 =", add(2, 3))
-    print("5 - 2 =", subtract(5, 2))
-    print("4 * 3 =", multiply(4, 3))
-    print("10 / 2 =", divide(10, 2))
-```
-
-**.gitignore:**
-```
-__pycache__/
-*.pyc
-.vscode/
-.DS_Store
-```
-
-### Variant B: HTML Lihtne Leht
-
-Looge 3 faili:
-
-**index.html:**
+**Loo index.html:**
 ```html
 <!DOCTYPE html>
-<html lang="et">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Minu Leht</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Git Treening</title>
 </head>
 <body>
-    <h1>Tere! Mina olen [Sinu Nimi]</h1>
-    <p>See on minu Git kodutöö projekt.</p>
-    
-    <h2>Oskused</h2>
-    <ul>
-        <li>Git ja GitHub</li>
-        <li>HTML/CSS põhitõed</li>
-    </ul>
+    <h1>Versioon 1</h1>
+    <p>See on algversioon</p>
 </body>
 </html>
 ```
 
-**style.css:**
+**VSCode Source Control:**
+- Näed "U" (Untracked) index.html kõrval
+- See tähendab: Git ei jälgi veel seda faili
+
+**Käsurealt:**
+```bash
+git status
+```
+
+```
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        index.html
+
+nothing added to commit but untracked files present
+```
+
+**Stage fail:**
+
+**VSCode-s:** Vajuta `+` faili kõrval
+
+**VÕI käsurealt:**
+```bash
+git add index.html
+```
+
+**VSCode näitab nüüd:** "A" (Added/Staged)
+
+**Tee commit:**
+
+**VSCode-s:**
+- Kirjuta üles: `Initial commit`
+- Vajuta ✓
+
+**VÕI käsurealt:**
+```bash
+git commit -m "Initial commit"
+```
+
+**Kontrolli:**
+```bash
+git log
+```
+
+Näed oma esimest commit'i!
+
+---
+
+### 1.4 Ühenda GitHubiga
+
+**GitHub käsud (mäletad?):**
+```bash
+git branch -M main
+git remote add origin https://github.com/KASUTAJANIMI/git-treening.git
+git push -u origin main
+```
+
+**Mis need teevad?**
+
+1. `git branch -M main` - muuda haru nimi "master" → "main"
+2. `git remote add origin URL` - ütle Git'ile, kus on remote repo
+3. `git push -u origin main` - saada kõik GitHubi
+
+**Kontrolli remote:**
+```bash
+git remote -v
+```
+
+```
+origin  https://github.com/KASUTAJANIMI/git-treening.git (fetch)
+origin  https://github.com/KASUTAJANIMI/git-treening.git (push)
+```
+
+**Push:**
+```bash
+git push -u origin main
+```
+
+**Mine GitHubi ja refreshi lehte** - index.html peaks seal olema!
+
+**VSCode alt vasakul:** Näed nüüd "main" ↓0 ↑0 (kõik sync-itud)
+
+---
+
+## Osa 2: Branch workflow
+
+### 2.1 Loo styling branch
+
+**VSCode-s:**
+- Alt vasak: vajuta "main"
+- "Create new branch from..."
+- Nimi: `feature/styling`
+
+**VÕI käsurealt:**
+```bash
+git checkout -b feature/styling
+```
+
+```
+Switched to a new branch 'feature/styling'
+```
+
+**VSCode alt:** Näitab nüüd "feature/styling"
+
+---
+
+### 2.2 Lisa CSS
+
+**Loo style.css:**
 ```css
 body {
+    background-color: #f5f5f5;
     font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 50px auto;
     padding: 20px;
-    background-color: #f4f4f4;
 }
 
 h1 {
-    color: #333;
-}
-
-ul {
-    list-style-type: square;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
 }
 ```
 
-**.gitignore:**
+**Muuda index.html:**
+```html
+<head>
+    <title>Git Treening</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 ```
-.DS_Store
-Thumbs.db
-.vscode/
-```
 
-### Variant C: Bash Skriptid
+**VSCode Source Control:**
+- Näed kahte faili:
+  - "U" style.css (uus)
+  - "M" index.html (modified)
 
-Looge 2 skripti:
+**Stage + commit:**
+- VSCode: Stage mõlemad → commit "Add CSS styling"
 
-**backup.sh:**
+**VÕI:**
 ```bash
-#!/bin/bash
-# Lihtne varundusskript
-
-SOURCE_DIR="${1:-.}"
-BACKUP_DIR="./backups"
-DATE=$(date +%Y%m%d_%H%M%S)
-
-mkdir -p "$BACKUP_DIR"
-tar -czf "$BACKUP_DIR/backup_$DATE.tar.gz" "$SOURCE_DIR"
-
-echo "Backup created: $BACKUP_DIR/backup_$DATE.tar.gz"
-```
-
-**cleanup.sh:**
-```bash
-#!/bin/bash
-# Puhasta ajutised failid
-
-echo "Cleaning temporary files..."
-find . -name "*.log" -delete
-find . -name "*.tmp" -delete
-echo "Cleanup complete!"
-```
-
-**.gitignore:**
-```
-*.log
-*.tmp
-backups/
-.DS_Store
-```
-
-Tee skriptid käivitatavaks:
-```bash
-chmod +x backup.sh cleanup.sh
-```
-
----
-
-## 4. Git Workflow - 5 Commit'i
-
-Tehke vähemalt 5 commit'i järgmises stiilis. Iga commit teeb ÜHE loogilise asja.
-
-### Commit 1: Algstruktuur
-```bash
-touch README.md
-git add README.md
-git commit -m "Initial commit: create README"
-git push origin main
-```
-
-### Commit 2: Lisa .gitignore
-```bash
-# Loo .gitignore fail (vali variant projektile)
-git add .gitignore
-git commit -m "Add .gitignore for [Python/Web/Bash] project"
-git push origin main
-```
-
-### Commit 3: Lisa põhifail
-```bash
-# Loo põhifail (calculator.py, index.html või backup.sh)
-git add calculator.py  # või teine fail
-git commit -m "Add main calculator functions"
-git push origin main
-```
-
-### Commit 4: Lisa teine komponent
-```bash
-# Loo teine fail (style.css, cleanup.sh vms)
-git add style.css  # või teine fail
-git commit -m "Add [description of what this file does]"
-git push origin main
-```
-
-### Commit 5: Täienda README
-```bash
-# Kirjuta README.md (vt sektsioon 5)
-git add README.md
-git commit -m "Add project documentation and usage instructions"
-git push origin main
-```
-
-**Oluline:** Iga commit sõnum peab olema kirjeldav ja selgitama MIKS.
-
-**Head näited:**
-```
-Add calculator module with basic operations
-Fix division by zero error handling
-Add CSS styling for better readability
-Update README with installation instructions
-```
-
-**Halvad näited (ära kasuta):**
-```
-update
-fix
-asdf
-wip
-changes
-```
-
----
-
-## 5. README.md Dokumentatsioon
-
-Teie README.md peab sisaldama järgmisi sektsioone:
-```markdown
-# Projekti Nimi
-
-Lühike kirjeldus 1-2 lausega.
-
-## Kirjeldus
-
-2-3 lõiku, mis selgitavad:
-- Mis see projekt on
-- Miks te selle tegite
-- Mida see teeb
-
-## Kasutamine
-
-### Nõuded
-- Python 3.x (või muud nõuded)
-- Git
-
-### Paigaldamine
-```bash
-git clone git@github.com:KASUTAJANIMI/git-homework.git
-cd git-homework
-```
-
-### Käivitamine
-```bash
-python calculator.py
-# või
-open index.html
-# või
-./backup.sh
-```
-
-## Failide Struktuur
-```
-git-homework/
-├── calculator.py  (või teised failid)
-├── README.md
-├── .gitignore
-└── LICENSE
-```
-
-## Autor
-
-[Teie Nimi]  
-GitHub: [@teie-kasutajanimi](https://github.com/teie-kasutajanimi)
-
-## Litsents
-
-MIT License
-
-## Refleksioon
-
-(Vasta allpool olevatele küsimustele)
-```
-
-Lisage README.md lõppu "## Refleksioon" sektsioon.
-
----
-
-## 6. Refleksioon
-
-Lisage README.md lõppu "## Refleksioon" sektsioon ja vastake järgmistele küsimustele (2-3 lauset igaüks):
-
-1. **Mis oli kõige raskem ja kuidas lahendasid?**
-2. **Milline Git kontseptsioon oli suurim "ahaa!" hetk?**
-3. **Kuidas kasutaksid Git'i tulevikus?**
-4. **Kuidas selgitaksid sõbrale, mis on Git?**
-5. **Mis oli kõige huvitavam osa?**
-
----
-
-## 7. Esitamine
-
-### Kontroll Enne Esitamist
-
-Kontrollige, et olete kõik teinud:
-
-- [ ] Repositoorium on avalik (public)
-- [ ] Vähemalt 5 commit'i (vaadake: `git log --oneline`)
-- [ ] Commit sõnumid on kirjeldavad ja selged
-- [ ] README.md sisaldab kõiki sektsioone
-- [ ] Refleksioon on täielik (5 küsimust, 2-3 lauset igaüks)
-- [ ] .gitignore fail on olemas
-- [ ] Projekt töötab (saab käivitada)
-- [ ] Kõik on push'itud GitHub'i
-
-Kohustuslikud asendused enne esitamist:
-
-- [ ] README alguses on autor: `Autor: [Sinu Nimi]` (asendatud sinu nimega)
-- [ ] Kõik näited ja lingid kasutavad sinu GitHubi kasutajanime (asenda `TEIE-KASUTAJANIMI` → sinu kasutajanimi)
-
-### Esitamise Formaat
-
-Esitage Google Classroom'is:
-
-**Repository link:** `https://github.com/teie-kasutajanimi/git-homework`
-
-Veenduge, et:
-
-- Repository on **public** (avalik)
-- README.md sisaldab projekti kirjeldust
-- Kõik failid on commit'itud ja push'itud
-
----
-
-## 8. Hindamiskriteeriumid
-
-| Kriteerium | Punktid | Kirjeldus |
-|-----------|---------|-----------|
-| **Repositooriumi Struktuur** | 20% | Loogiline failide paigutus; .gitignore olemas ja töötab (ei ole soovimatud failid nagu `__pycache__`, `.DS_Store`); Projekt on korrektne struktuuriga |
-| **Commit Kvaliteet** | 30% | Vähemalt 5 commit'i; Commit sõnumid on kirjeldavad ja selgitavad MIKS (mitte lihtsalt "update"); Iga commit teeb üht loogilist asja; Ajalugu on loogiline |
-| **Git Workflow** | 15% | `add → commit → push` õigesti kasutatud; `git status`, `git log` kasutamise märgid; Ei ole segadust workflow'ga |
-| **Projekt Funktsionaalsus** | 10% | Projekt käivitub ilma vigadeta; Teeb seda, mida kirjeldus ütleb; Kood/HTML on loetav |
-| **README Dokumentatsioon** | 10% | Projekti kirjeldus on selge; Kasutamise juhised on täielikud; Struktuur on korras |
-| **Refleksioon** | 15% | Kõik 5 küsimust vastatud; Iga vastus 2-3 lauset; Vastused on sisukad ja ausad; Näitavad mõistmist |
-
-**Kokku: 100%**
-
----
-
-## Boonus (Valikuline, +10%)
-
-**Git Branch (+5%):** Tee üks feature branch, arenda seal, merge tagasi main'i.
-```bash
-git checkout -b feature/new-function
-# tee muudatus
 git add .
-git commit -m "Add new feature"
+git commit -m "Add CSS styling"
+```
+
+---
+
+### 2.3 Push branch GitHubi
+
+```bash
+git push -u origin feature/styling
+```
+
+**VÕI VSCode-s:** vajuta "Publish Branch"
+
+**Mine GitHubi:**
+- Branches dropdown → näed `feature/styling`
+- **Vaheta main ja feature/styling vahel** - näed, et main-is pole CSS'i!
+
+**See on võimas!** Kaks paralleelset versiooni eksisteerib korraga.
+
+---
+
+### 2.4 Täienda CSS branch-is
+
+**Jätka feature/styling-s:**
+```css
+/* Lisa style.css lõppu */
+p {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #555;
+}
+```
+
+**Commit:**
+```bash
+git add style.css
+git commit -m "Improve paragraph styling"
+git push
+```
+
+**Kontrolli GitHubis:**
+- feature/styling → 2 commits ahead of main
+- Vaata "Compare" - näed kõiki muudatusi!
+
+---
+
+## Osa 3: Konfliktid ja merge
+
+### 3.1 Paralleelne töö main-is
+
+**Mine tagasi main-i:**
+```bash
 git checkout main
-git merge feature/new-function
-git push origin main
 ```
 
-**GitHub README Badge (+5%):** Lisa README.md'sse badge (näiteks litsents või tähed).
+**VSCode:**
+- style.css KADUS (see on normaalne!)
+- Alt näitab: "main"
+
+**Muuda index.html:**
+```html
+<body>
+    <h1>Versioon 2 - main harus</h1>
+    <p>See on algversioon</p>
+</body>
+```
+
+**Commit + push:**
+```bash
+git add index.html
+git commit -m "Update heading in main"
+git push
+```
+
+**Kontrolli GitHubis main-is** - CSS pole ikka veel seal, aga heading muutus!
+
+---
+
+### 3.2 Tekita konflikt
+
+**Mine feature/styling-sse:**
+```bash
+git checkout feature/styling
+```
+
+**Muuda SAMAS kohas:**
+```html
+<body>
+    <h1>Versioon 2 - koos stylinguga</h1>
+    <p>See on algversioon</p>
+</body>
+```
+
+**Commit:**
+```bash
+git add index.html
+git commit -m "Update heading in feature branch"
+git push
+```
+
+**Nüüd sul on kaks erinevat muudatust samas kohas!**
+
+---
+
+### 3.3 Merge ja konflikt
+
+**Mine main-i:**
+```bash
+git checkout main
+git merge feature/styling
+```
+
+**BOOM! Konflikt:**
+```
+Auto-merging index.html
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+**VSCode Source Control:**
+- Näed "!" index.html kõrval (conflict)
+- Ava fail
+
+**VSCode näitab:**
+```html
+<body>
+<<<<<<< HEAD
+    <h1>Versioon 2 - main harus</h1>
+=======
+    <h1>Versioon 2 - koos stylinguga</h1>
+>>>>>>> feature/styling
+    <p>See on algversioon</p>
+    <link rel="stylesheet" href="style.css">
+</body>
+```
+
+**VSCode pakub nuppe:**
+- Accept Current Change (jätab main-i versiooni)
+- Accept Incoming Change (võtab feature/styling)
+- Accept Both Changes
+- Compare Changes
+
+**Vali "Accept Both" VÕI kirjuta käsitsi:**
+```html
+<h1>Versioon 3 - liitmine valmis</h1>
+```
+
+**Kustuta konfliktimärgid:**
+```html
+<body>
+    <h1>Versioon 3 - liitmine valmis</h1>
+    <p>See on algversioon</p>
+    <link rel="stylesheet" href="style.css">
+</body>
+```
+
+**Stage + commit:**
+```bash
+git add index.html
+git commit -m "Merge feature/styling, resolve conflicts"
+git push
+```
+
+**Kontrolli GitHubis:**
+- Commits → näed merge commit'i
+- Insights → Network → näed graafiliselt hargnemist ja liitmist!
+
+---
+
+## Osa 4: Ajas liikumine
+
+### 4.1 Vaata ajalugu
+
+```bash
+git log --oneline --graph --all
+```
+
+```
+*   a1b2c3d (HEAD -> main) Merge feature/styling
+|\  
+| * d4e5f6g (feature/styling) Update heading in feature branch
+| * g7h8i9j Improve paragraph styling
+| * j1k2l3m Add CSS styling
+* | m4n5o6p Update heading in main
+|/  
+* p7q8r9s Initial commit
+```
+
+**Kopeeri mõni vana hash, nt `p7q8r9s`**
+
+---
+
+### 4.2 Mine tagasi ajas
+
+```bash
+git checkout p7q8r9s
+```
+
+```
+Note: switching to 'p7q8r9s'.
+You are in 'detached HEAD' state.
+```
+
+**VSCode:**
+- Alt näitab: "detached at p7q8r9s"
+- Ava index.html - näed ALGSET versiooni!
+- style.css PUUDUB
+
+**See on võimas!** Sa ei kustutanud midagi, lihtsalt vaatad vana hetke.
+
+**Tule tagasi:**
+```bash
+git checkout main
+```
+
+---
+
+### 4.3 VSCode Timeline
+
+**VSCode-s:**
+- Parem klikk index.html-l
+- "Open Timeline"
+- Näed kõiki muudatusi kellaajaga
+- Kliki vana versiooni - avaneb diff!
+
+---
+
+## Osa 5: Pull ja sync
+
+### 5.1 Keegi muutis GitHubis
+
+**Mine oma GitHub repo:**
+1. Vajuta index.html
+2. Pencil ikoon (edit)
+3. Lisa:
+```html
+<p>See rida lisati otse GitHubis!</p>
+```
+4. Commit changes (all vasakul)
+
+**Nüüd GitHub on sinu lokallist ees!**
+
+---
+
+### 5.2 Pull muudatused alla
+
+**VSCode alt:** Näitab ↓1 (üks commit tulla)
+
+**Pull:**
+```bash
+git pull origin main
+```
+
+**VÕI VSCode-s:** vajuta "sync" ikoonile
+
+**Ava index.html** - uus rida on seal!
+
+---
+
+## Osa 6: Pull Request workflow
+
+### 6.1 Loo uus feature
+
+```bash
+git checkout -b feature/footer
+```
+
+**Lisa index.html lõppu:**
+```html
+<footer>
+    <p>&copy; 2025 Git Treening</p>
+</footer>
+```
+
+**Lisa style.css lõppu:**
+```css
+footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #ccc;
+    text-align: center;
+    color: #777;
+}
+```
+
+**Commit + push:**
+```bash
+git add .
+git commit -m "Add footer"
+git push -u origin feature/footer
+```
+
+---
+
+### 6.2 Tee Pull Request GitHubis
+
+**GitHub näitab bänneri:**
+"feature/footer had recent pushes - Compare & pull request"
+
+**Vajuta nuppu:**
+1. Pealkiri: "Add footer section"
+2. Kirjeldus:
+```
+## Muudatused
+- Lisasin footer sektsiooni
+- Lisasin footer CSS
+
+## Testimine
+Ava index.html brauseris ja kontrolli footer-it
+```
+3. **Create pull request**
+
+**Nüüd näed:**
+- "Files changed" tab - diff kõigist muudatustest
+- "Commits" tab - kõik commit-id selles PR-is
+
+**Merge pull request:**
+1. Vajuta rohelist nuppu
+2. Confirm merge
+3. Delete branch (soovi korral)
+
+---
+
+### 6.3 Uuenda lokaali
+
+```bash
+git checkout main
+git pull origin main
+```
+
+**footer on nüüd main-is!**
+
+**Kontrolli:**
+```bash
+git log --oneline
+```
+
+Näed merge commit-i PR-ist.
+
+---
+
+## Osa 7: Rollback ja cleanup
+
+### 7.1 Soft reset (säilita muudatused)
+
+**Kui teed vea commit-is:**
+```bash
+git reset --soft HEAD~1
+```
+
+**Muudatused jäävad staged-ks**, saad commit message'i parandada.
+
+---
+
+### 7.2 Hard reset (kustuta kõik)
+
+**Kui tahad viimase commit-i TÄIELIKULT ära visata:**
+```bash
+git reset --hard HEAD~1
+```
+
+**HOIATUS:** Kaotad kõik muudatused!
+
+---
+
+### 7.3 Kustuta branch
+
+**Lokaalselt:**
+```bash
+git branch -d feature/styling
+```
+
+**Remote-lt:**
+```bash
+git push origin --delete feature/styling
+```
+
+**VÕI GitHubis:** Branches → prügikast ikoon
+
+---
+
+## Lõplik harjutus: Full workflow
+
+**Nüüd tee iseseisvalt:**
+
+1. Loo branch `feature/colors`
+2. Muuda CSS-is värve (h1, body background)
+3. Commit + push
+4. GitHubis: tee Pull Request
+5. Lisa PR-ile kommentaar: "Palun vaata värve"
+6. Merge
+7. Lokaalselt: pull main
+8. Kustuta feature/colors branch
+
+---
+
+## Kontrollküsimused
+
+Pead oskama vastata:
+
+1. **Mis vahe on `git fetch` ja `git pull` vahel?**
+2. **Kuidas näha, mis branch-is sa oled?**
+3. **Mis tähendab "detached HEAD"?**
+4. **Kuidas tühistada staged fail?** (git reset HEAD file)
+5. **Kus VSCode-s näed merge konflikte?**
+6. **Mis juhtub, kui teed push aga keegi tegi pull request samal ajal?**
+7. **Kuidas kustutada remote branch?**
+
+---
+
+## Reflection
+
+Lisa README.md lõppu:
+
 ```markdown
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-```
+## Minu kogemus
 
-Vaata: https://shields.io/
+### Mis oli keeruline?
+[2-3 lauset]
 
----
+### Mis oli "ahaa!" hetk?
+[2-3 lauset]
 
-## Abimaterjalid
+### VSCode vs käsurida
+Kumba kasutaksid igapäevaselt ja miks?
+[2-3 lauset]
 
-**Dokumentatsioon:**
-
-- [Git Cheat Sheet](https://education.github.com/git-cheat-sheet-education.pdf)
-- [GitHub .gitignore templates](https://github.com/github/gitignore)
-- [Markdown Guide](https://www.markdownguide.org/basic-syntax/)
-
-**Kursuseomane:**
-
-- `loeng.md`
-- Git põhitõed
-- `labor.md`
-- Käed-külge harjutused
-- `lisapraktika.md`
-- Edasijõudnud tehnikad
-
-**Troubleshooting:**
-
-Levinud probleemid:
-
-**Probleem:** Unustasin midagi commit'ist välja jätta.
-
-**Lahendus:**
-```bash
-# Lisa fail ja muuda viimast commit'i
-git add forgotten-file.txt
-git commit --amend --no-edit
-git push --force-with-lease origin main
-```
-
-**Probleem:** Committisin .env faili kogemata.
-
-**Lahendus:**
-```bash
-# Lisa .gitignore'sse
-echo ".env" >> .gitignore
-
-# Eemalda repos'ist, säilita kohalikult
-git rm --cached .env
-git commit -m "Remove .env from repository"
-git push origin main
-```
-
-**Probleem:** Commit sõnum on vale.
-
-**Lahendus:**
-```bash
-# Muuda viimast commit sõnumit
-git commit --amend -m "Parandatud sõnum"
-git push --force-with-lease origin main
+### Pull Request workflow
+Miks see on parem kui otse main-i push-ida?
+[2-3 lauset]
 ```
 
 ---
 
-## Näpunäited
+## Esitamine
 
-**Aeg:** Ärge kulutage rohkem kui 2 tundi. Kui projekt keeruline, lihtsustage. Fookus on Git'il, mitte koodil.
+**Kontrolli:**
+- [ ] Vähemalt 10 commit-i
+- [ ] Vähemalt 2 branch-i loodud
+- [ ] 1 merge konflikt lahendatud
+- [ ] 1 Pull Request tehtud ja merge-tud
+- [ ] README refleksiooniga
 
-**Commit sagedus:** Ärge tehke kõike ühes commit'is. Tehke väikeseid samme: loo fail → commit, muuda faili → commit.
-
-**README:** Kirjutage README nii, nagu selgitaksite projektist kellelegi, kes seda esimest korda näeb.
-
-**Refleksioon:** Olge ausad. Ei pea olema perfektne. Näidake, et mõtlesite asjade üle.
-
-**Abi:** Kui kinni jääte, vaadake `labor.md` või küsige klassikaaslastelt/õpetajalt.
+**Esita:**
+`https://github.com/KASUTAJANIMI/git-treening`
 
 ---
 
-Edu! Meeles pidage: see ei ole ainult hinne, vaid oskus, mida kasutate kogu oma IT karjääri vältel.
+**Edu! 🦧**
