@@ -2,17 +2,14 @@
 
 **Eesmärk:** Mõista Terraform'i põhitööd - kuidas ta haldab infrastruktuuri läbi state'i ja dependency graph'i
 
-**Ajakulu:** 2h (120 min)
-
-**Fookus:** 90% Terraform kontseptsioonid, 10% Docker setup
-
 ---
 
-## Mis On Terraform? (Enne Kui Alustad)
+## Tuletame meelde
 
 **Terraform = Infrastruktuuri Menedžer**
 
 **5 põhiülesannet:**
+
 1. **Loeb koodi** → mõistab mida sa tahad
 2. **Teab mis on olemas** (state fail) → ei loo duplikaate
 3. **Arvutab erinevused** (plan) → näitab mis muutub
@@ -20,7 +17,8 @@
 5. **Salvestab tulemuse** (state update) → järgmine kord teab
 
 **Labor stsenaarium:**
-```
+
+```text
 WinKlient (Terraform jookseb siin)
     │
     ├─ SSH tunnel → Ubuntu-1 (Docker daemon)
@@ -31,6 +29,59 @@ WinKlient (Terraform jookseb siin)
 
 Terraform teab KUS on MIDA (state fail WinKlient'is)
 ```
+
+---
+
+## Kuidas See Töötab? - Arhitektuur
+
+### Mermaid Diagram
+
+```mermaid
+sequenceDiagram
+    participant W as WinKlient<br/>(Terraform)
+    participant SSH as SSH Tunnel
+    participant U1 as Ubuntu-1<br/>(Docker daemon)
+    participant U2 as Ubuntu-2<br/>(Docker daemon)
+    
+    Note over W: terraform apply
+    
+    W->>W: 1. Loe main.tf<br/>(config)
+    W->>W: 2. Loe terraform.tfstate<br/>(praegune olukord)
+    W->>W: 3. Võrdle: config vs state<br/>(arvuta diff)
+    
+    Note over W: Provider ubuntu1
+    W->>SSH: 4. Ava SSH tunnel<br/>ssh student@10.0.X.20
+    SSH->>U1: SSH ühendus
+    
+    W->>SSH: 5. Saada käsk:<br/>"docker run nginx"
+    SSH->>U1: Edasta käsk
+    U1->>U1: Docker daemon<br/>käivitab container
+    U1->>SSH: Tagasta: container ID=abc123
+    SSH->>W: ID=abc123
+    
+    W->>W: 6. Salvesta state'i:<br/>web[0] = {id: abc123}
+    
+    Note over W: Provider ubuntu2
+    W->>SSH: 7. Ava teine SSH tunnel<br/>ssh student@10.0.X.21
+    SSH->>U2: SSH ühendus
+    
+    W->>SSH: 8. Saada käsk:<br/>"docker run nginx"
+    SSH->>U2: Edasta käsk
+    U2->>U2: Docker daemon<br/>käivitab container
+    U2->>SSH: Tagasta: container ID=def456
+    SSH->>W: ID=def456
+    
+    W->>W: 9. Salvesta state'i:<br/>web2[0] = {id: def456}
+    
+    Note over W: terraform.tfstate<br/>Kõik ressursid mõlemast serverist
+```
+
+**Põhipunktid:**
+
+- **Terraform jookseb WinKlient'is** (mitte Ubuntu's!)
+- **SSH tunnel** = kuidas Terraform jõuab Docker'ini
+- **State fail on WinKlient'is**, aga sisaldab infot mõlema serveri kohta
+- **Provider** = "tõlk" mis teab kuidas Docker API'ga rääkida
 
 ---
 
@@ -46,6 +97,7 @@ cd C:\terraform-docker-lab
 ```
 
 **inventory.ini:**
+
 ```ini
 [all]
 10.0.X.20
@@ -57,6 +109,7 @@ ansible_ssh_private_key_file=C:/Users/YourName/.ssh/id_rsa
 ```
 
 **docker-setup.yml:**
+
 ```yaml
 ---
 - hosts: all
@@ -73,18 +126,22 @@ ansible-playbook -i inventory.ini docker-setup.yml
 ```
 
 **Test:**
+
 ```bash
 ssh student@10.0.X.20 "docker ps"  # Ei küsi sudo
 ssh student@10.0.X.21 "docker ps"
 ```
 
-**KONTROLLI:** [ ] Docker töötab mõlemas serveris
+**KONTROLLI:**
+
+- [ ] Docker töötab mõlemas serveris
 
 ---
 
 ### Terraform Projekt
 
 **main.tf:**
+
 ```hcl
 terraform {
   required_providers {
@@ -106,6 +163,7 @@ provider "docker" {
 ```
 
 **Selgitus:**
+
 - `provider "docker"` = plugin mis teab kuidas Docker'iga rääkida
 - `alias = "u1"` = nimi sellele provider'ile (kaks serverit = kaks provider'it)
 - `host = "ssh://..."` = kuidas ühenduda (SSH tunnel)
@@ -115,7 +173,8 @@ terraform init
 ```
 
 **Mis juhtus?**
-```
+
+```text
 Terraform:
 1. Luges terraform {} block'i
 2. Leidis: vajab docker provider'it
@@ -123,16 +182,19 @@ Terraform:
 4. Provider valmis kasutamiseks
 ```
 
-**KONTROLLI:** [ ] `.terraform/` kataloog on olemas
+**KONTROLLI:**
+
+- [ ] `.terraform/` kataloog on olemas
 
 ---
 
-## OSA 1: Dependency Graph - Kuidas Terraform Teab Järjekorda?
+## 1. Dependency Graph: Kuidas Terraform Teab Järjekorda?
 
 ### Kontseptsioon
 
 **Probleem:** Sul on 4 ressurssi:
-```
+
+```hcl
 network
 volume
 image
@@ -142,6 +204,7 @@ container (vajab network'i, volume'it, image'it)
 Millises järjekorras luua?
 
 **Käsitsi (Bash):**
+
 ```bash
 docker network create mynet           # 1
 docker volume create mydata           # 2
@@ -150,11 +213,13 @@ docker run --network=mynet -v mydata postgres  # 4
 ```
 
 Sa pead **ise** teadma järjekorda. Kui teed vale järjekorra:
+
 ```bash
 docker run --network=mynet ...  # ERROR: network doesn't exist
 ```
 
 **Terraform:**
+
 ```hcl
 resource "docker_network" "net" { ... }
 resource "docker_volume" "vol" { ... }
@@ -167,7 +232,8 @@ resource "docker_container" "db" {
 ```
 
 **Terraform näeb viiteid ja ehitab "dependency graph":**
-```
+
+```text
 network ─┐
 volume  ─┼─→ container
 image   ─┘
@@ -182,6 +248,7 @@ Terraform teab: "Network, volume ja image enne → siis container."
 ### Praktika: Loo Ressursid ja Visualiseeri Graph
 
 **Lisa main.tf'i:**
+
 ```hcl
 # Ubuntu-1 ressursid
 resource "docker_network" "u1_net" {
@@ -218,6 +285,7 @@ resource "docker_container" "db" {
 ```
 
 **Genereeri dependency graph:**
+
 ```powershell
 terraform graph > graph.dot
 ```
@@ -226,7 +294,7 @@ terraform graph > graph.dot
 
 **Mida näed?**
 
-```
+```text
 Graph näitab nooltega:
   docker_network.u1_net ──→ docker_container.db
   docker_volume.u1_vol  ──→ docker_container.db
@@ -242,7 +310,8 @@ Graph näitab nooltega:
 **1.1 Vaata graph'i:** 
 
 Mis järjekorras Terraform loob ressursse? Kirjuta üles:
-```
+
+```text
 1. ___________
 2. ___________
 3. ___________
@@ -252,15 +321,15 @@ Mis järjekorras Terraform loob ressursse? Kirjuta üles:
 <details>
 <summary>Vastus</summary>
 
-```
 1. Network, Volume, Image (paralleelselt - neil pole omavahel sõltuvusi)
 2. Container (pärast kõiki kolme)
-```
+
 </details>
 
 **1.2 Eksperiment:**
 
 Eemalda KÕIK viited container'ist:
+
 ```hcl
 resource "docker_container" "db" {
   provider = docker.u1
@@ -279,24 +348,27 @@ terraform graph > graph2.dot
 
 <details>
 <summary>Vastus</summary>
+
 Ei! Graph näitab nüüd et kõik 4 ressurssi võivad luua paralleelselt - neil pole omavahel viiteid. Terraform ei tea et container VAJAB network'i (sest pole viidet koodis).
+
 </details>
 
 **Taasta viited tagasi!** (copy-paste eelmine variant)
 
 **KONTROLLI:**
+
 - [ ] Graph näitab 3 noolt container'i poole
 - [ ] Mõistan: viide koodis = nool graph'is = dependency
 
 ---
 
-## OSA 2: Plan vs State - Kuidas Terraform Teab Mis Muuta? (30 min)
+## 2. Plan vs State: Kuidas Terraform Teab Mis Muuta?
 
 ### Kontseptsioon
 
 **Terraform workflow:**
 
-```
+```text
 1. LOE main.tf       → "Mida SA tahad"
 2. LOE state fail    → "Mis PRAEGU on"
 3. VÕRDLE            → "Mis ERINEVUS"
@@ -307,7 +379,7 @@ Ei! Graph näitab nüüd et kõik 4 ressurssi võivad luua paralleelselt - neil 
 
 **Näide:**
 
-```
+```text
 main.tf ütleb:        count = 5 containerit
 state ütleb:          count = 3 containerit on olemas
 Terraform arvutab:    5 - 3 = 2 puudu
@@ -315,6 +387,7 @@ Plan näitab:          + 2 to add
 ```
 
 **Käsitsi (Bash script):**
+
 ```bash
 for i in {0..4}; do
   docker run --name web-$i nginx
@@ -322,7 +395,8 @@ done
 ```
 
 **Probleem:** Script ei tea et 3 on juba olemas!
-```
+
+```bash
 docker run --name web-0 nginx  # ERROR: name exists
 docker run --name web-1 nginx  # ERROR: name exists
 docker run --name web-2 nginx  # ERROR: name exists
@@ -341,7 +415,8 @@ terraform plan -out=tfplan
 ```
 
 **Vaata väljundit:**
-```
+
+```text
 Terraform will perform the following actions:
 
   # docker_network.u1_net will be created
@@ -369,6 +444,7 @@ Plan: 4 to add, 0 to change, 0 to destroy.
 **Miks "(known after apply)"?**
 
 Terraform ei tea Docker API vastuseid enne kui tõesti loob:
+
 - Network ID = Docker genereerib
 - Image SHA256 = Docker pull'ib ja tagastab hash'i
 - Container ID = Docker loob ja tagastab
@@ -380,11 +456,13 @@ Terraform ei tea Docker API vastuseid enne kui tõesti loob:
 ### Ülesanded ja Küsimused
 
 **2.1 Salvesta plan JSON'i:**
+
 ```powershell
 terraform show -json tfplan > plan.json
 ```
 
 Ava `plan.json`, otsi üles:
+
 - `resource_changes` array
 - `docker_image.postgres` element
 - `after` object → `image_id` väärtus
@@ -393,17 +471,20 @@ Ava `plan.json`, otsi üles:
 
 <details>
 <summary>Vastus</summary>
+
 `null` või `"known after apply"` - Terraform ei tea SHA256 enne pull'i
+
 </details>
 
 **2.2 Apply:**
+
 ```powershell
 terraform apply tfplan
 ```
 
 **Mis juhtub sisemiselt:**
 
-```
+```text
 Terraform:
 ├─ Ava SSH → Ubuntu-1
 │
@@ -426,11 +507,13 @@ Terraform:
 ```
 
 **2.3 Vaata state PÄRAST apply'd:**
+
 ```powershell
 terraform state show docker_image.postgres
 ```
 
 **Väljund:**
+
 ```hcl
 resource "docker_image" "postgres" {
     id       = "sha256:def456789abcdef..."  # ← Nüüd ON!
@@ -440,6 +523,7 @@ resource "docker_image" "postgres" {
 ```
 
 **VÕRDLE:**
+
 - **ENNE (plan):** `image_id = (known after apply)`
 - **PÄRAST (state):** `image_id = sha256:def456...`
 
@@ -447,10 +531,13 @@ resource "docker_image" "postgres" {
 
 <details>
 <summary>Vastus</summary>
+
 Docker pull'is image ja tagastas hash'i. Terraform provider sai Docker API'lt vastuse ja salvest state'i. State on Docker API vastuste "peegel".
+
 </details>
 
 **2.4 Valideeri Ubuntu's:**
+
 ```bash
 ssh student@10.0.X.20
 
@@ -479,23 +566,27 @@ terraform state show docker_image.postgres | Select-String "image_id"
 
 <details>
 <summary>Vastus</summary>
+
 Jah! State peegeldab Docker'i reaalsust. Terraform küsis Docker API'lt ja salvest.
+
 </details>
 
 **KONTROLLI:**
+
 - [ ] State sisaldab SHA256 (mitte "known after apply")
 - [ ] Docker'is ID = state'is ID
 - [ ] Mõistan: plan = wishlist, state = reality
 
 ---
 
-## OSA 3: Count ja Declarative Scaling
+## 3. Count ja Declarative Scaling
 
 ### Kontseptsioon
 
 **Probleem:** Vaja 10 identset containerit.
 
 **Imperatiivne (Bash):**
+
 ```bash
 # Ütled KUIDAS
 docker run --name web-0 nginx
@@ -505,6 +596,7 @@ docker run --name web-9 nginx
 ```
 
 **Deklaratiivne (Terraform):**
+
 ```hcl
 # Ütled MIDA
 resource "docker_container" "web" {
@@ -514,7 +606,8 @@ resource "docker_container" "web" {
 ```
 
 **Terraform sisemiselt:**
-```
+
+```text
 1. Parse count = 10
 2. Loo internal array:
    web[0], web[1], web[2], ..., web[9]
@@ -522,6 +615,7 @@ resource "docker_container" "web" {
 ```
 
 **Eelis:** Muuda `count = 10` → `count = 20`:
+
 - Terraform võrdleb: 10 on olemas, 20 peaks olema
 - Terraform arvutab: Lisa 10 juurde
 - **EI PUUTU olemasolevaid 10!**
@@ -531,6 +625,7 @@ resource "docker_container" "web" {
 ### Praktika: Web Containers Count'iga
 
 **Lisa main.tf'i:**
+
 ```hcl
 resource "docker_image" "nginx" {
   provider = docker.u1
@@ -558,6 +653,7 @@ resource "docker_container" "web" {
 ```
 
 **Selgitus:**
+
 - `count = 2` → Terraform loob 2 container'it
 - `count.index` → 0 esimesel, 1 teisel iteratsioonil
 - `8080 + count.index` → 8080 + 0 = 8080, 8080 + 1 = 8081
@@ -568,12 +664,14 @@ terraform apply
 ```
 
 **Vaata state:**
+
 ```powershell
 terraform state list | Select-String "web"
 ```
 
 **Väljund:**
-```
+
+```text
 docker_container.web[0]
 docker_container.web[1]
 ```
@@ -607,19 +705,23 @@ terraform plan
 
 <details>
 <summary>Vastus</summary>
+
 **B) Lisab ainult web[2]**
 
-```
+```text
 Plan: 1 to add, 0 to change, 0 to destroy.
 
 + docker_container.web[2]
 ```
 
 Terraform võrdleb:
+
 - State: web[0], web[1] on olemas
 - Config: count = 3 → peaks olema web[0], web[1], web[2]
 - Diff: Puudu web[2]
+
 → Lisa web[2], EI PUUTU [0] ja [1]
+
 </details>
 
 ```powershell
@@ -627,6 +729,7 @@ terraform apply
 ```
 
 **Valideeri:**
+
 ```bash
 ssh student@10.0.X.20 "docker ps | grep web"
 # Peaks näitama: web-0, web-1, web-2
@@ -648,34 +751,68 @@ terraform plan
 
 <details>
 <summary>Vastus</summary>
-```
+
+```text
 Plan: 0 to add, 0 to change, 1 to destroy.
 
 - docker_container.web[2]
 ```
 
-Terraform: "Config ütleb count=2, aga state'is on 3. Kustutan [2]."
+**Selgitus:**
+
+Config ütleb: `count = 2` → peaks olema web[0] ja web[1]
+
+State ütleb: on olemas web[0], web[1], web[2]
+
+Diff: Liigne on web[2] → Terraform KUSTUTAB web[2]
+
+Count on deklaratiivne: sa ütled "peab olema 2 kokku", Terraform arvutab "kustuta 1".
+
+**Visualisatsioon:**
+
+```text
+count = 3:
+  State: [web-0] [web-1] [web-2]
+         ✓       ✓       ✓
+
+count = 2:
+  Config: [web-0] [web[1]]
+          ✓       ✓       
+
+  Diff: web[2] on LIIGNE
+  Plan: - docker_container.web[2] (destroy)
+```
+
 </details>
 
 ```powershell
 terraform apply
 ```
 
+**Valideeri:**
+
+```bash
+ssh student@10.0.X.20 "docker ps | grep web"
+# Peaks näitama AINULT: web-0, web-1 (web-2 on kadunud)
+```
+
 **KONTROLLI:**
+
 - [ ] Saan aru: `count` on deklaratiivne (ütled "mitu kokku", mitte "lisa X")
 - [ ] Terraform ei rebuild existeering resources
-- [ ] State'is on array: web[0], web[1], web[2]
+- [ ] State'is on array: web[0], web[1], web[2] → siis web[0], web[1]
 
 ---
 
-## OSA 4: Drift Detection - Terraform vs Käsitsi Muudatused
+## 4. Drift Detection: Terraform vs Käsitsi Muudatused
 
 ### Kontseptsioon
 
 **Drift** = keegi muutis ressursse väljaspool Terraform'i (SSH + docker käsud).
 
 **Näide:**
-```
+
+```text
 1. Terraform loob container (running)
 2. Keegi SSH'ib: docker stop container
 3. Config ütleb: "running"
@@ -684,7 +821,8 @@ terraform apply
 ```
 
 Terraform plan näitab drift'i:
-```
+
+```text
 ~ docker_container.web[0]
     ~ status: "exited" → "running"
 ```
@@ -696,17 +834,20 @@ Terraform tahab "parandada" (tagasi running'iks).
 ### Praktika: Käsitsi Muutmine
 
 **4.1 Peatage container:**
+
 ```bash
 ssh student@10.0.X.20 "docker stop web-0"
 ```
 
 **Terraform plan:**
+
 ```powershell
 terraform plan
 ```
 
 **Mida näed?**
-```
+
+```text
 ~ docker_container.web[0] must be updated
     ~ status: "exited" → "running"
 ```
@@ -716,7 +857,7 @@ terraform plan
 <details>
 <summary>Vastus</summary>
 
-```
+```text
 Terraform:
 1. Loe config: container peaks olema "running" (default)
 2. Küsi Docker API: mis on container'i status?
@@ -727,6 +868,7 @@ Terraform:
    → DRIFT!
 4. Plan: "Käivitan uuesti"
 ```
+
 </details>
 
 ```powershell
@@ -734,6 +876,7 @@ terraform apply  # Start'ib uuesti
 ```
 
 **4.2 Kustutage container:**
+
 ```bash
 ssh student@10.0.X.20 "docker rm -f web-1"
 ```
@@ -743,7 +886,8 @@ terraform plan
 ```
 
 **Mida näed?**
-```
+
+```text
 + docker_container.web[1] must be created
 ```
 
@@ -752,7 +896,7 @@ terraform plan
 <details>
 <summary>Vastus</summary>
 
-```
+```text
 Terraform:
 1. State ütleb: web[1] on olemas (ID=xyz)
 2. Küsi Docker API: kas ID=xyz eksisteerib?
@@ -760,6 +904,7 @@ Terraform:
 3. Järeldus: Resource on kadunud
 4. Plan: "Loon uuesti"
 ```
+
 </details>
 
 ```powershell
@@ -767,13 +912,14 @@ terraform apply  # Recreate
 ```
 
 **KONTROLLI:**
+
 - [ ] Saan aru: drift = config vs reality erinevus
 - [ ] Terraform "parandab" drift'i apply'ga
 - [ ] Plan näitab täpselt mis muutus
 
 ---
 
-## OSA 5: State Manipulation
+## 5. State Manipulation
 
 ### State Commands
 
@@ -791,6 +937,7 @@ terraform state show docker_container.web[0]
 **Mis on state?**
 
 State = Terraform'i "andmebaas" kus on KÕIK info:
+
 - Milline resource
 - Mis provider (ubuntu1 vs ubuntu2)
 - Docker API ID
@@ -803,11 +950,13 @@ State = Terraform'i "andmebaas" kus on KÕIK info:
 ### Praktika: State vs Docker
 
 **5.1 Leia container ID state'ist:**
+
 ```powershell
 terraform state show docker_container.web[0]
 ```
 
 **Väljund:**
+
 ```hcl
 resource "docker_container" "web" {
     id    = "abc123def456..."  # ← Kopeeri see
@@ -817,12 +966,14 @@ resource "docker_container" "web" {
 ```
 
 **5.2 Võrdle Docker'iga:**
+
 ```bash
 ssh student@10.0.X.20 "docker ps --no-trunc | grep web-0"
 ```
 
 **Väljund:**
-```
+
+```text
 abc123def456...  nginx:alpine  "web-0"
 ```
 
@@ -830,7 +981,9 @@ abc123def456...  nginx:alpine  "web-0"
 
 <details>
 <summary>Vastus</summary>
+
 Jah! State on Docker API vastuse peegel. Terraform küsis Docker'ilt ID ja salvest state'i.
+
 </details>
 
 **5.3 State Remove (Eksperiment - ÄRA TEE PRODUCTION'IS!):**
@@ -845,18 +998,21 @@ terraform state list | Select-String "web"
 ```
 
 **Docker'is:**
+
 ```bash
 ssh student@10.0.X.20 "docker ps | grep web"
 # Peaks näitama web-0 JA web-1 (state rm ei puutu Docker'it!)
 ```
 
 **Plan:**
+
 ```powershell
 terraform plan
 ```
 
 **Mida näed?**
-```
+
+```text
 Plan: 1 to add
 
 + docker_container.web[1]
@@ -867,7 +1023,7 @@ Plan: 1 to add
 <details>
 <summary>Vastus</summary>
 
-```
+```text
 Terraform:
 1. Loe config: count = 2 → peaks olema web[0] ja web[1]
 2. Loe state: ainult web[0] on olemas
@@ -877,9 +1033,11 @@ Terraform:
 ```
 
 Aga Docker'is on web[1] juba olemas → name conflict → apply failibks!
+
 </details>
 
 **Fix:**
+
 ```bash
 ssh student@10.0.X.20 "docker rm -f web-1"
 ```
@@ -890,13 +1048,20 @@ terraform apply  # Nüüd loob uuesti
 
 **ÕPPETUND:** State = Terraform'i "tõde". Kui state ei vasta reaalsusele → probleemid. **ÄRA MUUDA STATE'I KÄSITSI!**
 
+**KONTROLLI:**
+
+- [ ] Saan aru: state = Terraform'i mälu
+- [ ] State vs Docker ID ühtivad
+- [ ] State rm ei kustuta Docker'ist (ainult Terraform'i mälust)
+
 ---
 
-## OSA 6: Ubuntu-2
+## 6. Ubuntu-2 Harjutus (Iseseisev)
 
 **Ülesanne:** Loo ENDA KÄSI Ubuntu-2'sse 2 web containerit.
 
 **Nõuded:**
+
 - Provider: `docker.u2`
 - Network: `lab-net`
 - Count: 2
@@ -905,40 +1070,68 @@ terraform apply  # Nüüd loob uuesti
 - Image: nginx:alpine
 
 **Template:**
+
 ```hcl
 # main.tf (lisa)
 
 resource "docker_network" "u2_net" {
   provider = docker.u2
-  # TODO: täida
+  name     = "lab-net"
 }
 
 resource "docker_image" "u2_nginx" {
-  # TODO
+  provider = docker.u2
+  name     = "nginx:alpine"
 }
 
 resource "docker_container" "u2_web" {
-  # TODO: count = 2
+  provider = docker.u2
+  count    = 2
+  
+  name  = "web-${count.index}"
+  image = docker_image.u2_nginx.image_id
+  
+  networks_advanced {
+    name = docker_network.u2_net.name
+  }
+  
+  ports {
+    internal = 80
+    external = 8080 + count.index
+  }
 }
 ```
 
 **Vihje:** Copy-paste Ubuntu-1 block ja muuda:
+
 - `u1` → `u2`
 - `docker.u1` → `docker.u2`
 - Eemalda `depends_on` (Ubuntu-2's pole DB'd)
 
+**Apply:**
+
+```powershell
+terraform apply
+```
+
 **Test:**
+
 - `http://10.0.X.21:8080`
 - `http://10.0.X.21:8081`
 
 **KONTROLLI:**
+
 - [ ] Ubuntu-2 network olemas
 - [ ] Ubuntu-2 containerid jooksevad
 - [ ] State sisaldab MÕLEMA Ubuntu serveri ressursse
 
 ```powershell
-terraform state list | Select-String "u2"
-# Peaks näitama u2_net, u2_nginx, u2_web[0], u2_web[1]
+terraform state list
+# Peaks näitama:
+# - docker_network.u1_net
+# - docker_network.u2_net
+# - docker_container.web[0], web[1] (ubuntu1)
+# - docker_container.u2_web[0], u2_web[1] (ubuntu2)
 ```
 
 ---
@@ -950,7 +1143,8 @@ terraform destroy
 ```
 
 **Mis juhtub:**
-```
+
+```text
 Terraform:
 1. Loe state → tea mis on olemas
 2. Arvuta: kõik state'is olevad ressursid → kustuta
@@ -962,21 +1156,25 @@ Terraform:
 ```
 
 **.gitignore:**
-```
+
+```gitignore
 .terraform/
 *.tfstate*
 *.backup
 ```
 
 **Miks state pole git'is?**
+
 - Sisaldab ID'sid, võib sisaldada saladusi
 - Production: remote backend (S3 + locking)
 
 **README.md:**
+
 ```markdown
 # Terraform Docker Lab
 
 ## Õppisin:
+
 1. Dependency graph - Terraform arvutab järjekorra
 2. Plan vs State - võrdleb "wishlist" vs "reality"
 3. Count - deklaratiivne scaling
@@ -984,15 +1182,19 @@ Terraform:
 5. State - Terraform'i "mälu"
 
 ## Käivita:
+
 terraform init
 terraform apply
 
+
 ## Test:
+
 - Ubuntu-1: http://10.0.X.20:8080, :8081
 - Ubuntu-2: http://10.0.X.21:8080, :8081
 ```
 
 **Esita:**
+
 - [ ] GitHub link
 - [ ] Screenshot: `terraform graph` (visualized at viz-js.com)
 - [ ] Screenshot: `terraform state list`
@@ -1000,47 +1202,52 @@ terraform apply
 
 ---
 
-## Reflektsioon (5 lauset, 2-3 lauset igale)
+## Reflektsioon
 
 **1. Dependency Graph:**
+
 Kuidas Terraform teab millises järjekorras ressursse luua? Anna näide oma labor'ist.
 
 **2. State Fail:**
+
 Mis on state'i eesmärk? Mis juhtub kui state kaob?
 
 **3. Count Meta-Argument:**
+
 Mis on erinevus `count` vs käsitsi copy-paste resource'ide vahel? Miks count on parem?
 
 **4. Drift Detection:**
+
 Mis juhtub kui keegi muudab ressursse käsitsi (mitte Terraform'iga)? Kuidas Terraform seda leiab?
 
 **5. Production:**
+
 Mis selles labor'is EI OLE production-ready? Nimeta 3 asja ja selgita miks.
 
 ---
 
-## Boonus (+10%)
+## Kokkuvõte: Terraform'i 5 Põhiülesannet
 
-**Ülesanne B.1:** Visualiseeri state
-
-Loo Python/PowerShell script mis:
-1. Loeb `terraform.tfstate`
-2. Genereerib Mermaid diagrammi:
-   - Näitab milline resource millises serveris
-   - Värvidega: ubuntu1=sinine, ubuntu2=roheline
-
-**Näide:**
 ```mermaid
 graph TD
-    U1[Ubuntu-1: 10.0.X.20]
-    U2[Ubuntu-2: 10.0.X.21]
+    A[1. Loeb koodi<br/>main.tf] --> B[2. Teab mis on olemas<br/>terraform.tfstate]
+    B --> C[3. Arvutab erinevused<br/>terraform plan]
+    C --> D[4. Täidab muudatused<br/>terraform apply]
+    D --> E[5. Salvestab tulemuse<br/>state update]
+    E --> F[Valmis!]
     
-    U1 --> NET1[network: lab-net]
-    U1 --> DB[container: db]
-    U1 --> W10[container: web-0]
-    U1 --> W11[container: web-1]
-    
-    U2 --> NET2[network: lab-net]
-    U2 --> W20[container: web-0]
-    U2 --> W21[container: web-1]
+    A -.-> G[Mõistab: count, dependencies]
+    B -.-> H[Teab: mis on loodud]
+    C -.-> I[Näitab: mis muutub]
+    D -.-> J[SSH → Docker API]
+    E -.-> K[State = tõde]
 ```
+
+**Sa ei pea:**
+
+- ✅ Meeles pidama mis kus on
+- ✅ Käsitsi arvutama erinevusi
+- ✅ Muretsema järjekorra pärast
+- ✅ SSH'ima 10 serverisse
+
+**Terraform teeb selle kõik sinu eest!**
