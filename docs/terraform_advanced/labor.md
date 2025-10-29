@@ -280,6 +280,16 @@ Docker provider saab ühenduda remote host'idega SSH üle. Kuna meil on **kaks**
 3. Saadab Docker käsud üle SSH
 4. Container tekib remote serveris
 
+### Failide Loomine
+
+Loome **kaks** Terraform faili: `variables.tf` ja `main.tf`
+
+**VS Code'is:**
+1. File → New File
+2. Save As → `variables.tf`
+3. Kopeeri alla olev kood sinna
+4. Save
+
 **variables.tf:**
 ```hcl
 variable "ubuntu1_host" {
@@ -303,7 +313,7 @@ variable "ssh_user" {
 variable "ssh_key_path" {
   description = "Path to SSH private key"
   type        = string
-  default     = "C:/Users/YourName/.ssh/id_rsa"  # Windows path
+  default     = "C:/Users/YourName/.ssh/id_rsa"  # OLULINE: kasuta / mitte \
 }
 
 variable "project_name" {
@@ -313,7 +323,21 @@ variable "project_name" {
 }
 ```
 
+**SSH key path Windows'is:**
+- Kasuta **forward slash** (`/`) mitte backslash (`\`)
+- Õige: `C:/Users/Maria/.ssh/id_rsa`
+- Vale: `C:\Users\Maria\.ssh\id_rsa` (ei tööta!)
+- Leia oma path: `echo $env:USERPROFILE\.ssh\id_rsa` PowerShell'is
+
 **OLULINE:** Asendage IP aadressides `X` oma lab võrgu numbriga.
+
+### Main.tf Loomine
+
+**VS Code'is:**
+1. File → New File
+2. Save As → `main.tf`
+3. Kopeeri alla olev kood sinna
+4. Save
 
 **main.tf:**
 ```hcl
@@ -361,8 +385,30 @@ provider "docker" {
 - `${var.ubuntu1_host}` - kasutab IP'd variables.tf failist
 - `ssh_opts` - SSH parameetrid (nagu `ssh -i key.pem -o StrictHost...`)
 
-**Miks StrictHostKeyChecking=no?**
-Muidu SSH küsib esimesel korral: "Trust this host? (yes/no)" ja Terraform jääb kinni. Labor'is see on OK, production'is kasuta proper known_hosts.
+**⚠️ TURVARISK - StrictHostKeyChecking=no:**
+
+```hcl
+"-o", "StrictHostKeyChecking=no",
+```
+
+See VÄLDIB SSH fingerprint kontrolli. Hea labor'is (kiirus), AGA:
+
+**MITTE KUNAGI PRODUCTION'IS!** 
+
+Miks ohtlik:
+- Võimaldab man-in-the-middle attack'e
+- Ei kontrolli, kas server on päris
+- Production'is kasuta proper known_hosts faili
+
+**Alternatiiv (production):**
+```bash
+# Loo known_hosts ette
+ssh-keyscan -H 10.0.X.20 >> ~/.ssh/known_hosts
+ssh-keyscan -H 10.0.X.21 >> ~/.ssh/known_hosts
+# Siis eemalda StrictHostKeyChecking=no ssh_opts'ist
+```
+
+Labor'is jätame `StrictHostKeyChecking=no` mugavuse pärast.
 
 **OLULINE:** Muutke `variables.tf` failis:
 - `ubuntu1_host` ja `ubuntu2_host` oma võrgu IP'deks
@@ -417,7 +463,7 @@ Loome Docker network Ubuntu-1 serverisse. See on nagu VPC AWS'is - isoleeritud v
 **Resource reference:**
 Terraform lubab ressurssidel üksteisele viidata. Näiteks container saab viidata network'ile: `docker_network.ubuntu1_net.name`. See loob **automaatse sõltuvuse** - Terraform loob network'i enne container'it.
 
-Lisage **main.tf** faili:
+**Ava `main.tf` VS Code'is** ja lisa faili lõppu:
 ```hcl
 # Network Ubuntu-1's
 resource "docker_network" "ubuntu1_net" {
@@ -467,7 +513,7 @@ Loome PostgreSQL container Ubuntu-1 serverisse. Container vajab image't ja volum
 
 Terraform näeb neid viiteid ja teab automaatselt: "Loon image → volume → network → siis container"
 
-Lisage **main.tf** faili:
+Ava **main.tf** VS Code'is ja lisa faili lõppu:
 ```hcl
 # Volume Ubuntu-1's
 resource "docker_volume" "ubuntu1_db_data" {
@@ -555,10 +601,18 @@ Nüüd huvitav osa - loome web container'id **mõlemasse** serverisse korraga.
 - Kasulik lihtsate failide jaoks (HTML, config)
 - Alternatiiv: mount volume või build oma image
 
+**⚠️ Production Best Practice:**
+`upload` on mugav labor'is, AGA päris projektides:
+- Builda oma Docker image (Dockerfile + HTML sisse)
+- Deploy immutable image (ei muuda jooksvat container'it)
+- Kui vaja muuta → build uus image → deploy uus container
+
+See on **immutable infrastructure** - ei muuda töötavaid süsteeme, asenda tervikuna.
+
 **Depends_on - explicit dependency:**
 Tavaliselt Terraform avastab dependencies automaatselt (kui viitad teisele resource'ile). Aga vahel peame ütlema: "Oota, kuni DB on valmis, alles siis tee web". See on `depends_on`.
 
-Lisage **main.tf** faili:
+Ava **main.tf** VS Code'is ja lisa faili lõppu:
 ```hcl
 # Nginx image Ubuntu-1's
 resource "docker_image" "ubuntu1_nginx" {
@@ -684,6 +738,14 @@ See käib läbi 0, 1 ja teeb iga numbri jaoks midagi. Nagu `for i in [0, 1]` Pyt
 
 **Concat:**
 Ühendab kaks list'i kokku: `concat([1,2], [3,4])` → `[1,2,3,4]`
+
+### Outputs.tf Loomine
+
+**VS Code'is:**
+1. File → New File
+2. Save As → `outputs.tf`
+3. Kopeeri alla olev kood sinna
+4. Save
 
 **outputs.tf:**
 ```hcl
@@ -1032,7 +1094,7 @@ Peaks nägema: "Installing kreuzwerker/docker v3.x.x..."
 
 Network on nagu VPC AWS'is - isoleeritud võrk containeritele. Volume säilitab andmeid ka siis, kui container kustutatakse.
 
-Lisage **main.tf** faili:
+Ava **main.tf** VS Code'is ja lisa faili lõppu:
 ```hcl
 # Network (VPC equivalent)
 resource "docker_network" "app" {
@@ -1068,7 +1130,7 @@ docker volume ls | grep tf-docker-lab
 
 Loome PostgreSQL container'i, mis kasutab volume'it andmete säilitamiseks.
 
-Lisage **main.tf** faili:
+Ava **main.tf** VS Code'is ja lisa faili lõppu:
 ```hcl
 # Database image
 resource "docker_image" "postgres" {
@@ -1127,7 +1189,7 @@ docker exec tf-docker-lab-db pg_isready -U appuser
 
 Loome mitu nginx container'it korraga kasutades `count`. See on nagu AWS'is luua mitu EC2 instance'i.
 
-Lisage **main.tf** faili:
+Ava **main.tf** VS Code'is ja lisa faili lõppu:
 ```hcl
 # Web image
 resource "docker_image" "nginx" {
@@ -1417,6 +1479,39 @@ sudo lsof -i :8080
 # main.tf: external = 9080 + count.index
 ```
 
+### Brauser ei näita lehte (firewall/network)
+
+**Sümptom:** `http://10.0.X.20:8080` ei laadi
+
+**Lahendused:**
+
+**1. Ubuntu firewall:**
+```bash
+# Ubuntu's
+sudo ufw status
+sudo ufw allow 8080:8082/tcp
+```
+
+**2. WinKlient firewall:**
+```powershell
+# PowerShell (Administrator)
+New-NetFirewallRule -DisplayName "Lab Ports" -Direction Inbound -LocalPort 8080-8082 -Protocol TCP -Action Allow
+```
+
+**3. SSH Tunnel:**
+```powershell
+# Kui võrk blokeeritud
+ssh -L 8080:localhost:8080 student@10.0.X.20
+# Ava: http://localhost:8080
+```
+
+**4. Testi Ubuntu'st:**
+```bash
+ssh student@10.0.X.20
+curl http://localhost:8080
+# Kui töötab, probleem on võrgus/firewall'is
+```
+
 ### Container ei käivitu
 
 ```bash
@@ -1509,3 +1604,9 @@ terraform apply
 ## Screenshots
 (lisa siia)
 ```
+
+### Google Classroom
+
+1. Leia assignment
+2. Lisa GitHub link: `https://github.com/USERNAME/terraform-docker-lab`
+3. Turn in
