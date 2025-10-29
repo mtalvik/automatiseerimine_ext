@@ -984,10 +984,8 @@ Terraform:
 5. State - Terraform'i "mälu"
 
 ## Käivita:
-```bash
 terraform init
 terraform apply
-```
 
 ## Test:
 - Ubuntu-1: http://10.0.X.20:8080, :8081
