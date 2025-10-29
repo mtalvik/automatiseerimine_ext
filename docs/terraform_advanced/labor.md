@@ -1,653 +1,1511 @@
-# Terraform Edasijõudnud Labor: AWS VPC ja Veebiserver
+# Terraform Docker Labor: Remote Container Infrastruktuur
 
-**Eeldused:** Terraform basics labor tehtud, AWS CLI seadistatud, AWS konto olemas
+**Eeldused:** Terraform põhitõed (loeng + labor), SSH juurdepääs Ubuntu serveritele, Provider loeng läbitud
 
-**Platvorm:** AWS (kasutage Free Tier)
+**Platvorm:** Docker (remote - 2x Ubuntu serverit)
+
+**Setup:** Windows Client (VS Code, Terraform) → SSH → Ubuntu-1 & Ubuntu-2 (Docker hosts)
+
+**Ajakulu:** ~75 min
 
 ## Õpiväljundid
 
 Pärast seda labor'it õpilane:
 
-- Seadistab AWS provider autentimise turvaliselt
-- Loob VPC infrastruktuuri subnet'ide ja gatewayga
-- Käivitab EC2 instance'i user data'ga
-- Rakendab security group reegleid võrguturvalisuseks
-- Kasutab outputs'e ressurside info edastamiseks
+- Konfigureerib Docker provider'it remote SSH connection'iga
+- Loob Docker ressursse kahes erinevas host'is
+- Kasutab count ja for_each remote deployment'iks
+- Haldab distributed container infrastruktuuri
+- Mõistab remote state management'i
 
 ---
 
-## 1. AWS Provider Seadistamine
+## 1. Lab Arhitektuur
 
-Alustame AWS provider konfigureerimisega. Provider ühendab Terraform'i AWS API'ga.
-
-AWS credentials on juba seadistatud AWS CLI kaudu (`aws configure`). Terraform kasutab automaatselt samu credentials'eid.
-
-Looge töökataloog:
-```bash
-mkdir -p ~/terraform-aws-lab
-cd ~/terraform-aws-lab
+```
+┌─────────────────┐
+│ Windows Client  │
+│                 │
+│ - VS Code       │
+│ - Terraform     │
+│ - SSH keys      │
+└────────┬────────┘
+         │ SSH
+    ┌────┴─────┐
+    │          │
+┌───▼──────┐ ┌─▼────────┐
+│ Ubuntu-1 │ │ Ubuntu-2 │
+│          │ │          │
+│ Docker   │ │ Docker   │
+│ daemon   │ │ daemon   │
+└──────────┘ └──────────┘
 ```
 
-Looge `main.tf`:
+**Mis toimub:**
+- Terraform jookseb Windows'is
+- Docker provider ühendub SSH üle Ubuntu'tesse
+- Containerid tekivad remote host'ides
+
+---
+
+## 2. Ansible Setup (Docker Installimine)
+
+Enne Terraform'i kasutamist peame installima Docker'i mõlemasse Ubuntu serverisse. Kasutame selleks Ansible'it (mida te juba õppisite).
+
+### Ansible Installimine WinKlient'is
+
+Ansible vajab Python'it. Kontrollige ja installige:
+
+```powershell
+# Kontrolli Python
+python --version
+# Peaks olema Python 3.8+
+```
+
+**Installige Ansible:**
+```powershell
+# PowerShell
+pip install ansible
+
+# Kontrolli
+ansible --version
+```
+
+### Ansible Playbook Docker'i Jaoks
+
+Looge VS Code'is (terraform-docker-lab kaustas) fail `docker-setup.yml`:
+
+```powershell
+# PowerShell
+cd C:\terraform-docker-lab
+code docker-setup.yml
+```
+nano docker-setup.yml
+```
+
+**docker-setup.yml:**
+```yaml
+---
+- name: Install Docker on Ubuntu servers
+  hosts: docker_hosts
+  become: yes
+  
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+    
+    - name: Install prerequisites
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+    
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+    
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+    
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+    
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+    
+    - name: Test Docker installation
+      command: docker --version
+      register: docker_version
+      changed_when: false
+    
+    - name: Display Docker version
+      debug:
+        msg: "Docker installed: {{ docker_version.stdout }}"
+```
+
+### Ansible Inventory
+
+Looge `inventory.ini`:
+
+```ini
+[docker_hosts]
+ubuntu-1 ansible_host=10.0.X.20 ansible_user=student
+ubuntu-2 ansible_host=10.0.X.21 ansible_user=student
+
+[docker_hosts:vars]
+ansible_ssh_private_key_file=C:/Users/YourName/.ssh/id_rsa
+ansible_python_interpreter=/usr/bin/python3
+```
+
+**OLULINE:** Asendage `10.0.X.20/21` oma võrgu numbriga ()
+
+### Käivitage Playbook
+
+```bash
+# WSL'is või Ubuntu-1's
+ansible-playbook -i inventory.ini docker-setup.yml
+
+# Kui küsib parooli ja teil pole SSH key't:
+ansible-playbook -i inventory.ini docker-setup.yml --ask-pass
+```
+
+**Oodatav väljund:**
+```
+PLAY [Install Docker on Ubuntu servers] ********************************
+
+TASK [Update apt cache] ************************************************
+ok: [ubuntu-1]
+ok: [ubuntu-2]
+
+TASK [Install Docker] **************************************************
+changed: [ubuntu-1]
+changed: [ubuntu-2]
+
+...
+
+PLAY RECAP *************************************************************
+ubuntu-1  : ok=8  changed=5  unreachable=0  failed=0
+ubuntu-2  : ok=8  changed=5  unreachable=0  failed=0
+```
+
+### Kontrollige Docker'i
+
+SSH mõlemasse serverisse ja kontrollige:
+
+```bash
+# Ubuntu-1
+ssh student@10.0.X.20
+docker --version
+docker ps
+exit
+
+# Ubuntu-2
+ssh student@10.0.X.21
+docker --version
+docker ps
+exit
+```
+
+Peaks nägema: `Docker version 24.0.x`
+
+**OLULINE:** Logige Ubuntu'test välja ja sisse uuesti, et docker group membership aktiveeruks:
+```bash
+ssh student@10.0.X.20
+# Logige välja (Ctrl+D)
+# Logige sisse uuesti
+docker ps  # Ei tohiks küsida sudo
+```
+
+---
+
+## 3. Eeldused ja Kontroll
+
+Nüüd kui Docker on installitud, kontrollige kõik enne Terraform'iga jätkamist.
+
+### Windows Client'is
+
+Kontrollige, et Terraform on installitud:
+```powershell
+terraform version
+```
+
+Kontrollige SSH võtmed:
+```powershell
+# PowerShell
+ls ~\.ssh\
+# Peaks nägema: id_rsa, id_rsa.pub (või teised võtmed)
+```
+
+### Ubuntu Serverites (Docker töötab)
+
+```bash
+# Mõlemad serverid
+ssh student@10.0.X.20 "docker ps"
+ssh student@10.0.X.21 "docker ps"
+# Peaks töötama ilma sudo'ta
+```
+
+---
+
+## 4. Töökataloog Windows'is
+
+Looge projekt VS Code'is:
+```powershell
+# PowerShell
+mkdir C:\terraform-docker-lab
+cd C:\terraform-docker-lab
+code .
+```
+
+VS Code peaks avanema selles kaustas.
+
+---
+
+## 5. Provider Konfiguratsioon (Remote SSH)
+
+Docker provider saab ühenduda remote host'idega SSH üle. Kuna meil on **kaks** Ubuntu serverit, vajame **kahte** provider'it.
+
+**Miks kaks provider'it?**
+- Terraform peab teadma, millisesse serverisse iga resource läheb
+- `alias` annab igale providerile nime
+- Hiljem ütleme: "Loo see container `provider = docker.ubuntu1` serverisse"
+
+**Kuidas SSH ühendus töötab:**
+1. Terraform loeb provider konfiguratsiooni
+2. Avab SSH ühenduse Ubuntu'sse (kasutab teie SSH võtit)
+3. Saadab Docker käsud üle SSH
+4. Container tekib remote serveris
+
+**variables.tf:**
+```hcl
+variable "ubuntu1_host" {
+  description = "Ubuntu-1 SSH host"
+  type        = string
+  default     = "10.0.X.20"  # Asendage X oma võrgu numbriga
+}
+
+variable "ubuntu2_host" {
+  description = "Ubuntu-2 SSH host"
+  type        = string
+  default     = "10.0.X.21"  # Asendage X oma võrgu numbriga
+}
+
+variable "ssh_user" {
+  description = "SSH username"
+  type        = string
+  default     = "student"
+}
+
+variable "ssh_key_path" {
+  description = "Path to SSH private key"
+  type        = string
+  default     = "C:/Users/YourName/.ssh/id_rsa"  # Windows path
+}
+
+variable "project_name" {
+  description = "Project name"
+  type        = string
+  default     = "tf-lab"
+}
+```
+
+**OLULINE:** Asendage IP aadressides `X` oma lab võrgu numbriga.
+
+**main.tf:**
 ```hcl
 terraform {
   required_version = ">= 1.0"
   
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0"
     }
   }
 }
 
-provider "aws" {
-  region = "eu-west-1"  # Iirimaa
+# Provider Ubuntu-1 jaoks
+provider "docker" {
+  alias = "ubuntu1"  # Nimi sellele providerile
+  
+  host = "ssh://${var.ssh_user}@${var.ubuntu1_host}:22"
+  
+  ssh_opts = [
+    "-i", var.ssh_key_path,                    # SSH võti
+    "-o", "StrictHostKeyChecking=no",          # Ei küsi "trust this host?"
+    "-o", "UserKnownHostsFile=/dev/null"       # Ei salvesta known_hosts
+  ]
+}
+
+# Provider Ubuntu-2 jaoks
+provider "docker" {
+  alias = "ubuntu2"  # Teine nimi
+  
+  host = "ssh://${var.ssh_user}@${var.ubuntu2_host}:22"
+  
+  ssh_opts = [
+    "-i", var.ssh_key_path,
+    "-o", "StrictHostKeyChecking=no",
+    "-o", "UserKnownHostsFile=/dev/null"
+  ]
 }
 ```
 
-Initsialiseerige:
-```bash
+**Selgitus:**
+- `alias = "ubuntu1"` - annab providerile nime (nagu muutuja)
+- `host = "ssh://..."` - kuhu ühenduda (SSH protokoll)
+- `${var.ubuntu1_host}` - kasutab IP'd variables.tf failist
+- `ssh_opts` - SSH parameetrid (nagu `ssh -i key.pem -o StrictHost...`)
+
+**Miks StrictHostKeyChecking=no?**
+Muidu SSH küsib esimesel korral: "Trust this host? (yes/no)" ja Terraform jääb kinni. Labor'is see on OK, production'is kasuta proper known_hosts.
+
+**OLULINE:** Muutke `variables.tf` failis:
+- `ubuntu1_host` ja `ubuntu2_host` oma võrgu IP'deks
+- `ssh_user` oma kasutajanimeks
+- `ssh_key_path` oma SSH võtme asukohaks Windows'is
+
+Init:
+```powershell
 terraform init
 ```
 
-Näete, kuidas Terraform laeb alla AWS provider plugina. See plugin sisaldab kogu loogika AWS API'ga suhtlemiseks.
-
-### Validation
-```bash
-# Kontrollige, et provider töötab
-terraform providers
-
-# Peaks näitama:
-# provider[registry.terraform.io/hashicorp/aws]
-```
-
-Kui näete viga "No valid credential sources found", siis käivitage `aws configure` ja sisestage oma AWS access key ja secret key.
+Peaks nägema: "Installing kreuzwerker/docker v3.x.x..."
 
 ---
 
-## 2. VPC Loomine
+## 6. SSH Connection Test
 
-VPC (Virtual Private Cloud) on isoleeritud võrgukeskkond AWS'is. Kõik teised ressursid lähevad selle võrgu sisse.
+Enne ressursside loomist testib Terraform SSH connection'i.
 
-Lisage `main.tf` faili:
+**test.tf** (ajutine fail testimiseks):
 ```hcl
-# VPC
-resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-  
-  tags = {
-    Name      = "terraform-lab-vpc"
-    ManagedBy = "Terraform"
-  }
+# Test Ubuntu-1 connection
+resource "docker_image" "test_ubuntu1" {
+  provider = docker.ubuntu1
+  name     = "hello-world"
 }
 
-# Internet Gateway (võimaldab internetiühendust)
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-  
-  tags = {
-    Name = "terraform-lab-igw"
-  }
+# Test Ubuntu-2 connection
+resource "docker_image" "test_ubuntu2" {
+  provider = docker.ubuntu2
+  name     = "hello-world"
 }
-
-# Public Subnet (kus server elabvpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
-  availability_zone       = "eu-west-1a"
-  
-  tags = {
-    Name = "terraform-lab-public-subnet"
-    Type = "public"
-  }
-}
-
-# Route Table (suunab internetiliikluse gateway'le)
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
-  
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
-  }
-  
-  tags = {
-    Name = "terraform-lab-public-rt"
-  }
-}
-
-# Ühenda route table subnet'iga
-resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
-  route_table_id = aws_route_table.public.id
-}
-```
-
-Mõelge sellele nagu maja ehitamisele. VPC on krunt, subnet on tuba, internet gateway on uks ja route table on silt, mis näitab, kuidas ukse juurde jõuda.
-
-Apply muudatused:
-```bash
-terraform plan
-# Vaadake põhjalikult, mida luuakse
-
-terraform apply
-# Kirjutage "yes"
-```
-
-### Validation
-```bash
-# Vaadake loodud ressursse
-terraform show
-
-# Kontrollige AWS konsoolist:
-# https://console.aws.amazon.com/vpc/
-# Peaks nägema VPC nimega "terraform-lab-vpc"
-```
-
-Terraform dependency graph hoolitses, et ressursid loodi õiges järjekorras: VPC → Internet Gateway → Subnet → Route Table → Association.
-
----
-
-## 3. Security Group Firewall
-
-Security Group kontrollib, milline võrguliiklus serveri juurde jõuab.
-
-Lisage `main.tf` faili:
-```hcl
-resource "aws_security_group" "web" {
-  name_prefix = "terraform-lab-web-"
-  description = "Allow HTTP and SSH"
-  vpc_id      = aws_vpc.main.id
-  
-  # HTTP sisse (port 80)
-  ingress {
-    description = "HTTP from anywhere"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  # SSH sisse (port 22) - AINULT TEIE IP!
-  ingress {
-    description = "SSH from my IP"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # MUUTKE see oma IP'ks!
-  }
-  
-  # Kõik välja
-  egress {
-    description = "Allow all outbound"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  tags = {
-    Name = "terraform-lab-web-sg"
-  }
-  
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-```
-
-OLULINE: Tootmises ei tohiks SSH'd avada kõigile IP'dele (0.0.0.0/0). Saate oma IP kätte nii:
-```bash
-curl ifconfig.me
-# Näiteks: 85.253.123.45
-# Siis muutke cidr_blocks = ["85.253.123.45/32"]
 ```
 
 Apply:
-```bash
+```powershell
 terraform apply
 ```
 
-### Validation
-
-AWS konsool → EC2 → Security Groups → Peaks nägema "terraform-lab-web-..."
+Kui töötab, kustutage test fail:
+```powershell
+rm test.tf
+terraform apply  # Kustutab test image'id
+```
 
 ---
 
-## 4. EC2 Instance (Server)
+## 7. Network Ubuntu-1's
 
-Nüüd loome serveri, mis jookseb meie VPC public subnet'is.
+Loome Docker network Ubuntu-1 serverisse. See on nagu VPC AWS'is - isoleeritud võrk containeritele.
 
-Esmalt vajame SSH võtmepaari. Kui teil pole veel:
-```bash
-# Looge SSH key (kui pole)
-ssh-keygen -t rsa -b 2048 -f ~/.ssh/terraform-lab -N ""
-```
+**Resource reference:**
+Terraform lubab ressurssidel üksteisele viidata. Näiteks container saab viidata network'ile: `docker_network.ubuntu1_net.name`. See loob **automaatse sõltuvuse** - Terraform loob network'i enne container'it.
 
-Lisage `main.tf` faili:
+Lisage **main.tf** faili:
 ```hcl
-# SSH key pair
-resource "aws_key_pair" "deployer" {
-  key_name   = "terraform-lab-key"
-  public_key = file("~/.ssh/terraform-lab.pub")
-}
-
-# EC2 Instance
-resource "aws_instance" "web" {
-  ami                    = "ami-0d71ea30463e0ff8d"  # Amazon Linux 2023
-  instance_type          = "t2.micro"  # Free Tier
-  key_name               = aws_key_pair.deployer.key_name
-  vpc_security_group_ids = [aws_security_group.web.id]
-  subnet_id              = aws_subnet.public.id
+# Network Ubuntu-1's
+resource "docker_network" "ubuntu1_net" {
+  provider = docker.ubuntu1  # OLULINE: millisesse serverisse
+  name     = "${var.project_name}-net"
   
-  user_data = <<-EOF
-              #!/bin/bash
-              # Uuenda pakid
-              yum update -y
-              
-              # Installeeri nginx
-              yum install -y nginx
-              
-              # Loo lihtne veebileht
-              cat > /usr/share/nginx/html/index.html <<HTML
-              <!DOCTYPE html>
-              <html>
-              <head>
-                  <title>Terraform Lab</title>
-                  <style>
-                      body {
-                          font-family: Arial, sans-serif;
-                          max-width: 800px;
-                          margin: 50px auto;
-                          padding: 20px;
-                          background: #f0f0f0;
-                      }
-                      h1 { color: #4285f4; }
-                      .info { background: white; padding: 15px; border-radius: 5px; }
-                  </style>
-              </head>
-              <body>
-                  <h1>Tere! See on Terraform'iga loodud server</h1>
-                  <div class="info">
-                      <p><strong>Hostname:</strong> $(hostname)</p>
-                      <p><strong>IP:</strong> $(hostname -I)</p>
-                      <p><strong>Loodud:</strong> $(date)</p>
-                  </div>
-                  <p>See server käib AWS EC2 instance'is, mille lõi Terraform.</p>
-              </body>
-              </html>
-HTML
-              
-              # Käivita nginx
-              systemctl start nginx
-              systemctl enable nginx
-              EOF
-  
-  tags = {
-    Name = "terraform-lab-web-server"
+  ipam_config {
+    subnet  = "172.20.0.0/16"  # IP vahemik selles võrgus
+    gateway = "172.20.0.1"      # Gateway aadress
   }
 }
 ```
 
-User data skript käivitub serveri esimesel käivitumisel. See installib nginx'i ja loob lihtsa veebilehe.
+**Selgitus:**
+- `provider = docker.ubuntu1` - kasutab ubuntu1 provider'it (alias sealt!)
+- `docker_network` - ressursi tüüp
+- `"ubuntu1_net"` - meie nimi sellele (Terraform'is, mitte Docker'is)
+- `name = "..."` - nimi Docker'is (see, mida `docker network ls` näitab)
+- Hiljem viitame: `docker_network.ubuntu1_net.name`
 
 Apply:
-```bash
+```powershell
 terraform apply
 ```
 
-Server on valmis ~2 minuti pärast. Terraform tagastab kontrolli kohe, aga user data skript töötab taustal.
-
-### Validation
+Kontrollige Ubuntu-1's:
 ```bash
-# Vaata serveri IP'd
-terraform output instance_public_ip
-
-# Oota 2 minutit ja testi brauseris:
-# http://<IP_AADRESS>
-
-# Või curl'iga:
-curl http://$(terraform output -raw instance_public_ip)
+ssh student@10.0.X.20
+docker network ls | grep tf-lab
+exit
 ```
-
-Kui lehte ei kuvata kohe, oodake veel minutike - nginx käivitub.
 
 ---
 
-## 5. Outputs (Väljundid)
+## 8. Database Ubuntu-1's
 
-Outputs teevad olulise info kergesti kättesaadavaks.
+Loome PostgreSQL container Ubuntu-1 serverisse. Container vajab image't ja volume'it.
 
-Looge `outputs.tf`:
+**Image vs Container:**
+- **Image** = template (nagu ISO fail)
+- **Container** = jooksev instance image'ist (nagu VM ISO'st)
+
+**Viited teistele ressurssidele:**
+- `docker_image.postgres.image_id` - viitab image resource'ile (Terraform loob image enne)
+- `docker_volume.ubuntu1_db_data.name` - viitab volume'ile
+- `docker_network.ubuntu1_net.name` - viitab network'ile
+
+Terraform näeb neid viiteid ja teab automaatselt: "Loon image → volume → network → siis container"
+
+Lisage **main.tf** faili:
 ```hcl
-output "vpc_id" {
-  description = "VPC ID"
-  value       = aws_vpc.main.id
+# Volume Ubuntu-1's
+resource "docker_volume" "ubuntu1_db_data" {
+  provider = docker.ubuntu1
+  name     = "${var.project_name}-db-data"
 }
 
-output "instance_id" {
-  description = "EC2 instance ID"
-  value       = aws_instance.web.id
+# DB Image
+resource "docker_image" "postgres" {
+  provider = docker.ubuntu1
+  name     = "postgres:15-alpine"
 }
 
-output "instance_public_ip" {
-  description = "Server public IP address"
-  value       = aws_instance.web.public_ip
-}
-
-output "website_url" {
-  description = "Website URL"
-  value       = "http://${aws_instance.web.public_ip}"
-}
-
-output "ssh_command" {
-  description = "SSH connection command"
-  value       = "ssh -i ~/.ssh/terraform-lab ec2-user@${aws_instance.web.public_ip}"
+# DB Container Ubuntu-1's
+resource "docker_container" "ubuntu1_db" {
+  provider = docker.ubuntu1
+  
+  name  = "${var.project_name}-db"
+  image = docker_image.postgres.image_id  # Viide image'ile (automaatne dependency!)
+  
+  networks_advanced {
+    name = docker_network.ubuntu1_net.name  # Viide network'ile
+  }
+  
+  volumes {
+    volume_name    = docker_volume.ubuntu1_db_data.name  # Viide volume'ile
+    container_path = "/var/lib/postgresql/data"          # Kus Postgres andmeid hoiab
+  }
+  
+  env = [
+    "POSTGRES_USER=appuser",
+    "POSTGRES_PASSWORD=apppass",
+    "POSTGRES_DB=appdb"
+  ]
+  
+  restart = "unless-stopped"  # Kui crashib, Docker käivitab uuesti
+  
+  # Healthcheck - kontrollib, kas DB töötab
+  healthcheck {
+    test     = ["CMD-SHELL", "pg_isready -U appuser"]  # Käsk kontrolli jaoks
+    interval = "10s"   # Kontrolli iga 10 sekundi tagant
+    timeout  = "5s"    # Kui 5 sek ei vasta, on unhealthy
+    retries  = 5       # 5 ebaõnnestumist järjest = unhealthy
+  }
 }
 ```
 
-Apply (outputs ei vaja resursse muuta):
-```bash
+**Mis siin toimub:**
+1. Terraform loob volume'i (püsiv salvestus)
+2. Laeb alla postgres image'i
+3. Loob container'i, mis:
+   - Kasutab seda image't
+   - Ühendub network'iga (et teised containerid näeksid)
+   - Mountib volume'i (et andmed jääksid alles)
+   - Saab env var'id (kasutajanimi, parool)
+4. Healthcheck kontrollib, kas DB vastab (`pg_isready` käsk)
+
+Apply:
+```powershell
 terraform apply
 ```
 
-Nüüd saate:
+Kontrollige:
 ```bash
-# Vaata kõiki outpute
+ssh student@10.0.X.20
+docker ps | grep db
+docker exec tf-lab-db pg_isready -U appuser
+exit
+```
+
+---
+
+## 9. Web Containers Mõlemas Serveris
+
+Nüüd huvitav osa - loome web container'id **mõlemasse** serverisse korraga.
+
+**Count - ressurssi kordamine:**
+- `count = 2` tähendab: "Loo 2 identset"
+- Terraform annab igaüle indeksi: 0, 1
+- Viitame neile: `docker_container.ubuntu1_web[0]`, `docker_container.ubuntu1_web[1]`
+- Kasutame `count.index` koodi sees: `name = "web-${count.index}"` → `web-0`, `web-1`
+
+**Upload provisioner:**
+- Saadab sisu container'isse
+- Kasulik lihtsate failide jaoks (HTML, config)
+- Alternatiiv: mount volume või build oma image
+
+**Depends_on - explicit dependency:**
+Tavaliselt Terraform avastab dependencies automaatselt (kui viitad teisele resource'ile). Aga vahel peame ütlema: "Oota, kuni DB on valmis, alles siis tee web". See on `depends_on`.
+
+Lisage **main.tf** faili:
+```hcl
+# Nginx image Ubuntu-1's
+resource "docker_image" "ubuntu1_nginx" {
+  provider = docker.ubuntu1
+  name     = "nginx:alpine"
+}
+
+# Nginx image Ubuntu-2's
+resource "docker_image" "ubuntu2_nginx" {
+  provider = docker.ubuntu2
+  name     = "nginx:alpine"
+}
+
+# Network Ubuntu-2's (vajame selleks, et containerid seal töötaksid)
+resource "docker_network" "ubuntu2_net" {
+  provider = docker.ubuntu2
+  name     = "${var.project_name}-net"
+  
+  ipam_config {
+    subnet  = "172.21.0.0/16"
+    gateway = "172.21.0.1"
+  }
+}
+
+# Web containers Ubuntu-1's (2 tk)
+resource "docker_container" "ubuntu1_web" {
+  provider = docker.ubuntu1
+  count    = 2  # Loob 2 identset container'it
+  
+  name  = "${var.project_name}-u1-web-${count.index}"  # web-0, web-1
+  image = docker_image.ubuntu1_nginx.image_id
+  
+  networks_advanced {
+    name = docker_network.ubuntu1_net.name
+  }
+  
+  ports {
+    internal = 80
+    external = 8080 + count.index  # 8080, 8081 (count.index = 0, 1)
+  }
+  
+  # Upload - saadab HTML sisu container'isse
+  upload {
+    content = <<-EOF
+      <!DOCTYPE html>
+      <html>
+      <head><title>Ubuntu-1 Web ${count.index}</title></head>
+      <body style="font-family: Arial; padding: 50px;">
+        <h1>Terraform Remote Docker Lab</h1>
+        <p><strong>Host:</strong> Ubuntu-1</p>
+        <p><strong>Container:</strong> web-${count.index}</p>
+        <p><strong>Network:</strong> ${docker_network.ubuntu1_net.name}</p>
+        <p><strong>Database:</strong> ${docker_container.ubuntu1_db.name}</p>
+      </body>
+      </html>
+    EOF
+    file = "/usr/share/nginx/html/index.html"  # Kuhu panna
+  }
+  
+  restart = "unless-stopped"
+  
+  # Explicit dependency: oota kuni DB on valmis
+  depends_on = [docker_container.ubuntu1_db]
+}
+
+# Web containers Ubuntu-2's (2 tk)
+resource "docker_container" "ubuntu2_web" {
+  provider = docker.ubuntu2  # Teine server!
+  count    = 2
+  
+  name  = "${var.project_name}-u2-web-${count.index}"
+  image = docker_image.ubuntu2_nginx.image_id
+  
+  networks_advanced {
+    name = docker_network.ubuntu2_net.name
+  }
+  
+  ports {
+    internal = 80
+    external = 8080 + count.index
+  }
+  
+  upload {
+    content = <<-EOF
+      <!DOCTYPE html>
+      <html>
+      <head><title>Ubuntu-2 Web ${count.index}</title></head>
+      <body style="font-family: Arial; padding: 50px; background: #f0f8ff;">
+        <h1>Terraform Remote Docker Lab</h1>
+        <p><strong>Host:</strong> Ubuntu-2</p>
+        <p><strong>Container:</strong> web-${count.index}</p>
+        <p><strong>Network:</strong> ${docker_network.ubuntu2_net.name}</p>
+      </body>
+      </html>
+    EOF
+    file = "/usr/share/nginx/html/index.html"
+  }
+  
+  restart = "unless-stopped"
+}
+```
+
+Apply:
+```powershell
+terraform apply
+```
+
+Terraform loob:
+- Ubuntu-1: 2 web container'it + 1 database
+- Ubuntu-2: 2 web container'it
+
+---
+
+## 10. Outputs
+
+Outputs teevad info kergesti kättesaadavaks pärast `terraform apply`.
+
+**For loop Terraform'is:**
+```hcl
+for i in range(2) : "..."
+```
+See käib läbi 0, 1 ja teeb iga numbri jaoks midagi. Nagu `for i in [0, 1]` Python'is.
+
+**Concat:**
+Ühendab kaks list'i kokku: `concat([1,2], [3,4])` → `[1,2,3,4]`
+
+**outputs.tf:**
+```hcl
+output "ubuntu1_containers" {
+  description = "Ubuntu-1 containers"
+  value = {
+    database = docker_container.ubuntu1_db.name
+    web = [
+      for i in range(2) :  # For loop: i = 0, siis i = 1
+      "${docker_container.ubuntu1_web[i].name} - http://${var.ubuntu1_host}:${8080 + i}"
+    ]
+  }
+}
+
+output "ubuntu2_containers" {
+  description = "Ubuntu-2 containers"
+  value = {
+    web = [
+      for i in range(2) :
+      "${docker_container.ubuntu2_web[i].name} - http://${var.ubuntu2_host}:${8080 + i}"
+    ]
+  }
+}
+
+output "all_web_urls" {
+  description = "All web URLs"
+  value = concat(
+    [for i in range(2) : "http://${var.ubuntu1_host}:${8080 + i}"],  # Ubuntu-1 URL'id
+    [for i in range(2) : "http://${var.ubuntu2_host}:${8080 + i}"]   # Ubuntu-2 URL'id
+  )  # Kokku 4 URL'i
+}
+```
+
+**Mis siin toimub:**
+- `for i in range(2)` käib läbi 0, 1
+- `docker_container.ubuntu1_web[i]` - viitab container'ile indeksiga (count!)
+- `concat(list1, list2)` - ühendab kaks list'i üheks
+- Tulemus: Ubuntu-1 ja Ubuntu-2 URL'id ühes list'is
+
+Apply:
+```powershell
+terraform apply
+```
+
+Vaadake outpute:
+```powershell
 terraform output
-
-# Vaata üht outputi
-terraform output website_url
-
-# Kopeeri SSH käsk
-echo $(terraform output -raw ssh_command)
 ```
 
-### Validation
-```bash
-# Testi SSH ühendust
-$(terraform output -raw ssh_command)
+---
 
-# Serveris (kui SSH töötab):
-systemctl status nginx
-# Peaks näitama "active (running)"
+## 11. Testimine
+
+### Windows'ist (brauser)
+
+Avage URL'id outputist (asendage X oma võrgu numbriga):
+- `http://10.0.X.20:8080` (Ubuntu-1, web-0)
+- `http://10.0.X.20:8081` (Ubuntu-1, web-1)
+- `http://10.0.X.21:8080` (Ubuntu-2, web-0)
+- `http://10.0.X.21:8081` (Ubuntu-2, web-1)
+
+### PowerShell'ist
+
+```powershell
+# Asendage X oma võrgu numbriga
+Invoke-WebRequest -Uri "http://10.0.X.20:8080" -UseBasicParsing
+Invoke-WebRequest -Uri "http://10.0.X.21:8080" -UseBasicParsing
+```
+
+### SSH üle
+
+```bash
+# Ubuntu-1
+ssh student@10.0.X.20
+docker ps
+curl http://localhost:8080
+exit
+
+# Ubuntu-2
+ssh student@10.0.X.21
+docker ps
+curl http://localhost:8080
+exit
+```
+
+---
+
+## 11. State Kontrollimine
+
+```powershell
+# Kõik ressursid
+terraform state list
+
+# Ubuntu-1 containerid
+terraform state list | Select-String "ubuntu1"
+
+# Ubuntu-2 containerid
+terraform state list | Select-String "ubuntu2"
+
+# Ühe ressursi detailid
+terraform state show docker_container.ubuntu1_web[0]
+```
+
+State fail sisaldab **mõlema** Ubuntu serveri ressursse. Terraform haldab neid centraliseeritult Windows'ist.
+
+---
+
+## 12. Distributed Deployment Test
+
+Muutke count'i:
+
+**main.tf**, muutke count 2 → 3:
+```hcl
+resource "docker_container" "ubuntu1_web" {
+  count = 3  # oli 2
+  # ...
+}
+
+resource "docker_container" "ubuntu2_web" {
+  count = 3  # oli 2
+  # ...
+}
+```
+
+Apply:
+```powershell
+terraform apply
+```
+
+Terraform lisab:
+- Ubuntu-1: web-2 (port 8082)
+- Ubuntu-2: web-2 (port 8082)
+
+Kontrollige:
+```bash
+ssh student@10.0.X.20 "docker ps | grep web"
+ssh student@10.0.X.21 "docker ps | grep web"
+```
+
+Mõlemad serverid said uue container'i **korraga**.
+
+---
+
+## 13. Database Connection Test
+
+Kontrollige, et web container näeb database't:
+
+```bash
+ssh student@10.0.X.20
+
+# Web container'ist DB'sse
+docker exec tf-lab-u1-web-0 ping -c 2 tf-lab-db
+
+# Või otse psql'iga
+docker exec tf-lab-db psql -U appuser -d appdb -c "SELECT version();"
 
 exit
 ```
 
 ---
 
-## 6. Variables ja DRY Printsiip
+## 14. Cleanup
 
-Praegu on palju hardcoded väärtusi. Tehme need konfigureeritavaks.
+Kustutage **kõik** ressursid **mõlemas** serveris:
 
-Looge `variables.tf`:
-```hcl
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "eu-west-1"
-}
-
-variable "vpc_cidr" {
-  description = "VPC CIDR block"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "public_subnet_cidr" {
-  description = "Public subnet CIDR"
-  type        = string
-  default     = "10.0.1.0/24"
-}
-
-variable "instance_type" {
-  description = "EC2 instance type"
-  type        = string
-  default     = "t2.micro"
-}
-
-variable "project_name" {
-  description = "Project name for tagging"
-  type        = string
-  default     = "terraform-lab"
-}
-```
-
-Nüüd uuendage `main.tf`, et kasutada neid muutujaid:
-```hcl
-# Provider blokis
-provider "aws" {
-  region = var.aws_region
-}
-
-# VPC blokis
-resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cidr
-  # ...
-  tags = {
-    Name = "${var.project_name}-vpc"
-  }
-}
-
-# Subnet blokis
-resource "aws_subnet" "public" {
-  cidr_block = var.public_subnet_cidr
-  # ...
-  tags = {
-    Name = "${var.project_name}-public-subnet"
-  }
-}
-
-# Instance blokis
-resource "aws_instance" "web" {
-  instance_type = var.instance_type
-  # ...
-  tags = {
-    Name = "${var.project_name}-web-server"
-  }
-}
-```
-
-Apply (ei muuda ressursse, sest väärtused on samad):
-```bash
-terraform plan
-# Peaks näitama "No changes"
-
-terraform apply
-```
-
-Nüüd saate väärtusi muuta ilma koodi muutmata:
-```bash
-terraform apply -var="project_name=minu-projekt"
-```
-
-### Validation
-```bash
-terraform output
-# Vaata, et kõik endiselt töötab
-```
-
----
-
-## 7. State Kontrollimine
-
-Terraform state fail sisaldab kogu infot teie infrastruktuuri kohta.
-```bash
-# Vaata kõiki ressursse
-terraform state list
-
-# Vaata ühe ressursi detaile
-terraform state show aws_instance.web
-
-# Vaata state faili suurust
-ls -lh terraform.tfstate
-```
-
-State fail on JSON formaat. Saate seda vaadata:
-```bash
-cat terraform.tfstate | jq '.resources[] | {type, name}'
-```
-
-### Validation
-```bash
-# Kontrolli, et state ja AWS on sünkroonis
-terraform plan
-# Peaks näitama "No changes"
-```
-
-Kui plan näitab muudatusi, kuigi te ei muutnud koodi, siis kas:
-
-- Keegi muutis ressursse AWS konsoolist (DRIFT!)
-- State fail on aegunud
-- Bug Terraform'is
-
----
-
-## 8. Täiendavad Ressursid (Valikuline)
-
-Kui teil on aega järgi, lisage:
-
-### S3 Bucket
-```hcl
-resource "random_string" "bucket_suffix" {
-  length  = 8
-  special = false
-  upper   = false
-}
-
-resource "aws_s3_bucket" "website" {
-  bucket = "${var.project_name}-bucket-${random_string.bucket_suffix.result}"
-  
-  tags = {
-    Name = "${var.project_name}-bucket"
-  }
-}
-
-resource "aws_s3_bucket_public_access_block" "website" {
-  bucket = aws_s3_bucket.website.id
-  
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-```
-
-### Elastic IP (Static IP)
-```hcl
-resource "aws_eip" "web" {
-  instance = aws_instance.web.id
-  domain   = "vpc"
-  
-  tags = {
-    Name = "${var.project_name}-eip"
-  }
-  
-  depends_on = [aws_internet_gateway.main]
-}
-
-# Lisa output
-output "elastic_ip" {
-  value = aws_eip.web.public_ip
-}
-```
-
----
-
-## 9. Cleanup (VÄGA OLULINE!)
-
-AWS ressursid maksavad raha. Kustutage kõik pärast labori lõpetamist:
-```bash
+```powershell
 terraform destroy
 ```
 
-Terraform küsib kinnitust. Kirjutage "yes".
+Kirjutage "yes".
 
-Terraform kustutab ressursse vastupidises järjekorras: EC2 → Security Group → Route Table → Subnet → Internet Gateway → VPC.
+Terraform kustutab:
+1. Ubuntu-2: web containers → network
+2. Ubuntu-1: web containers → db container → volume → network
 
-### Validation
+Kontrollige:
 ```bash
-# Kontrollige AWS konsoolist:
-# - EC2 Instances: peaks olema tühi
-# - VPC: peaks olema ainult default VPC
-# - Security Groups: ainult default
-# - S3: peaks olema tühi (kui lõite)
-
-# Või AWS CLI'ga:
-aws ec2 describe-instances --filters "Name=tag:Name,Values=terraform-lab-*"
-# Peaks olema tühi list
+ssh student@10.0.X.20 "docker ps -a"
+ssh student@10.0.X.21 "docker ps -a"
+# Peaks olema tühi
 ```
-
-OLULINE: Kui unustate `destroy` käivitada, maksate iga päev ~$0.24 (t2.micro) + võrguliikluse eest!
 
 ---
 
 ## Kokkuvõte
 
-Selles lab'is lõite:
+**Lõite:**
+- Remote Docker infrastruktuuri kahes serveris
+- Database Ubuntu-1's volume'iga
+- Web containerid mõlemas serveris
+- Distributed deployment count'iga
+- Centraliseeritud state management Windows'is
 
-- AWS VPC võrgu isolatsiooniga
-- Public subnet'i internetiühendusega
-- Security Group firewall'i
-- EC2 instance'i nginx veebiserver'iga
-- User data automatiseeritud seadistuseks
-- Outputs info jagamiseks
+**Õppisite:**
+- Docker provider SSH connection'iga
+- Multi-provider konfiguratsioon (alias)
+- Remote resource management
+- Distributed container orchestration
+- Cross-host networking concepts
 
-**Järgmine samm:** Kodutöö, kus ehitate samasuguse struktuuri, aga hoopis teise rakendusega!
+**Mis see annab:**
+- Simuleerib päris multi-server setup'i
+- Õpetab remote infrastructure management'i
+- Valmistab ette AWS/Azure deployment'iks
+- Näitab Terraform'i võimsust distributed systems'is
+
+**Järgmine samm:**
+- AWS labor: Same concept, aga EC2 instances pilves
+- Kubernetes: Container orchestration järgmine level
 
 ---
 
 ## Troubleshooting
 
-### "Access Denied" viga
-```bash
-# Kontrolli AWS credentials
-aws sts get-caller-identity
+### SSH connection fails
 
-# Peaks näitama:
-# {
-#   "UserId": "...",
-#   "Account": "...",
-#   "Arn": "..."
-# }
+```powershell
+# Windows'ist testi SSH käsitsi (asendage X oma võrgu numbriga)
+ssh -i C:/Users/YourName/.ssh/id_rsa student@10.0.X.20
+
+# Kui ei tööta, kontrolli:
+# 1. IP aadress õige?
+# 2. SSH key path õige?
+# 3. SSH daemon töötab Ubuntu's?
 ```
 
-Kui ei tööta, seadistage uuesti:
+Ubuntu'is:
 ```bash
-aws configure
+sudo systemctl status ssh
+sudo systemctl start ssh
 ```
 
-### Veebiserver ei vasta
+### Docker daemon not accessible
+
 ```bash
-# SSH serverisse
-ssh -i ~/.ssh/terraform-lab ec2-user@<IP>
+# Ubuntu'is
+sudo systemctl status docker
+sudo systemctl start docker
 
-# Kontrolli nginx status
-sudo systemctl status nginx
-
-# Vaata loge
-sudo journalctl -u nginx -n 50
-
-# Käivita käsitsi
-sudo systemctl start nginx
+# Lisa user docker gruppi
+sudo usermod -aG docker $USER
+# Logige välja ja sisse
 ```
 
-### Security Group blokeerib
-```bash
-# Kontrolli, et security group on õigesti seotud
-terraform state show aws_instance.web | grep vpc_security_group_ids
+### Port conflicts
 
-# Testi ühendust
-curl -v http://<IP>
+Kui port juba kasutusel:
+
+**main.tf:**
+```hcl
+ports {
+  internal = 80
+  external = 9080 + count.index  # Muutke 8080 -> 9080
+}
 ```
 
-### State lock viga
+### Firewall blocks ports
+
+Ubuntu'is:
 ```bash
-# Kui keegi teine (või crash) jättis luku kinni
+# Luba port 8080-8082
+sudo ufw allow 8080:8082/tcp
+
+# Või keela firewall (labor'is OK)
+sudo ufw disable
+```
+
+### State lock
+
+```powershell
 terraform force-unlock <LOCK_ID>
+```
 
-# LOCK_ID on vea messages
+### Provider alias confusion
+
+Alati määrake provider:
+```hcl
+resource "docker_container" "web" {
+  provider = docker.ubuntu1  # Ära unusta!
+  # ...
+}
+```
+
+Ilma provider'ita Terraform ei tea, millisesse serverisse luua.
+
+---
+
+## 2. Provider ja Variables
+
+Loome provider konfiguratsiooni ja muutujad korraga.
+
+**variables.tf:**
+```hcl
+variable "project_name" {
+  description = "Project name for naming resources"
+  type        = string
+  default     = "tf-docker-lab"
+}
+
+variable "environment" {
+  description = "Environment (dev/prod)"
+  type        = string
+  default     = "dev"
+  
+  validation {
+    condition     = contains(["dev", "prod"], var.environment)
+    error_message = "Environment must be dev or prod"
+  }
+}
+
+variable "web_count" {
+  description = "Number of web containers"
+  type        = number
+  default     = 2
+}
+```
+
+**main.tf:**
+```hcl
+terraform {
+  required_version = ">= 1.0"
+  
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "docker" {
+  host = "unix:///var/run/docker.sock"
+}
+```
+
+Init:
+```bash
+terraform init
+```
+
+Peaks nägema: "Installing kreuzwerker/docker v3.x.x..."
+
+---
+
+## 3. Network ja Volume
+
+Network on nagu VPC AWS'is - isoleeritud võrk containeritele. Volume säilitab andmeid ka siis, kui container kustutatakse.
+
+Lisage **main.tf** faili:
+```hcl
+# Network (VPC equivalent)
+resource "docker_network" "app" {
+  name = "${var.project_name}-network"
+  
+  ipam_config {
+    subnet  = "172.20.0.0/16"
+    gateway = "172.20.0.1"
+  }
+}
+
+# Volume andmebaasile (EBS equivalent)
+resource "docker_volume" "db_data" {
+  name = "${var.project_name}-db-data"
+}
+```
+
+Apply:
+```bash
+terraform plan
+terraform apply
+```
+
+Kontrollige:
+```bash
+docker network ls | grep tf-docker-lab
+docker volume ls | grep tf-docker-lab
+```
+
+---
+
+## 4. Database Container
+
+Loome PostgreSQL container'i, mis kasutab volume'it andmete säilitamiseks.
+
+Lisage **main.tf** faili:
+```hcl
+# Database image
+resource "docker_image" "postgres" {
+  name = "postgres:15-alpine"
+}
+
+# Database container
+resource "docker_container" "db" {
+  name  = "${var.project_name}-db"
+  image = docker_image.postgres.image_id
+  
+  networks_advanced {
+    name = docker_network.app.name
+  }
+  
+  volumes {
+    volume_name    = docker_volume.db_data.name
+    container_path = "/var/lib/postgresql/data"
+  }
+  
+  env = [
+    "POSTGRES_USER=appuser",
+    "POSTGRES_PASSWORD=apppass",
+    "POSTGRES_DB=appdb"
+  ]
+  
+  restart = "unless-stopped"
+  
+  # Healthcheck
+  healthcheck {
+    test     = ["CMD-SHELL", "pg_isready -U appuser"]
+    interval = "10s"
+    timeout  = "5s"
+    retries  = 5
+  }
+}
+```
+
+Apply:
+```bash
+terraform apply
+```
+
+Kontrollige:
+```bash
+# Container jookseb?
+docker ps | grep db
+
+# DB vastab?
+docker exec tf-docker-lab-db pg_isready -U appuser
+```
+
+---
+
+## 5. Web Containers (Count)
+
+Loome mitu nginx container'it korraga kasutades `count`. See on nagu AWS'is luua mitu EC2 instance'i.
+
+Lisage **main.tf** faili:
+```hcl
+# Web image
+resource "docker_image" "nginx" {
+  name = "nginx:alpine"
+}
+
+# Web containers (multiple)
+resource "docker_container" "web" {
+  count = var.web_count
+  
+  name  = "${var.project_name}-web-${count.index}"
+  image = docker_image.nginx.image_id
+  
+  networks_advanced {
+    name = docker_network.app.name
+  }
+  
+  ports {
+    internal = 80
+    external = 8080 + count.index
+  }
+  
+  # Custom HTML
+  upload {
+    content = <<-EOF
+      <!DOCTYPE html>
+      <html>
+      <head><title>Web ${count.index}</title></head>
+      <body style="font-family: Arial; padding: 50px;">
+        <h1>Terraform Docker Lab</h1>
+        <p><strong>Container:</strong> web-${count.index}</p>
+        <p><strong>Environment:</strong> ${var.environment}</p>
+        <p><strong>Network:</strong> ${docker_network.app.name}</p>
+      </body>
+      </html>
+    EOF
+    file = "/usr/share/nginx/html/index.html"
+  }
+  
+  restart = "unless-stopped"
+  
+  # Web sõltub DB'st
+  depends_on = [docker_container.db]
+}
+```
+
+Apply:
+```bash
+terraform apply
+```
+
+Terraform loob 2 web container'it (default `web_count = 2`):
+- tf-docker-lab-web-0 (port 8080)
+- tf-docker-lab-web-1 (port 8081)
+
+Kontrollige:
+```bash
+# Mõlemad jooksevad?
+docker ps | grep web
+
+# Testi brauseris
+curl http://localhost:8080
+curl http://localhost:8081
+```
+
+---
+
+## 6. Outputs
+
+Outputs teevad info kergesti kättesaadavaks.
+
+Looge **outputs.tf:**
+```hcl
+output "network_id" {
+  description = "Network ID"
+  value       = docker_network.app.id
+}
+
+output "database_name" {
+  description = "Database container name"
+  value       = docker_container.db.name
+}
+
+output "web_urls" {
+  description = "Web container URLs"
+  value = [
+    for i in range(var.web_count) :
+    "http://localhost:${8080 + i}"
+  ]
+}
+
+output "container_ips" {
+  description = "Container IP addresses in network"
+  value = {
+    database = docker_container.db.network_data[0].ip_address
+    web = [
+      for container in docker_container.web :
+      container.network_data[0].ip_address
+    ]
+  }
+}
+```
+
+Apply:
+```bash
+terraform apply
+```
+
+Vaadake outpute:
+```bash
+terraform output
+terraform output -json | jq
+```
+
+---
+
+## 7. Muudatuste Testimine
+
+Muutke `web_count` 2 → 3:
+
+**terminal:**
+```bash
+terraform apply -var="web_count=3"
+```
+
+Terraform lisab ühe container'i. Pole vaja kõike uuesti luua - see on Terraform'i tugevus.
+
+Vaadake:
+```bash
+docker ps | grep web
+# Peaks nägema: web-0, web-1, web-2
+
+curl http://localhost:8082
+# Uus container vastab
+```
+
+Muutke tagasi:
+```bash
+terraform apply -var="web_count=2"
+```
+
+Terraform kustutab web-2. web-0 ja web-1 jäävad puutumata.
+
+---
+
+## 8. State Kontrollimine
+
+State fail sisaldab kogu infrastruktuuri infot:
+
+```bash
+# Kõik ressursid
+terraform state list
+
+# Ühe ressursi detailid
+terraform state show docker_container.web[0]
+
+# Kontrolli sünkroniseeritust
+terraform plan
+# Peaks näitama "No changes"
+```
+
+Kui plan näitab muudatusi (aga te ei muutnud koodi), siis keegi muutis container'eid käsitsi Docker'iga - see on **drift**.
+
+---
+
+## 9. Environment Testimine
+
+Muutke environment dev → prod:
+
+```bash
+terraform apply -var="environment=prod"
+```
+
+Terraform uuendab container'eid (HTML sisu muutub). Vaadake:
+```bash
+curl http://localhost:8080
+# Peaks nägema: "Environment: prod"
+```
+
+Muutke tagasi:
+```bash
+terraform apply -var="environment=dev"
+```
+
+---
+
+## 10. Andmete Püsivus
+
+Testimine, et volume töötab:
+
+```bash
+# Looge andmed DB's
+docker exec tf-docker-lab-db psql -U appuser -d appdb -c "CREATE TABLE test (id INT, data TEXT);"
+docker exec tf-docker-lab-db psql -U appuser -d appdb -c "INSERT INTO test VALUES (1, 'Hello Terraform');"
+
+# Kontrollige
+docker exec tf-docker-lab-db psql -U appuser -d appdb -c "SELECT * FROM test;"
+
+# Kustuta container (aga mitte volume)
+docker stop tf-docker-lab-db
+docker rm tf-docker-lab-db
+
+# Loo container uuesti Terraform'iga
+terraform apply
+
+# Andmed on alles!
+docker exec tf-docker-lab-db psql -U appuser -d appdb -c "SELECT * FROM test;"
+```
+
+See tõestab, et volume säilitab andmeid ka siis, kui container kustutatakse.
+
+---
+
+## 11. Cleanup
+
+Kustutage kõik ressursid:
+```bash
+terraform destroy
+```
+
+Kirjutage "yes".
+
+Kontrollige:
+```bash
+docker ps -a | grep tf-docker-lab
+# Peaks olema tühi
+
+docker network ls | grep tf-docker-lab
+# Peaks olema tühi
+
+docker volume ls | grep tf-docker-lab
+# Peaks olema tühi
+```
+
+**OLULINE:** Kui unustate destroy, jooksevad containerid edasi ja võtavad ressursse (CPU, RAM).
+
+---
+
+## Kokkuvõte
+
+**Lõite:**
+- Docker network'i (isoleeritud võrk)
+- PostgreSQL container'i volume'iga
+- Mitu nginx container'it count'iga
+- Custom HTML sisu upload'iga
+- Outputs info jagamiseks
+
+**Õppisite:**
+- Docker provider konfiguratsioon
+- Network loomine (VPC analoog)
+- Volume'id püsivaks salvestuseks
+- Count resource'ide korrutamiseks
+- Dependencies (depends_on)
+- Upload provisioner
+- Variables kasutamine
+- State management
+
+**Mis edasi:**
+- Kodutöö: Ehitage sama, aga teise rakendusega
+- AWS labor: Rakendage neid kontsepte pilves (kellel konto on)
+
+---
+
+## Troubleshooting
+
+### Provider connection error
+
+```bash
+# Kontrolli, et Docker daemon töötab
+sudo systemctl status docker
+
+# Kui ei tööta
+sudo systemctl start docker
+
+# Lisage end docker gruppi (kui vaja)
+sudo usermod -aG docker $USER
+# Logige välja ja sisse
+```
+
+### Port already in use
+
+```bash
+# Vaata, mis port 8080 kasutab
+sudo lsof -i :8080
+
+# Muutke external porti
+# main.tf: external = 9080 + count.index
+```
+
+### Container ei käivitu
+
+```bash
+# Vaata loge
+docker logs tf-docker-lab-web-0
+
+# Käivita interaktiivselt
+docker run -it --rm nginx:alpine sh
+```
+
+### Volume'i ei saa kustutada
+
+```bash
+# Peata kõik containerid
+docker stop $(docker ps -aq)
+
+# Kustuta käsitsi
+docker volume rm tf-docker-lab-db-data
+
+# Siis terraform destroy
+terraform destroy
+```
+
+### State lock
+
+```bash
+# Kui crash jättis luku kinni
+terraform force-unlock <LOCK_ID>
+```
+
+---
+
+## 16. Esitamine
+
+### Git Repository
+
+**PowerShell'is** (terraform-docker-lab kaustas):
+
+```powershell
+# Git repo
+git init
+
+# .gitignore
+@"
+.terraform/
+*.tfstate*
+*.retry
+.vscode/
+*.pem
+*.key
+*_rsa*
+"@ | Out-File .gitignore -Encoding utf8
+
+# Commit
+git add .
+git commit -m "Terraform Docker lab"
+```
+
+### GitHub
+
+1. [github.com](https://github.com) → New repository
+2. **Name:** `terraform-docker-lab`
+3. **Public**
+4. Create
+
+```powershell
+git remote add origin https://github.com/USERNAME/terraform-docker-lab.git
+git branch -M main
+git push -u origin main
+```
+
+### README.md
+
+```markdown
+# Terraform Docker Lab
+
+**Autor:** [Nimi]
+
+## Infrastruktuur
+- 2 Ubuntu serverit
+- 5 containerit (1 DB + 4 web)
+- Ansible + Terraform
+
+## Kasutamine
+\`\`\`bash
+ansible-playbook -i inventory.ini docker-setup.yml
+terraform apply
+\`\`\`
+
+## Screenshots
+(lisa siia)
 ```
