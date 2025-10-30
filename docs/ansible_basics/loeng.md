@@ -26,12 +26,10 @@ Pärast seda loengut õpilane:
 ### Tüüpiline Esmaspäev
 
 Kell 9:00 hommikul saate kollegi sõnumi: "Kriitilise turvavea parandus. Peame täna uuendama nginx'i kõikides veebiserveritest. Meil on 50 serverit."
-
 Te arvutate peas:
 ```
 50 serverit × 5 minutit = 250 minutit = 4+ tundi
 ```
-
 Te hakkate tööle:
 
 ```bash
@@ -49,27 +47,10 @@ exit
 ```
 
 Kell 13:00 olete server 25 juures. Olete juba väsinud. Copy-paste hakkab segamini minema.
-
 Kell 14:30, server 37 - teete vea. Kirjutate `systemctl stop nginx` asemel `systemctl disable nginx`. Server ei tule peale rebooti enam üles.
-
 Kell 15:00 helistab CEO. Kliendid ei saa lehte avada. "Mis toimub?"
 
-Kell 18:00 olete lõpuks valmis. 9 tundi tööd. Olete läbipõlenud. Ja te ei ole 100% kindel kas kõik 50 serverit on täpselt samas seisus.
-
-### Tegelik Probleem
-
-See ei ole teie süü. Probleem on **meetodis**.
-
-| Aspekt | Käsitsi | Tulemus |
-|--------|---------|---------|
-| **Aeg** | 50 × 5 min = 4+ h | Aeglane |
-| **Vead** | Inimene väsib | Paratamatu |
-| **Dokumentatsioon** | "Ma vist tegin nii..." | Puudub |
-| **Korratavus** | Iga kord veidi erinev | Võimatu |
-| **Koostöö** | 2 inimest = kaos | Konfliktid |
-| **Kontroll** | Kes server23 muutis? | ??? |
-
-**Tõde:** Kui teil on rohkem kui 5-10 serverit, on käsitsi haldamine halb idee. Kui rohkem kui 20 serverit, on see võimatu idee.
+Kell 18:00 olete lõpuks valmis. 9 tundi tööd. Olete läbipõlenud. Ja te ei ole 100% kindel kas kõik 50 serverit on täpselt samas seisus. See ei ole teie süü. Probleem on **meetodis**. Kui teil on rohkem kui 5-10 serverit, on käsitsi haldamine halb idee. Kui rohkem kui 20 serverit, on see võimatu idee.
 
 ### Kuidas Peaks Olema?
 
@@ -78,9 +59,7 @@ Ideaalis kirjutate ühe käsu:
 ```bash
 ansible-playbook update-nginx.yml
 ```
-
 3 minutit hiljem on kõik 50 serverit uuendatud. Identselt. Õigesti. Logitud.
-
 Kas see on ulme? Ei. See on Ansible.
 
 ---
