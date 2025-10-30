@@ -175,16 +175,13 @@ Fail rikutud. Probleem.
 - 1. kord: Ansible vaatab → rida puudub → lisab
 - 2. kord: Ansible vaatab → rida on olemas → ei tee midagi
 - 10. kord: Ansible vaatab → rida on olemas → ei tee midagi
-
 Failis on ALATI täpselt üks rida.
 
 **Miks see NII oluline?**
-
 Ohutu. Võite playbook'i käivitada nii palju kordi kui tahate:
 - Testimine? Käivita 5 korda dev'is
 - Midagi läks valesti? Käivita uuesti
 - Kas kõik õige? Käivita kontrolliks
-
 Ansible kontrollib alati: "Kas see on juba õige?" Kui jah → ei puutu. Kui ei → parandab.
 
 ---
@@ -192,13 +189,9 @@ Ansible kontrollib alati: "Kas see on juba õige?" Kui jah → ei puutu. Kui ei 
 ## 3. Lühike Ajalugu: Kuidas Siia Jõudsime?
 
 ### 1990-2000: Käsitsi + Füüsiliselt
-
-IT admin läks **füüsiliselt** serveri juurde, ühendas klaviatuuri ja ekraani, logi sisse. Firmal oli 5-10 serverit. Muudatused harva - kord kuus. See toimis.
-
-**Probleem:** Iga server muutus ajapikku erinevaks. Dokumentatsiooni ei olnud. Kõik teadmised IT admini peas.
+IT admin läks **füüsiliselt** serveri juurde, ühendas klaviatuuri ja ekraani, logi sisse. Firmal oli 5-10 serverit. Muudatused harva - kord kuus. See toimis. Aga Iga server muutus ajapikku erinevaks. Dokumentatsiooni ei olnud. Kõik teadmised IT admini peas.
 
 ### 2000-2005: SSH + Shell Skriptid
-
 Servereid rohkem (50-100). SSH võimaldas kaugühendust. Inimesed kirjutasid shell skripte:
 
 ```bash
@@ -206,29 +199,23 @@ for server in server1 server2 server3; do
   ssh admin@$server "apt update && apt install nginx"
 done
 ```
-
-**Probleem:** Skriptid ei olnud nutikad. Üritasid iga kord installida ka kui juba olemas. Vead ei käsitlenud. Järjestikune töö (aeglane).
+Skriptid ei olnud nutikad. Üritasid iga kord installida ka kui juba olemas. Vead ei käsitlenud.
 
 ### 2005-2009: Puppet ja Chef
-
 ![Puppet ja Chef logod](https://media.licdn.com/dms/image/v2/D4D12AQFhrjy0ozGShQ/article-cover_image-shrink_600_2000/article-cover_image-shrink_600_2000/0/1690917230934?e=2147483647&v=beta&t=5yNZoMKZbOz-vJ9ENMP6DduR8Yywb1Utls07ajfRz8s)
 
-Esimesed professionaalsed automatiseerimisvahendid. Deklaratiivne süntaks, nutikad, võimsad.
-
-**Probleem:** Kasutasid agente (keeruline setup), oma keelt (järsk õppimiskõver), pull mudelit (latentsus).
+Esimesed professionaalsed automatiseerimisvahendid. Deklaratiivne süntaks, nutikad, võimsad. Kasutasid agente (keeruline setup), oma keelt (uuesti õppida), pull mudelit (latentsus).
 
 ### 2012: Ansible
-
 ![Michael DeHaan (Ansible looja)](https://image.slidesharecdn.com/devopswithansible-170120102347/75/DevOps-with-Ansible-4-2048.jpg)
 
-Michael DeHaan (ex-Puppet) mõtles: "Miks nii keeruline? SSH on juba olemas. Python on juba olemas. Kasutame neid."
-
+Michael DeHaan (ex-Puppet insineer) mõtles: "Miks nii keeruline? SSH on juba olemas. Python on juba olemas. Kasutame neid."
 Lõi Ansible:
 - Agentless (SSH)
 - Push-based (kohe)
 - YAML (lihtne)
 - Tasuta
-
+  
 2015: Red Hat ostis 150M dollariga
 2019: IBM ostis Red Hati (34B), seega ka Ansible'i
 
