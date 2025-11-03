@@ -316,6 +316,209 @@ curl http://localhost:3000/api/health
 
 ---
 
+## 4. Multi-Node Klaster
+
+Labor.md kasutasin single-node k3s (kõik ühes VM's). Siin õpid looma 2-node klasteri - nagu päris production'is.
+
+### 4.1 Probleem
+
+Single-node on hea õppimiseks, aga production'is on alati mitu node'i. Põhjused:
+- **High Availability** - kui üks server kukub, rakendus töötab edasi
+- **Load Distribution** - Pod'id jaotuvad mitme serveri vahel
+- **Resource Isolation** - saad eraldada töökoormuseid (database oma node'il, web app teises)
+
+```mermaid
+graph TB
+    subgraph "Single-Node (labor.md)"
+    SN[VM1: Control Plane + Worker<br/>Kui see kukub = KÕIK katki]
+    end
+    
+    subgraph "Multi-Node (production)"
+    CP[VM1: Control Plane]
+    W1[VM2: Worker<br/>Pod Pod Pod]
+    W2[VM3: Worker<br/>Pod Pod Pod]
+    CP -.->|Haldab| W1
+    CP -.->|Haldab| W2
+    end
+    
+    style SN fill:#f88,stroke:#f00
+```
+
+**Stsenaarium:** VM1 kukub. Single-node'is on kõik kadunud. Multi-node'is jätkavad VM2 ja VM3.
+
+### 4.2 Lahendus: k3s Multi-Node
+
+Loome 2 VM'i klasteri:
+- **VM1 (master)** - Control Plane (API server, scheduler, etcd)
+- **VM2 (worker)** - töötab Pod'e
+
+**Eeldus:** Sul on 2 Proxmox VM'd (õpetaja loonud):
+- VM1: `10.82.1.20` (master)
+- VM2: `10.82.1.21` (worker)
+
+```bash
+# ===== VM1 (MASTER) =====
+ssh student@10.82.1.20
+
+# Installi k3s master
+curl -sfL https://get.k3s.io | sh -
+
+# Kontrolli
+sudo systemctl status k3s
+# Active: active (running)
+
+kubectl get nodes
+# NAME   STATUS   ROLES                  AGE   VERSION
+# vm1    Ready    control-plane,master   30s   v1.28.x+k3s1
+
+# VÕTA TOKEN (vajad VM2 jaoks!)
+sudo cat /var/lib/rancher/k3s/server/node-token
+# K10abc123def456...KOPEERI SEE!
+```
+
+**Token selgitus:** Worker node vajab seda, et liituda klastriga. Token tõestab et worker on usaldusväärne.
+
+```bash
+# ===== VM2 (WORKER) =====
+ssh student@10.82.1.21
+
+# Installi k3s worker (asenda TOKEN!)
+curl -sfL https://get.k3s.io | K3S_URL=https://10.82.1.20:6443 \
+  K3S_TOKEN=K10abc123def456... sh -
+
+# Kontrolli
+sudo systemctl status k3s-agent
+# Active: active (running)
+```
+
+**Kontrolli klastrit (VM1'is):**
+```bash
+# VM1 (master)
+kubectl get nodes
+# NAME   STATUS   ROLES                  AGE   VERSION
+# vm1    Ready    control-plane,master   5m    v1.28.x+k3s1
+# vm2    Ready    <none>                 1m    v1.28.x+k3s1
+
+# Vaata detaile
+kubectl get nodes -o wide
+# INTERNAL-IP näitab VM IP'd
+```
+
+**Kuidas see töötab:**
+
+```mermaid
+sequenceDiagram
+    participant W as Worker (VM2)
+    participant M as Master (VM1)
+    participant K as kubelet (VM2)
+    
+    W->>M: Liitumise päring + Token
+    M->>M: Kontrolli Token
+    M->>W: OK, oled klastris
+    K->>M: Küsi tööd (API server)
+    M->>K: Käivita Pod X
+    K->>K: Käivita Docker container
+    K->>M: Pod töötab!
+```
+
+### 4.3 Harjutus: Deploy Pod'e Erinevatesse Node'idesse
+
+**Nõuded:**
+- [ ] 2-node klaster töötab (`kubectl get nodes` näitab 2 node'i)
+- [ ] Deploy nginx 3 replikaga
+- [ ] Kontrolli et Pod'id on mõlemas node'is
+- [ ] Tapa worker node ja vaata mis juhtub
+
+**Deploy nginx:**
+```bash
+# VM1 (master)
+kubectl create deployment nginx --image=nginx:alpine --replicas=3
+
+# Vaata kus Pod'id on
+kubectl get pods -o wide
+# NODE veerg näitab vm1 või vm2
+```
+
+**Peaks nägema:**
+```
+NAME                     NODE
+nginx-xxx                vm1
+nginx-yyy                vm2  
+nginx-zzz                vm2
+```
+
+Scheduler jaotab Pod'id automaatselt!
+
+**Test: Tapa worker node**
+```bash
+# VM2 (worker)
+sudo systemctl stop k3s-agent
+
+# VM1 (master) - vaata mis juhtub
+kubectl get nodes
+# vm2 on NotReady
+
+kubectl get pods -o wide
+# Pod'id vm2'l on Terminating...
+# Peale 5 min luuakse vm1'le uued
+```
+
+Kubernetes märkab et vm2 on kadunud ja liigutab Pod'id vm1'le!
+
+**NäpunÃ¤iteid:**
+- `kubectl describe node vm2` näitab miks NotReady
+- `kubectl top nodes` näitab ressursse (kui metrics-server)
+- Restart worker: `sudo systemctl start k3s-agent`
+
+**Boonus: Node Affinity**
+
+Sunni PostgreSQL alati vm1'le (master'ile):
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - vm1  # Ainult master node
+      containers:
+      - name: postgres
+        image: postgres:14-alpine
+```
+
+**Taint & Toleration** (advanced):
+
+Blokeeri master node tavalistele Pod'idele:
+```bash
+# VM1 - lisa taint
+kubectl taint nodes vm1 node-role.kubernetes.io/master=:NoSchedule
+
+# Nüüd Pod'id lähevad ainult vm2'le
+kubectl create deployment test --image=nginx --replicas=3
+kubectl get pods -o wide
+# Kõik vm2'l
+
+# Eemalda taint
+kubectl taint nodes vm1 node-role.kubernetes.io/master-
+```
+
+**Validation:**
+- [ ] 2 node'i klastris (vm1 master, vm2 worker)
+- [ ] Pod'id jagunevad mõlema vahel
+- [ ] Worker node stopimisel liiguvad Pod'id master'ile
+- [ ] Node affinity töötab (Pod ainult valitud node'il)
+
+---
+
 ## Kasulikud Ressursid
 
 **Dokumentatsioon:**

@@ -16,7 +16,35 @@ Produktsioonis muutub koormus pidevalt - Black Friday võib tuua 100x rohkem lii
 
 ### 1.2 Lahendus
 
-Horizontal Pod Autoscaler (HPA) jälgib metrics'eid ja muudab automaatselt replicate arvu. HPA töötab tsüklis - iga 15 sekundi tagant kontrollib pod'ide keskmist CPU/memory kasutust ja võrdleb target'iga. Kui keskmine on üle target'i, skaleerib üles. Kui alla, skaleerib alla (5 min cooldown).
+Horizontal Pod Autoscaler (HPA) jälgib metrics'eid ja muudab automaatselt replicate arvu. HPA töötab tsüklis - iga 15 sekundi tagant kontrollib pod'ide keskmist CPU/memory kasutust ja võrdleb target'iga.
+
+**Kuidas HPA töötab:**
+
+```mermaid
+graph TD
+    A[HPA Controller] -->|Iga 15s| B{Kontrolli CPU}
+    B -->|Keskmine 80%| C[Target: 50%]
+    C -->|80% > 50%| D[Scale UP]
+    D -->|1.6x load| E[Loon 2 uut Pod'i<br/>3 → 5]
+    
+    B -->|Keskmine 30%| F[Target: 50%]
+    F -->|30% < 50%| G[Scale DOWN]
+    G -->|Oota 5 min| H[Kustuta 1 Pod<br/>5 → 4]
+    
+    style D fill:#8f8
+    style G fill:#f88
+```
+
+**HPA loogika:**
+1. Metrics Server kogub CPU/memory kasutust
+2. HPA arvutab keskmise kõigi Pod'ide pealt
+3. Kui keskmine > target → scale up
+4. Kui keskmine < target → scale down (5 min cooldown)
+5. Formula: `desiredReplicas = ceil(currentReplicas * (currentMetric / targetMetric))`
+
+**Näide:**
+- 3 Pod'i, keskmine CPU 80%, target 50%
+- Formula: `ceil(3 * (80 / 50))` = `ceil(4.8)` = **5 Pod'i**
 
 HPA vajab Metrics Server'it, mis kogub ressursi kasutust kõigist node'idest. Minikube'is: `minikube addons enable metrics-server`.
 
@@ -124,6 +152,29 @@ Andmebaasi master peab alati olema `mysql-0`, mitte random nimi. Kui pod kukub, 
 ### 2.2 Lahendus
 
 StatefulSet garanteerib stabiilse identiteedi. Iga pod saab indeksi (0, 1, 2) mis ei muutu kunagi. Pod'id luuakse järjekorras (0 → 1 → 2) ja kustutatakse vastupidises järjekorras (2 → 1 → 0).
+
+**Deployment vs StatefulSet:**
+
+```mermaid
+graph TB
+    subgraph "Deployment (Stateless)"
+    D1[Deployment] -->|Loob| P1[web-abc123<br/>Random nimi]
+    D1 -->|Loob| P2[web-xyz789<br/>Random nimi]
+    P1 -.->|Restart| P3[web-def456<br/>UUS NIMI!]
+    end
+    
+    subgraph "StatefulSet (Stateful)"
+    S1[StatefulSet] -->|Loob| SP1[mysql-0<br/>Stabiilne nimi]
+    S1 -->|Loob| SP2[mysql-1<br/>Stabiilne nimi]
+    SP1 -.->|Restart| SP3[mysql-0<br/>SAMA NIMI!]
+    
+    PVC1[PVC: data-mysql-0] -.->|Alati sama volume| SP1
+    PVC1 -.->|Alati sama volume| SP3
+    end
+    
+    style P3 fill:#f88
+    style SP3 fill:#8f8
+```
 
 StatefulSet kasutab Headless Service'i (`clusterIP: None`), mis annab igale pod'ile DNS kirje: `mysql-0.mysql.default.svc.cluster.local`. VolumeClaimTemplate loob automaatselt PVC iga pod'i jaoks - kui `mysql-0` kustutatakse ja uuesti luuakse, mount'ib Kubernetes sama PVC nimega `data-mysql-0`.
 
@@ -280,13 +331,23 @@ Kuidas hallata versioone? Kui deployment fail muutub, kuidas tagada et kõik seo
 
 ### 3.2 Lahendus
 
-Helm on "package manager" Kubernetes'i jaoks (nagu apt/yum Linux'is). Helm Chart on bundle YAML template'idest, mida saab konfigureerida ühe `values.yaml` failiga. Template'id kasutavad Go templating'ut - saate kasutada muutujaid, if/else, loops.
+Helm on "package manager" Kubernetes'i jaoks (nagu apt/yum Linux'is). Helm Chart on bundle YAML template'idest, mida saab konfigureerida ühe `values.yaml` failiga.
 
-Üks chart, mitu environment'i:
+**Helm workflow:**
 
-- development kasutab `values-dev.yaml` (1 replica, väikesed resources), production kasutab `values-prod.yaml` (5 replicas, suured resources). Helm jälgib versioone
-- saate teha rollback ühe käsuga. Helm teeb ka dependency management'i
-- kui teie app vajab PostgreSQL'i, võite lisada PostgreSQL chart'i dependency'na.
+```mermaid
+graph LR
+    A[Chart Templates<br/>deployment.yaml<br/>service.yaml] -->|+| B[values-dev.yaml<br/>replicas: 1]
+    A -->|+| C[values-prod.yaml<br/>replicas: 5]
+    
+    B -->|helm install dev| D[Dev Release<br/>1 Pod]
+    C -->|helm install prod| E[Prod Release<br/>5 Pods]
+    
+    D -.->|helm upgrade| F[Dev v2<br/>Rollback võimalik!]
+    
+    style D fill:#9cf
+    style E fill:#f96
+```
 
 **Helm põhikontseptsioonid:**
 
@@ -294,6 +355,8 @@ Helm on "package manager" Kubernetes'i jaoks (nagu apt/yum Linux'is). Helm Chart
 - **Release**: Chart'i installitud instance (nt. myapp-dev, myapp-prod)
 - **Values**: Konfiguratsioon (values.yaml, values-dev.yaml)
 - **Template**: YAML kus on muutujad (`{{ .Values.replicaCount }}`)
+
+Üks chart, mitu environment'i: development kasutab `values-dev.yaml` (1 replica, väikesed resources), production kasutab `values-prod.yaml` (5 replicas, suured resources). Helm jälgib versioone - saate teha rollback ühe käsuga. Helm teeb ka dependency management'i - kui teie app vajab PostgreSQL'i, võite lisada PostgreSQL chart'i dependency'na.
 
 **Chart struktuur:**
 ```

@@ -1,61 +1,114 @@
-#  Kubernetes Kodutöö: E-Pood → Tootmine
+# Kubernetes Kodutöö: ConfigMap → Docker Images
 
-**Tähtaeg:** Järgmise nädala alguseks  
+Laboris kasutasime ConfigMap'e koodi hoidmiseks. See on hea õppimiseks, aga vale produktsioonis. Nüüd õpid õiget viisi - kood Docker image'isse.
 
-
----
-
-##  Ülesande kirjeldus
-
-Laboris tegime e-poe kus kood oli ConfigMap'is. See on halb praktika. Nüüd teeme sama e-poe õigesti - kood Docker image'isse.
+**Tähtaeg:** 1 nädal  
+**Aeg:** ~2 tundi  
+**Eeldused:** kubernetes-labor.md läbitud, Docker Hub konto
 
 ---
 
-##  Mida Me Teeme
+## Ülesande Kirjeldus
+
+**Probleem labori lähenemisega:**
+
+```mermaid
+graph LR
+    subgraph "Labor (ConfigMap) - VALE"
+    A[ConfigMap: server.js] -->|volume mount| B[Pod]
+    C[ConfigMap: package.json] -->|volume mount| B
+    B -->|npm install| D[Slow startup<br/>60-90s]
+    end
+    
+    subgraph "Kodutöö (Docker Image) - ÕIGE"
+    E[Docker Image<br/>kood + dependencies] -->|käivita| F[Pod]
+    F -->|ready| G[Fast startup<br/>5-10s]
+    end
+    
+    style A fill:#f88
+    style C fill:#f88
+    style E fill:#8f8
+```
+
+**Miks ConfigMap koodile on halb:**
+1. **Aeglane** - npm install iga kord kui Pod käivitub
+2. **Ei versiooni** - ei saa teha rollback'i
+3. **Ei testi** - kood ei läbi CI/CD pipeline
+4. **Ei skaleeru** - iga Pod installib packages uuesti
+
+**Miks Docker Image on hea:**
+1. **Kiire** - kõik on juba image'is
+2. **Versioonitud** - v1.0, v1.1, v2.0... rollback lihtne
+3. **Testitud** - image on ehitatud CI/CD's
+4. **Immutable** - image ei muutu, reproducible
 
 ---
 
-## Osa 1: Docker Images (50 punkti)
+## Mida Me Teeme
 
-### 1.1 Backend Docker Image
+**Tegevused:**
+1. Teeme labori e-poe koodist Docker image'd
+2. Push'ime Docker Hub'i (public registry)
+3. Uuendame Kubernetes Deployment'id kasutama image'id
+4. Lisame ühe production feature (HPA / Blue-Green / Helm)
 
-#### Samm 1: Kopeeri kood laborist
+---
+
+## 1. Backend Docker Image
+
+### 1.1 Koodi Ettevalmistus
+
+ConfigMap'ist faili:
+ConfigMap'ist faili:
+
 ```bash
-# Loo kaustad
+# Loo projektikataloog
 mkdir -p ~/kodutoo/docker/backend
 cd ~/kodutoo/docker/backend
 
-# Vaata mis laboris ConfigMap'is oli
+# Vaata ConfigMap sisu
 kubectl get configmap backend-code -o yaml
 
-# Kopeeri server.js sisu uude faili
+# Kopeeri server.js
 nano server.js
 # Kopeeri ConfigMap'ist ainult JavaScript kood (ilma YAML indent'ideta)
 # Algab: const express = require('express');
 # Lõppeb: app.listen(3000);
 
-# Kopeeri package.json sisu
+# Kopeeri package.json
 nano package.json
-# Kopeeri ConfigMap'ist package.json sisu
 # { "name": "shop-backend", ... }
 ```
 
-#### Samm 2: Loo Dockerfile
-```bash
-nano Dockerfile
-```
+### 1.2 Dockerfile Loomine
+
+**Dockerfile selgitus:**
+
 ```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package.json ./
-RUN npm install --production
-COPY server.js ./
-USER node
-EXPOSE 3000
-CMD ["node", "server.js"]
+FROM node:18-alpine              # Baas image - väike Alpine Linux + Node.js 18
+WORKDIR /app                     # Töökataloog image'is
+COPY package.json ./             # Kopeeri package.json ESIMESENA (cache layer!)
+RUN npm install --production     # Installi dependencies (layer cached!)
+COPY server.js ./                # Kopeeri rakenduse kood
+USER node                        # Ära jooksuta root'ina (turvalisus)
+EXPOSE 3000                      # Dokumenteeriv - port 3000
+CMD ["node", "server.js"]        # Käivituskäsk
 ```
 
-#### Samm 3: Build ja Push
+**Miks see järjekord:**
+1. `COPY package.json` + `RUN npm install` eraldi kiht
+2. Docker cache'ib selle layer'i
+3. Kui muudad ainult `server.js`, ei pea uuesti npm install tegema
+4. Build on 10x kiirem!
+
+```bash
+nano Dockerfile
+# Kopeeri ülalolevat Dockerfile sisu
+```
+
+### 1.3 Build ja Push Docker Hub'i
+
+**Docker Hub setup:**
 ```bash
 # Docker Hub konto vaja!
 # Mine https://hub.docker.com → Sign Up
@@ -547,31 +600,40 @@ kodutoo/
 
 ---
 
-##  Refleksioon (kirjuta README.md lõppu)
+## Refleksioon
 
-Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele:
+Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmistele küsimustele (2-3 lauset igaühele):
 
-### Küsimused (vasta 2-3 lausega igaühele):
+### 1. Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?
 
-1. **Mis oli selle kodutöö juures kõige raskem ja kuidas sa selle lahendasid?**
-   - Näide: "Kõige raskem oli mõista, kuidas Kubernetes Services töötavad. Lugesin dokumentatsiooni ja kasutasin `kubectl describe` debugging'uks."
+**Näide vastusest:**  
+"Kõige raskem oli mõista Dockerfile layer caching'ut. Alguses Copy'sin kogu koodi esimesena ja npm install oli aeglane. Lugesin Docker dokumentatsiooni ja sain aru, et package.json peab olema eraldi layer. Nüüd build on 10x kiirem!"
 
-2. **Milline Kubernetes kontseptsioon oli sulle kõige suurem "ahaa!"-elamus ja miks?**
-   - Näide: "Deployments ja Pods! Nüüd saan aru, kuidas Kubernetes automaatselt pod'e taastab kui need crashivad."
+### 2. Milline kontseptsioon oli sulle kõige suurem "ahaa!"-elamus ja miks?
 
-3. **Kuidas saaksid Kubernetes'i kasutada oma teistes projektides või töös?**
-   - Näide: "Võiksin Kubernetes'iga käivitada oma mikroteenuste projekti ja skaleerida neid automaatselt."
+**Näide vastusest:**  
+"ConfigMap vs Docker Image! Esimest korda sain aru miks production'is ei kasutata ConfigMap'e koodile. Docker image on immutable ja versioonitud - saab rollback teha kui midagi läheb valesti."
 
-4. **Kui peaksid oma sõbrale selgitama, mis on Kubernetes ja miks see on kasulik, siis mida ütleksid?**
-   - Näide: "Kubernetes on nagu lennujuht – haldab tuhandeid container'eid ja tagab, et kõik töötab!"
+### 3. Kuidas saaksid seda tulevikus kasutada?
 
-5. **Mis oli selle projekti juures kõige lõbusam või huvitavam osa?**
-   - Näide: "Mulle meeldis scaling
-   - `kubectl scale --replicas=10` ja BAM, mul on 10 pod'i!"
+**Näide vastusest:**  
+"Võiksin oma mikroteenuste projektis kasutada sama pattern'i - kood Docker image'is, ConfigMap ainult config'ile. HPA oleks kasulik kui peaks Black Friday traffic'u käsitlema."
+
+### 4. Kui peaksid sõbrale selgitama, mis on Kubernetes ja miks see on kasulik, siis mida ütleksid?
+
+**Näide vastusest:**  
+"Kubernetes on nagu lennujuht - haldab tuhandeid konteinere ja tagab, et kõik töötab. Kui üks konteiner crashib, Kubernetes loob automaatselt uue. Nagu self-healing süsteem!"
+
+### 5. Mis oli selle projekti juures kõige lõbusam või huvitavam osa?
+
+**Näide vastusest:**  
+"Mulle meeldis HPA testimine! Tekitasin artificial load'i ja nägin kuidas Pod'id automaatselt skaleerusid 1 → 5. Dashboard'is oli näha real-time kuidas CPU kasutus kasvas ja Kubernetes reageeris."
+
+**Oluline:** Kirjuta oma sõnadega, mitte ei kopeeri näiteid!
 
 ---
 
-##  Kontrollnimekiri (enne esitamist)
+## Kontrollnimekiri
 
 **Kontrolli need asjad:**
 
@@ -591,7 +653,7 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-##  Hindamiskriteeriumid
+## Hindamiskriteeriumid
 
 | Kriteerium | Punktid | Kirjeldus |
 |------------|---------|-----------|
@@ -649,4 +711,4 @@ Lisa oma README.md faili lõppu peatükk **"## Refleksioon"** ja vasta järgmist
 
 ---
 
-**Edu ja head orkestreerimist!** 
+**Edu ja head orkestreerimist!**
