@@ -1,709 +1,1086 @@
-# Ansible
+# Ansible Alused
 
-**Eeldused:** Linux CLI põhitõed, SSH ühendused, YAML süntaksi alused  
-**Platvorm:** Ubuntu 24.04 (võib kasutada ka teisi Linux distributsioone)
+**Eeldused:** Linux CLI, SSH, teksteditor
 
----
+**Platvorm:** Ansible (agentless)
+
+**Dokumentatsioon:** [docs.ansible.com](https://docs.ansible.com/)
 
 ## Õpiväljundid
 
-Pärast seda moodulit oskate:
+Pärast seda loengut õpilane:
 
-- Selgitada, mis probleemi Ansible lahendab ja miks see on parem kui shell skriptid
-- Seadistada SSH ühendusi ja inventory faile mitme serveri jaoks
-- Kirjutada YAML süntaksiga playbook'e ja kasutada põhilisi mooduleid
-- Kasutada ad-hoc käske kiireks serverite haldamiseks
-- Rakendada idempotentsuse printsiipi ja best practices'eid
+- Selgitab miks käsitsi serverhaldus ei skaleeru ja kuidas automatiseerimine lahendab seda
+- Kirjeldab Ansible'i agentless arhitektuuri eeliseid ja piiranguid
+- Eristab push ja pull mudeleid ning põhjendab millal kumba kasutada
+- Mõistab idempotentsuse tähtsust ja tunneb ära idempotentseid operatsioone
+- Loeb inventory faile ja suudab kirjutada lihtsaid playbook'e
+- Käivitab ad-hoc käske kiireks testimiseks
 
 ---
 
-## 1. Mis on Ansible ja miks seda vaja?
+## 1. Probleem: Käsitsi Serverhaldus Ei Skaleeru
 
-Selles jaotises selgitame, millist probleemi Ansible lahendab ja miks on mõistlik automatiseerida. Fookus on lihtsal vaatel: mida Ansible teeb teisiti kui käsitsi skriptimine.
+![IT admin serverisaalis, käsitsi töö](https://www.pacw.org/wp-content/uploads/2024/11/Figure-14.jpg)
 
-**Ansible** on automatiseerimistööriist, mis laseb hallata mitmeid arvuteid korraga. Mõelge sellele nagu kaugjuhtimispuldile - ühest kohast saate kontrollida ja seadistada kümneid või sadu servereid. Kui tavaliselt peaksite iga serverisse eraldi SSH-ga sisse logima ja käske käsitsi sisestama, siis Ansible võimaldab sama toimingu teha kõikidel serveritel samaaegselt. See on erinevus, mis muudab ühe tunni töö viie minutiliseks.
+### Tüüpiline Esmaspäev
 
-### Miks Ansible on kasulik?
-
-Reaalsetes IT keskkondades on tavaliselt kümneid, sageli sadu servereid. Kui peate igasse serverisse käsitsi sisse logima ja konfiguratsioone tegema, kulub sellele tohutult aega. Veelgi hullem - käsitsi töö tähendab vigu. Unustate ühest serverist paketi paigaldamise, teise serverisse panete vale konfiguratsiooni. Ansible lahendab need probleemid:
-
-- **Aeg säästub**
-- ei pea iga serverisse eraldi sisse logima
-- **Vead vähenevad**
-- automatiseerimine vähendab käsitsi tehtavaid vigu
-- **Järjepidevus**
-- kõik serverid saavad sama konfiguratsiooni
-- **Skaleeritavus**
-- hõlpsalt lisada uusi servereid
-
-Ansible ei ole ainuke automatiseerimistööriist turul. Puppet, Chef ja SaltStack teevad sarnaseid asju. Kuid Ansible eristub oma lihtsuse poolest - te ei pea õppima uut programmeerimiskeelt ega paigaldama serveritesse agente.
-
-## 2. Kuidas Ansible töötab?
-
-Kõrgtasemel voog: **juhtarvuti** (control node) + **inventory** + **playbook** + SSH. Joonis allpool näitab, kuidas käsud liiguvad ning miks agentita lähenemine on lihtsam haldada.
-```mermaid
-graph LR
-    Control[ Control Node<br/>Teie arvuti<br/>Ansible installed]
-    Inv[ Inventory]
-    Play[ Playbook]
-    
-    S1[ Server 1<br/>web]
-    S2[ Server 2<br/>web]
-    S3[ Server 3<br/>db]
-    
-    Control --> Inv
-    Control --> Play
-    Control -->|SSH| S1
-    Control -->|SSH| S2
-    Control -->|SSH| S3
-    
-    style Control fill:#EE0000,color:#fff
-    style Inv fill:#f0f0f0
-    style Play fill:#f0f0f0
-    style S1 fill:#1a1a1a,color:#fff
-    style S2 fill:#1a1a1a,color:#fff
-    style S3 fill:#1a1a1a,color:#fff
+Kell 9:00 hommikul saate kollegi sõnumi: "Kriitilise turvavea parandus. Peame täna uuendama nginx'i kõikides veebiserveritest. Meil on 50 serverit."
+Te arvutate peas:
 ```
+50 serverit × 5 minutit = 250 minutit = 4+ tundi
+```
+Te hakkate tööle:
 
-Põhiprintsiibid:
-
-- **Agentless:** Ei pea serveritesse midagi installima (ainult SSH)
-- **Push model:** Control node lükkab konfiguratsiooni serveritesse
-- **Idempotent:** Sama käsk võib jooksutada mitu korda, tulemus on alati sama
-
-Ansible kasutab SSH ühendust (sama, mida tavaliselt kasutate serverisse sisselogimiseks). Erinevalt paljudest teistest tööriistadest ei pea serveritesse midagi täiendavat installima. See tähendab, et teil pole vaja hallata lisatarkvara uuendusi ega muretseda, kas agent-tarkvara on kõikides serverites samas versioonis.
-
-**Idempotentsus** on kriitiline kontseptsioon. See tähendab, et kui käivitate sama Ansible käsu kaks korda, siis teine kord midagi ei muutu. Näiteks kui käsite Ansible'il paigaldada nginx, siis esimesel korral paigaldatakse see. Teisel korral kontrollib Ansible, et nginx on juba olemas ja jätab selle sammu vahele. See erinevus muudab Ansible'i palju turvalisemaks kui tavalised shell skriptid, kus sama skripti kahekordne käivitamine võib süsteemi sassi ajada.
-
-## 3. Esimesed sammud
-
-Alustame kolme sammuga: paigaldus, SSH võtmed ja inventory. Pärast seda saame esimese pingi testiga kinnitada, et ühendus töötab.
-
-### 3.1. Ansible installimine
-
-Ubuntu/Debian:
 ```bash
-sudo apt update
-sudo apt install ansible
+ssh admin@web1.example.com
+sudo apt update && sudo apt upgrade nginx -y
+sudo systemctl restart nginx
+exit
+
+ssh admin@web2.example.com
+sudo apt update && sudo apt upgrade nginx -y
+sudo systemctl restart nginx
+exit
+
+# ... 48 serverit veel
 ```
 
-CentOS/RHEL:
+Kell 13:00 olete server 25 juures. Olete juba väsinud. Copy-paste hakkab segamini minema.
+Kell 14:30, server 37 - teete vea. Kirjutate `systemctl stop nginx` asemel `systemctl disable nginx`. Server ei tule peale rebooti enam üles.
+Kell 15:00 helistab CEO. Kliendid ei saa lehte avada. "Mis toimub?"
+
+Kell 18:00 olete lõpuks valmis. 9 tundi tööd. Olete läbipõlenud. Ja te ei ole 100% kindel kas kõik 50 serverit on täpselt samas seisus. See ei ole teie süü. Probleem on **meetodis**. Kui teil on rohkem kui 5-10 serverit, on käsitsi haldamine halb idee. Kui rohkem kui 20 serverit, on see võimatu idee.
+
+### Kuidas Peaks Olema?
+
+Ideaalis kirjutate ühe käsu:
+
 ```bash
-sudo yum install ansible
+ansible-playbook update-nginx.yml
+```
+3 minutit hiljem on kõik 50 serverit uuendatud. Identselt. Õigesti. Logitud.
+Kas see on ulme? Ei. See on Ansible.
+
+---
+
+## 2. Mis on Ansible?
+
+### Definitsioon
+
+Ansible on **automatiseerimisvahend** mis laseb teil hallata kümneid, sadu või tuhandeid servereid **nagu üht**. Te kirjeldate MIDA te tahate ja Ansible teeb selle teoks.
+
+Kujutlege kaugjuhtimispulti. Üks nupp, kõik televiisorid muudavad kanalit. Ansible on kaugjuhtimispult serveritele.
+
+### Kolm Põhiomadust
+
+#### 1. Agentless - Kasutab SSH-d
+
+![Agentless vs Agent-based architecture](https://www.aquasec.com/wp-content/uploads/2023/03/large-Agents-charts.jpg)
+
+**Agent-based lahendused** (Puppet, Chef):
+
+```
+[Teie arvuti] → [Master server] ← [Agent][Server1]
+                                 ← [Agent][Server2]
+                                 ← [Agent][Server3]
 ```
 
-Kontrollime installatsiooni:
+Igasse serverisse tuleb installida agent. Agent töötab taustal 24/7, küsib iga 15-30 min: "Kas on tööd?"
+
+**Ansible (agentless):**
+
+```
+[Teie arvuti] --SSH--> [Server1]
+              --SSH--> [Server2]
+              --SSH--> [Server3]
+```
+
+SSH on juba olemas. Python on juba olemas. Midagi täiendavat ei pea installima.
+
+**Miks see oluline?**
+
+| Omadus | Agent-based | Agentless (Ansible) |
+|--------|-------------|---------------------|
+| Setup | Pead agendi installima | SSH töötab kohe |
+| Ressursid | Agent kasutab RAM/CPU | Midagi ei tööta taustal |
+| Hooldus | Agent vajab uuendusi | SSH on OS osa |
+| Security | Veel üks rünnakupind | SSH on nagunii turvaline |
+| Latentsus | 0-30 min (pull) | 0 (kohe kui käivitad) |
+
+**Trade-off:** Ansible vajab SSH juurdepääsu. Kui serverid on tulemüüri taga või ei toeta SSH-d, on raskem. Agent-based lahendused töötavad seal paremini.
+
+#### 2. Push Model - Teie Otsustate Millal
+
+![Push vs Pull model comparison](https://miro.medium.com/v2/resize:fit:2000/format:webp/1*-chzBHbzBA1BbBQo7a-q3w.png)
+
+**Pull mudel** (Puppet, Chef):
+
+Agent küsib ise iga 30 minuti tagant. Kui te teete muudatuse, võib minna 0-30 minutit enne kui kõik serverid selle saavad.
+
+```
+09:00 - Te: "Turvaprobleem! Uuenda KOHE!"
+09:00 - Te muudate Puppet configi
+09:05 - Server1 küsib: "Kas tööd?" → Saab uuenduse
+09:15 - Server2 küsib → Saab uuenduse  
+09:28 - Server3 küsib → Saab uuenduse
+09:30 - Kõik uuendatud (30 min hiljem)
+```
+
+**Push mudel** (Ansible):
+
+Te käivitate käsu. Ansible avab SSH ühendused ja teeb töö KOHE.
+
+```
+09:00 - Te: "Turvaprobleem! Uuenda KOHE!"
+09:00 - ansible-playbook update.yml
+09:03 - Kõik 50 serverit uuendatud (3 min)
+```
+
+**Miks see oluline?**
+
+Kontroll. Teie otsustate TÄPSELT millal asjad juhtuvad:
+- Kriitilise parandus? Kohe.
+- Plaaniline muudatus? Kell 2 öösel maintenance window ajal.
+- Testimine? Ainult dev serverites.
+
+**Trade-off:** Peate käsu käivitama. Pull mudel töötab "iseenesest" - kui server lükatakse tagasi pärast krahhi, agent taastab konfiguratsiooni automaatselt. Ansible'iga peate te midagi tegema (või seadistama cron job'i).
+
+#### 3. Idempotent - Turvaline Käivitada Mitu Korda
+
+![Idempotent vs non-idempotent operations](https://media.licdn.com/dms/image/v2/D5612AQEp3iL1Zn9Czg/article-inline_image-shrink_1000_1488/article-inline_image-shrink_1000_1488/0/1718953580431?e=2147483647&v=beta&t=CDRoZci-6-ezcoShpWvtnwk8bhxHM3oO9hgE84ngg8k)
+
+**Idempotentsus** tähendab: kui käivitate sama käsu 100 korda, on tulemus sama nagu 1 kord.
+
+**Ei-idempotent shell script:**
+
 ```bash
-ansible --version
+echo "port 8080" >> config.txt
 ```
 
-Peaksite nägema versiooni infot ja Python teed. Kui näete veateadet, kontrollige, kas pakett paigaldus õnnestus.
+- 1. kord: lisab "port 8080"
+- 2. kord: lisab veel "port 8080" 
+- 10. kord: 10 rida "port 8080"
 
-### 3.2. SSH võtmete seadistamine
+Fail rikutud. Probleem.
 
-Enne Ansible kasutamist peate seadistama SSH võtmed, et saaksite serveritesse sisse logida ilma parooli küsimiseta. SSH võtmete kasutamine on mitte ainult mugavam, vaid ka turvalisem kui paroolide kasutamine, sest võtmeid on praktiliselt võimatu ära arvata. Lisaks säästab see teilt vajadust sisestada parooli iga kord, kui Ansible serveritega ühendub - automatiseerimisel võib see tähendada sadu ühendusi päevas.
+**Idempotent Ansible:**
 
-Võtme genereerimine:
+```yaml
+- lineinfile:
+    path: config.txt
+    line: "port 8080"
+```
+
+- 1. kord: Ansible vaatab → rida puudub → lisab
+- 2. kord: Ansible vaatab → rida on olemas → ei tee midagi
+- 10. kord: Ansible vaatab → rida on olemas → ei tee midagi
+Failis on ALATI täpselt üks rida.
+
+**Miks see NII oluline?**
+Ohutu. Võite playbook'i käivitada nii palju kordi kui tahate:
+- Testimine? Käivita 5 korda dev'is
+- Midagi läks valesti? Käivita uuesti
+- Kas kõik õige? Käivita kontrolliks
+Ansible kontrollib alati: "Kas see on juba õige?" Kui jah → ei puutu. Kui ei → parandab.
+
+---
+
+## 3. Lühike Ajalugu: Kuidas Siia Jõudsime?
+
+### 1990-2000: Käsitsi + Füüsiliselt
+IT admin läks **füüsiliselt** serveri juurde, ühendas klaviatuuri ja ekraani, logi sisse. Firmal oli 5-10 serverit. Muudatused harva - kord kuus. See toimis. Aga Iga server muutus ajapikku erinevaks. Dokumentatsiooni ei olnud. Kõik teadmised IT admini peas.
+
+### 2000-2005: SSH + Shell Skriptid
+Servereid rohkem (50-100). SSH võimaldas kaugühendust. Inimesed kirjutasid shell skripte:
+
 ```bash
-ssh-keygen -t ed25519 -f ~/.ssh/ansible_key
+for server in server1 server2 server3; do
+  ssh admin@$server "apt update && apt install nginx"
+done
+```
+Skriptid ei olnud nutikad. Üritasid iga kord installida ka kui juba olemas. Vead ei käsitlenud.
+
+### 2005-2009: Puppet ja Chef
+![Puppet ja Chef logod](https://media.licdn.com/dms/image/v2/D4D12AQFhrjy0ozGShQ/article-cover_image-shrink_600_2000/article-cover_image-shrink_600_2000/0/1690917230934?e=2147483647&v=beta&t=5yNZoMKZbOz-vJ9ENMP6DduR8Yywb1Utls07ajfRz8s)
+
+Esimesed professionaalsed automatiseerimisvahendid. Deklaratiivne süntaks, nutikad, võimsad. Kasutasid agente (keeruline setup), oma keelt (uuesti õppida), pull mudelit (latentsus).
+
+### 2012: Ansible
+![Michael DeHaan (Ansible looja)](https://image.slidesharecdn.com/devopswithansible-170120102347/75/DevOps-with-Ansible-4-2048.jpg)
+
+Michael DeHaan (ex-Puppet insineer) mõtles: "Miks nii keeruline? SSH on juba olemas. Python on juba olemas. Kasutame neid."
+Lõi Ansible:
+- Agentless (SSH)
+- Push-based (kohe)
+- YAML (lihtne)
+- Tasuta
+  
+2015: Red Hat ostis 150M dollariga
+2019: IBM ostis Red Hati (34B), seega ka Ansible'i
+
+**Täna:** ~70% DevOps meeskondadest kasutab Ansible't. De facto standard.
+
+---
+
+## 4. Kuidas Ansible Töötab? Arhitektuur
+
+### Control Node ja Managed Nodes
+
+```
+┌─────────────────┐
+│  Control Node   │  ← Teie arvuti (kus Ansible on)
+│  (Ansible CLI)  │
+└────────┬────────┘
+         │ SSH
+    ┌────┼────┬─────────┐
+    │    │    │         │
+┌───▼┐ ┌─▼──┐ ┌▼───┐ ┌─▼──┐
+│ S1 │ │ S2 │ │ S3 │ │ S4 │  ← Managed nodes (serverid)
+└────┘ └────┘ └────┘ └────┘
 ```
 
-Vajutage Enter kõikidele küsimustele (passphrase võite jätta tühjaks testimise ajaks, produktsioonis kasutage passphrase'i).
+**Control node:** Masin kus Ansible on installitud. Tavaliselt teie lauaarvuti või jumpbox.
 
-Võtme kopeerimine serverisse:
-```bash
-ssh-copy-id -i ~/.ssh/ansible_key.pub kasutaja@server.ip
+**Managed nodes:** Serverid mida te haldate. Seal EI PEA Ansible't olema.
+
+### Täpne Töövoog
+
+![Ansible execution steps](https://toptechtips.github.io/img/ansible-parallel/default.png)
+
+Kui te käivitate `ansible-playbook install-nginx.yml`:
+
+**1. Ansible loeb playbook faili**
+```yaml
+- name: Install nginx
+  hosts: webservers
+  tasks:
+    - apt: name=nginx state=present
 ```
 
-Testimine:
-```bash
-ssh -i ~/.ssh/ansible_key kasutaja@server.ip
-```
+**2. Ansible loeb inventory faili**
 
-Kui saate sisse logida ilma parooli küsimiseta, on SSH võtmed õigesti seadistatud.
+Vaatab: kelle IP aadressid on `webservers` grupis?
 
-### 3.3. Inventory faili loomine
-
-**Inventory** fail ütleb Ansible'ile, millised serverid teil on. Looge fail nimega `inventory`. Gruppide kasutamine inventory failis on oluline, sest sageli soovite teha erinevaid toiminguid erinevat tüüpi serveritele - näiteks veebiserveritest ja andmebaasidest.
 ```ini
 [webservers]
-web1.example.com
-web2.example.com
+web1 ansible_host=10.0.0.10
+web2 ansible_host=10.0.0.11
+```
+
+**3. Ansible avab SSH ühendused**
+
+Vaikimisi 5 paralleelselt. Kiiresti - 50 serverit = ~10 batch'i.
+
+**4. Gathering Facts**
+
+**EI ALUSTA** kohe muutmisega! Esimene asi: kogub info:
+- Mis OS? Ubuntu 22.04
+- Mis Python? 3.10
+- Kas nginx installitud? Ei
+- RAM? 4GB
+- IP? 10.0.0.10
+
+**5. Võrdleb: soovitud vs tegelik**
+
+Playbook ütleb: `nginx state=present`
+Facts ütlevad: nginx puudub
+
+Järeldus: tuleb installida.
+
+**6. Genereerib ja saadab Python mooduli**
+
+Ansible võtab `apt` mooduli, teeb väikese Python skripti, saadab SSH üle serverisse.
+
+**7. Server käivitab skripti**
+
+Python skript käivitab `apt-get install nginx`, vaatab tulemust, saadab tagasi.
+
+**8. SSH ühendus suletakse**
+
+Töö tehtud. Midagi ei jää taustal tööle.
+
+**9. Ansible näitab tulemust**
+
+```
+TASK [Install nginx]
+changed: [web1]
+ok: [web2]
+```
+
+`changed` = muutis midagi
+`ok` = oli juba õige
+
+### Miks See On Geniaalne?
+
+- **Ei jäta jälgi.** Server ei tea et Ansible oli seal. Lihtsalt käivitus Python skript ja sai valmis.
+- **Minimaalne koormus.** Server ei tee midagi kui Ansible't ei käivitata.
+- **Turvaline.** SSH on tuntud, testitud, turvaline protokoll.
+- **Lihtne debug.** Kui midagi läheb valesti, võite käsitsi SSH'ga sisse minna ja vaadata.
+
+---
+
+## 5. Kolm Komponenti: Inventory, Ad-hoc, Playbooks
+
+### 5.1 Inventory - Kellele Käske Saatma?
+
+![Inventory file structure](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*Ywp-CLRXKEGiRyvFCqRQUw.png)
+
+Inventory on fail kus on **kõikide serverite nimekiri**.
+
+**Lihtne inventory (INI formaat):**
+
+```ini
+[webservers]
+web1 ansible_host=10.0.0.10 ansible_user=ubuntu
+web2 ansible_host=10.0.0.11 ansible_user=ubuntu
 
 [databases]
-db1.example.com
+db1 ansible_host=10.0.0.20 ansible_user=admin
+db2 ansible_host=10.0.0.21 ansible_user=admin
+
+[all:vars]
+ansible_ssh_private_key_file=~/.ssh/id_rsa
 ```
 
-Inventory formaat on INI fail. Kandilised sulud tähistavad gruppe. Grupid lasevad teil käske suunata ainult teatud tüüpi serveritele. Näiteks saate käsu käivitada ainult andmebaasidele ilma, et see mõjutaks veebiserveid.
+**Komponendid:**
 
-### 3.4. Esimene test
+`[webservers]` - Grupi nimi. Võite nimetada kuidas tahate.
 
-Kontrollige, kas Ansible saab serveritega ühendust:
+`web1` - Alias. Mugav nimi mida kasutate käskudes.
+
+`ansible_host=10.0.0.10` - Tegelik IP või hostname.
+
+`ansible_user=ubuntu` - Millisesse kasutajasse sisse logida.
+
+`[all:vars]` - Muutujad mis kehtivad KÕIGILE serveritele.
+
+**Miks grupid?**
+
+Suunamine. Erinevad käsud erinevatele serveritele:
+
 ```bash
-ansible all -i inventory -m ping
+ansible webservers -m service -a "name=nginx state=restarted"
+ansible databases -m service -a "name=mysql state=restarted"
 ```
 
-Kui kõik töötab, peaksite nägema midagi sellist:
+**Pesastatud grupid:**
+
+```ini
+[ubuntu]
+web1 ansible_host=10.0.0.10
+web2 ansible_host=10.0.0.11
+
+[alma]
+db1 ansible_host=10.0.0.20
+db2 ansible_host=10.0.0.21
+
+[webservers:children]
+ubuntu
+
+[databases:children]
+alma
 ```
-web1.example.com | SUCCESS => {
-    "changed": false,
-    "ping": "pong"
-}
+
+`:children` tähendab et see grupp sisaldab teisi gruppe.
+
+Nüüd võite teha:
+- `ansible ubuntu -m apt -a "update_cache=yes"` ← ainult Ubuntu serverid
+- `ansible webservers ...` ← kõik veebiservid (mis juhuvad Ubuntu's olema)
+
+**Grupimuutujad:**
+
+```ini
+[webservers:vars]
+nginx_port=80
+ssl_enabled=true
 ```
 
-Kui näete "UNREACHABLE" või "FAILED", kontrollige:
+Playbook'is saate kasutada `{{ nginx_port }}` → asendub 80-ga.
 
-- Kas SSH võti on õigesti kopeeritud
-- Kas serveri IP aadress on õige
-- Kas SSH teenus töötab sihtserveris
+### 5.2 Ad-hoc Käsud - Kiired Testid
 
-## 4. Ansible käsurida
+![Ad-hoc command examples](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*GJP11bPQkG5ng30X-8wTDw.png)
 
-Ansible CLI võimaldab käivitada üksikuid käske (ad-hoc) või kogu playbook'i. Allpool on struktuur ja sagedasemad lipud, mida igapäevaselt vaja läheb.
+Ad-hoc = "selleks korraks". Ühekordsed käsud ilma playbook'i kirjutamata.
 
-### 4.1. Ansible käskude struktuur
+**Struktuur:**
 
-Kõik Ansible käsud järgivad sama mustrit:
 ```bash
-ansible <sihtmärk> -i <inventory> -m <moodul> -a "<argumendid>" [lisaoptsioonid]
+ansible <target> -m <module> -a "<arguments>"
 ```
 
-Komponentide selgitus:
+**Näited:**
 
-- `<sihtmärk>`
-- millised serverid (all, webservers, konkreetne server)
-- `-i <inventory>`
-- inventory faili asukoht
-- `-m <moodul>`
-- millist moodulit kasutada
-- `-a "<argumendid>"`
-- mooduli parameetrid
-- `[lisaoptsioonid]` - täiendavad seadistused
+**1. Ping - kas ühendus töötab?**
 
-### 4.2. Kiired ühekordsed käsud (ad-hoc)
-
-**Ad-hoc** käsud on mõeldud kiireks testimiseks ja ühekordseks tööks, mida pole mõtet playbook'i kirjutada. Need on ideaalsed, kui vajate kiiresti kontrollida serverite seisundit või teha väikest muudatust, mida te kunagi enam ei vaja.
-
-Kõikide serverite uptime:
 ```bash
-ansible all -i inventory -m command -a "uptime"
+ansible all -m ping
 ```
 
-Paketi installimine:
+Väljund:
+```
+web1 | SUCCESS => {"ping": "pong"}
+web2 | SUCCESS => {"ping": "pong"}
+```
+
+See ei ole ICMP ping. See kontrollib: SSH töötab? Python olemas? Ansible saab käske käivitada?
+
+**2. Käsu käivitamine:**
+
 ```bash
-ansible webservers -i inventory -m package -a "name=nginx state=present" --become
+ansible all -m command -a "uptime"
 ```
 
-Teenuse käivitamine:
+Väljund:
+```
+web1 | CHANGED | rc=0 >>
+ 14:30:15 up 2 days,  5:23,  1 user
+
+web2 | CHANGED | rc=0 >>
+ 14:30:15 up 5 days, 12:45,  2 users
+```
+
+`rc=0` = return code 0 = õnnestus.
+
+**3. Paketi paigaldamine:**
+
 ```bash
-ansible webservers -i inventory -m service -a "name=nginx state=started" --become
+ansible webservers -m apt -a "name=htop state=present" --become
 ```
 
-Faili kopeerimine:
+`--become` = sudo. Paljud toimingud vajavad admin õigusi.
+
+**4. Teenuse restart:**
+
 ```bash
-ansible all -i inventory -m copy -a "src=config.txt dest=/tmp/"
+ansible webservers -m service -a "name=nginx state=restarted" --become
 ```
 
-Mälu kasutuse kontroll:
+**5. Faili kopeerimine:**
+
 ```bash
-ansible all -i inventory -m shell -a "free -h"
+ansible all -m copy -a "src=test.txt dest=/tmp/test.txt"
 ```
 
-Kettaruumi kontroll:
-```bash
-ansible all -i inventory -m shell -a "df -h"
-```
+**Millal kasutada ad-hoc käske?**
 
-Konkreetse serveriga töötamine:
-```bash
-ansible web1.example.com -i inventory -m ping
-```
+- Kiire test: kas serverid on üleval?
+- Info kogumine: kas nginx on installitud?
+- Ühekordsed asjad: restart teenust, kopeeri fail
 
-Mitme grupi valimine:
-```bash
-ansible webservers:databases -i inventory -m command -a "hostname"
-```
+**Millal EI kasuta?**
 
-Grupi välistamine:
-```bash
-ansible all:!databases -i inventory -m ping
-```
+Kui teete midagi keerukat või korratavat → kirjutage playbook.
 
-### 4.3. Olulised käsurea võtmed
+### 5.3 Playbooks - Automatiseeritud Töövood
 
-Admin õigused (sudo):
-```bash
---become
-```
+![Simple playbook structure](https://hkrtrainings.com/storage/photos/843/Playbook%20structure.png)
 
-Verbose väljund (rohkem infot):
-```bash
--v, -vv, -vvv
-```
+Playbook on YAML fail kus on **ülesannete jada**. See on põhiline viis kuidas Ansible'iga töötada.
 
-Kuiv käivitamine (muudatusi ei tehta):
-```bash
---check
-```
+**Lihtne playbook:**
 
-Muudatuste eelvaade:
-```bash
---diff
-```
-
-Paralleelsuse piiramine:
-```bash
---forks 5
-```
-
-Sudo parooli küsimine:
-```bash
---ask-become-pass
-```
-
-Konkreetsete serverite piiramine:
-```bash
---limit web1,web2
-```
-
-Muutujate edastamine:
-```bash
--e "variable=value"
-```
-
-Märkused:
-
-- `--become` kasutage siis, kui vajate admin õigusi (sudo)
-- `-i inventory` määrab, millist inventory faili kasutada
-- `command` vs `shell`
-- command on turvalisem, shell lubab pipe'e ja redirection'i
-
-### 4.4. Kasulikud moodulid algajatele
-
-| Moodul | Otstarve | Näide |
-|--------|----------|-------|
-| `ping` | Ühenduse test | `ansible all -m ping` |
-| `command` | Käsu käivitamine | `ansible all -m command -a "date"` |
-| `package` | Tarkvara paigaldus | `ansible all -m package -a "name=vim state=present"` |
-| `service` | Teenuste haldamine | `ansible all -m service -a "name=nginx state=started"` |
-| `copy` | Failide kopeerimine | `ansible all -m copy -a "src=file.txt dest=/tmp/"` |
-| `file` | Failide ja kaustade haldamine | `ansible all -m file -a "path=/tmp/test state=directory"` |
-
-## 5. Playbook'id - korduv automatiseerimine
-
-Kui soovite teha keerulisemaid asju või salvestada oma käsud tulevikuks, kasutage playbook'e. Need on YAML failid, mis kirjeldavad, mida teha. Playbook'id on nagu retseptid - kirjutate üks kord, käivitate mitu korda. Erinevalt ad-hoc käskudest saate playbook'ides kasutada keerulisemat loogikat, muutujaid ja tingimusi.
-```mermaid
-sequenceDiagram
-    participant User
-    participant Ansible
-    participant Server1
-    participant Server2
-    
-    User->>Ansible: ansible-playbook webserver.yml
-    Ansible->>Ansible: Read playbook
-    Ansible->>Ansible: Parse inventory
-    
-    Ansible->>Server1: Connect via SSH
-    Ansible->>Server1: Gather facts
-    Ansible->>Server1: Task 1: Install nginx
-    Server1-->>Ansible: Changed
-    Ansible->>Server1: Task 2: Start nginx
-    Server1-->>Ansible: OK
-    
-    Ansible->>Server2: Connect via SSH
-    Ansible->>Server2: Gather facts
-    Ansible->>Server2: Task 1: Install nginx
-    Server2-->>Ansible: Changed
-    Ansible->>Server2: Task 2: Start nginx
-    Server2-->>Ansible: OK
-    
-    Ansible-->>User: PLAY RECAP: 2 ok, 2 changed
-```
-
-### 5.1. Lihtne playbook näide
-
-Looge fail `webserver.yml`:
 ```yaml
 ---
-- name: Veebiserveri seadistamine
+- name: Install and start nginx
   hosts: webservers
   become: yes
   
   tasks:
-
-    - name: Nginx installimine
-      package:
+    - name: Install nginx package
+      apt:
         name: nginx
         state: present
     
-    - name: Nginx käivitamine
+    - name: Ensure nginx is running
       service:
         name: nginx
         state: started
         enabled: yes
-    
-    - name: Tulemüüri port avamine
-      ufw:
-        rule: allow
-        port: 80
 ```
 
-Playbook'i käivitamine:
+**Lahti seletatult:**
+
+`---` - YAML dokumendi algus (standard).
+
+`- name: Install and start nginx` - Play'i nimi. Inimestele, Ansible ei kasuta.
+
+`hosts: webservers` - Kus see play jookseb? Kõik `webservers` grupis.
+
+`become: yes` - Kasuta sudo õigusi.
+
+`tasks:` - Ülesannete loend.
+
+**Esimene task:**
+
+`name: Install nginx package` - Task'i kirjeldus. Näed ekraanil kui käivitad.
+
+`apt:` - Mooduli nimi. Debian/Ubuntu paketihaldur.
+
+`name: nginx` - Paketi nimi.
+
+`state: present` - Soovitud olek. "Present" = peab olemas olema.
+
+**Teine task:**
+
+`service:` - Teenuste haldamise moodul.
+
+`state: started` - Peab töötama.
+
+`enabled: yes` - Peab käivituma boot'imisel.
+
+**Käivitamine:**
+
 ```bash
-ansible-playbook -i inventory webserver.yml
+ansible-playbook -i inventory.ini install-nginx.yml
 ```
 
-Väljund näitab iga taski tulemust:
+**Väljund:**
 
-- `ok`
-- task käivitati, kuid midagi ei muutunud
-- `changed`
-- task tegi muudatuse
-- `failed`
-- task ebaõnnestus
+```
+PLAY [Install and start nginx] ***************
 
-### 5.2. YAML süntaksi põhitõed
+TASK [Gathering Facts] ***********************
+ok: [web1]
+ok: [web2]
 
-YAML (YAML Ain't Markup Language) on inimloetav andmete serialiseerimise formaat. Ansible kasutab YAML-i, sest see on lihtsam lugeda kui JSON või XML.
+TASK [Install nginx package] *****************
+changed: [web1]
+ok: [web2]
 
-Olulised reeglid:
+TASK [Ensure nginx is running] ***************
+changed: [web1]
+ok: [web2]
 
-- Taandrid on olulised (kasutage tühikuid, mitte tab'e)
-- Loendid algavad `-` märgiga
-- Võti-väärtus paarid eraldatakse `:` märgiga
-```yaml
-# Kommentaar
-muutuja: väärtus
-loend:
-
-  - esimene_element
-  - teine_element
-objekt:
-  alamvõti: alamväärtus
+PLAY RECAP ***********************************
+web1    : ok=3    changed=2
+web2    : ok=3    changed=0
 ```
 
-Tüüpilised vead:
+`changed=2` - web1 muudeti (nginx paigaldati + käivitati)
+`changed=0` - web2 oli juba õige
 
-- Tab'ide kasutamine (kasutage alati 2 tühikut)
-- Vale taanduse tase
-- Puuduvad koolonid
+**Idempotentsus praktikas:**
 
-## 6. Muutujate kasutamine
+```bash
+ansible-playbook install-nginx.yml  # 1. kord → changed
+ansible-playbook install-nginx.yml  # 2. kord → ok (ei muuda)
+ansible-playbook install-nginx.yml  # 3. kord → ok (ei muuda)
+```
 
-Ansible'is saate kasutada muutujaid, et teha playbook'id paindlikumaks. Muutujad võimaldavad teil kirjutada ühe playbook'i, mis töötab erinevates keskkondades või erinevate konfiguratsioonidega, muutes ainult muutujate väärtusi.
+Turvaline käivitada mitu korda!
+
+**Keerulisem näide - muutujatega:**
+
 ```yaml
 ---
-- name: Rakenduse paigaldus
+- name: Configure webserver
   hosts: webservers
+  become: yes
+  
   vars:
-    app_name: "myapp"
-    app_port: 8080
-    app_user: "appuser"
+    nginx_port: 8080
+    server_name: example.com
   
   tasks:
-
-    - name: "Kasutaja {{ app_user }} loomine"
-      user:
-        name: "{{ app_user }}"
-        shell: /bin/bash
-    
-    - name: "Rakendus {{ app_name }} paigaldamine"
-      package:
-        name: "{{ app_name }}"
+    - name: Install nginx
+      apt:
+        name: nginx
         state: present
-```
-
-Muutujate kasutamine playbook'is toimub Jinja2 template süntaksiga: `{{ muutuja_nimi }}`. See võimaldab dünaamilist sisu genereerimist.
-
-### 6.1. Muutujate allikad
-
-Käsurealt muutuja edastamine:
-```bash
-ansible-playbook -e "app_version=2.0" playbook.yml
-```
-
-Inventory failis:
-```ini
-[webservers]
-web1.example.com app_port=8080
-web2.example.com app_port=9080
-```
-
-Eraldi muutujate fail:
-```yaml
-# vars.yml
-app_name: myapp
-app_port: 8080
-```
-
-Kasutamine playbook'is:
-```yaml
-- name: Rakendus
-  hosts: webservers
-  vars_files:
-
-    - vars.yml
-```
-
-## 7. Handlers - reageerides muudatustele
-
-**Handlers** käivitatakse ainult siis, kui midagi tõesti muutub. See on oluline, sest teenuste taaskäivitamine on kulukas operatsioon - te ei taha nginx'i restartidata, kui konfiguratsioon ei muutunud. Handlers käivitatakse alati playbook'i lõpus pärast kõiki taske, isegi kui mitmed taskid sama handlerit kutsuvad.
-```yaml
-tasks:
-
-  - name: Nginx konfiguratsiooni uuendamine
-    copy:
-      src: nginx.conf
-      dest: /etc/nginx/nginx.conf
-    notify: restart nginx
     
-  - name: SSL sertifikaadi lisamine  
-    copy:
-      src: cert.pem
-      dest: /etc/ssl/cert.pem
-    notify: restart nginx
-
-handlers:
-
-  - name: restart nginx
-    service:
-      name: nginx
-      state: restarted
-```
-
-Oluline punkt: kui kaks taski kutsuvad sama handlerit, siis handler käivitatakse ainult üks kord. See tähendab, et nginx restarditakse ainult üks kord pärast kõiki muudatusi, mitte iga taski järel eraldi.
-
-## 8. Tingimused ja tsüklid
-
-### 8.1. When tingimused
-
-Tingimused lasevad teil käivitada taske ainult teatud tingimustel. See on kasulik, kui erinevad operatsioonisüsteemid vajavad erinevaid käske.
-```yaml
-tasks:
-
-  - name: Ubuntu paketid
-    package:
-      name: ufw
-      state: present
-    when: ansible_distribution == "Ubuntu"
-    
-  - name: CentOS paketid  
-    package:
-      name: firewalld
-      state: present
-    when: ansible_distribution == "CentOS"
-```
-
-Tingimused võivad kasutada:
-
-- Võrdlusoperaatoreid: `==`, `!=`, `<`, `>`
-- Loogilisi operaatoreid: `and`, `or`, `not`
-- Muutujate olemasolu: `when: variable is defined`
-
-### 8.2. Loop tsüklid
-
-Tsüklid lasevad teil sama taski käivitada mitme elemendiga. See vältib koodi kordamist.
-```yaml
-tasks:
-
-  - name: Mitme paketi installimine
-    package:
-      name: "{{ item }}"
-      state: present
-    loop:
-
-      - vim
-      - git
-      - curl
-      - wget
-```
-
-Ilma tsüklita peaks kirjutama neli eraldi taski. Tsükkel muudab koodi lühemaks ja hõlpsamini hooldatavaks.
-
-## 9. Faktide kasutamine
-
-Ansible kogub automaatselt infot serverite kohta igal käivitamisel. Need **faktid** on nagu serveri "pass", mis sisaldab kõiki olulisi andmeid. Faktide kogumine toimub iga playbook'i käivitamisel automaatselt ning see võtab mõne sekundi - see on põhjus, miks näete "Gathering Facts" sammu iga playbook'i alguses.
-
-Kõigi faktide vaatamine (väga palju infot!):
-```bash
-ansible all -m setup
-```
-
-Ainult võrgu info (filtreerimine on oluline):
-```bash
-ansible all -m setup -a "filter=ansible_default_ipv4"
-```
-
-OS distributsioon ja versioon:
-```bash
-ansible all -m setup -a "filter=ansible_distribution*"
-```
-
-Mälu info megabaitides:
-```bash
-ansible all -m setup -a "filter=ansible_memory_mb"
-```
-
-CPU info:
-```bash
-ansible all -m setup -a "filter=ansible_processor*"
-```
-
-### 9.1. Kasulikumad faktid
-
-- `ansible_hostname`
-- serveri nimi
-- `ansible_default_ipv4.address`
-- IP aadress
-- `ansible_distribution`
-- OS (Ubuntu, CentOS, Debian)
-- `ansible_distribution_version`
-- OS versioon (20.04, 7, jne)
-- `ansible_memtotal_mb`
-- kogu RAM megabaitides
-- `ansible_processor_cores`
-- CPU tuumade arv
-
-### 9.2. Faktide kasutamine playbook'is
-```yaml
-tasks:
-
-  - name: "Serveri {{ ansible_hostname }} seadistamine"
-    debug:
-      msg: "Seadistan {{ ansible_distribution }} {{ ansible_distribution_version }} serverit IP-ga {{ ansible_default_ipv4.address }}"
+    - name: Copy nginx config from template
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/sites-available/default
+      notify: restart nginx
   
-  - name: Suur mälu
-  - paigaldan vahemälu
-    package:
-      name: memcached
-      state: present
-    when: ansible_memtotal_mb > 4096
-
-  - name: Logi faili asukohad erinevates OS'ides
-    file:
-      path: "{{ log_path }}"
-      state: directory
-    vars:
-      log_path: "{{ '/var/log/myapp' if ansible_os_family == 'Debian' else '/var/log/messages' }}"
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
 ```
 
-Faktid teevad playbook'id intelligentsemaks. Te ei pea käsitsi määrama, milline OS serveris on - Ansible leiab selle automaatselt ja kasutab õigeid käske.
+**Uued elemendid:**
 
-## 10. Ansible.cfg konfigureerimine
+`vars:` - Muutujate määramine. Saab kasutada `{{ nginx_port }}` playbook'is.
 
-Ansible.cfg fail määrab, kuidas Ansible käitub. See on nagu Ansible'i seadistuste fail, mis säästab teilt vajadust iga kord lisaparameetreid kirjutada. Ilma selle failita peaksite iga käsu juurde kirjutama `-i inventory`, `--become` ja teisi parameetreid - konfiguratsioonifail automatiseerib selle.
+`template:` - Moodul mis loob faili template'ist. Template võib sisaldada muutujaid.
 
-Looge projekti kausta fail `ansible.cfg`:
-```ini
-[defaults]
-# Kus asub inventory (vaikimisi ./inventory)
-inventory = inventory
+`notify: restart nginx` - Kui see task muudab midagi, siis **käivita handler**.
 
-# SSH host key kontroll välja lülitatud
-host_key_checking = False
-
-# Vaikimisi kasutaja kõigil serveritel
-remote_user = ubuntu
-
-# SSH privaatvõtme asukoht
-private_key_file = ~/.ssh/ansible_key
-
-# Logi fail
-log_path = ./ansible.log
-
-# Paralleelsus - mitu serverit samaaegselt
-forks = 10
-
-# Ühenduse timeout sekundites
-timeout = 30
-
-[privilege_escalation]
-# Automaatselt kasuta sudo kõikidel käskudel
-become = True
-become_method = sudo
-become_user = root
-
-[ssh_connection]
-# SSH ühenduste optimeerimine
-ssh_args = -o ControlMaster=auto -o ControlPersist=60s
-pipelining = True
-retries = 3
-```
-
-Konfiguratsiooni otsingu järjekord:
-
-1. `ANSIBLE_CONFIG` keskkonna muutuja
-2. `ansible.cfg` praeguses kaustas (soovitatud)
-3. `~/.ansible.cfg` teie kodukaustas
-4. `/etc/ansible/ansible.cfg` süsteemselt
-
-Konfiguratsiooni kontroll:
-```bash
-# Vaata mis konfiguratsioon on kasutusel
-ansible-config view
-
-# Kõik võimalikud seadistused
-ansible-config dump
-```
-
-## 11. Tüüpilised vead ja lahendused
-
-### 11.1. SSH ühenduse probleem
-```
-Permission denied (publickey)
-```
-
-Lahendus: Kontrollige SSH võtmete seadistust ja ansible.cfg. Kõige sagedamini tuleb see viga siis, kui Ansible kasutab valet SSH võtit või õiget võtit pole serverisse kopeeritud.
-
-### 11.2. Sudo parool küsitakse
-```
-sudo: a password is required
-```
-
-Lahendus: Lisage `--ask-become-pass` või seadistage passwordless sudo. Ansible eeldab vaikimisi, et sudo ei küsi parooli, mis on tavaline produktsiooniserverites.
-
-### 11.3. Python puudub
-```
-/usr/bin/python: not found
-```
-
-Lahendus: Installige Python või lisa inventory faili:
-```ini
-[webservers]
-server1 ansible_python_interpreter=/usr/bin/python3
-```
-
-### 11.4. Idempotency rikutud
-```
-changed: [server] (item=command_that_always_runs)
-```
-
-Lahendus:
-
-- Kasutage `creates` või `removes` parameetreid. Idempotentsus tähendab, et kui käivitate sama playbook'i mitu korda, siis pärast esimest korda ei peaks midagi enam muutuma
-- see on oluline, et vältida soovimatud muudatused.
-```yaml
-- name: Käsk mis peaks ainult üks kord käima
-  command: /opt/install.sh
-  args:
-    creates: /opt/installed.flag
-```
-
-## 12. Järgmised sammud
-
-Kui olete põhitõed selgeks saanud, järgmised teemad:
-
-1. **Õppige rohkem mooduleid** - vaadake Ansible dokumentatsiooni
-2. **Kasutage rolle** - korduvkasutatavad playbook'i osad
-3. **Vault** - paroolide ja tundliku info turvaliseks hoidmiseks
-4. **Templates** - konfiguratsioonifailide dünaamiliseks genereerimiseks
-
-Kasulikud ressursid:
-
-- Ansible ametlik dokumentatsioon: https://docs.ansible.com/
-- Ansible Galaxy: valmis rollide kogumik
-- Ansible lint: playbook'ide kvaliteedi kontrollimiseks
+`handlers:` - Spetsiaalsed task'id mis käivituvad AINULT kui neid "notifyatakse". Kasutatakse teenuste restartimiseks - ei taha ju iga kord restartida, ainult kui config muutus.
 
 ---
 
-Meeldetuletus: Alustage väiksest! Proovige esmalt ühe serveriga, seejärel laiendage rohkematele.
+## 6. YAML Põhitõed
+
+![YAML syntax examples](https://thedeveloperstory.com/wp-content/uploads/2021/12/yaml-syntax.png)
+
+YAML = "YAML Ain't Markup Language". Struktureeritud andmeformaat. Inimloetav.
+
+### Võti-Väärtus Paarid
+
+```yaml
+name: nginx
+port: 80
+enabled: true
+```
+
+**KRIITILINE:** Pärast koolonit `:` PEAB olema tühik!
+
+```yaml
+name:nginx     # VALE
+name: nginx    # ÕIGE
+```
+
+### Loendid
+
+```yaml
+packages:
+  - nginx
+  - php
+  - mysql
+```
+
+Kriipsuga `-` algavad read on loendi elemendid. Taanded peavad olema õiged.
+
+### Pesastatud Struktuurid
+
+```yaml
+server:
+  name: web1
+  ip: 10.0.0.10
+  port: 80
+```
+
+Taanded näitavad hierarhiat.
+
+### Mitme Rea Stringid
+
+```yaml
+message: |
+  See on
+  mitme rea
+  tekst.
+```
+
+`|` säilitab reavahetused.
+
+### Muutujad
+
+```yaml
+port: 8080
+url: "http://example.com:{{ port }}"
+```
+
+`{{ port }}` asendatakse väärtusega `8080`.
+
+### Kommentaarid
+
+```yaml
+# See on kommentaar
+name: nginx  # See ka on kommentaar
+```
+
+### Tavalised Vead
+
+**1. TAB kasutamine:**
+
+YAML EI LUBA tab'e. Ainult tühikud. Tavaliselt 2 või 4 tühikut per tase.
+
+```yaml
+tasks:
+[TAB]- name: Bad          # VALE - saad vea
+  - name: Good            # ÕIGE
+```
+
+**2. Puuduv tühik pärast koolonit:**
+
+```yaml
+name:nginx    # VALE
+name: nginx   # ÕIGE
+```
+
+**3. Valed taanded:**
+
+```yaml
+tasks:
+  - name: Task 1
+  apt:              # VALE - peaks olema 4 tühikut
+    name: nginx
+```
+
+**4. Jutumärkide probleem:**
+
+Tavaliselt ei vaja:
+```yaml
+name: nginx           # OK
+name: "nginx"         # OK, aga mitte vajalik
+```
+
+Vajad kui on erisümbolid:
+```yaml
+message: "Port: {{ port }}"    # Vajab jutumärke
+```
+
+### YAML Validator
+
+Kui kahtled, kasuta [yamllint.com](http://www.yamllint.com/) või:
+
+```bash
+ansible-playbook --syntax-check playbook.yml
+```
+
+---
+
+## 7. Moodulid - Ansible'i Tööriistad
+
+![Popular Ansible modules](https://www.middlewareinventory.com/wp-content/uploads/2022/11/ansible-uri-module-parameters-1024x906.png)
+
+Ansible'is on üle 3000 moodulit. Ei pea kõiki teadma - umbes 20-30 katab 90% juhtudest.
+
+### Paketihaldus
+
+**apt** - Debian/Ubuntu:
+```yaml
+- apt:
+    name: nginx
+    state: present
+    update_cache: yes
+```
+
+**yum/dnf** - RedHat/Alma/Rocky:
+```yaml
+- yum:
+    name: nginx
+    state: present
+```
+
+**package** - OS-agnostiline:
+```yaml
+- package:
+    name: nginx
+    state: present
+```
+
+### Teenuste Haldus
+
+**service/systemd:**
+```yaml
+- service:
+    name: nginx
+    state: started
+    enabled: yes
+```
+
+`state: started` - käivita kui ei tööta
+`enabled: yes` - käivitu boot'imisel
+
+### Failide Haldus
+
+**copy** - kopeeri fail:
+```yaml
+- copy:
+    src: local_file.txt
+    dest: /tmp/remote_file.txt
+    owner: ubuntu
+    mode: '0644'
+```
+
+**template** - genereeri failist template'ist:
+```yaml
+- template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+```
+
+**file** - halda faile/kaustu:
+```yaml
+- file:
+    path: /opt/app
+    state: directory
+    mode: '0755'
+```
+
+`state: directory` - loo kaust
+`state: absent` - kustuta
+`state: touch` - loo tühi fail
+
+**lineinfile** - halda ridu failis:
+```yaml
+- lineinfile:
+    path: /etc/hosts
+    line: "10.0.0.10 web1.local"
+```
+
+Idempotent - lisab ainult kui puudub.
+
+### Kasutajad ja Grupid
+
+**user:**
+```yaml
+- user:
+    name: deploy
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+```
+
+**group:**
+```yaml
+- group:
+    name: developers
+    state: present
+```
+
+### Käsud
+
+**command** - turvaline, piiratud:
+```yaml
+- command: /usr/bin/uptime
+```
+
+Ei luba pipe'e `|`, redirection'i `>`, environment muutujaid.
+
+**shell** - võimsam, ohtlikum:
+```yaml
+- shell: cat /var/log/nginx/access.log | grep ERROR > /tmp/errors.txt
+```
+
+Lubab kõike. Kasuta ainult kui `command` ei piisa.
+
+### Debugimine
+
+**debug** - prindi info:
+```yaml
+- debug:
+    msg: "Server IP: {{ ansible_default_ipv4.address }}"
+```
+
+**assert** - kontrolli tingimust:
+```yaml
+- assert:
+    that:
+      - ansible_distribution == "Ubuntu"
+    fail_msg: "Must be Ubuntu!"
+```
+
+### Dokumentatsioon
+
+```bash
+ansible-doc <module>
+```
+
+Näiteks:
+```bash
+ansible-doc apt
+ansible-doc service
+ansible-doc copy
+```
+
+Näitab kõiki parameetreid, näiteid, selgitusi.
+
+---
+
+## 8. Praktiline Demo (Illustratsioon)
+
+See on lühike illustratsioon. Labor algab järgmisel tunnil.
+
+### Setup
+
+Meil on:
+- Windows jumpbox (VS Code, WSL2)
+- WSL2'is Ansible installitud
+- 4 Linux serverit (2 Ubuntu, 2 Alma)
+- Inventory fail valmis
+
+### 1. Ping Test
+
+```bash
+ansible -i inventory.ini all -m ping
+```
+
+Väljund:
+```
+ubuntu1 | SUCCESS => {"ping": "pong"}
+ubuntu2 | SUCCESS => {"ping": "pong"}
+alma1   | SUCCESS => {"ping": "pong"}
+alma2   | SUCCESS => {"ping": "pong"}
+```
+
+Kõik ühendused töötavad!
+
+### 2. Ad-hoc - Uptime
+
+```bash
+ansible -i inventory.ini all -m command -a "uptime"
+```
+
+Väljund:
+```
+ubuntu1 | CHANGED | rc=0 >>
+ 15:23:11 up 2 days, 4:15
+
+ubuntu2 | CHANGED | rc=0 >>
+ 15:23:11 up 2 days, 4:15
+
+alma1 | CHANGED | rc=0 >>
+ 15:23:11 up 5 days, 10:32
+
+alma2 | CHANGED | rc=0 >>
+ 15:23:11 up 5 days, 10:32
+```
+
+### 3. Lihtne Playbook
+
+Fail `demo.yml`:
+
+```yaml
+---
+- name: Show system info
+  hosts: all
+  
+  tasks:
+    - name: Display server details
+      debug:
+        msg: |
+          Hostname: {{ ansible_hostname }}
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          IP: {{ ansible_default_ipv4.address }}
+          Memory: {{ ansible_memtotal_mb }} MB
+```
+
+Käivitame:
+
+```bash
+ansible-playbook -i inventory.ini demo.yml
+```
+
+Väljund näitab iga serveri kohta:
+```
+TASK [Display server details]
+ok: [ubuntu1] => 
+  msg: |-
+    Hostname: ubuntu1
+    OS: Ubuntu 22.04
+    IP: 10.0.0.10
+    Memory: 4096 MB
+...
+```
+
+Idempotentne - võib käivitada mitu korda, tulemus sama.
+
+---
+
+## 9. Millal EI Kasuta Ansible'it?
+
+Ansible ei ole universaalne lahendus. On olukordi kus teised tööriistad on paremad.
+
+### Ei Sobi:
+
+**1. Rakenduste Deployment**
+
+Ansible loob infrastruktuuri, aga ei deploy rakendusi. Selle jaoks:
+- **Docker + Docker Compose** - containerid
+- **Kubernetes** - orkestratsioon
+- **CI/CD** (GitLab CI, GitHub Actions) - automaatne deployment
+
+**2. Keeruline State Management**
+
+Ansible ei hoia "state'i" nagu Terraform. Kui kustutate playbook'ist ressursi, Ansible EI KUSTUTA seda serverist. Terraform jälgib state'i ja kustutab.
+
+**3. Reaalajas Monitoring**
+
+Ansible käivitab käsud kui TEIE käivitate. See ei jälgi servereid 24/7. Selleks:
+- **Prometheus + Grafana** - monitoring
+- **ELK Stack** - logide analüüs
+- **Zabbix, Nagios** - alerting
+
+**4. Windows Serverid (osaliselt)**
+
+Ansible toetab Windows'i aga SSH ei tööta seal hästi. Windows kasutab WinRM. Kui peamine platvorm on Windows, võib Puppet või PowerShell DSC olla parem valik.
+
+**5. Agent-Based Eelistus**
+
+Kui te TAHATE et serverid hoiavad end ise soovitud seisundis ilma teie sekkumiseta, siis pull mudel (Puppet, Chef) võib olla parem.
+
+### Parim Kasutusviis
+
+**Ansible + Teised:**
+
+```
+Terraform → loob infrastruktuuri (serverid, võrk)
+     ↓
+Ansible → seadistab servereid (paigaldab tarkvara)
+     ↓
+Docker/K8s → deploy'b rakendusi
+     ↓
+Prometheus → jälgib süsteemi
+```
+
+Igaüks teeb seda milles ta on hea.
+
+---
+
+## Kokkuvõte
+
+### Meeles Pidada
+
+**Ansible on:**
+- Automatiseerimisvahend serverite haldamiseks
+- Agentless (kasutab SSH-d)
+- Push-based (te otsustate millal)
+- Idempotent (turvaline mitu korda)
+- Lihtne õppida (YAML, ei vaja programmeerimist)
+
+**Komponendid:**
+- **Inventory** - kellele käske saata
+- **Ad-hoc** - kiired testid
+- **Playbooks** - automatiseeritud töövood
+
+**Millal kasutada:**
+- Serverite provisioneerimine
+- Konfiguratsioonihaldus
+- Mitmete serverite paralleelne haldamine
+- Korratavad deployment'id
+
+**Millal EI kasuta:**
+- Rakenduste deployment (Kubernetes parem)
+- State management (Terraform parem)
+- 24/7 monitoring (Prometheus parem)
+
+### Järgmine Samm
+
+Järgmisel tunnil - **Labor**. Te teete kõike ise:
+- Seadistate SSH key'd
+- Kirjutate inventory faili
+- Käivitate ad-hoc käske
+- Kirjutate playbook'e
+- Paigaldate nginx'i
+
+### Ressursid
+
+**Dokumentatsioon:**
+- [docs.ansible.com](https://docs.ansible.com/) - ametlik dokumentatsioon
+- [galaxy.ansible.com](https://galaxy.ansible.com/) - valmis playbook'id ja rollid
+
+**Õppimine:**
+- `ansible-doc <module>` - mooduli dokumentatsioon
+- [yamllint.com](http://www.yamllint.com/) - YAML validaator
+
+**Kogukond:**
+- Reddit r/ansible
+- Ansible GitHub discussions
+- DevOps Estonia meetup'id
+
+---
+
+**Viimane Mõte:**
+
+Käsitsi serverhaldus võtab 4+ tundi ja on vigadega. Ansible võtab 3 minutit ja on õige iga kord.
+
+Valik on lihtne.
+
+Näeme laboris! 🚀

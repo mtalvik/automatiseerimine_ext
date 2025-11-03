@@ -1,647 +1,536 @@
-# Terraform Edasijõudnud: Pilve Infrastruktuur
+# Terraform Providerid ja Docker
 
-**Eeldused:** Terraform põhitõed (resources, variables, state), Linux CLI, Git alused
+**Eeldused:** Terraform põhitõed (loeng + labor), Docker põhiteadmised, Git
 
-**Platvorm:** AWS või Azure (pilve konto vajalik)
+**Platvorm:** Docker (praktiline), cloud providers (kontseptuaalne ülevaade)
+
+**Dokumentatsioon:** [registry.terraform.io](https://registry.terraform.io/)
 
 ## Õpiväljundid
 
-Pärast seda moodulit õpilane:
+Pärast seda loengut õpilane:
 
-- Selgitab pilve provider'ite (AWS/Azure) tööpõhimõtteid ja eripära
-- Loob VPC/Virtual Network infrastruktuuri võrgu isolatsiooniga
-- Kasutab Terraform workspaces'eid keskkonnahalduseks (dev/prod)
-- Rakendab remote state'i ja state locking'ut meeskonnatöös
-- Kirjutab taaskasutatavaid Terraform module'eid
+- Selgitab provider'i rolli Terraform'i arhitektuuris
+- Kasutab Docker provider'it infrastruktuuri loomiseks
+- Kirjeldab Docker ressursse: network, container, image, volume
+- Võrdleb Docker ja cloud provider'ite põhimõtteid
+- Mõistab, miks Docker sobib Terraform'i õppimiseks
 
 ---
 
-## 1. Pilve Providerid ja Ressursid
+## 1. Miks Local Provider Ei Piisa?
 
-Terraform põhikursuses õppisime lokaalseid ressursse - faile, skripte, konfiguratsioone. Aga Terraform'i tegelik võimsus ilmneb siis, kui hakkame haldama pilve infrastruktuuri. Siin ei ole enam tegemist failide loomisega oma arvutis, vaid tõeliste serverite, võrkude ja andmebaaside loomisega AWS'is või Azure'is.
+Terraform põhikursuses lõite faile - `local_file` resource kirjutas teksti kettale. See õpetas teile Terraform'i süntaksit ja workflow'i, aga see ei ole see, miks Terraform eksisteerib. Terraform loodi **infrastruktuuri haldamiseks** - serverid, võrgud, andmebaasid, load balancerid.
 
-### Miks pilv ja miks Terraform?
+Local provider on nagu õppida autojuhtimist parklas. Kasulik alguses, aga mõttetu kui tahad tegelikult kuhugi sõita. Järgmine samm on päris infrastruktuur, ja me alustame Docker'iga - see annab teile päris infrastruktuuri kogemuse ilma cloud konto ja krediitkaarti vajamata.
 
-Pilve infrastruktuur erineb põhimõtteliselt füüsilisest. Kui varem tähendas uue serveri saamine IT-osakonnas tellimuse tegemist, nädalaid ootamist ja seejärel mehhaanilise masina riiulisse paigaldamist, siis pilveteenustes võtab sama asi 30 sekundit. Aga see kiirus toob kaasa uue probleemi: kuidas hallata sadu või tuhandeid ressursse, mis võivad tekkida ja kaduda igal hetkel?
+---
 
-Käsitsi pilve konsoolist klikkimine on sama vale kui käsitsi serverite seadistamine. Esiteks, see ei ole korduvkasutatav - kui peate looma samasuguse keskkonna uuesti, peate meelde tuletama kõik sammud. Teiseks, see ei ole dokumenteeritud - kuus kuud hiljem ei tea keegi enam, miks mingi security group täpselt sellise reegli sai. Kolmandaks, see ei ole testitud - ei saa kindel olla, et tootmis- ja arenduskeskkond on identne.
+## 2. Mis On Provider?
 
-Terraform lahendab need probleemid Infrastructure as Code lähenemisega. Kirjutate üks kord, kuidas infrastruktuur peaks välja nägema, ja Terraform loob selle alati täpselt samasugusena. Kood on dokumentatsioon, kood on test, kood on tõde.
+Provider on plugin, mis ühendab Terraform'i konkreetse platvormi API'ga. Terraform Core (see binaar, mille alla laadisite) ei tea midagi AWS'ist, Docker'ist ega ühestki teisest platvormist. Kogu platvormi-spetsiifiline teadmine tuleb provider'itest.
 
-### AWS Provider põhitõed
+### Arhitektuur
 
-AWS (Amazon Web Services) on maailma suurim pilveteenuste pakkuja. Terraform suhtleb AWS'iga läbi API'de, kasutades AWS provider'it. Provider on justkui tõlk Terraform'i ja AWS'i vahel - Terraform ütleb "tahan serverit", provider tõlgib selle AWS API päringuteks.
+```mermaid
+graph TB
+    A[Terraform Core<br/>HCL parser, state, planner] --> B[AWS Provider<br/>3000+ resources]
+    A --> C[Azure Provider<br/>2000+ resources]
+    A --> D[Docker Provider<br/>50+ resources]
+    A --> E[Kubernetes Provider<br/>200+ resources]
+    
+    B --> F[AWS API]
+    C --> G[Azure API]
+    D --> H[Docker API]
+    E --> I[Kubernetes API]
+    
+    F --> J[(AWS Cloud)]
+    G --> K[(Azure Cloud)]
+    H --> L[Docker Daemon]
+    I --> M[K8s Cluster]
+```
 
-AWS provideril on kaks olulist aspekti. Esiteks, autentimine. Terraform peab teadma, kellena ta AWS'i sisse logib. Selleks kasutatakse AWS credentials'eid - access key ja secret key, mis antakse Terraform'ile kas keskkonna muutujate või konfiguratsioonifaili kaudu. Turvakaalutlustel ei tohiks neid võtmeid kunagi kirjutada otse Terraform koodisse.
+Terraform Core on orkestri dirigent - ta loeb teie konfiguratsioonifaili (noote), aga ta ise ei mängi ühtegi instrumenti. Instrumentide mängimise teevad provider'id, igaüks spetsialiseerunud ühele platvormile.
 
-Teiseks, regioonid. AWS'il on kogu maailmas datacentrid, mida nimetatakse regioonideks - us-east-1 (Virginia), eu-west-1 (Iirimaa), ap-southeast-1 (Singapur) jne. Iga ressurss luuakse konkreetsesse regiooni ja need ei ole omavahel automaatselt ühendatud. Regiooni valik mõjutab nii latentsust (kui kiiresti kasutajad serverile ligi pääsevad) kui ka kulusid (eri regioonides on erinevad hinnad).
+Kui käivitate `terraform init`, vaatab Terraform teie konfiguratsiooni ja laeb alla vajalikud provider'id **Terraform Registry'st**. Registry on avalik repositoorium üle 3000 erineva provider'iga - suurtest (AWS, Azure, GCP) kuni väikesteni (GitHub, Datadog, Discord).
+
+### Provider Installimine
+
 ```hcl
 terraform {
   required_version = ">= 1.0"
+  
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = "eu-west-1"
-  # Credentials tuleb anda AWS CLI kaudu või keskkonnamuutujatega
-  # MITTE kunagi otse koodi!
-}
-```
-
-### Azure Provider iseärasused
-
-Azure erineb AWS'ist arhitektuuri poolest. Kui AWS'is luuakse ressursid otse, siis Azure nõuab alati ressursigrupi olemasolu. Ressursigrupp on loogiline konteiner, mis grupeerib seotud ressursse kokku. See võib tunduda algul tüütu lisasamm, aga tegelikult aitab see paremini organiseerida ja hallata suuri projekte.
-
-Azure'i autentimine on samuti erinev. Kui AWS kasutab lihtsalt võtmepaari, siis Azure kasutab Service Principal'eid, mis on põhimõtteliselt robotkasutajad. Service Principal'il on tenant ID (mis Azure Active Directory'ga ühendatakse), subscription ID (mis maksmise konto määrab) ja client ID koos client secret'iga (mis autentimiseks).
-```hcl
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
+    docker = {
+      source  = "kreuzwerker/docker"
       version = "~> 3.0"
     }
   }
 }
 
-provider "azurerm" {
-  features {}
-  
-  subscription_id = var.subscription_id
-  tenant_id       = var.tenant_id
-  # Client credentials tuleks anda keskkonnamuutujatega
-}
-
-resource "azurerm_resource_group" "main" {
-  name     = "terraform-rg"
-  location = "West Europe"
+provider "docker" {
+  host = "unix:///var/run/docker.sock"
 }
 ```
 
-### Võrgu põhikontseptsioonid pilves
+`source` määrab, kust provider tuleb. Formaat on `namespace/name` - kreuzwerker on kasutaja/organisatsioon, docker on provider'i nimi. `version = "~> 3.0"` tähendab "3.x, aga mitte 4.0" - automaatselt uueneb minor versioonidega (3.0 → 3.1 → 3.2), aga major versioon (4.0, mis võib koodi murda) ei uuene automaatselt.
 
-Nii AWS kui Azure kasutavad virtuaalseid võrke (Virtual Private Cloud või Virtual Network), mis on isoleeritud võrgukeskkonnad pilves. Need võimaldavad luua võrguarhitektuuri, mis sarnaneb füüsilise datacentri omale, aga kõik on tarkvaraliselt defineeritud.
+`host` ütleb, kus Docker daemon asub. Linux'is on see tavaliselt `/var/run/docker.sock` socket fail.
 
-Virtuaalse võrgu põhielement on CIDR block - IP-aadresside vahemik, mida see võrk kasutab. Näiteks 10.0.0.0/16 tähendab, et võrgul on kasutada IP-aadressid 10.0.0.0 kuni 10.0.255.255 - kokku 65,536 aadressi. See vahemik tuleb valida nii, et see ei kattuks teiste võrkudega, millega hiljem võib vaja olla ühendust luua.
-
-Võrk jagatakse subnet'ideks - alamvõrkudeks, mis on väiksemad IP vahemikud. Subnet'id võivad olla public (ligipääsetav internetist) või private (ligipääsetav ainult seesmiselt). Public subnet'is olevad ressursid saavad otse internetiga suhelda, private subnet'is olevad peavad kasutama NAT Gateway'd või muid vahendusservereid.
-```hcl
-# AWS VPC näide
-resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-  
-  tags = {
-    Name = "main-vpc"
-  }
-}
-
-resource "aws_subnet" "public" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
-  availability_zone       = "eu-west-1a"
-  
-  tags = {
-    Name = "public-subnet"
-    Type = "public"
-  }
-}
-
-resource "aws_subnet" "private" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "eu-west-1a"
-  
-  tags = {
-    Name = "private-subnet"
-    Type = "private"
-  }
-}
-```
-
-Igal ressursil on ID, mida saab kasutada teistes ressurssides viitamiseks. Siin on oluline mõista Terraform'i dependency graafi - Terraform teab, et subnet sõltub VPC'st, sest kasutab `aws_vpc.main.id` viitamist. See tähendab, et Terraform loob alati VPC enne subnet'e.
-
-## 2. Security Groups ja Võrguturve
-
-Pilves ei ole füüsilisi firewalle, mida saaks riiulisse panna. Kogu võrguturve on tarkvaraline ja realiseeritud security groupide ja network ACL'ide kaudu. Need määravad, milline liiklus võib ressursside juurde jõuda ja milline mitte.
-
-### Security Groupide loogikaecurity Groups on stateful firewall'id, mis kontrollivad sissetulevat (ingress) ja väljaminevat (egress) liiklust. Stateful tähendab, et kui lubate sissetuleva liikluse mingilt portilt, siis vastus sellele lubatakse automaatselt välja - ei pea eraldi väljaminevat reeglit looma.
-
-Näiteks kui loote veebiserveri, vajate tavaliselt kolme asja: SSH ligipääs (port 22), et saaksite serverisse sisse logida ja seda seadistada; HTTP ligipääs (port 80), et kasutajad saaksid veebilehte vaadata; ja HTTPS ligipääs (port 443) turvaliseks ühenduseks. Kõik muu liiklus blokeeritakse vaikimisi.
-
-Oluline on mõista, et security group'id pole seotud ühe konkreetse ressursiga, vaid neid saab rakendada mitmele ressursile. Kui teil on viis veebiserveri, võivad kõik kasutada sama security group'i. See teeb haldamise lihtsamaks - kui peate muutma firewall reegleid, muudate ühes kohas ja mõjutab kõiki.
-```hcl
-resource "aws_security_group" "web" {
-  name_prefix = "web-"
-  description = "Security group for web servers"
-  vpc_id      = aws_vpc.main.id
-  
-  # Sisse: HTTP
-  ingress {
-    description = "HTTP from internet"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  # Sisse: HTTPS
-  ingress {
-    description = "HTTPS from internet"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  # Sisse: SSH (ainult teie IP'st!)
-  ingress {
-    description = "SSH from my IP"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["85.253.123.45/32"]  # Asenda oma IP'ga!
-  }
-  
-  # Välja: kõik
-  egress {
-    description = "Allow all outbound"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  tags = {
-    Name = "web-security-group"
-  }
-}
-```
-
-CIDR notatsioonis `/32` tähendab täpselt ühte IP-aadressi, `/0` tähendab kõiki IP-aadresse. Port 0 ja protokoll "-1" tähendavad kõiki porte ja protokolle. Seega egress reegel ülalpool ütleb: "luba välja kõik".
-
-### Network ACL'id ja kaitsekihid
-
-Network ACL (Access Control List) on teine turvakiht, mis töötab subnet tasemel. Kui security group'id on ressursi tasemel ja stateful, siis NACL'id on subnet tasemel ja stateless. Stateless tähendab, et peate eraldi defineerima nii sissetulevad kui väljaminevad reeglid, isegi vastustele.
-
-Enamasti piisab security groupidest ja NACL'e ei ole vaja kohe alguses konfigureerida - vaikimisi lubavad need kõike. Aga suuremas organisatsioonis või rangema turvalisusega projektides on NACL'id oluline lisaturvakiht. Neid kasutatakse tavaliselt subnet taseme blokeerimiseks - näiteks kui soovite blokeerida kogu liikluse teatud IP vahemikust.
-
-## 3. Workspaces ja Keskkonnahaldus
-
-Reaalsetes projektides ei ole kunagi ainult üks keskkond. Teil on vähemalt development (arendus), staging (testimine) ja production (toodang). Iga keskkond peaks olema eraldatud, aga samas peaks neil olema sama konfiguratsioon - muidu ei ole testimine usaldusväärne.
-
-### Workspaces'ide kontseptsioon
-
-Terraform workspaces lahendavad selle probleemi. Workspace on eraldi state fail samale konfiguratsioonile. Igal workspace'il on oma state, aga nad jagavad sama Terraform koodi. See tähendab, et saate kirjutada konfiguratsiooni üks kord ja luua sellest mitu eraldatud instantsi.
-
-Kui käivitate `terraform workspace new development`, loob Terraform uue state faili nimega `terraform.tfstate.d/development/terraform.tfstate`. Kui käivitate `terraform workspace new production`, luuakse eraldi state fail `terraform.tfstate.d/production/terraform.tfstate`. Need kaks state faili on täiesti eraldatud - ressursid ühes ei mõjuta teist.
-```bash
-# Loo uus workspace
-terraform workspace new development
-terraform workspace new staging
-terraform workspace new production
-
-# Vaata kõiki workspace'e
-terraform workspace list
-
-# Vaheta workspace'i
-terraform workspace select development
-
-# Vaata praegust workspace'i
-terraform workspace show
-```
-
-### Keskkonna-spetsiifilised konfiguratsioonid
-
-Kuigi kood on sama, peavad keskkonnad erinema. Production vajab võimsamaid servereid kui development. Production vajab backup'e, development ei pruugi. Production on mitmes availability zone's, development võib olla ühes.
-
-Neid erinevusi hallatakse muutujate kaudu. Võite luua eraldi `.tfvars` faile igale keskkonnale või kasutada `terraform.workspace` built-in muutujat, et koodis vahet teha.
-```hcl
-# variables.tf
-variable "environment" {
-  description = "Environment name"
-  type        = string
-}
-
-variable "instance_size" {
-  description = "Server size per environment"
-  type        = map(string)
-  default = {
-    development = "t3.micro"
-    staging     = "t3.small"
-    production  = "t3.medium"
-  }
-}
-
-variable "enable_backups" {
-  description = "Enable automated backups"
-  type        = map(bool)
-  default = {
-    development = false
-    staging     = false
-    production  = true
-  }
-}
-
-# main.tf
-resource "aws_instance" "app" {
-  ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = var.instance_size[terraform.workspace]
-  
-  tags = {
-    Name        = "app-server-${terraform.workspace}"
-    Environment = terraform.workspace
-  }
-}
-
-resource "aws_db_instance" "postgres" {
-  count = var.enable_backups[terraform.workspace] ? 1 : 0
-  
-  allocated_storage    = 20
-  engine              = "postgres"
-  instance_class      = "db.t3.micro"
-  backup_retention_period = 7
-}
-```
-
-Siin kasutatakse mitut tehnikat. `var.instance_size[terraform.workspace]` valib map'ist õige võtme workspace nime järgi. `count` kasutamine conditionally ressursi loomiseks - kui `enable_backups` on false, siis `count = 0` ja ressurssi ei looda üldse.
-
-### Deployment strateegia workspaces'iga
-
-Tüüpiline deployment workflow workspace'idega näeb välja nii: arendaja teeb muudatuse koodis development workspace'is ja testib seda. Kui töötab, mergeeb ta koodi main branchi ja CI/CD süsteem deploy'ib automaatselt staging workspace'i. Pärast testimist staging'us saab käsitsi deploy'ida production workspace'i.
-```bash
-# Development deployment
-terraform workspace select development
-terraform plan -var="environment=development"
-terraform apply -var="environment=development"
-
-# Production deployment (käsitsi)
-terraform workspace select production
-terraform plan -var="environment=production"
-# Kontrolli plaani põhjalikult!
-terraform apply -var="environment=production"
-```
-
-Oluline on mõista, et workspaces ei asenda proper keskkondade eraldamist. Production peaks ikka olema eraldi AWS accountis või Azure subscription'is. Workspaces on hea dev ja staging jaoks samas accountis, aga production vajab täielikku eraldamist.
-
-## 4. Remote State ja Meeskonnatöö
-
-Kohalik state fail töötab üksikule arendajale, aga meeskonnas on see katastroof. Kui kaks inimest teevad samaaegselt muudatusi ja kumbki kasutab oma local state faili, tekib kiiresti olukord, kus keegi ei tea enam, mis tegelikult pilves eksisteerib.
-
-### Remote backend'i vajadus
-
-Remote state tähendab, et state fail ei ole enam teie arvutis, vaid kusagil kesksel serveris - tavaliselt S3 bucket'is (AWS) või Azure Blob Storage'is. Nüüd kõik meeskonnaliikmed loevad ja kirjutavad sama state faili. Kui keegi teeb muudatuse, näevad teised seda kohe.
-
-Aga see toob uue probleemi: mis juhtub kui kaks inimest proovivad samaaegselt `terraform apply` käivitada? Võivad tekkida konfliktsed muudatused või pool-lõpetatud operatsioonid. Siin tuleb appi state locking.
-
-State locking lukustab state faili operatsiooni ajaks. Kui üks inimene käivitab `terraform apply`, pane Terraform lukku state faili. Kui teine inimene proovib samaaegselt, näeb ta viga: "State locked by user X". Pärast esimese operatsiooni lõppu võetakse lukk maha ja teine saab jätkata.
-
-### S3 backend konfiguratsioon
-
-AWS'is kasutatakse state'i jaoks S3 bucket'it ja locking'uks DynamoDB tabelit. S3 on objekt storage - ideaalne failide hoidmiseks. DynamoDB on NoSQL andmebaas - kiire võtme-väärtus paar'ide hoidmiseks, ideaalne lock'ide jaoks.
-```hcl
-# backend.tf
-terraform {
-  backend "s3" {
-    bucket         = "mycompany-terraform-state"
-    key            = "infrastructure/terraform.tfstate"
-    region         = "eu-west-1"
-    encrypt        = true
-    dynamodb_table = "terraform-state-lock"
-  }
-}
-
-# State bucket'i loomine (tehke see eraldi enne!)
-resource "aws_s3_bucket" "terraform_state" {
-  bucket = "mycompany-terraform-state"
-  
-  lifecycle {
-    prevent_destroy = true  # Ei lase kogemata kustutada!
-  }
-}
-
-resource "aws_s3_bucket_versioning" "terraform_state" {
-  bucket = aws_s3_bucket.terraform_state.id
-  
-  versioning_configuration {
-    status = "Enabled"  # Versioonihaldus - saab tagasi võtta!
-  }
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" {
-  bucket = aws_s3_bucket.terraform_state.id
-  
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"  # Krüpteeritud!
-    }
-  }
-}
-
-resource "aws_dynamodb_table" "terraform_locks" {
-  name         = "terraform-state-lock"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-  
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-}
-```
-
-Pange tähele `prevent_destroy` lifecycle reeglit. See on turvamehhanism, mis takistab state bucket'i kogemata kustutamist. State fail on teie infrastruktuuri ainuke tõeallikas - kui see kaob, ei tea Terraform enam, mis pilves eksisteerib.
-
-Versioning lubamine on samuti kriitiline. Kui keegi teeb vea ja state fail corrups, saate alati tagasi võtta eelmise versiooni. S3 hoiab kõiki vanu versioone.
-
-### State'i migratsioon
-
-Kui olete alustanud kohaliku state'iga ja nüüd soovite remote state'i kasutada, peate state'i migreerima. Terraform teeb selle lihtsamaks `terraform init -migrate-state` käsuga.
-```bash
-# 1. Lisa backend konfiguratsioon
-# (backend.tf fail ülalpool)
-
-# 2. Initsiiseeri uuesti ja migreeri
-terraform init -migrate-state
-
-# Terraform küsib kinnitust ja kopeerib state'i S3'i
-# Kohalik fail jääb alles backup'ina
-```
-
-Pärast migratsiooni võite kohaliku state faili kustutada, aga hoidke see esialgu alles turvakoopiana. Kui remote state on töökorras, siis enam ei pea sellest muretsema.
-
-## 5. Terraform Modules
-
-Modules on Terraform'i võimsaim feature korduvkasutatavas koodis. Module on nagu funktsioon programmeerimises - võtab sisendid (variables), teeb midagi (creates resources), ja tagastab väljundid (outputs).
-
-### Miks modules on vajalikud
-
-Kujutage ette, et teil on 10 erinevat projekti ja igaüks vajab VPC'd koos subnet'ide, internet gateway, route table'ite jms. Kas kirjutate selle koodi 10 korda? Kui peate hiljem midagi muutma, muudate 10 kohas?
-
-Module võimaldab kirjutada VPC konfiguratsioon üks kord ja kasutada seda 10 projektis. Kui peate muutma, muudate ühes kohas ja kõik projektid saavad uuenduse.
-```
-project/
-├── modules/
-│   └── vpc/
-│       ├── main.tf
-│       ├── variables.tf
-│       └── outputs.tf
-└── main.tf
-```
-
-VPC module võiks näha välja selline:
-```hcl
-# modules/vpc/variables.tf
-variable "name" {
-  description = "Name prefix for VPC resources"
-  type        = string
-}
-
-variable "cidr_block" {
-  description = "CIDR block for VPC"
-  type        = string
-}
-
-variable "public_subnet_cidrs" {
-  description = "List of public subnet CIDR blocks"
-  type        = list(string)
-}
-
-variable "azs" {
-  description = "Availability zones"
-  type        = list(string)
-}
-
-# modules/vpc/main.tf
-resource "aws_vpc" "main" {
-  cidr_block           = var.cidr_block
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-  
-  tags = {
-    Name = "${var.name}-vpc"
-  }
-}
-
-resource "aws_subnet" "public" {
-  count             = length(var.public_subnet_cidrs)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.public_subnet_cidrs[count.index]
-  availability_zone = var.azs[count.index]
-  map_public_ip_on_launch = true
-  
-  tags = {
-    Name = "${var.name}-public-${count.index + 1}"
-  }
-}
-
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-  
-  tags = {
-    Name = "${var.name}-igw"
-  }
-}
-
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
-  
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
-  }
-  
-  tags = {
-    Name = "${var.name}-public-rt"
-  }
-}
-
-resource "aws_route_table_association" "public" {
-  count          = length(aws_subnet.public)
-  subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
-}
-
-# modules/vpc/outputs.tf
-output "vpc_id" {
-  description = "ID of the VPC"
-  value       = aws_vpc.main.id
-}
-
-output "public_subnet_ids" {
-  description = "IDs of public subnets"
-  value       = aws_subnet.public[*].id
-}
-
-output "vpc_cidr" {
-  description = "CIDR block of the VPC"
-  value       = aws_vpc.main.cidr_block
-}
-```
-
-### Module'i kasutamine
-
-Nüüd saate seda module'it kasutada erinevates projektides:
-```hcl
-# main.tf
-module "vpc" {
-  source = "./modules/vpc"
-  
-  name                = "myapp"
-  cidr_block         = "10.0.0.0/16"
-  public_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
-  azs                = ["eu-west-1a", "eu-west-1b"]
-}
-
-# Kasuta module'i outpute teistes ressurssides
-resource "aws_instance" "web" {
-  ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = "t3.micro"
-  subnet_id     = module.vpc.public_subnet_ids[0]
-  
-  tags = {
-    Name = "web-server"
-  }
-}
-```
-
-Module outputs on ligipääsetavad `module.<name>.<output>` kaudu. Terraform teab, et `aws_instance.web` sõltub `module.vpc`'st, sest kasutab selle outputi. Seega loob Terraform alati VPC enne serveri loomist.
-
-### Public modules Terraform Registry'st
-
-Te ei pea isegi ise module'eid kirjutama - Terraform Registry sisaldab tuhandeid valmis module'eid. Need on community poolt testitud ja kasutusel paljudes ettevõtetes.
-```hcl
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.0.0"
-  
-  name = "myapp-vpc"
-  cidr = "10.0.0.0/16"
-  
-  azs             = ["eu-west-1a", "eu-west-1b"]
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.11.0/24", "10.0.12.0/24"]
-  
-  enable_nat_gateway = true
-  enable_vpn_gateway = false
-  
-  tags = {
-    Environment = "dev"
-  }
-}
-```
-
-Versioning on oluline - `version = "5.0.0"` tagab, et saate alati sama module'i versiooni. Kui module uueneb, ei muutu teie infrastruktuur ootamatult.
-
-## 6. Parimad Praktikad ja Levinud Vead
-
-Pilve infrastruktuuri haldamine Terraform'iga nõuab distsipliini. Väikesed vead võivad põhjustada suuri probleeme või kulusid.
-
-### Kulude kontroll
-
-Pilveressursid maksavad raha ja kulud kasvavad kiiresti, kui ei ole ettevaatlik. EC2 instance't3.micro Free Tier'is on tasuta, aga t3.large maksab $0.08 tunnis - see on $60 kuus. RDS andmebaas võib maksta $50-200 kuus. Load balancer maksab $20+ kuus.
-
-Alati seadke AWS Budgets alerts või Azure Cost Management alerts. Määrake budget (nt $10 kuus) ja saate hoiatuse, kui kulude lävi ületatakse. Terraform ei hoiata teid kulude eest - see on teie vastutus.
-
-Kõige olulisem: alati käivitage `terraform destroy` kui ressursse enam ei vaja. Unustatud test server't võib maksta sadu dollareid kuus.
-
-### State'i turvalisus
-
-State fail sisaldab kogu teie infrastruktuuri detaile, sealhulgas sageli tundlikku informatsiooni - IP aadressid, ressursi ID'd, mõnikord isegi salasõnu. Kui kasutate remote state'i, veenduge et:
-
-1. S3 bucket on krüpteeritud (server-side encryption)
-2. S3 bucket ei ole avalik (public access blocked)
-3. DynamoDB table on kaetud IAM õigustega
-4. State faile pole Git repositories (lisa .gitignore)
-```
-# .gitignore
-*.tfstate
-*.tfstate.*
-.terraform/
-terraform.tfvars  # Kui sisaldab salasõnu
-```
-
-### Tagging standardid
-
-Tags on metadata, mida saate lisada igale ressursile. Need on kriitilise tähtsusega suurtes organisatsioonides. Tags võimaldavad:
-
-- Jälgida kulusid projekti või meeskonna kaupa
-- Tuvastada ressursside omanikke
-- Automaatselt peatada või kustutada ressursse
-- Rakendada security policy'sid
-```hcl
-locals {
-  common_tags = {
-    Project     = "myapp"
-    Environment = terraform.workspace
-    ManagedBy   = "Terraform"
-    Owner       = "platform-team"
-    CostCenter  = "engineering"
-  }
-}
-
-resource "aws_instance" "web" {
-  ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = "t3.micro"
-  
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "web-server"
-      Role = "webserver"
-    }
-  )
-}
-```
-
-`merge()` funktsioon kombineerib kaks map'i. Nii saate defineerida ühised tag'id ühes kohas ja lisada ressursi-spetsiifilisi tag'e vajadusel.
-
-### Sensitive data haldamine
-
-MITTE KUNAGI pane salasõnu või API võtmeid Terraform koodi. Kasuta alati:
-
-1. Keskkonna muutujaid (`TF_VAR_db_password`)
-2. AWS Secrets Manager või Azure Key Vault
-3. Terraform Cloud variables (kui kasutate)
-```hcl
-# VALE - salasõna koodis
-resource "aws_db_instance" "postgres" {
-  password = "SuperSecret123"  # ÄRA TEE SEDA!
-}
-
-# ÕIGE - salasõna muutujast
-variable "db_password" {
-  description = "Database password"
-  type        = string
-  sensitive   = true  # Ei näita plan/apply väljundis
-}
-
-resource "aws_db_instance" "postgres" {
-  password = var.db_password
-}
-
-# Käivitamine
-# export TF_VAR_db_password="SuperSecret123"
-# terraform apply
-```
-
-Või veelgi parem - kasuta Secrets Manager:
-```hcl
-data "aws_secretsmanager_secret_version" "db_password" {
-  secret_id = "myapp/database/password"
-}
-
-resource "aws_db_instance" "postgres" {
-  password = data.aws_secretsmanager_secret_version.db_password.secret_string
-}
-```
+[**Terraform Registry** - Browse 3000+ providers including AWS, Azure, GCP, Kubernetes](https://registry.terraform.io/browse/providers)
 
 ---
 
-See loeng andis teile foundation pilve infrastruktuuri haldamiseks Terraform'iga. Järgmises labs hakkame neid kontseptsioone praktikas rakendama, luues tõelise AWS VPC'ga koos serverite, võrgu ja turvalisusega.
+## 3. Docker Provider Põhjalikult
+
+Docker provider on ideaalne Terraform'i õppimiseks ja arendamiseks. Kõik põhimõtted, mida siin õpite, töötavad täpselt samamoodi AWS'is, Azure'is või GCP's. Aga Docker on tasuta, kiire ja kohalik.
+
+![Terraform workflow'i diagramm - näitab kuidas erinevad providerid töötavad sama workflow'iga](https://miro.medium.com/v2/resize:fit:1358/1*rojRn0kPfvk0fKnQElqbRQ.gif)
+
+### Docker Image Resource
+
+Image on template, millest tekivad containerid. Täpselt nagu AWS'is AMI (Amazon Machine Image) on template, millest tekivad EC2 serverid.
+
+```hcl
+resource "docker_image" "nginx" {
+  name         = "nginx:alpine"
+  keep_locally = false
+}
+```
+
+`name` on Docker Hub'ist tulenud image. `nginx:alpine` tähendab nginx veebiserveri Alpine Linux baasil (väike, kiire). `keep_locally = false` tähendab, et kui Terraform kustutab selle resource'i, kustutatakse ka image kohalikust Docker'ist. Kui seatakse `true`, jääb image alles.
+
+Terraform laeb image'i alla esimesel `terraform apply` käivitamisel. Kui image on juba kohalikult olemas, ei laadita uuesti alla.
+
+```hcl
+# Spetsiifiline versioon
+resource "docker_image" "postgres" {
+  name = "postgres:15.3"
+}
+
+# Latest (ohtlik production'is!)
+resource "docker_image" "redis" {
+  name = "redis:latest"
+}
+```
+
+Production'is **mitte kunagi** `latest` tag'i. Täna võib `latest` olla versioon 7.0, homme 8.0 ja teie rakendus läheb katki. Alati spetsiifiline versioon.
+
+### Docker Network Resource
+
+Network loob isoleeritud võrgukeskkonna containeritele. Containerid samas network'is näevad üksteist DNS nime järgi, aga välised containerid ei näe.
+
+```hcl
+resource "docker_network" "app_network" {
+  name   = "myapp-network"
+  driver = "bridge"
+  
+  ipam_config {
+    subnet  = "172.18.0.0/16"
+    gateway = "172.18.0.1"
+  }
+}
+```
+
+`driver = "bridge"` on kõige levinum - see loob virtuaalse switch'i teie masinas. `subnet` määrab IP-aadresside vahemiku selles network'is. 172.18.0.0/16 tähendab 172.18.0.0 kuni 172.18.255.255 - kokku 65,536 aadressi. `gateway` on vaikimisi gateway aadress - läbi selle liiguvad paketid network'ist välja.
+
+Network on nagu AWS'is VPC (Virtual Private Cloud) - isoleeritud võrgukeskkond, kus teie ressursid elavad.
+
+```hcl
+# Lihtne network ilma IPAM konfita
+resource "docker_network" "simple" {
+  name = "simple-network"
+}
+```
+
+Kui te ei määra `ipam_config`, valib Docker automaatselt vaba IP vahemiku.
+
+### Docker Container Resource
+
+Container on "mini-server" - tal on oma protsessid, oma failisüsteem, oma võrguliides. AWS'is on analoogne EC2 instance.
+
+```hcl
+resource "docker_container" "web" {
+  name  = "web-server"
+  image = docker_image.nginx.image_id
+  
+  networks_advanced {
+    name = docker_network.app_network.name
+  }
+  
+  ports {
+    internal = 80
+    external = 8080
+  }
+  
+  restart = "unless-stopped"
+}
+```
+
+`image` viitab `docker_image.nginx.image_id`'le - see loob automaatse sõltuvuse. Terraform loob image enne container'it. `networks_advanced` ühendab container'i network'iga. `ports` mapib container'i pordi (80) host masina pordile (8080). Kui lähete http://localhost:8080, näete nginx'i.
+
+`restart = "unless-stopped"` tähendab, et kui container crashib, käivitab Docker selle automaatselt uuesti. Kui te ise peatasite (`docker stop`), ei käivita uuesti.
+
+**Keskkonnamuutujad:**
+
+```hcl
+resource "docker_container" "postgres" {
+  name  = "database"
+  image = docker_image.postgres.image_id
+  
+  env = [
+    "POSTGRES_USER=myuser",
+    "POSTGRES_PASSWORD=mypassword",
+    "POSTGRES_DB=mydb"
+  ]
+  
+  networks_advanced {
+    name = docker_network.app_network.name
+  }
+}
+```
+
+Keskkonnamuutujad konfigureerivad container'i. PostgreSQL vajab kasutajanimme, parooli ja andmebaasi nime. Need antakse `env` listina.
+
+**Volumes (püsiv salvestus):**
+
+```hcl
+resource "docker_volume" "postgres_data" {
+  name = "postgres-data"
+}
+
+resource "docker_container" "postgres" {
+  name  = "database"
+  image = docker_image.postgres.image_id
+  
+  volumes {
+    volume_name    = docker_volume.postgres_data.name
+    container_path = "/var/lib/postgresql/data"
+  }
+  
+  env = [
+    "POSTGRES_USER=myuser",
+    "POSTGRES_PASSWORD=mypassword"
+  ]
+}
+```
+
+Ilma volume'ita kaob PostgreSQL'i andmebaas, kui container kustutatakse. Volume on püsiv salvestusruum, mis jääb alles ka siis, kui container kustutatakse. AWS'is on analoogne EBS (Elastic Block Store) volume.
+
+**Healthcheck:**
+
+```hcl
+resource "docker_container" "web" {
+  name  = "web-server"
+  image = docker_image.nginx.image_id
+  
+  healthcheck {
+    test     = ["CMD", "curl", "-f", "http://localhost"]
+    interval = "30s"
+    timeout  = "3s"
+    retries  = 3
+  }
+}
+```
+
+Healthcheck kontrollib, kas container töötab korralikult. Iga 30 sekundi tagant käivitab Docker `curl -f http://localhost`. Kui see ebaõnnestub 3 korda järjest, märgib container'i "unhealthy".
+
+### Täielik Näide: Web + DB Stack
+
+```hcl
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "docker" {
+  host = "unix:///var/run/docker.sock"
+}
+
+# Network
+resource "docker_network" "app" {
+  name = "app-network"
+}
+
+# Volume andmebaasile
+resource "docker_volume" "db_data" {
+  name = "postgres-data"
+}
+
+# Images
+resource "docker_image" "postgres" {
+  name = "postgres:15"
+}
+
+resource "docker_image" "nginx" {
+  name = "nginx:alpine"
+}
+
+# Database container
+resource "docker_container" "db" {
+  name  = "postgres-db"
+  image = docker_image.postgres.image_id
+  
+  networks_advanced {
+    name = docker_network.app.name
+  }
+  
+  volumes {
+    volume_name    = docker_volume.db_data.name
+    container_path = "/var/lib/postgresql/data"
+  }
+  
+  env = [
+    "POSTGRES_USER=dbuser",
+    "POSTGRES_PASSWORD=dbpass",
+    "POSTGRES_DB=appdb"
+  ]
+  
+  restart = "unless-stopped"
+}
+
+# Web container
+resource "docker_container" "web" {
+  name  = "nginx-web"
+  image = docker_image.nginx.image_id
+  
+  networks_advanced {
+    name = docker_network.app.name
+  }
+  
+  ports {
+    internal = 80
+    external = 8080
+  }
+  
+  restart = "unless-stopped"
+  
+  # Web container sõltub DB'st
+  depends_on = [docker_container.db]
+}
+
+# Outputs
+output "web_url" {
+  value = "http://localhost:${docker_container.web.ports[0].external}"
+}
+
+output "db_host" {
+  value = docker_container.db.name
+}
+```
+
+See loob täieliku web + database stack'i. Terraform teab automaatselt õige järjekorra:
+
+1. Network
+2. Volume
+3. Images (paralleelselt)
+4. DB container
+5. Web container
+
+`depends_on` on explicit dependency - isegi kui Terraform ei avasta automaatset sõltuvust, ütlete te: "Web vajab, et DB oleks valmis enne."
+
+![Terraform template code example](https://www.opensourceforu.com/wp-content/uploads/2020/07/Figure-2-Terraform-template-code-for.jpg)
+
+---
+
+## 4. Docker vs Cloud Providerid
+
+Kõik, mida Docker provider'iga õpite, töötab täpselt samamoodi cloud provider'ites. Ainult resource'ide nimed ja autentimine erinevad.
+
+| Kontseptsioon | Docker | AWS | Azure | GCP |
+|---------------|--------|-----|-------|-----|
+| **Isoleeritud võrk** | `docker_network` | `aws_vpc` | `azurerm_virtual_network` | `google_compute_network` |
+| **Arvutusressurss** | `docker_container` | `aws_instance` (EC2) | `azurerm_virtual_machine` | `google_compute_instance` |
+| **Image/Template** | `docker_image` | `ami` (AMI ID) | `azurerm_image` | `google_compute_image` |
+| **Püsiv salvestus** | `docker_volume` | `aws_ebs_volume` | `azurerm_managed_disk` | `google_compute_disk` |
+| **Firewall** | Network policies | `aws_security_group` | `azurerm_network_security_group` | `google_compute_firewall` |
+
+### Näide: Sama Loogika, Erinev Provider
+
+**Docker:**
+```hcl
+resource "docker_network" "app" {
+  name = "myapp-network"
+}
+
+resource "docker_container" "web" {
+  name  = "web"
+  image = "nginx:alpine"
+  
+  networks_advanced {
+    name = docker_network.app.name
+  }
+}
+```
+
+**AWS (kui teil oleks konto):**
+```hcl
+resource "aws_vpc" "app" {
+  cidr_block = "10.0.0.0/16"
+  
+  tags = {
+    Name = "myapp-vpc"
+  }
+}
+
+resource "aws_instance" "web" {
+  ami           = "ami-0014ce3e52359afbd"
+  instance_type = "t3.micro"
+  subnet_id     = aws_subnet.public.id  # Viide subnet'ile
+  
+  tags = {
+    Name = "web"
+  }
+}
+```
+
+Loogika on identne:
+1. Loo isoleeritud võrk
+2. Loo arvutusressurss võrku
+3. Viita esimesele teisest (automaatne dependency)
+
+Terraform workflow on identne:
+```bash
+terraform init    # Laeb provider'i
+terraform plan    # Näitab, mis luuakse
+terraform apply   # Loob ressursid
+terraform destroy # Kustutab kõik
+```
+
+### Miks Docker On Õppimiseks Parem
+
+**Kiirus.** AWS EC2 instance tekib 30-60 sekundiga. Docker container tekib 1-2 sekundiga. 30x kiirem iteratsioon.
+
+**Tasuta.** AWS maksab raha (isegi Free Tier'il on piirangud ja vajab krediitkaarti). Docker on täiesti tasuta.
+
+**Kohalik.** Kui internet kaob, Docker töötab endiselt. AWS mitte.
+
+**Vigadest taastumine.** Kui kustutate kogemata Docker container'i, pole midagi hullu - `terraform apply` ja 2 sekundit hiljem on tagasi. Kui kustutate kogemata production EC2 instance'i AWS'is... see on "resume-generating event".
+
+**Sama põhimõte.** Resources, state, dependencies, outputs, modules - kõik töötab täpselt samamoodi. Kui mõistate Terraform'i Docker'iga, oskate te kasutada seda AWS'iga.
+
+---
+
+## 5. Cloud Providerid - Kiire Ülevaade
+
+Te ei saa täna neid kasutada (vajab krediitkaarti ja cloud kontot), aga te peaksite teadma, mis on olemas.
+
+### Kolm Suurt
+
+| Provider | Ressursse | Tugevus | Eesti Kasutus |
+|----------|-----------|---------|---------------|
+| **AWS** | 3000+ | Suurim, kõige rohkem teenuseid | Bolt, Wise, Pipedrive |
+| **Azure** | 2000+ | Microsoft ökosüsteem, hybrid cloud | Playtech, pangad |
+| **GCP** | 1500+ | ML/AI, analytics, data | Bolt (ML), startupid |
+
+**AWS (Amazon Web Services)** on turuliider. Kui te ei tea, kumba valida, valige AWS. Dokumentatsioon on parim, kogukond on suurim, töökuulutused mainivad AWS'i kõige sagedamini.
+
+**Azure (Microsoft)** on teine. Tugev kui kasutate Microsoft tooteid (Active Directory, Office 365, .NET). Paljud suured ettevõtted (pangad, valitsus) on juba Microsoft kliendinumber ja saavad Azure'i soodsalt.
+
+**GCP (Google Cloud Platform)** on kolmas. Tugevad ML/AI tööriistad (TensorFlow, BigQuery). Bolt kasutab GCP'd machine learning'i jaoks, aga infrastruktuuri jaoks AWS'i.
+
+### Autentimine (põgusalt)
+
+Iga provider vajab credentials'eid. Need ei tohi **mitte kunagi** olla koodis.
+
+```hcl
+# VALE - credentials koodis
+provider "aws" {
+  access_key = "AKIAIOSFODNN7EXAMPLE"  # MITTE KUNAGI!
+  secret_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+}
+
+# ÕIGE - credentials keskkonnamuutujates
+provider "aws" {
+  region = "eu-north-1"
+  # AWS_ACCESS_KEY_ID ja AWS_SECRET_ACCESS_KEY keskkonnast
+}
+```
+
+Docker ei vaja credentials'eid, sest te jooksutate Terraform'i samas masinas, kus Docker daemon töötab. Cloud provider'ites on vaja tõestada, et te olete see, kes te väidate end olevat.
+
+### Multi-Cloud
+
+Terraform võib hallata mitut provider'it korraga. See on haruldane, aga võimalik.
+
+```hcl
+# AWS-is andmebaas
+resource "aws_db_instance" "postgres" {
+  engine         = "postgres"
+  instance_class = "db.t3.micro"
+}
+
+# Azure'is veebirakendus
+resource "azurerm_app_service" "web" {
+  name     = "myapp"
+  location = "West Europe"
+}
+
+# Docker'is arenduskeskkond
+resource "docker_container" "dev" {
+  image = "myapp:dev"
+}
+```
+
+**Reaalsus:** 90%+ ettevõtetest kasutab single-cloud'i. Multi-cloud on keerukas, kallis ja nõuab spetsiaalset ekspertiisi. Aga Terraform **võimaldab** seda, kui vaja - kui alustate AWS'iga ja hiljem otsustate Azure'i lisada, ei pea te kõike ümber kirjutama.
+
+**Bolt näide:** AWS põhiliselt, GCP machine learning'i jaoks. Kaks provider'it ühes Terraform projektis. Aga see pole norm - see on erand.
+
+---
+
+## 6. Järgmine Samm
+
+Täna õppisime, kuidas Terraform töötab provider'itega ja süvenesime Docker provider'isse. Järgmises labor'is rakendame neid kontseptsioone praktiliselt:
+
+**Te loote:**
+- Docker network'i (isoleeritud võrk)
+- Mitu container'it (web + database)
+- Volume'id (püsiv andmesalvestus)
+- Outputs (info resource'ide kohta)
+
+**Te õpite:**
+- Provider konfigureerimine
+- Resource dependencies (automaatsed ja explicit)
+- Multi-container aplikatsioonid
+- State management päris ressurssidega
+- Debugging (kui midagi läheb valesti)
+
+Kui mõistate neid kontseptsioone Docker'iga, mõistate te neid AWS'iga, Azure'ga, GCP'ga - igaühe provider'iga Registry's.
+
+---
+
+## Kokkuvõte
+
+**Provider on plugin**, mis ühendab Terraform'i konkreetse platvormi API'ga. Terraform Core ei tea midagi platvormidest - kogu teadmine tuleb provider'itest.
+
+**Docker provider** annab teile päris infrastruktuuri kogemuse ilma cloud konto vajaduseta. Network, container, image, volume - need on samad kontseptsioonid, mida cloud provider'id kasutavad.
+
+**Kõik provider'id järgivad sama pattern'i**: sama workflow (init → plan → apply → destroy), sama HCL süntaks, sama state management. Kui olete õppinud ühe provider'i, mõistate teisi.
+
+**Cloud providerid** (AWS, Azure, GCP) on võimsad, aga kallid ja vajavad krediitkaarti. Õppige Docker'iga, rakendage cloud'is kui vaja.
+
+---
+
+## Ressursid
+
+**Dokumentatsioon:**
+- [Terraform Registry](https://registry.terraform.io/) - 3000+ provider'it
+- [Docker Provider Docs](https://registry.terraform.io/providers/kreuzwerker/docker/latest/docs)
+- [Docker Official Images](https://hub.docker.com/search?q=&type=image&image_filter=official)
+
+**Õppimine:**
+- [HashiCorp Learn - Docker](https://developer.hashicorp.com/terraform/tutorials/docker-get-started)
+- [Terraform Best Practices](https://www.terraform-best-practices.com/)
+
+**Tulevikuks (kui vajate cloud'i):**
+- [AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+- [Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
+- [GCP Provider](https://registry.terraform.io/providers/hashicorp/google/latest/docs)
+
+---
+
+**Järgmine:** Labor - Docker provider hands-on praktika, loome päris infrastruktuuri

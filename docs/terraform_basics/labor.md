@@ -1,81 +1,80 @@
 # Terraform Alused Labor
 
-**Eeldused:** Terraform installitud, Linux CLI, teksteditor, Git
+**Eeldused:** WinKlient setup tehtud, VSCode, SSH võtmed seadistatud
 
-**Platvorm:** Terraform local provider (ei vaja AWS/Azure accounti)
+**Platvorm:** Terraform (local → remote progression)
 
-**Ajakulu:** Umbes 2-3 tundi
+**Kestus:** ~90-120 min (2×45 min)
 
-**Dokumentatsioon:** [Local Provider](https://registry.terraform.io/providers/hashicorp/local/latest/docs)
-
----
+**Dokumentatsioon:** [developer.hashicorp.com/terraform](https://developer.hashicorp.com/terraform)
 
 ## Õpiväljundid
 
-Pärast seda laborit õpilane:
-
-- Loob Terraform projekti struktuuri ja seadistab provider'eid
-- Kirjutab HCL koodi ressursside loomiseks kasutades resources, variables ja outputs
-- Käivitab Terraform workflow'i: init, plan, apply, destroy
-- Debugib Terraform vigu kasutades logisid ja valideerimist
-- Rakendab state haldamist ja mõistab state'i rolli
-
----
-
-## Labori Ülesehitus
-
-Selles laboris loome Terraform'iga lokaalseid ressursse (faile ja kaustaid). Kasutame **local provider'it**, mis tähendab et ei vaja AWS/Azure accounti - kõik toimub sinu masinas.
-
-**Mis me teeme:**
-1. Seadistame Terraform projekti
-2. Loome lihtsaid ressursse
-3. Kasutame muutujaid ja output'e
-4. Töötame sõltuvuste ja count'iga
-5. Testimine ja troubleshooting
-6. State haldamine
-
-**Miks local provider?** See on ideaalne õppimiseks - näed kohe tulemusi, ei kulu raha, saad eksperimenteerida.
+- Paigaldad Terraform'i ja kontrollid versiooni
+- Lood esimese Terraform konfiguratsiooni kohalikus failisüsteemis
+- Käivitad Terraform workflow'i: init → plan → apply → destroy
+- Mõistad state faili rolli ja struktuuri
+- Kasutad muutujaid ja väljundeid (variables, outputs)
+- Provisionerid remote serverile SSH kaudu
 
 ---
 
-## 1. Terraform Projekti Setup
+## OSA 1: Terraform Paigaldamine (WinKlient)
 
-### 1.1 Töökeskkonna Ettevalmistus
+### 1.1 Paigaldamine
 
-Loome puhta töökeskkonna.
+**PowerShell (Admin):**
 
-```bash
-# Loo töökataloog
-mkdir -p ~/terraform-lab
-cd ~/terraform-lab
+```powershell
+# Chocolatey kaudu (lihtsaim)
+choco install terraform
 
-# Kontrolli, et Terraform on installitud
+# VÕI käsitsi:
+# Lae: https://www.terraform.io/downloads
+# Paki lahti C:\terraform\
+# Lisa PATH'i: System → Environment Variables
+```
+
+### 1.2 Kontrolli
+
+```powershell
 terraform version
 ```
 
-**Oodatav output:**
+**Oodatav:**
 
 ```
-Terraform v1.6.0
-on linux_amd64
+Terraform v1.9.5
+on windows_amd64
 ```
 
-Kui `terraform: command not found`, siis [installi Terraform](https://developer.hashicorp.com/terraform/downloads).
+### 1.3 Töökaust
 
-### 1.2 Esimese Faili Loomine
-
-Loome `main.tf` faili.
-
-```bash
-nano main.tf
+```powershell
+mkdir C:\terraform-labs
+cd C:\terraform-labs
+code .  # Avab VSCode
 ```
 
-Lisa järgmine sisu:
+**Validation:**
+- [ ] `terraform version` töötab
+- [ ] VSCode avatud `C:\terraform-labs`
+
+---
+
+## OSA 2: Esimene Projekt - Local Files
+
+Alustame lihtsast: loome faile WinKlient'i. Pole võrku, pole SSH't - puhas Terraform õppimine.
+
+### 2.1 main.tf - Esimene Konfiguratsioon
+
+**VSCode:** Loo fail `main.tf`
 
 ```hcl
+# main.tf
+# Esimene Terraform projekt - loome lokaalseid faile
+
 terraform {
-  required_version = ">= 1.0"
-  
   required_providers {
     local = {
       source  = "hashicorp/local"
@@ -84,1197 +83,898 @@ terraform {
   }
 }
 
-resource "local_file" "hello" {
-  filename = "${path.module}/hello.txt"
-  content  = "Tere, see on minu esimene Terraform fail!"
+resource "local_file" "greeting" {
+  filename = "${path.module}/output/hello.txt"
+  content  = "Tere, Terraform!\nSee fail on loodud IaC-ga.\n"
+  
+  file_permission = "0644"
+}
+
+resource "local_file" "config" {
+  filename = "${path.module}/output/app.conf"
+  content  = <<-EOT
+    server {
+      port = 8080
+      host = "localhost"
+    }
+  EOT
+  
+  file_permission = "0644"
 }
 ```
 
-**Selgitus:**
+**Mis siin toimub?**
 
-- `terraform {}` block - seadistused
-- `required_version` - minimaalne Terraform versioon
-- `required_providers` - provider'id mida kasutame
-- `local` provider - lokaalsete failide haldamine
-- `resource "local_file"` - loome faili
-- `${path.module}` - praegune kaust (turvaline)
+- `terraform {}` - provider'i nõuded
+- `local` provider - loob faile kohalikku failisüsteemi
+- `${path.module}` - praegune kaust
+- `<<-EOT` - multi-line string (heredoc syntax)
 
-Salvesta: `Ctrl+O`, `Enter`, `Ctrl+X`
+### 2.2 Workflow: Init
 
-### 1.3 Terraform Init
+Terminal VSCode's (`` Ctrl+` ``):
 
-Initsialiseerime projekti.
-
-```bash
+```powershell
 terraform init
 ```
 
-**Oodatav output:**
+**Väljund:**
 
 ```
 Initializing the backend...
 
 Initializing provider plugins...
 - Finding hashicorp/local versions matching "~> 2.4"...
-- Installing hashicorp/local v2.4.0...
-- Installed hashicorp/local v2.4.0 (signed by HashiCorp)
+- Installing hashicorp/local v2.4.1...
+- Installed hashicorp/local v2.4.1 (signed by HashiCorp)
 
 Terraform has been successfully initialized!
 ```
 
-**Mis toimus:**
-- Terraform laadiis alla local provider'i
-- Loodi `.terraform/` kaust
-- Loodi `terraform.lock.hcl` fail (dependency lock)
+**Mis juhtus?**
+
+1. Lõi `.terraform/` kausta
+2. Laadis `local` provider'i
+3. Lõi `.terraform.lock.hcl` (dependency lock)
 
 **Kontrolli:**
 
-```bash
-ls -la
+```powershell
+ls -Force  # Näed .terraform/ kausta
 ```
 
-Peaks näitama:
+### 2.3 Workflow: Plan
 
-```
-drwxr-xr-x  3 user user 4096 ... .terraform/
--rw-r--r--  1 user user  xxx ... .terraform.lock.hcl
--rw-r--r--  1 user user  xxx ... main.tf
-```
-
-### Validation Checkpoint
-
-- [ ] `terraform version` töötab
-- [ ] `main.tf` fail on loodud
-- [ ] `terraform init` õnnestus
-- [ ] `.terraform/` kaust eksisteerib
-
----
-
-## 2. Esimese Ressursi Loomine
-
-### 2.1 Terraform Plan
-
-Vaatame, mis Terraform kavatseb teha.
-
-```bash
+```powershell
 terraform plan
 ```
 
-**Oodatav output:**
+**Väljund:**
 
-```
-Terraform used the selected providers to generate the following execution plan.
-Resource actions are indicated with the following symbols:
-  + create
-
+```terraform
 Terraform will perform the following actions:
 
-  # local_file.hello will be created
-  + resource "local_file" "hello" {
-      + content              = "Tere, see on minu esimene Terraform fail!"
-      + content_base64sha256 = (known after apply)
-      + content_base64sha512 = (known after apply)
-      + content_md5          = (known after apply)
-      + content_sha1         = (known after apply)
-      + content_sha256       = (known after apply)
-      + content_sha512       = (known after apply)
-      + directory_permission = "0777"
-      + file_permission      = "0777"
-      + filename             = "/home/user/terraform-lab/hello.txt"
+  # local_file.config will be created
+  + resource "local_file" "config" {
+      + content              = <<-EOT
+            server {
+              port = 8080
+              host = "localhost"
+            }
+        EOT
+      + filename             = "./output/app.conf"
       + id                   = (known after apply)
+    }
+
+  # local_file.greeting will be created
+  + resource "local_file" "greeting" {
+      + content              = "Tere, Terraform!\nSee fail on loodud IaC-ga.\n"
+      + filename             = "./output/hello.txt"
+      + id                   = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+```
+
+**Sümboolid:**
+
+- `+` = luuakse
+- `-` = kustutatakse
+- `~` = muudetakse
+- `-/+` = asendatakse
+
+**TÄHTIS:** Plan ei muuda midagi! See on preview.
+
+### 2.4 Workflow: Apply
+
+```powershell
+terraform apply
+```
+
+Küsib kinnitust:
+
+```
+Do you want to perform these actions?
+  Enter a value: yes
+```
+
+**Väljund:**
+
+```
+local_file.config: Creating...
+local_file.greeting: Creating...
+local_file.config: Creation complete after 0s
+local_file.greeting: Creation complete after 0s
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+```
+
+**Kontrolli:**
+
+```powershell
+cat output/hello.txt
+cat output/app.conf
+```
+
+**Validation:**
+- [ ] `output/` kaust eksisteerib
+- [ ] 2 faili loodud
+- [ ] `terraform.tfstate` eksisteerib
+
+### 2.5 State File
+
+```powershell
+cat terraform.tfstate
+```
+
+See on JSON, kus Terraform mäletab kõike.
+
+**Tähtsad osad:**
+
+```json
+{
+  "version": 4,
+  "terraform_version": "1.9.5",
+  "resources": [
+    {
+      "type": "local_file",
+      "name": "greeting",
+      "instances": [
+        {
+          "attributes": {
+            "filename": "./output/hello.txt",
+            "content": "Tere, Terraform!...",
+            "id": "a4f2e..."
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Miks oluline?**
+
+Terraform võrdleb:
+- **Soovitud:** `main.tf` fail
+- **Praegune:** `terraform.tfstate`
+- **Muudatus:** `terraform plan` näitab vahet
+
+**KRIITILINE:** Ära kustuta state'i! Backup'i alati!
+
+### 2.6 Muudatuste Test
+
+Muuda `main.tf`:
+
+```hcl
+resource "local_file" "greeting" {
+  filename = "${path.module}/output/hello.txt"
+  content  = "Tere, MUUDETUD Terraform!\n"  # ← MUUTSIME
+  
+  file_permission = "0644"
+}
+```
+
+```powershell
+terraform plan
+```
+
+**Näed:**
+
+```terraform
+  # local_file.greeting must be replaced
+-/+ resource "local_file" "greeting" {
+      ~ content  = "Tere, Terraform!..." -> "Tere, MUUDETUD Terraform!\n"
+      ~ id       = "a4f2e..." -> (known after apply)
+        # (2 unchanged attributes hidden)
+    }
+
+Plan: 1 to add, 0 to change, 1 to destroy.
+```
+
+`-/+` = kustutab vana, loob uue (sest faili sisu ei saa "muuta", peab asendama).
+
+```powershell
+terraform apply -auto-approve
+cat output/hello.txt  # Uus sisu
+```
+
+### 2.7 Workflow: Destroy
+
+**HOIATUS:** Kustutab KÕIK ressursid!
+
+```powershell
+terraform destroy
+```
+
+Küsib kinnitust:
+
+```
+Do you really want to destroy all resources?
+  Enter a value: yes
+```
+
+**Väljund:**
+
+```
+local_file.config: Destroying...
+local_file.greeting: Destroying...
+local_file.config: Destruction complete after 0s
+local_file.greeting: Destruction complete after 0s
+
+Destroy complete! Resources: 2 destroyed.
+```
+
+**Kontrolli:**
+
+```powershell
+ls output/  # TÜHI!
+cat terraform.tfstate  # resources: [] (tühi)
+```
+
+---
+
+## OSA 3: Variables ja Outputs
+
+Loome paindlikuma konfiguratsiooni.
+
+### 3.1 Taasta Ressursid
+
+```powershell
+terraform apply -auto-approve
+```
+
+### 3.2 variables.tf
+
+**Loo fail:** `variables.tf`
+
+```hcl
+# variables.tf
+# Input muutujad
+
+variable "environment" {
+  description = "Keskkonna nimi (dev/test/prod)"
+  type        = string
+  default     = "dev"
+  
+  validation {
+    condition     = contains(["dev", "test", "prod"], var.environment)
+    error_message = "Environment peab olema: dev, test või prod"
+  }
+}
+
+variable "app_name" {
+  description = "Rakenduse nimi"
+  type        = string
+  default     = "myapp"
+}
+
+variable "port" {
+  description = "Rakenduse port"
+  type        = number
+  default     = 8080
+  
+  validation {
+    condition     = var.port > 1024 && var.port < 65535
+    error_message = "Port peab olema vahemikus 1024-65535"
+  }
+}
+```
+
+### 3.3 Kasuta Variables
+
+Muuda `main.tf`:
+
+```hcl
+resource "local_file" "config" {
+  filename = "${path.module}/output/${var.app_name}.conf"
+  content  = <<-EOT
+    # ${var.app_name} Configuration
+    # Environment: ${var.environment}
+    
+    server {
+      port = ${var.port}
+      host = "localhost"
+      env  = "${var.environment}"
+    }
+  EOT
+  
+  file_permission = "0644"
+}
+```
+
+```powershell
+terraform plan
+```
+
+Näed, et fail nimi muutub `app.conf` → `myapp.conf`.
+
+### 3.4 Anna Variables Käsurealt
+
+```powershell
+terraform apply -var="environment=prod" -var="port=9090" -var="app_name=webserver"
+```
+
+**VÕI** loo `terraform.tfvars`:
+
+```hcl
+# terraform.tfvars
+environment = "prod"
+app_name    = "webserver"
+port        = 9090
+```
+
+```powershell
+terraform apply
+```
+
+Terraform laeb automaatselt `terraform.tfvars`.
+
+### 3.5 outputs.tf
+
+**Loo fail:** `outputs.tf`
+
+```hcl
+# outputs.tf
+# Info pärast apply'd
+
+output "config_file_path" {
+  description = "Config faili asukoht"
+  value       = local_file.config.filename
+}
+
+output "config_file_id" {
+  description = "Faili hash"
+  value       = local_file.config.id
+}
+
+output "summary" {
+  description = "Deployment kokkuvõte"
+  value = {
+    app         = var.app_name
+    environment = var.environment
+    port        = var.port
+    config_path = local_file.config.filename
+  }
+}
+```
+
+```powershell
+terraform apply
+```
+
+**Pärast apply'd:**
+
+```
+Outputs:
+
+config_file_id = "sha256:a4f2e..."
+config_file_path = "./output/webserver.conf"
+summary = {
+  "app" = "webserver"
+  "config_path" = "./output/webserver.conf"
+  "environment" = "prod"
+  "port" = 9090
+}
+```
+
+**Küsi output'e:**
+
+```powershell
+terraform output
+terraform output config_file_path
+terraform output -json summary
+```
+
+**Validation:**
+- [ ] Variables töötavad
+- [ ] Outputs näidatakse pärast apply'd
+- [ ] `terraform output` töötab
+
+---
+
+## OSA 4: Remote Provisioning (SSH → Ubuntu)
+
+Nüüd liigume päris asjale: deploy'me Ubuntu-1 serverile.
+
+### 4.1 Uus Projekt
+
+```powershell
+cd C:\terraform-labs
+mkdir remote-setup
+cd remote-setup
+code .
+```
+
+### 4.2 main.tf - Null Resource + Remote-Exec
+
+**Loo fail:** `main.tf`
+
+```hcl
+# main.tf
+# Remote provisioning Ubuntu-1 serverile
+
+terraform {
+  required_providers {
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
+    }
+  }
+}
+
+variable "target_host" {
+  description = "Target Ubuntu server IP"
+  type        = string
+  default     = "10.0.208.20"  # Ubuntu-1
+}
+
+variable "ssh_user" {
+  description = "SSH kasutaja"
+  type        = string
+  default     = "kasutaja"
+}
+
+variable "ssh_private_key" {
+  description = "SSH private key path"
+  type        = string
+  default     = "~/.ssh/id_ed25519"
+}
+
+# Null resource - ei loo infrat, ainult käivitab provisioner'eid
+resource "null_resource" "ubuntu_setup" {
+  # Connection block - kuidas Terraform ühendub
+  connection {
+    type        = "ssh"
+    host        = var.target_host
+    user        = var.ssh_user
+    private_key = file(var.ssh_private_key)
+    timeout     = "2m"
+  }
+
+  # Remote-exec - käivita käsud remote serveris
+  provisioner "remote-exec" {
+    inline = [
+      "echo '=== System Info ==='",
+      "hostname",
+      "uname -a",
+      "whoami",
+      "pwd",
+      "echo '=== Network ==='",
+      "ip -4 addr show | grep inet",
+      "echo '=== Disk ==='",
+      "df -h /",
+      "echo '=== Done ==='",
+    ]
+  }
+}
+
+output "connection_test" {
+  value = "SSH connection successful to ${var.target_host}"
+  depends_on = [null_resource.ubuntu_setup]
+}
+```
+
+**Mis siin toimub?**
+
+- `null_resource` - ei loo päris ressurssi, ainult käivitab provisioner'eid
+- `connection {}` - SSH ühenduse parameetrid
+- `provisioner "remote-exec"` - käivitab käsud remote masinas
+- `file(var.ssh_private_key)` - loeb SSH võtme WinKlient'ist
+
+### 4.3 Test SSH Ühendust
+
+**Enne Terraform'i, testi SSH:**
+
+```powershell
+ssh kasutaja@10.0.208.20 "hostname"
+```
+
+Peaks näitama `ubuntu1` (kui `winklient-setup.md` tehtud).
+
+### 4.4 Init ja Apply
+
+```powershell
+terraform init
+```
+
+```powershell
+terraform plan
+```
+
+**Näed:**
+
+```terraform
+  # null_resource.ubuntu_setup will be created
+  + resource "null_resource" "ubuntu_setup" {
+      + id = (known after apply)
     }
 
 Plan: 1 to add, 0 to change, 0 to destroy.
 ```
 
-**Selgitus:**
-- `+ create` - loob uue ressursi
-- `(known after apply)` - väärtus selgub pärast loomist
-- `Plan: 1 to add` - lisatakse 1 ressurss
-
-**OLULINE:** `terraform plan` **EI MUUDA MIDAGI**. See ainult näitab, mis juhtub.
-
-### 2.2 Terraform Apply
-
-Nüüd loome päriselt.
-
-```bash
+```powershell
 terraform apply
 ```
 
-Terraform küsib kinnitust:
+**Väljund:**
 
 ```
-Do you want to perform these actions?
-  Terraform will perform the actions described above.
-  Only 'yes' will be accepted to approve.
-
-  Enter a value: 
-```
-
-Sisesta: `yes`
-
-**Oodatav output:**
-
-```
-local_file.hello: Creating...
-local_file.hello: Creation complete after 0s [id=9b5e...]
+null_resource.ubuntu_setup: Creating...
+null_resource.ubuntu_setup: Provisioning with 'remote-exec'...
+null_resource.ubuntu_setup (remote-exec): Connecting to remote host via SSH...
+null_resource.ubuntu_setup (remote-exec): Connected!
+null_resource.ubuntu_setup (remote-exec): === System Info ===
+null_resource.ubuntu_setup (remote-exec): ubuntu1
+null_resource.ubuntu_setup (remote-exec): Linux ubuntu1 5.15.0-91-generic
+null_resource.ubuntu_setup (remote-exec): kasutaja
+null_resource.ubuntu_setup (remote-exec): /home/kasutaja
+null_resource.ubuntu_setup (remote-exec): === Network ===
+null_resource.ubuntu_setup (remote-exec):     inet 10.0.208.20/24
+null_resource.ubuntu_setup (remote-exec): === Disk ===
+null_resource.ubuntu_setup (remote-exec): /dev/sda1        20G  5.2G   14G  28% /
+null_resource.ubuntu_setup (remote-exec): === Done ===
+null_resource.ubuntu_setup: Creation complete after 2s
 
 Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
-```
-
-### 2.3 Tulemuse Kontrollimine
-
-Kontrolli, et fail on loodud:
-
-```bash
-ls -la hello.txt
-cat hello.txt
-```
-
-**Oodatav output:**
-
-```bash
-# ls -la
--rw-r--r--  1 user user 45 ... hello.txt
-
-# cat
-Tere, see on minu esimene Terraform fail!
-```
-
-**Kontrolli state faili:**
-
-```bash
-cat terraform.tfstate
-```
-
-See on JSON fail, mis sisaldab infot loodud ressursside kohta. Näed seal `local_file.hello` kirjet koos kõikide atribuutidega.
-
-### 2.4 Idempotentsuse Test
-
-Käivita `terraform apply` uuesti:
-
-```bash
-terraform apply
-```
-
-**Oodatav output:**
-
-```
-local_file.hello: Refreshing state... [id=9b5e...]
-
-No changes. Your infrastructure matches the configuration.
-
-Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
-```
-
-**Õppetund:** Terraform on idempotent - sama käsk mitu korda ei muuda midagi.
-
-### Validation Checkpoint
-
-- [ ] `terraform plan` näitas `Plan: 1 to add`
-- [ ] `terraform apply` lõi faili
-- [ ] `hello.txt` fail eksisteerib ja on õige sisuga
-- [ ] `terraform.tfstate` fail on loodud
-- [ ] Teine `terraform apply` ei muutnud midagi
-
----
-
-## 3. Variables ja Outputs
-
-### 3.1 Variables Lisamine
-
-Muutujad teevad koodi dünaamiliseks.
-
-Loo fail `variables.tf`:
-
-```bash
-nano variables.tf
-```
-
-Lisa:
-
-```hcl
-variable "greeting" {
-  description = "Tervituse tekst"
-  type        = string
-  default     = "Tere, Terraform!"
-}
-
-variable "files_count" {
-  description = "Mitu faili luua"
-  type        = number
-  default     = 3
-}
-
-variable "file_prefix" {
-  description = "Failinimede prefix"
-  type        = string
-  default     = "test"
-}
-```
-
-**Selgitus:**
-- `variable` block - deklareerib muutuja
-- `description` - selgitus (dokumentatsioon)
-- `type` - andmetüüp (string, number, bool, list, map, ...)
-- `default` - vaikimisi väärtus
-
-Salvesta fail.
-
-### 3.2 Variables Kasutamine
-
-Muuda `main.tf`:
-
-```bash
-nano main.tf
-```
-
-Asenda `resource "local_file" "hello"` block järgmisega:
-
-```hcl
-resource "local_file" "examples" {
-  count = var.files_count
-  
-  filename = "${path.module}/${var.file_prefix}-${count.index + 1}.txt"
-  content  = "${var.greeting}\nSee on fail number ${count.index + 1}"
-}
-```
-
-**Selgitus:**
-- `count = var.files_count` - loome 3 faili
-- `var.greeting` - kasutame muutujat
-- `count.index` - index (0, 1, 2)
-- `count.index + 1` - index + 1 (1, 2, 3)
-
-Salvesta fail.
-
-### 3.3 Outputs Lisamine
-
-Loo fail `outputs.tf`:
-
-```bash
-nano outputs.tf
-```
-
-Lisa:
-
-```hcl
-output "file_names" {
-  description = "Loodud failide nimed"
-  value       = local_file.examples[*].filename
-}
-
-output "files_count" {
-  description = "Mitu faili loodi"
-  value       = length(local_file.examples)
-}
-
-output "greeting_used" {
-  description = "Kasutatud tervitus"
-  value       = var.greeting
-}
-```
-
-**Selgitus:**
-- `output` block - näitab infot pärast apply
-- `local_file.examples[*]` - kõik instantsid
-- `length()` - loeb arvu
-
-Salvesta fail.
-
-### 3.4 Rakendamine
-
-Kuna kood muutus, kustutame vana ressursi ja loome uued:
-
-```bash
-terraform apply
-```
-
-**Oodatav output:**
-
-```
-local_file.hello: Refreshing state... [id=9b5e...]
-
-Terraform will perform the following actions:
-
-  # local_file.examples[0] will be created
-  + resource "local_file" "examples" {
-      + content  = "Tere, Terraform!\nSee on fail number 1"
-      + filename = "/home/user/terraform-lab/test-1.txt"
-      ...
-    }
-
-  # local_file.examples[1] will be created
-  + resource "local_file" "examples" {
-      + content  = "Tere, Terraform!\nSee on fail number 2"
-      + filename = "/home/user/terraform-lab/test-2.txt"
-      ...
-    }
-
-  # local_file.examples[2] will be created
-  + resource "local_file" "examples" {
-      + content  = "Tere, Terraform!\nSee on fail number 3"
-      + filename = "/home/user/terraform-lab/test-3.txt"
-      ...
-    }
-
-  # local_file.hello will be destroyed
-  - resource "local_file" "hello" {
-      ...
-    }
-
-Plan: 3 to add, 0 to change, 1 to destroy.
-```
-
-Sisesta: `yes`
-
-**Pärast apply:**
-
-```
-Apply complete! Resources: 3 added, 0 changed, 1 destroyed.
 
 Outputs:
-
-file_names = [
-  "/home/user/terraform-lab/test-1.txt",
-  "/home/user/terraform-lab/test-2.txt",
-  "/home/user/terraform-lab/test-3.txt",
-]
-files_count = 3
-greeting_used = "Tere, Terraform!"
+connection_test = "SSH connection successful to 10.0.208.20"
 ```
 
-### 3.5 Kontrollimine
+**Validation:**
+- [ ] SSH ühendus õnnestus
+- [ ] Näed Ubuntu-1 hostname'i
+- [ ] Näed IP 10.0.208.20
 
-```bash
-ls -la test-*.txt
-cat test-1.txt
-cat test-2.txt
-cat test-3.txt
-```
+### 4.5 Nginx Paigaldamine
 
-**Oodatav output:**
-
-```
--rw-r--r--  1 user user 42 ... test-1.txt
--rw-r--r--  1 user user 42 ... test-2.txt
--rw-r--r--  1 user user 42 ... test-3.txt
-```
-
-Kõik failid sisaldavad:
-
-```
-Tere, Terraform!
-See on fail number X
-```
-
-### 3.6 Muutujate Ülekirjutamine
-
-Käivita apply uue väärtusega:
-
-```bash
-terraform apply -var="greeting=Tere maailm!" -var="files_count=5"
-```
-
-**Tulemus:** Terraform loob 2 uut faili (kokku 5) ja uuendab olemasolevaid.
-
-### Validation Checkpoint
-
-- [ ] `variables.tf` fail on loodud
-- [ ] `outputs.tf` fail on loodud
-- [ ] `main.tf` kasutab muutujaid
-- [ ] `terraform apply` lõi 3 faili
-- [ ] Outputs näitavad õigeid väärtuseid
-- [ ] `-var` flag töötab
-
----
-
-## 4. Sõltuvused ja Struktuur
-
-### 4.1 Kausta Loomine
-
-Ressursid võivad sõltuda üksteisest. Loome kausta ja siis faili selle kausta sisse.
-
-Muuda `main.tf`:
-
-```bash
-nano main.tf
-```
-
-Lisa pärast provider block'i:
+Muuda `main.tf` provisioner:
 
 ```hcl
-resource "local_file" "config_dir" {
-  filename = "${path.module}/config/.gitkeep"
-  content  = ""
-}
-
-resource "local_file" "config_file" {
-  filename = "${path.module}/config/app.conf"
-  content  = <<-EOF
-    # Application Configuration
-    port = 8080
-    host = localhost
-    debug = true
-    
-    # Generated by Terraform
-    # Count: ${var.files_count}
-  EOF
-  
-  depends_on = [local_file.config_dir]
-}
+  provisioner "remote-exec" {
+    inline = [
+      "echo '=== Updating packages ==='",
+      "sudo apt update -qq",
+      
+      "echo '=== Installing Nginx ==='",
+      "sudo apt install -y nginx",
+      
+      "echo '=== Starting Nginx ==='",
+      "sudo systemctl start nginx",
+      "sudo systemctl enable nginx",
+      
+      "echo '=== Creating custom page ==='",
+      "echo '<h1>Deployed by Terraform!</h1>' | sudo tee /var/www/html/index.html",
+      
+      "echo '=== Nginx Status ==='",
+      "sudo systemctl status nginx --no-pager",
+      
+      "echo '=== Testing ==='",
+      "curl -s localhost | grep -o '<h1>.*</h1>'",
+      
+      "echo '=== Done ==='",
+    ]
+  }
 ```
 
-**Selgitus:**
-- `local_file.config_dir` - loob `/config/` kausta (`.gitkeep` trikk)
-- `<<-EOF ... EOF` - heredoc süntaks (multi-line string)
-- `depends_on` - eksplitsiitne sõltuvus
+**Destroy vana ja loo uus:**
 
-Salvesta fail.
-
-### 4.2 Rakendamine
-
-```bash
+```powershell
+terraform destroy -auto-approve
 terraform apply
 ```
 
-**Oodatav output:**
+**Kontrolli brauseris (WinKlient):**
 
 ```
-Plan: 2 to add, 0 to change, 0 to destroy.
+http://10.0.208.20
 ```
 
-Sisesta: `yes`
+Peaks näitama: "Deployed by Terraform!"
 
-**Kontrolli:**
+### 4.6 Triggers - Käivita Uuesti
 
-```bash
-tree config/
-cat config/app.conf
-```
+Probleem: `null_resource` käivitub ainult loomisel. Kui tahad uuesti käivitada?
 
-**Oodatav output:**
-
-```
-config/
-├── .gitkeep
-└── app.conf
-```
-
-### 4.3 Data Sources
-
-Data source = loe olemasolevat infot, ära loo uut.
-
-Lisa `main.tf` lõppu:
+**Lisa trigger:**
 
 ```hcl
-data "local_file" "existing_config" {
-  filename = "${path.module}/config/app.conf"
-  
-  depends_on = [local_file.config_file]
-}
-```
+resource "null_resource" "ubuntu_setup" {
+  # Käivita uuesti, kui timestamp muutub
+  triggers = {
+    always_run = timestamp()
+  }
 
-Lisa `outputs.tf` lõppu:
+  connection {
+    # ... sama
+  }
 
-```hcl
-output "config_content" {
-  description = "Config faili sisu"
-  value       = data.local_file.existing_config.content
-}
-```
-
-**Selgitus:**
-- `data "local_file"` - loeb olemasolevat faili (ei loo!)
-- Output näitab faili sisu
-
-Rakenda:
-
-```bash
-terraform apply
-```
-
-**Tulemus:** Output näitab config faili sisu.
-
-### Validation Checkpoint
-
-- [ ] `config/` kaust on loodud
-- [ ] `config/app.conf` fail eksisteerib
-- [ ] Data source loeb faili sisu
-- [ ] Output näitab config sisu
-
----
-
-## 5. Keerukamate Struktuuride Loomine
-
-### 5.1 Locals
-
-Locals = arvutatud väärtused, mida saad koodi sees kasutada.
-
-Lisa `main.tf` lõppu:
-
-```hcl
-locals {
-  timestamp = formatdate("YYYY-MM-DD-hhmm", timestamp())
-  
-  project_name = "terraform-lab"
-  
-  full_prefix = "${local.project_name}-${local.timestamp}"
-  
-  file_metadata = {
-    author  = "Terraform"
-    version = "1.0"
-    date    = local.timestamp
+  provisioner "remote-exec" {
+    # ... sama
   }
 }
-
-resource "local_file" "metadata" {
-  filename = "${path.module}/metadata.json"
-  content  = jsonencode(local.file_metadata)
-}
 ```
 
-**Selgitus:**
-- `locals {}` - deklareerib lokaalseid muutujaid
-- `timestamp()` - praegune aeg
-- `formatdate()` - formateerib kuupäeva
-- `jsonencode()` - teisendab JSON'iks
-- `local.xxx` - kasutab local'i
+Nüüd iga `terraform apply` käivitab provisioner'i uuesti!
 
-Rakenda:
-
-```bash
-terraform apply
-```
-
-**Kontrolli:**
-
-```bash
-cat metadata.json
-```
-
-**Oodatav output:**
-
-```json
-{
-  "author": "Terraform",
-  "date": "2025-10-16-0845",
-  "version": "1.0"
-}
-```
-
-### 5.2 For_each
-
-`for_each` on parem kui `count`, kui vajad key-value struktuure.
-
-Lisa `main.tf` lõppu:
+**VÕI kasuta UUID trigger:**
 
 ```hcl
-variable "environments" {
-  description = "Keskkonnad"
-  type        = map(string)
-  default = {
-    dev     = "Development"
-    staging = "Staging"
-    prod    = "Production"
+  triggers = {
+    deployment_id = uuid()
   }
-}
-
-resource "local_file" "env_configs" {
-  for_each = var.environments
-  
-  filename = "${path.module}/envs/${each.key}.conf"
-  content  = <<-EOF
-    # ${each.value} Configuration
-    environment = ${each.key}
-    log_level = ${each.key == "prod" ? "error" : "debug"}
-    
-    # Generated: ${local.timestamp}
-  EOF
-}
 ```
 
-**Selgitus:**
-- `for_each = var.environments` - itereerib üle map'i
-- `each.key` - võti (dev, staging, prod)
-- `each.value` - väärtus (Development, ...)
-- Ternary operator: `condition ? if_true : if_false`
+### 4.7 Local-Exec (Klient Pool)
 
-Rakenda:
+Kui tahad käivitada käske **WinKlient'is** (mitte Ubuntu's):
 
-```bash
-terraform apply
+```hcl
+  provisioner "local-exec" {
+    command = "echo Deployment started > deployment.log"
+  }
+
+  provisioner "remote-exec" {
+    # Deploy Ubuntu'sse
+  }
+
+  provisioner "local-exec" {
+    command = "echo Deployment finished >> deployment.log"
+  }
 ```
-
-**Kontrolli:**
-
-```bash
-ls -la envs/
-cat envs/dev.conf
-cat envs/prod.conf
-```
-
-**Oodatav output:**
-
-```
-envs/
-├── dev.conf
-├── prod.conf
-└── staging.conf
-```
-
-`envs/prod.conf`:
-
-```
-# Production Configuration
-environment = prod
-log_level = error
-
-# Generated: 2025-10-16-0845
-```
-
-### Validation Checkpoint
-
-- [ ] `metadata.json` on loodud ja sisaldab timestamp'i
-- [ ] `envs/` kaust eksisteerib
-- [ ] Kõik 3 env faili on loodud
-- [ ] `prod.conf` kasutab `log_level = error`
-- [ ] `dev.conf` kasutab `log_level = debug`
 
 ---
 
-## 6. State Haldamine ja Manipulatsioon
+## OSA 5: File Provisioner
 
-### 6.1 State Ülevaade
+Kopeerime faile WinKlient'ist → Ubuntu.
 
-Vaata state'i:
+### 5.1 Loo Konfiguratsioonifailid
 
-```bash
-terraform state list
-```
+**WinKlient:** `files/nginx.conf`
 
-**Oodatav output:**
-
-```
-data.local_file.existing_config
-local_file.config_dir
-local_file.config_file
-local_file.env_configs["dev"]
-local_file.env_configs["prod"]
-local_file.env_configs["staging"]
-local_file.examples[0]
-local_file.examples[1]
-local_file.examples[2]
-local_file.metadata
-```
-
-### 6.2 State Show
-
-Vaata ühe ressursi detaile:
-
-```bash
-terraform state show local_file.metadata
-```
-
-**Oodatav output:**
-
-```
-# local_file.metadata:
-resource "local_file" "metadata" {
-    content              = "{\"author\":\"Terraform\",\"date\":\"...\",\"version\":\"1.0\"}"
-    content_base64sha256 = "..."
-    content_base64sha512 = "..."
-    content_md5          = "..."
-    content_sha1         = "..."
-    content_sha256       = "..."
-    content_sha512       = "..."
-    directory_permission = "0777"
-    file_permission      = "0777"
-    filename             = "/home/user/terraform-lab/metadata.json"
-    id                   = "..."
-}
-```
-
-### 6.3 State Drift Detection
-
-Terraform oskab tuvastada käsitsi muudatusi.
-
-**Muuda faili käsitsi:**
-
-```bash
-echo "Muudetud käsitsi!" > test-1.txt
-```
-
-**Käivita plan:**
-
-```bash
-terraform plan
-```
-
-**Oodatav output:**
-
-```
-local_file.examples[0]: Refreshing state... [id=...]
-
-Terraform will perform the following actions:
-
-  # local_file.examples[0] has changed
-  ~ resource "local_file" "examples" {
-      ~ content              = "Muudetud käsitsi!" -> "Tere, Terraform!\nSee on fail number 1"
-      ~ content_md5          = "..." -> "..."
-      ...
+```nginx
+server {
+    listen 8080;
+    server_name _;
+    
+    location / {
+        root /var/www/html;
+        index index.html;
     }
-
-Plan: 0 to add, 1 to change, 0 to destroy.
+}
 ```
 
-**Selgitus:** Terraform märkab, et faili sisu on erinev ja plaanib selle parandada.
+**WinKlient:** `files/index.html`
 
-**Taasta:**
-
-```bash
-terraform apply -auto-approve
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Terraform Deploy</title>
+    <style>
+        body { font-family: Arial; background: #f0f0f0; }
+        .container { max-width: 800px; margin: 50px auto; padding: 20px; background: white; }
+        h1 { color: #0066cc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Deployed by Terraform!</h1>
+        <p>This page was deployed using Infrastructure as Code.</p>
+        <p>Server: <strong>Ubuntu-1</strong></p>
+        <p>Date: <strong><script>document.write(new Date().toISOString())</script></strong></p>
+    </div>
+</body>
+</html>
 ```
 
-### 6.4 State Taint/Untaint
-
-Mõnikord tahad ressursi uuesti luua ilma muudatusteta.
-
-```bash
-# Märgi "määrduks" (recreate järgmisel apply)
-terraform taint local_file.metadata
-
-# Vaata plaani
-terraform plan
-```
-
-**Oodatav output:**
-
-```
-Plan: 1 to add, 0 to change, 1 to destroy.
-```
-
-**Untaint (võta tagasi):**
-
-```bash
-terraform untaint local_file.metadata
-
-# Nüüd ei planeeri enam muudatust
-terraform plan
-```
-
-### 6.5 State Backup
-
-State failist tehakse automaatselt backup.
-
-```bash
-ls -la terraform.tfstate*
-```
-
-**Oodatav output:**
-
-```
--rw-r--r--  1 user user 12345 ... terraform.tfstate
--rw-r--r--  1 user user 11234 ... terraform.tfstate.backup
-```
-
-**Taasta vana state (kui vaja):**
-
-```bash
-cp terraform.tfstate.backup terraform.tfstate
-```
-
-### Validation Checkpoint
-
-- [ ] `terraform state list` näitab kõiki ressursse
-- [ ] `terraform state show` näitab detaile
-- [ ] Terraform tuvastas käsitsi muudatuse
-- [ ] `terraform taint` märkis ressursi uuesti loomiseks
-- [ ] State backup fail eksisteerib
-
----
-
-## 7. Debugging ja Troubleshooting
-
-### 7.1 Verbose Logging
-
-Kui midagi ei tööta, lülita verbose logging sisse:
-
-```bash
-export TF_LOG=DEBUG
-terraform apply
-```
-
-**Tulemus:** Näed palju rohkem detaile.
-
-**Lülita välja:**
-
-```bash
-unset TF_LOG
-```
-
-### 7.2 Validation
-
-Kontrolli koodi süntaksit:
-
-```bash
-terraform validate
-```
-
-**Kui kõik OK:**
-
-```
-Success! The configuration is valid.
-```
-
-**Kui viga:**
-
-```
-Error: Missing required argument
-
-  on main.tf line 42:
-  42: resource "local_file" "broken" {
-
-The argument "content" is required, but no definition was found.
-```
-
-### 7.3 Format Check
-
-Terraform oskab koodi automaatselt vormindada:
-
-```bash
-terraform fmt
-```
-
-**Tulemus:** Kõik `.tf` failid vormindatakse ühtselt.
-
-**Kontrolli ilma muutmata:**
-
-```bash
-terraform fmt -check
-```
-
-### 7.4 Tavalisemad Vead
-
-#### Viga 1: Provider Not Initialized
-
-```
-Error: Could not load plugin
-```
-
-**Lahendus:**
-
-```bash
-terraform init
-```
-
-#### Viga 2: Resource Already Exists
-
-```
-Error: file already exists and was not created by Terraform
-```
-
-**Lahendus:** Kustuta fail käsitsi või impordi state'i:
-
-```bash
-rm conflicting-file.txt
-terraform apply
-```
-
-#### Viga 3: State Lock
-
-```
-Error: Error acquiring the state lock
-```
-
-**Lahendus:** Mõni teine Terraform protsess töötab. Oota või:
-
-```bash
-terraform force-unlock <LOCK_ID>
-```
-
-**HOIATUS:** Kasuta `force-unlock` ainult kui kindel!
-
-#### Viga 4: Circular Dependency
-
-```
-Error: Cycle: resource.a, resource.b
-```
-
-**Lahendus:** Kaks ressurssi sõltuvad üksteisest. Muuda arhitektuuri.
-
-### Validation Checkpoint
-
-- [ ] `TF_LOG=DEBUG` töötab
-- [ ] `terraform validate` kontrollib süntaksit
-- [ ] `terraform fmt` vormindab koodi
-- [ ] Tead kuidas debugida tavalisi vigu
-
----
-
-## 8. Cleanup ja Kokkuvõte
-
-### 8.1 Kõige Kustutamine
-
-Kui oled valmis, kustuta kõik Terraform'iga loodud ressursid:
-
-```bash
-terraform destroy
-```
-
-**Oodatav output:**
-
-```
-Plan: 0 to add, 0 to change, 13 to destroy.
-
-Do you really want to destroy all resources?
-  Terraform will destroy all your managed infrastructure, as shown above.
-  There is no undo. Only 'yes' will be accepted to confirm.
-
-  Enter a value:
-```
-
-Sisesta: `yes`
-
-**Tulemus:** Kõik failid ja kaustad kustutatakse.
-
-**Kontrolli:**
-
-```bash
-ls -la
-```
-
-Ainult Terraform failid jäävad:
-
-```
-.terraform/
-main.tf
-outputs.tf
-variables.tf
-terraform.tfstate
-terraform.tfstate.backup
-terraform.lock.hcl
-```
-
-### 8.2 Projekti Puhastamine
-
-Kui tahad alustada puhtalt:
-
-```bash
-rm -rf .terraform/
-rm terraform.tfstate*
-rm terraform.lock.hcl
-```
-
----
-
-## Labori Kontrollnimekiri
-
-Kontrolli, et oled kõik sammud läbi teinud:
-
-**Setup:**
-- [ ] Terraform installitud ja töötab
-- [ ] Töökataloog loodud
-- [ ] `main.tf` fail loodud
-- [ ] `terraform init` edukas
-
-**Basic Operations:**
-- [ ] `terraform plan` näitas muudatusi
-- [ ] `terraform apply` lõi ressursse
-- [ ] Idempotentsuse test õnnestus
-
-**Variables ja Outputs:**
-- [ ] `variables.tf` loodud ja kasutatud
-- [ ] `outputs.tf` näitab infot
-- [ ] `-var` flag töötab
-
-**Sõltuvused:**
-- [ ] Kaustad ja failid loodud õiges järjekorras
-- [ ] Data source töötab
-- [ ] `depends_on` kasutatud
-
-**Advanced:**
-- [ ] `locals` kasutatud
-- [ ] `for_each` töötab
-- [ ] Erinevad env failid loodud
-
-**State:**
-- [ ] `terraform state list` töötab
-- [ ] State drift tuvastatud
-- [ ] State backup eksisteerib
-
-**Debugging:**
-- [ ] `terraform validate` kasutatud
-- [ ] `terraform fmt` vormindas koodi
-- [ ] Debugging tehnikad testitud
-
-**Cleanup:**
-- [ ] `terraform destroy` käivitatud
-- [ ] Kõik ressursid kustutatud
-
----
-
-## Järgmised Sammud
-
-**1. AWS/Azure Practice**
-
-Järgmine samm: proovi sama AWS või Azure provider'iga.
-
-**Erinevus:**
-- Vajad AWS/Azure accounti
-- Ressursid maksavad raha (väikesed summad)
-- Real-world infrastructure
-
-**Alusta:**
-- [Terraform AWS Tutorial](https://developer.hashicorp.com/terraform/tutorials/aws-get-started)
-- [Terraform Azure Tutorial](https://developer.hashicorp.com/terraform/tutorials/azure-get-started)
-
-**2. Remote State**
-
-Õpi salvestama state remote backend'is:
-- AWS: S3 + DynamoDB (locking)
-- Azure: Azure Storage + Lock
-
-**Miks oluline:**
-- Meeskonnatöö
-- State lock
-- Versioning + backup
-
-**3. Moodulid**
-
-Kirjuta korduvkasutatavaid mooduleid.
-
-**Näide:**
+### 5.2 File Provisioner
 
 ```hcl
-module "network" {
-  source = "./modules/network"
-  
-  vpc_cidr = "10.0.0.0/16"
+resource "null_resource" "ubuntu_setup" {
+  triggers = {
+    config_hash = filemd5("${path.module}/files/nginx.conf")
+    html_hash   = filemd5("${path.module}/files/index.html")
+  }
+
+  connection {
+    type        = "ssh"
+    host        = var.target_host
+    user        = var.ssh_user
+    private_key = file(var.ssh_private_key)
+  }
+
+  # 1. Kopeeri failid
+  provisioner "file" {
+    source      = "files/index.html"
+    destination = "/tmp/index.html"
+  }
+
+  provisioner "file" {
+    source      = "files/nginx.conf"
+    destination = "/tmp/nginx-custom.conf"
+  }
+
+  # 2. Paigalda ja seadista
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt update -qq && sudo apt install -y nginx",
+      "sudo mv /tmp/index.html /var/www/html/",
+      "sudo mv /tmp/nginx-custom.conf /etc/nginx/sites-available/custom",
+      "sudo ln -sf /etc/nginx/sites-available/custom /etc/nginx/sites-enabled/",
+      "sudo nginx -t",
+      "sudo systemctl reload nginx",
+      "echo 'Deployment complete!'",
+    ]
+  }
 }
 ```
 
-**4. Workspaces**
+**Trigger hash:** Kui fail muutub, Terraform detects ja deploy'b uuesti!
 
-Halda mitut keskkonda (dev, staging, prod):
-
-```bash
-terraform workspace new dev
-terraform workspace new prod
-terraform workspace select dev
-```
-
----
-
-## Troubleshooting Guide
-
-### Probleem: Terraform aeglane
-
-**Põhjus:** Suur state fail, palju ressursse
-
-**Lahendus:**
-- Kasuta `-parallelism=10` (default: 10)
-- Jaga projekt mitmeks
-
-### Probleem: Provider download ebaõnnestub
-
-**Põhjus:** Võrguprobleem, firewall
-
-**Lahendus:**
-
-```bash
-# Kasuta mirror'it
-terraform init -plugin-dir=/path/to/plugins
-
-# Või:
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-mkdir -p $TF_PLUGIN_CACHE_DIR
-```
-
-### Probleem: State conflict
-
-**Põhjus:** Kaks inimest käivitas samaaegselt
-
-**Lahendus:**
-- Kasuta remote backend (S3) + locking (DynamoDB)
-- Koordineeri meeskonnaga
-
-### Probleem: Resource import
-
-**Stsenaarium:** Sul on käsitsi loodud ressurss, tahad Terraform haldusesse võtta.
-
-**Lahendus:**
-
-```bash
-# 1. Kirjuta resource block (ilma atribuutideta)
-resource "local_file" "existing" {
-  filename = "/tmp/existing.txt"
-  content  = ""  # Täitub import'imisel
-}
-
-# 2. Impordi
-terraform import local_file.existing /tmp/existing.txt
-
-# 3. Täienda atribuudid state'ist
-terraform state show local_file.existing
-```
-
----
-
-## Kasulikud Käsud
-
-```bash
-# Ülevaade
-terraform version
-terraform -help
-
-# Workflow
-terraform init
-terraform validate
-terraform fmt
-terraform plan
+```powershell
 terraform apply
-terraform destroy
+```
 
-# State
-terraform state list
-terraform state show <resource>
-terraform state mv <source> <dest>
-terraform state rm <resource>
+**Test:**
 
-# Workspace
-terraform workspace list
-terraform workspace new <name>
-terraform workspace select <name>
-
-# Debug
-export TF_LOG=DEBUG
-export TF_LOG_PATH=./terraform.log
-
-# Graph (vajab graphviz)
-terraform graph | dot -Tpng > graph.png
+```
+http://10.0.208.20:8080
 ```
 
 ---
 
-## Ressursid
+## OSA 6: Troubleshooting
 
-**Dokumentatsioon:**
-- [Terraform Docs](https://developer.hashicorp.com/terraform/docs)
-- [Local Provider](https://registry.terraform.io/providers/hashicorp/local/latest/docs)
-- [Terraform Registry](https://registry.terraform.io/)
+### 6.1 SSH Connection Failed
 
-**Õppimine:**
-- [HashiCorp Learn](https://developer.hashicorp.com/terraform/tutorials)
-- [Terraform Best Practices](https://www.terraform-best-practices.com/)
+**Viga:**
 
-**Community:**
-- [Terraform GitHub](https://github.com/hashicorp/terraform)
-- [Terraform Discuss](https://discuss.hashicorp.com/c/terraform-core)
+```
+Error: error connecting to SSH: dial tcp 10.0.208.20:22: i/o timeout
+```
+
+**Lahendused:**
+
+```powershell
+# Test ping
+ping 10.0.208.20
+
+# Test SSH käsitsi
+ssh kasutaja@10.0.208.20
+
+# Kontrolli SSH service Ubuntu's
+ssh kasutaja@10.0.208.20 "sudo systemctl status ssh"
+
+# Kontrolli firewall
+ssh kasutaja@10.0.208.20 "sudo ufw status"
+```
+
+### 6.2 Permission Denied (publickey)
+
+**Viga:**
+
+```
+Error: Permission denied (publickey)
+```
+
+**Lahendused:**
+
+```powershell
+# Kontrolli SSH võtit
+ssh-add -l
+cat ~/.ssh/id_ed25519.pub
+
+# Kontrolli authorized_keys Ubuntu's
+ssh kasutaja@10.0.208.20 "cat ~/.ssh/authorized_keys"
+
+# Lisa võti käsitsi (kui puudub)
+type ~/.ssh/id_ed25519.pub | ssh kasutaja@10.0.208.20 "cat >> ~/.ssh/authorized_keys"
+```
+
+### 6.3 Provisioner Failed
+
+**Viga:**
+
+```
+Error: remote-exec provisioner error: Command exited with non-zero status: 1
+```
+
+**Debug:**
+
+```hcl
+  provisioner "remote-exec" {
+    inline = [
+      "set -x",  # Enable verbose logging
+      "whoami",
+      "pwd",
+      "ls -la",
+      # ... teised käsud
+    ]
+  }
+```
+
+**VÕI käivita käsitsi:**
+
+```powershell
+ssh kasutaja@10.0.208.20 "sudo apt update -qq && sudo apt install -y nginx"
+```
+
+### 6.4 State Lock
+
+**Viga:**
+
+```
+Error: state locked
+```
+
+**Lahendus:**
+
+```powershell
+terraform force-unlock LOCK_ID
+```
+
+(Kasuta ainult kui kindel, et teine apply ei jookse!)
 
 ---
 
-**Õnnitlused!** Oled läbinud Terraform alused labori. Nüüd oled valmis real-world projektidega alustama.
+## Kontrollnimekiri
 
-**Järgmine väljakutse:** AWS/Azure infrastruktuur Terraform'iga!
+### OSA 1-2: Local Setup
+- [ ] Terraform paigaldatud WinKlient'i
+- [ ] `terraform version` töötab
+- [ ] Local provider töötab
+- [ ] Init/plan/apply/destroy workflow toimib
+- [ ] State fail arusaadav
+
+### OSA 3: Variables
+- [ ] `variables.tf` töötab
+- [ ] `-var` flag töötab
+- [ ] `terraform.tfvars` laetakse
+- [ ] Outputs näidatakse
+- [ ] Validation constraint'd töötavad
+
+### OSA 4-5: Remote Setup
+- [ ] SSH ühendus Ubuntu-1'le
+- [ ] `null_resource` + `remote-exec` töötab
+- [ ] Nginx paigaldatud
+- [ ] File provisioner kopeerib faile
+- [ ] Trigger hash töötab
+- [ ] Webpage accessible brauseris
+
+### Troubleshooting
+- [ ] SSH debug oskus
+- [ ] Provisioner debug oskus
+- [ ] State management
+
+---
+
+## Järgmine Samm
+
+**Kodutöö:** Deploy sama setup Ubuntu-2'le, aga erineva konfiguratsiooniga (nginx port 9090, erinev HTML).
+
+**Lisapraktika:** Multi-server deploy (mõlemad Ubuntu'd korraga).
+
+**Allikas:** [Terraform Provisioners](https://developer.hashicorp.com/terraform/language/resources/provisioners/syntax)
