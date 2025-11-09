@@ -63,7 +63,7 @@ CI/CD lahendab selle: integreeri sageli (iga päev või mitu korda päevas) ja k
 
 Continuous Integration tähendab et iga kord kui arendaja push'ib koodi, süsteem automaatselt buildib ja testib selle. Developer teeb `git push`. GitHub Actions workflow käivitub. Kood buildib automaatselt. Testid jooksevad automaatselt. Kui midagi ebaõnnestub, developer saab teada 5 minutit hiljem. Mitte homme. Mitte järgmisel nädalal. Kohe, kui kontekst on veel meeles.
 
-![ByteByteGo CI/CD Pipeline](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F080e2c0c-2c18-4a9e-b2f6-c5d7f8e8c8cd_1280x1664.gif)
+![ByteByteGo CI/CD Pipeline](https://substackcdn.com/image/fetch/$s_!X8eQ!,w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fa0392cd2-a9b4-4c12-8c12-5250127d7df2_1280x1679.jpeg)
 
 *Allikas: [ByteByteGo - CI/CD Pipeline](https://blog.bytebytego.com/p/ep71-cicd-pipeline-explained-in-simple)*
 
