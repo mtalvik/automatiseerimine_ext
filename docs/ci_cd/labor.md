@@ -1,7 +1,8 @@
 # Pidev Integratsioon ja Tarnimine (CI/CD) Labor
 
 **Eeldused:** Git põhitõed, Docker, käsurida  
-**Platvorm:** GitHub Actions
+**Platvorm:** GitHub Actions  
+**Oluline:** See labor sisaldab tahtlikke vigu! Sinu ülesanne on need leida ja parandada.
 
 ---
 
@@ -10,28 +11,29 @@
 Pärast seda labor'it oskad:
 
 - **Loob** GitHub Actions pipeline'i põhistruktuuri stage'idega
+- **Debugib** pipeline vigu logide abil (praktiliselt!)
+- **Leiab ja parandab** vigu mida CI/CD süsteem avastab
 - **Seadistab** automaatse testimise ja Docker build'i
-- **Debugib** pipeline vigu logide abil
 - **Rakendab** manual approval'i production deployment'iks
-- **Selgitab** miks CI/CD vähendab vigu ja säästab aega
 
 ---
 
 ## Enne kui alustad
 
-See labor võtab umbes 90 minutit. Lab'i lõpuks on sul töötav automatiseeritud süsteem: sina kirjutad koodi, teed git push, ja automaatne masin kontrollib koodi, käivitab testid, ehitab Docker image ja deploy'ib rakenduse pärast sinu kinnitust.
+See labor võtab umbes 90 minutit. Lab'i lõpuks on sul töötav automatiseeritud süsteem mis leiab vigasid sinu eest.
 
-### Miks see oluline?
+⚠️ **TÄHTIS:** Selles lab'is on tahtlikke vigu! Need on seal õppimise eesmärgil. Sinu ülesanne on:
+1. Järgida juhiseid
+2. Push'ida koodi GitHubi
+3. Vaadata mis GitHub Actions ütleb
+4. Leida ja parandada vead
+5. Push'ida uuesti
 
-Vaatame kahte stsenaariumi. Ilma CI/CD'ta peab arendaja käsitsi testid jooksutama, mis võtab kakskümmend minutit ja mida vahel unustatakse. Seejärel käsitsi Docker build, mis võtab kümme minutit. Siis käsitsi deployment, veel viisteist minutit. Kui midagi läheb valesti, võtab rollback pool tundi. Kokku üle seitsmekümne minuti ja kolmekümne protsendine vigade risk.
-
-CI/CD'ga arendaja kirjutab koodi ja teeb git push. Pipeline käivitub automaatselt. Viis minutit hiljem on kõik testid läbitud ja süsteem on valmis deployment'iks. Üks klikk ja valmis. Kokku viis minutit pluss üks klikk, viis protsenti vigade risk.
+See on päris maailm - CI/CD leiab vigu ja sina pead need parandama!
 
 ---
 
 ## 1. Rakenduse ja Git Setup
-
-Selles jaotises loome lihtsa API, mida hiljem automatiseerime. Me kasutame lihtsat rakendust, et fookus oleks automatiseerimisel, mitte rakenduse keerukusel. Kui rakendus on keerukas, on raske eristada kas probleem on rakenduses või pipeline'is.
 
 ### Loo projekt
 ```bash
@@ -73,8 +75,6 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ```
 
-Health endpoint on oluline, sest pipeline kasutab seda pärast deployment'i kontrollimaks kas rakendus töötab. Kui health endpoint ei vasta, siis deployment on ebaõnnestunud.
-
 Loo fail nimega requirements.txt:
 ```
 Flask==3.0.0
@@ -87,14 +87,12 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Ava teine terminal ja testi endpoint'e:
+Ava teine terminal:
 ```bash
 curl http://localhost:5000/
 curl http://localhost:5000/health
 curl http://localhost:5000/products
 ```
-
-Kõik kolm endpoint'i peaksid tagastama JSON vastuse.
 
 ### Loo Git repository
 ```bash
@@ -108,30 +106,16 @@ git commit -m "Initial: Flask app"
 
 ### GitHub setup
 
-Mine GitHub'i lehele ja loo uus repository nimega cicd-demo. Vali Public visibility, et GitHub Actions töötaks tasuta.
+Mine GitHub'i ja loo uus repository nimega cicd-demo (Public).
 ```bash
 # Asenda USERNAME oma GitHub kasutajanimega
 git remote add origin https://github.com/USERNAME/cicd-demo.git
 git push -u origin main
 ```
 
-### Kontrolli
-
-Veendu et rakendus töötab kohalikult, kõik endpoint'id vastavad korrektselt ja kood on GitHub'is nähtav.
-
 ---
 
 ## 2. Validate Stage
-
-Selles jaotises loome esimese pipeline stage'i, mis kontrollib koodi süntaksit. Pipeline'id on jagatud stage'ideks hierarhilises järjekorras. Validate stage võtab umbes kümme sekundit, test stage kolmkümmend sekundit, build kaks minutit ja deploy ühe minuti. Põhimõte on leida vigu võimalikult vara ja odavalt.
-
-Kui koodis on süntaksi viga, siis validate stage fail'ib kümne sekundi pärast. Ilma validate'ita jookseks build kaks minutit ja alles siis fail'iks. See tähendab et kaks minutit aega läks raisku.
-
-### Validate stage eesmärk
-
-Validate stage kontrollib ainult süntaksi vigu. See ei kontrolli loogikat ega ärireegleid. Näiteks validate leiab kui kooloni ei ole funktsioonideklaratsioonis, aga ei leia kui if-lause kasutab vale võrdlusmärki.
-
-Validate on esimene stage, kuna see on kõige kiirem ja odavam viis vigade leidmiseks. Kui valideerimine fail'ib, pole mõtet teste ega build'i käivitada.
 
 ### Loo workflow fail
 
@@ -149,7 +133,6 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-
       - uses: actions/checkout@v3
       
       - name: Set up Python
@@ -159,12 +142,9 @@ jobs:
       
       - name: Validate Python syntax
         run: |
-          echo "Alustan valideerimist..."
           python -m py_compile app.py
-          echo "Kood on korrektne"
+          echo "✅ Süntaks on korrektne"
 ```
-
-Workflow käivitub automaatselt kui keegi pushib või avab pull request'i main branch'i. Validate job käivitub Ubuntu masinal, tõmbab koodi, seadistab Python'i ja kontrollib app.py süntaksit.
 
 ### Push ja vaata
 ```bash
@@ -173,38 +153,30 @@ git commit -m "Add pipeline: validate stage"
 git push origin main
 ```
 
-Mine GitHub'is Actions tab'i alla. Kliki pipeline'i nimel ja vaata validate job'i logi. Pipeline peaks käivituma automaatselt, job peaks olema roheline ja logis peaksid nägema echo käskude väljundit.
+Mine GitHub'is Actions tab'i alla. Pipeline peaks olema roheline ✅.
 
-### Eksperiment - süntaksi viga
+### 🎯 Ülesanne 2.1: Süntaksi viga
 
-Nüüd õpime kuidas pipeline vigu leiab. Lisa app.py faili tahtlik süntaksi viga. Muuda real kuus def home(): nii, et eemaldad kooloni: def home(). Commit ja push.
+**SINU ÜLESANNE:** Tee tahtlik süntaksi viga ja vaata kuidas pipeline selle leiab!
+
+1. Muuda `app.py` real 8: eemalda koolon `def home():` lõpust → `def home()`
+2. Push GitHubi:
 ```bash
 git add app.py
-git commit -m "Test: syntax error"
+git commit -m "Test: intentional error"
 git push origin main
 ```
+3. Mine GitHub Actions'i → Vaata: ❌ PUNANE!
+4. Kliki pipeline'i peale → Loe error message'it
+5. **Küsimus:** Mis real viga on? Mida error ütleb?
+6. Paranda viga (lisa koolon tagasi)
+7. Push uuesti → Peaks olema ✅ roheline
 
-Mine GitHub Actions'i ja vaata mis juhtub. Pipeline fail'ib kiiresti. Vaata error message'it logis. See näitab täpselt kus viga on. Paranda viga ja push uuesti.
-```bash
-# Paranda app.py - lisa koolon tagasi
-git add app.py
-git commit -m "Fix: syntax error"
-git push origin main
-```
-
-### Refleksioon
-
-Mõtle kui kiiresti said teada, et midagi oli valesti. Kümme sekundit versus minutid või tunnid hiljem. See on validate stage'i väärtus.
+**Refleksioon:** Kui kiiresti said teada et midagi oli valesti? See on validate stage'i väärtus!
 
 ---
 
 ## 3. Test Stage
-
-Selles jaotises lisame automaatsed testid, mis kontrollivad kas rakendus töötab õigesti. Validate kontrollib süntaksit, test kontrollib loogikat. Validate leiab kui koolon puudub. Test leiab kui rakendus tagastab vale andmeid.
-
-### Validate versus Test
-
-Validate kontrollib kas kood kompileerub. Test kontrollib kas kood teeb õiget asja. Validate võtab kümme sekundit. Test võtab kolmkümmend kuni kuuskümmend sekundit. Validate leiab vigu mida compiler näeks. Test leiab vigu mida kasutaja näeks. Mõlemad on vajalikud.
 
 ### Loo testid
 
@@ -229,25 +201,31 @@ def test_home(client):
     assert response.status_code == 200
     data = response.get_json()
     assert data['version'] == '1.0.0'
+    assert 'message' in data
 
 def test_products(client):
     response = client.get('/products')
     assert response.status_code == 200
-    assert len(response.get_json()) == 2
+    products = response.get_json()
+    assert len(products) == 2
+    
+    # Kontrolli et kõik hinnad on positiivsed
+    for product in products:
+        assert product['price'] > 0, f"Hind peab olema positiivne! Leitud: {product['price']}"
 ```
 
-Esimene test kontrollib health endpoint'i - see peab tagastama status code 200 ja status healthy. Teine test kontrollib home endpoint'i - versioon peab olema 1.0.0. Kolmas test kontrollib products endpoint'i - peab olema kaks toodet.
+Viimane test kontrollib ärireegleid - hinnad peavad olema positiivsed!
 
 ### Testi kohalikult
 ```bash
 pytest test_app.py -v
 ```
 
-Kõik kolm testi peaksid läbima rohelisega. Kui mõni test fail'ib, loe error message'it. Vaata milline assert fail'is. Paranda test või rakendus.
+Kõik testid peaksid läbima ✅.
 
-### Lisa test stage workflow'sse
+### Lisa test stage
 
-Uuenda .github/workflows/ci.yml faili. Lisa uus job nimega test, mis jookseb pärast validate'i:
+Uuenda .github/workflows/ci.yml:
 ```yaml
 name: CI/CD Pipeline
 
@@ -261,7 +239,6 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-
       - uses: actions/checkout@v3
       
       - name: Set up Python
@@ -277,223 +254,6 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     steps:
-
-      - uses: actions/checkout@v3
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-      
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-      
-      - name: Run tests
-        run: |
-          pytest test_app.py -v
-          echo "Testid läbisid edukalt"
-```
-
-Test job kasutab needs: validate, mis tähendab et test jookseb ainult kui validate õnnestub. Kui validate fail'ib, siis test ei käivitu üldse. See hoiab kokku aega ja ressursse.
-
-### Push ja kontrolli
-```bash
-git add test_app.py .github/workflows/ci.yml
-git commit -m "Add tests and test stage"
-git push origin main
-```
-
-Mine GitHub Actions'i. Vaata et validate job jookseb esimesena. Test job jookseb teisena. Mõlemad peaksid olema rohelised.
-
-### Eksperiment - testide failure
-
-Nüüd vaatame mis juhtub kui test fail'ib. Muuda app.py's versiooni 2.0.0 aga ära muuda test'i. Test ootab endiselt versiooni 1.0.0.
-```bash
-# Muuda app.py's version: '2.0.0'
-git add app.py
-git commit -m "Update version"
-git push origin main
-```
-
-Vaata GitHub Actions'is mis juhtub. Validate läbib edukalt. Test fail'ib. Loe error message'it - see näitab et oodati 1.0.0 aga sai 2.0.0. Paranda test nii, et see ootab 2.0.0 ja push uuesti.
-
----
-
-## 4. Build Stage
-
-Selles jaotises pakime rakenduse Docker image'iks. Docker image sisaldab rakendust, kõiki dependencies'eid, operatsioonisüsteemi ja runtime'i. See tähendab et kui image töötab meie masinas, töötab see ka igal pool mujal.
-
-### Miks Docker?
-
-Klassikaline probleem: arendaja ütleb et rakendus töötab tema masinas. Server ütleb et ei tööta. Põhjused on erinevad Python versioonid, puuduvad teegid või erinev operatsioonisüsteem. Docker lahendab selle pakendades kõik kokku ühte image'isse.
-
-### Loo Dockerfile
-
-Loo fail nimega Dockerfile:
-```dockerfile
-FROM python:3.9-slim
-WORKDIR /app
-
-# Kopeeri ja installi dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Kopeeri rakendus
-COPY app.py .
-
-# Port
-EXPOSE 5000
-
-# Käivita
-CMD ["python", "app.py"]
-```
-
-Dockerfile algab Python 3.9 slim base image'iga. Töökaust on app. Esimesena kopeerime requirements.txt ja installime dependencies. Alles seejärel kopeerime app.py. See järjekord on oluline Docker layer caching'u jaoks. Dependencies muutuvad harva, app.py muutub tihti. Kui kopeerime requirements eraldi, siis Docker cacheb dependency installatsiooni.
-
-### Testi Docker kohalikult
-```bash
-# Ehita image
-docker build -t cicd-demo:test .
-
-# Käivita container
-docker run -d -p 5000:5000 --name test-app cicd-demo:test
-
-# Testi
-curl http://localhost:5000/health
-
-# Peata ja eemalda
-docker stop test-app
-docker rm test-app
-```
-
-Kontrolli et Docker build õnnestub, container käivitub ja rakendus vastab korrektselt.
-
-### Lisa build stage
-
-Uuenda .github/workflows/ci.yml faili. Lisa build job mis jookseb pärast test'i:
-```yaml
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-
-      - uses: actions/checkout@v3
-      
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Build and push Docker image
-        run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository }}
-          docker build -t $IMAGE_NAME:${{ github.sha }} .
-          docker build -t $IMAGE_NAME:latest .
-          docker push $IMAGE_NAME:${{ github.sha }}
-          docker push $IMAGE_NAME:latest
-          echo "Image pushed successfully"
-```
-
-Build job kasutab if tingimust, et jooksda ainult main branch'il. See hoiab ära et iga feature branch push'iga ehitataks Docker image. Job logib sisse GitHub Container Registry'sse, ehitab image'i kahe tag'iga ja pushib registry'sse.
-
-Kaks tag'i on vajalikud erinevatel põhjustel. Latest tag on lihtsam development'is - see annab alati uusima versiooni. Commit hash tag on täpne versioon, mida saab kasutada rollback'iks või audit'iks.
-
-### Seadista permissions
-
-GitHub vajab luba registry'sse kirjutamiseks. Mine repo Settings'i. Vali Actions alt General. Workflow permissions alt vali Read and write permissions. Salvesta.
-
-### Push ja kontrolli
-```bash
-git add Dockerfile .github/workflows/ci.yml
-git commit -m "Add Docker build stage"
-git push origin main
-```
-
-Mine GitHub Actions'i ja vaata pipeline'i. Validate, test ja build peaksid kõik edukalt läbima. Mine repo põhilehele ja vaata Packages sektsiooni paremal. Seal peaks nähtav olema sinu image koos kahe tag'iga.
-
----
-
-## 5. Deploy Stage
-
-Selles jaotises lisame deployment'i, mis viib rakenduse live keskkonda. Deploy võib olla automaatne või nõuda manuaalset kinnitust. Development ja staging keskkonnad kasutavad tavaliselt automaatset deployment'i, kuna risk on madal ja kiire feedback on oluline. Production kasutab manuaalset deployment'i, kuna risk on kõrge ja vajame kontrolli.
-
-### Automaatne versus manuaalne
-
-Otsustuspunkt on keskkond. Development'is on automaatne deploy hea, sest kiire feedback ja madal risk. Staging'us samuti automaatne, et testida enne production'i. Production'is manuaalne, sest kõrge risk ja vajame kinnitust.
-
-Mõned ettevõtted kasutavad täielikult automaatset production deployment'i, aga see nõuab väga häid teste, kõrget coverage'it, madalat riski ja lihtsat rollback'i. Enamik ettevõtteid kasutab manuaalset production deployment'i.
-
-### Lisa deploy stage
-
-Uuenda .github/workflows/ci.yml faili. Lisa deploy job:
-```yaml
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: production
-      url: http://localhost:5000
-    steps:
-
-      - name: Deploy application
-        run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository }}:${{ github.sha }}
-          echo "Deploying $IMAGE_NAME"
-          echo "SIMULATED: docker pull $IMAGE_NAME"
-          echo "SIMULATED: docker stop cicd-demo || true"
-          echo "SIMULATED: docker rm cicd-demo || true"
-          echo "SIMULATED: docker run -d --name cicd-demo -p 5000:5000 $IMAGE_NAME"
-          echo "SIMULATED: Health check would run here"
-          echo "Deploy successful"
-```
-
-Deploy job kasutab environment konfiguratsiooni. See võimaldab meil seadistada manual approval'i ja näha deployment ajalugu.
-
-### Seadista manual approval
-
-Mine GitHub repo Settings'i. Vali Environments. Loo uus environment nimega production. Deployment protection rules alt vali Required reviewers. Lisa ennast vähemalt üheks reviewer'iks. Salvesta.
-
-### Testi deployment workflow
-
-Muuda app.py's versiooni 2.0.0. Uuenda test_app.py's oodatavat versiooni 2.0.0. Commit ja push.
-```bash
-git add app.py test_app.py .github/workflows/ci.yml
-git commit -m "Version 2.0.0 + deploy stage"
-git push origin main
-```
-
-Mine GitHub Actions'i ja vaata pipeline'i. Validate, test ja build jooksevad läbi. Deploy job jääb ootama kollase Waiting staatusega. Kliki deploy job'il. Vajuta Review deployments. Märgi production ja vajuta Approve and deploy. Vaata kuidas deploy job käivitub ja logis näed deployment samme.
-
-### Deployment ajalugu
-
-Pärast deployment'i mine repo Settings'i ja vaata Environments lehte. Seal näed production environment'i ja deployment ajalugu. Iga deployment on logitud koos ajaga, kasutajaga ja commit'iga.
-
----
-
-## 6. Pipeline Optimeerimine
-
-Selles jaotises õpime kuidas pipeline'i kiiremaks teha. Põhiline tehnika on caching, mis võimaldab meil salvestada ja taaskasutada andmeid pipeline run'ide vahel.
-
-### Caching kontseptsioon
-
-Probleem on see, et iga pipeline run installib dependencies nullist. Kui dependencies ei muutu, siis see on sama töö kordamine. Esimene run võtab kolmkümmend sekundit dependency installatsiooni. Teine run võtab jälle kolmkümmend sekundit. Kolmas run samuti.
-
-Caching lahendab selle. Esimene run installib dependencies ja salvestab cache'sse. Teine run laeb cache'st, mis võtab ainult viis sekundit. See on kuus korda kiirem.
-
-### Lisa caching test job'i
-
-Uuenda test job'i .github/workflows/ci.yml failis:
-```yaml
-  test:
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-
       - uses: actions/checkout@v3
       
       - name: Set up Python
@@ -503,136 +263,359 @@ Uuenda test job'i .github/workflows/ci.yml failis:
           cache: 'pip'
       
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
       
       - name: Run tests
-        run: |
-          pytest test_app.py -v
+        run: pytest test_app.py -v
 ```
 
-Setup-python action toetab built-in caching'ut. Lisa lihtsalt cache: pip parameeter ja see hakkab automaatselt cachima pip dependencies'eid.
-
-### Lisa README badge
-
-Loo README.md fail:
-```markdown
-# CI/CD Demo
-
-[![CI/CD](https://github.com/USERNAME/cicd-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/USERNAME/cicd-demo/actions/workflows/ci.yml)
-
-Automaatse CI/CD pipeline'iga Flask API.
-
-## Pipeline
-
-Pipeline koosneb neljast stage'ist:
-
-1. Validate - Python syntax check
-2. Test - Automated tests
-3. Build - Docker image
-4. Deploy - Manual production deployment
-
-## Endpoints
-
-Rakendus pakub kolme endpoint'i:
-
-- GET / - API info
-- GET /health
-- Health check
-- GET /products
-- Products list
-
-## Käivitamine
-```
-
-Lokaalselt:
-
+### Push ja kontrolli
 ```bash
-pip install -r requirements.txt
-python app.py
-```
-
-Docker'iga:
-```bash
-docker build -t cicd-demo .
-docker run -p 5000:5000 cicd-demo
-```
-
-Testid:
-```bash
-pytest test_app.py -v
-```
-
-Asenda USERNAME oma GitHub kasutajanimega. Badge näitab pipeline'i staatust - roheline kui kõik töötab, punane kui midagi on katki.
-
-### Viimane push
-```bash
-git add README.md .github/workflows/ci.yml
-git commit -m "Add caching and README"
+git add test_app.py .github/workflows/ci.yml
+git commit -m "Add tests and test stage"
 git push origin main
 ```
 
-Vaata GitHub'is et pipeline jookseb läbi ja README näitab badge'i.
+Validate ✅ → Test ✅
+
+### 🎯 Ülesanne 3.1: Negatiivne hind
+
+**SINU ÜLESANNE:** Lisa negatiivne hind ja vaata kuidas test selle leiab!
+
+1. Muuda `app.py` products funktsioonis Phone hind: `'price': 599` → `'price': -599`
+2. Push:
+```bash
+git add app.py
+git commit -m "Negative price bug"
+git push origin main
+```
+3. Vaata GitHub Actions'is:
+   - Validate ✅ (süntaks on õige)
+   - Test ❌ (äriloogika on vale!)
+4. Loe error message'it - mis test fail'is?
+5. Paranda hind positiivseks
+6. Push uuesti → ✅
+
+**Küsimus:** Miks validate ei leidnud seda viga aga test leidis?
+
+### 🎯 Ülesanne 3.2: Versiooni uuendus
+
+**SINU ÜLESANNE:** Uuenda versiooni aga unusta test'i uuendada!
+
+1. Muuda `app.py`-s: `'version': '1.0.0'` → `'version': '2.0.0'`
+2. ÄRA muuda test'i!
+3. Push:
+```bash
+git add app.py
+git commit -m "Update to version 2.0.0"
+git push origin main
+```
+4. Vaata: Test ❌ fail'ib!
+5. Loe error'it - test ootab 1.0.0 aga saab 2.0.0
+6. Uuenda `test_app.py` test'is: `assert data['version'] == '2.0.0'`
+7. Push uuesti → ✅
+
+**Õppetund:** Kui muudad koodi, pead muutma ka teste!
+
+---
+
+## 4. Build Stage
+
+### Loo Dockerfile
+
+⚠️ **TÄHELEPANU:** Selles Dockerfile'is on tahtlik viga!
+
+Loo fail nimega Dockerfile:
+```dockerfile
+FROM python:3.9-slim
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app.py .
+
+# Tahtlik viga - vale port!
+EXPOSE 8080
+
+CMD ["python", "app.py"]
+```
+
+### Testi Docker kohalikult
+```bash
+docker build -t cicd-demo:test .
+docker run -d -p 5000:5000 --name test-app cicd-demo:test
+curl http://localhost:5000/health
+docker stop test-app && docker rm test-app
+```
+
+### Lisa build stage
+
+Uuenda .github/workflows/ci.yml (lisa build job):
+```yaml
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build Docker image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}
+          docker build -t $IMAGE_NAME:${{ github.sha }} .
+          docker build -t $IMAGE_NAME:latest .
+      
+      - name: Test Docker image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}:${{ github.sha }}
+          docker run -d -p 5000:5000 --name test-container $IMAGE_NAME
+          sleep 5
+          
+          # Health check
+          if curl -f http://localhost:5000/health; then
+            echo "✅ Health check passed"
+          else
+            echo "❌ Health check failed"
+            docker logs test-container
+            exit 1
+          fi
+          
+          docker stop test-container
+          docker rm test-container
+      
+      - name: Push Docker image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:latest
+```
+
+### Seadista permissions
+
+Mine repo Settings → Actions → General → Workflow permissions → **Read and write permissions** → Save.
+
+### 🎯 Ülesanne 4.1: Paranda Dockerfile
+
+1. Push praegune kood:
+```bash
+git add Dockerfile .github/workflows/ci.yml
+git commit -m "Add Docker build"
+git push origin main
+```
+2. Validate ✅, Test ✅, Build... oodake...
+3. Build jookseb aga kas health check õnnestub? Vaata logi!
+4. **SINU ÜLESANNE:** 
+   - Kui health check fail'ib, loe error'it
+   - Mõtle: mis Dockerfile'is on valesti?
+   - Vihje: Vaata EXPOSE rida ja võrdle rakenduse pordiga
+5. Paranda Dockerfile: `EXPOSE 5000`
+6. Push uuesti → ✅
+
+**Küsimus:** Miks on health check oluline pärast build'i?
+
+---
+
+## 5. Deploy Stage
+
+### Lisa deploy stage
+
+Uuenda .github/workflows/ci.yml (lisa deploy job):
+```yaml
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: http://localhost:5000
+    steps:
+      - name: Deploy application
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}:${{ github.sha }}
+          echo "🚀 Deploying $IMAGE_NAME"
+          echo "SIMULATED: docker pull $IMAGE_NAME"
+          echo "SIMULATED: docker stop cicd-demo || true"
+          echo "SIMULATED: docker rm cicd-demo || true"
+          echo "SIMULATED: docker run -d --name cicd-demo -p 5000:5000 $IMAGE_NAME"
+          echo "SIMULATED: Health check..."
+          echo "✅ Deploy successful"
+```
+
+### Seadista manual approval
+
+1. Mine Settings → Environments
+2. Loo "production" environment
+3. Deployment protection rules → ✅ Required reviewers
+4. Lisa enda nimi
+5. Save
+
+### 🎯 Ülesanne 5.1: Manual deployment
+
+1. Lisa uus feature - endpoint /api/version:
+```python
+@app.route('/api/version')
+def version():
+    return jsonify({'version': '2.0.0', 'build': 'stable'})
+```
+
+2. Lisa test sellele:
+```python
+def test_version_endpoint(client):
+    response = client.get('/api/version')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data['version'] == '2.0.0'
+```
+
+3. Push:
+```bash
+git add app.py test_app.py .github/workflows/ci.yml
+git commit -m "Add version endpoint + deploy stage"
+git push origin main
+```
+
+4. GitHub Actions'is:
+   - Validate ✅
+   - Test ✅
+   - Build ✅
+   - Deploy 🟡 **Waiting for approval**
+
+5. Kliki deploy job'il → **Review deployments** → Approve → Vaata kuidas deployb!
+
+**Küsimus:** Miks production vajab manual approval'i aga test/build mitte?
+
+---
+
+## 6. Täiendavad Väljakutsed
+
+### 🎯 Väljakutse 6.1: Lisa uus endpoint
+
+**SINU ÜLESANNE:** Lisa täiesti uus endpoint koos testiga!
+
+1. Lisa `app.py`-sse:
+```python
+@app.route('/api/status')
+def status():
+    return jsonify({
+        'api': 'running',
+        'version': '2.0.0',
+        'endpoints': ['/', '/health', '/products', '/api/version', '/api/status']
+    })
+```
+
+2. Kirjuta test `test_app.py`-sse (sina kirjuta ise!)
+3. Push ja kontrolli et pipeline läbib ✅
+
+### 🎯 Väljakutse 6.2: Badge README'sse
+
+1. Loo README.md:
+```markdown
+# CI/CD Demo
+
+![CI/CD](https://github.com/USERNAME/cicd-demo/actions/workflows/ci.yml/badge.svg)
+
+Automaatse CI/CD pipeline'iga Flask API.
+
+## Endpoints
+
+- `GET /` - API info
+- `GET /health` - Health check
+- `GET /products` - Products list
+- `GET /api/version` - Version info
+- `GET /api/status` - API status
+
+## Pipeline
+
+Pipeline koosneb 4 stage'ist:
+
+1. **Validate** - Python syntax check
+2. **Test** - Automated tests (pytest)
+3. **Build** - Docker image + health check
+4. **Deploy** - Manual production deployment
+
+## Features
+
+✅ Automaatne testimine  
+✅ Docker containerization  
+✅ Manual production approval  
+✅ Health checks  
+✅ Negatiivse hinna kontroll  
+```
+
+2. Asenda USERNAME oma kasutajanimega
+3. Push → Mine GitHubi ja vaata badge'i!
+
+### 🎯 Väljakutse 6.3: Rollback
+
+**Stsenaarium:** Version 2.0.0 on production'is aga on bug!
+
+1. Vaata GitHub Packages lehte
+2. Leia varasem image (commit hash)
+3. Kuidas deployda vana versiooni tagasi?
+4. Vihje: Muuda deploy stage'is image tag'i
 
 ---
 
 ## Kontrollnimekiri
 
-Kontrolli et oled kõik sammud läbinud:
-
 **Rakendus:**
-
 - [ ] Flask app töötab kohalikult
-- [ ] Kõik kolm endpoint'i vastavad korrektselt
+- [ ] Kõik endpoint'id vastavad
 - [ ] Testid läbivad kohalikult
 
 **Pipeline:**
-
-- [ ] Validate stage kontrollib süntaksit
-- [ ] Test stage jooksutab automaatseid teste
-- [ ] Build stage ehitab Docker image'i
-- [ ] Deploy stage nõuab manual approval'i
-
-**GitHub:**
-
-- [ ] Repository on public
-- [ ] Actions permissions on seadistatud
-- [ ] Production environment on loodud
-- [ ] Image on nähtav Packages'is
+- [ ] Validate leidis süntaksi vea (ülesanne 2.1)
+- [ ] Test leidis negatiivse hinna (ülesanne 3.1)
+- [ ] Test leidis versiooni mittevastavuse (ülesanne 3.2)
+- [ ] Dockerfile port viga parandatud (ülesanne 4.1)
+- [ ] Manual approval production'i töötab (ülesanne 5.1)
 
 **Mõistmine:**
-
-- [ ] Tead miks validate on esimene stage
+- [ ] Tead miks validate on esimene (kiireim vigade leidmine)
 - [ ] Mõistad erinevust validate ja test vahel
-- [ ] Oskad selgitada miks kasutame Docker'it
+- [ ] Oskad selgitada miks Docker health check vajalik
 - [ ] Tead millal kasutada manual deployment'i
+
+**Boonus:**
+- [ ] Lisasid uue endpoint'i (väljakutse 6.1)
+- [ ] README koos badge'iga (väljakutse 6.2)
 
 ---
 
 ## Refleksioon
 
-Vasta ausalt järgmistele küsimustele. See aitab sul õppida ja mõista mida õppisid.
-
 **Mis oli kõige raskem?**
 
-Kirjuta paar lauset selle kohta, mis osa lab'ist oli kõige keerulisem. Kas see oli YAML süntaks, Docker mõistmine, pipeline'i debugimine või kontseptsioonide mõistmine?
+Kirjuta paar lauset: Mis osa oli keerulisem? Kas debug logide lugemine? YAML süntaks? Docker?
 
-**Mis oli ahaa moment?**
+**Ahaa moment?**
 
-Kirjuta millal läks lambike põlema. Millist kontseptsiooni sa nüüd mõistad, mis varem oli ebaselge? Kas see oli kui nägid kuidas automaatne testimine töötab? Või kui mõistsid miks validate peab olema esimene?
+Mis hetkel läks lambike põlema? Millal mõistsid kuidas CI/CD päriselt töötab?
 
-**Kas oskad selgitada?**
+**Kas oskad selgitada:**
 
-Kontrolli et oskad sõnastada:
-
-- Miks validate on esimene stage? (Kõige kiirem viis vigade leidmiseks)
-- Miks production deploy on manual? (Kõrge risk, vajame kontrolli)
-- Kuidas Docker aitab? (Garanteerib sama keskkonna igal pool)
-
-**Mida teeksid järgmine kord teisiti?**
-
-Kirjuta paar lauset selle kohta, mida sa järgmine kord teisiti teeksid. Kas alustaksid teisest kohast? Kas kasutaksid rohkem dokumentatsiooni? Kas võtaksid rohkem aega mõistmiseks?
+- Miks validate on esimene stage? *(Vastus: Kõige kiirem viis vigade leidmiseks - võtab 10s, mitte 2min)*
+- Miks test leidis negatiivse hinna aga validate mitte? *(Vastus: Validate kontrollib süntaksit, test kontrollib loogikat)*
+- Miks production vajab manual approval'i? *(Vastus: Kõrge risk, vajame kontrolli)*
 
 **Järgmised sammud:**
 
-Nüüd oskad luua põhilist CI/CD pipeline'i, automatiseerida build-test-deploy protsessi ja kasutada Docker'it CI/CD kontekstis. Järgmised võimalused on kodutöö kus lood sarnase pipeline'i erineva rakendusega, lisapraktika kus lisad notifications'eid ja rollback'i või uurid GitLab CI'd kui alternatiivi GitHub Actions'ile.
+Nüüd oskad:
+- Luua CI/CD pipeline'i GitHubis
+- Debugida pipeline vigu praktiliselt
+- Lisada automaatseid teste
+- Kasutada Docker'it CI/CD's
+- Seadistada manual approval'i
+
+**Edasi:**
+- Kodutöö: Lisa CI/CD oma projektile
+- Lisapraktika: GitLab CI alternatiiv
+- Advanced: Multi-environment deployment (dev/staging/prod)
