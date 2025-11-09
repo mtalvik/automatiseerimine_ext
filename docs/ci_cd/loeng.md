@@ -306,7 +306,7 @@ jobs:
 
 ### GitHub Actions GitHubis
 
-![GitHub Actions Tab](https://github.blog/wp-content/uploads/2022/06/Product@2x.png?resize=1200%2C630)
+![GitHub Actions Tab](https://earthly.dev/blog/assets/images/github-actions-environment-variables-and-secrets/ATKriD6.png)
 
 **Actions Tab:**
 - Iga repo üleval on "Actions" tab
