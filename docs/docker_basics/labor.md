@@ -1,201 +1,333 @@
 # Docker Labor
 
-**Eeldused:** Loeng läbitud, Docker installitud  
-**Platvorm:** Docker (Ubuntu/Debian või Docker Desktop)
+**Eeldused:** Docker põhitõed loeng läbitud, Linux CLI kogemus  
+**Platvorm:** Docker Engine 20.10+, Ubuntu/Debian või Docker Desktop
 
-Labor keskendub praktilisele Docker'i kasutamisele. Loote image'eid, käivitate container'eid ja haldate volume'eid. Töö võtab umbes 2-3 tundi.
+Labor keskendub praktilisele Docker'i kasutamisele läbi progressiivsete ülesannete. Loote Dockerfile'e, ehitate image'eid, haldate container'eid ja volume'eid. Ülesanded on järjestatud lihtsast keeruliseni ning iga sammu järel saate kohe valideerida tulemust. Töö võtab umbes kaks kuni kolm tundi.
 
----
-
-## Video Demo: Flask App Docker'is
-
-Enne alustamist vaata, kuidas Dockerfile'i luua ja container'i käivitada (10 min):
-
-<video width="100%" controls>
-  <source src="videos/docker-demo.mp4" type="video/mp4">
-  Teie brauser ei toeta video elementi.
-</video>
-
-**Video näitab:**
-- Dockerfile kirjutamine (optimeeritud layer caching)
-- `docker build -t flask-demo:v1 .`
-- `docker run -d -p 5000:5000 --name myapp flask-demo:v1`
-- `docker exec -it myapp sh`
-- Cleanup
-
-Nüüd proovime ise!
-
----
+**Enne alustamist:** Veenduge, et Docker on installitud ja töötab. Kui Docker pole veel installitud, järgige allpool olevaid juhiseid.
 
 ## Õpiväljundid
 
 Pärast seda labor'it oskad:
 
-- **Käivitada ja hallata container'eid**
-  - `run`, `stop`, `logs`, `exec` käsud
-- **Kirjutada Dockerfile'i**
-  - image loomine nullist
-- **Kasutada volume'eid**
-  - andmete säilitamine
-- **Luua Docker network'e**
-  - container'ite vaheline suhtlus
-- **Debug'ida probleeme**
-  - logide vaatamine, container'isse sisenemine
+- Installid ja konfigureerid Docker'i oma süsteemis
+- Käivitad ja haldate container'eid kasutades põhikäske
+- Kirjutad Dockerfile'i ja ehitad optimeeritud image'eid
+- Kasutad volume'eid andmete püsivuse tagamiseks
+- Loob Docker network'e ja konfigureerib container'ite vahelist suhtlust
+- Debugid levinud probleeme logide ja inspect käskude abil
 
 ---
 
-## 1. Docker Installatsiooni Kontrollimine
+## 1. Docker'i Installimine
 
-Kontrollige, et Docker on installitud ja töötab:
+### 1.1 Ubuntu/Debian (Proxmox VM)
+
+Kui kasutate kooli Proxmox keskkonda, on Docker install lihtne:
+
+```bash
+# Uuenda pakettide nimekirja
+sudo apt update
+
+# Installi Docker
+sudo apt install -y docker.io
+
+# Käivita Docker daemon
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Kontrolli versiooni
+docker --version
+```
+
+Lisage oma kasutaja docker gruppi, et vältida sudo kasutamist:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+**OLULINE:** Pärast gruppi lisamist logige välja ja uuesti sisse (või käivitage `newgrp docker`), et muudatused rakenduksid.
+
+### 1.2 Windows (Docker Desktop)
+
+Kui kasutate Windowsi:
+
+1. Laadige alla **Docker Desktop for Windows**: https://www.docker.com/products/docker-desktop
+2. Käivitage installer ja järgige juhiseid
+3. Docker Desktop vajab WSL 2 (Windows Subsystem for Linux)
+4. Pärast installimist restart'ige arvuti
+5. Käivitage Docker Desktop rakendus
+
+**Validation:** Avage PowerShell või CMD ja käivitage:
+
+```bash
+docker --version
+docker run hello-world
+```
+
+### 1.3 macOS (Docker Desktop)
+
+1. Laadige alla **Docker Desktop for Mac**: https://www.docker.com/products/docker-desktop
+2. Lohistage Docker.app Applications kausta
+3. Käivitage Docker Desktop
+4. Oodake kuni Docker daemon käivitub (ikoon menu bar'is muutub roheliseks)
+
+**Validation:** Terminal'is:
+
+```bash
+docker --version
+docker run hello-world
+```
+
+### 1.4 Alternatiiv: Podman
+
+Kui eelistate rootless lahendust või teil on probleeme Docker'iga:
+
+```bash
+# Ubuntu/Debian
+sudo apt install -y podman
+
+# Alias Docker käskude jaoks
+echo "alias docker=podman" >> ~/.bashrc
+source ~/.bashrc
+```
+
+Podman käsud on identsed Docker'iga, seega ülejäänud lab töötab samamoodi.
+
+---
+
+## Video Demo: Docker Fundamentals
+
+Enne praktilise töö alustamist vaadake 8-minutiline video, mis selgitab Docker'i põhimõisteid ja workflow'i:
+
+**[Docker in 100 Seconds](https://www.youtube.com/watch?v=GZZQOwQAAeg&t=8s)** (Fireship)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/GZZQOwQAAeg?start=8" title="Docker in 100 Seconds" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+Video annab kiire ülevaate sellest, mis on image ja container, kuidas Dockerfile töötab ning miks Docker on kasulik. Järgnevates ülesannetes rakendame neid põhimõtteid praktiliste näidete kaudu.
+
+---
+
+## 2. Docker Installatsiooni Kontrollimine
+
+Enne lab'i alustamist veenduge, et Docker on korrektselt installitud ja daemon töötab. Käivitage terminalis:
+
 ```bash
 docker --version
 docker info
 ```
 
-Oodatav tulemus: versiooninumber (20.10+) ja süsteemi info ilma vigadeta.
+Esimene käsk peaks näitama versiooni (näiteks Docker version 24.0.7). Teine käsk kuvab detailse süsteemiinfo Docker daemoni kohta, sealhulgas container'ite arvu, image'ide arvu ja storage driver'i. Kui näete vigu, kontrollige kas Docker daemon töötab (`sudo systemctl status docker`).
 
-Kui Docker nõuab `sudo`:
+Kui Docker nõuab kõikide käskude jaoks `sudo` õigusi, lisage oma kasutaja docker gruppi:
+
 ```bash
 sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-**Validation:** Käivitage testimiseks:
+**Validation:** Testige installatsiooni töötamist:
+
 ```bash
 docker run hello-world
 ```
 
-Peaksite nägema "Hello from Docker!" sõnumit.
+Peaks ilmuma "Hello from Docker!" sõnum koos selgitusega, kuidas Docker just käivitas esimese container'i.
 
 ---
 
-## 2. Esimesed Container'id
+## 3. Container'ite Põhikäsud
 
-### 2.1 Nginx Web Server
+### 4.1 Nginx Web Serveri Käivitamine
 
-Käivitage Nginx container:
+Käivitage Nginx container port mapping'uga:
+
 ```bash
 docker run -d --name web -p 8080:80 nginx
 ```
 
-Käsu selgitus:
+Docker laeb alla nginx image'i Docker Hub'ist (kui ei ole juba cached), loob sellest container'i nimega "web" ja käivitab selle detached režiimis. Parameter `-p 8080:80` mapib host'i pordi 8080 container'i pordile 80.
 
-- `-d`
-- detached mode (taustal)
-- `--name web`
-- annab container'ile nime
-- `-p 8080:80`
-- port mapping (host:container)
-- `nginx` - image nimi
+**Validation:** Avage veebibrauser ja navigeerige aadressile `http://localhost:8080`. Peaksite nägema Nginx vaikimisi tervituslehte "Welcome to nginx!". Kui lehte ei kuvata, kontrollige kas port 8080 on host masinas vaba (`sudo netstat -tlnp | grep 8080`).
 
-**Validation:** Avage brauseris `http://localhost:8080` - peaksite nägema Nginx tervituslehte.
+### 4.2 Töötavate Container'ite Vaatamine
 
-### 2.2 Container'ite Vaatamine
+Container'ite nimekirja ja staatuse vaatamiseks:
+
 ```bash
-# Töötavad container'id
 docker ps
+```
 
-# Kõik container'id
+Näete tabelit container'i ID, image'i nime, käivitamise aja, staatuse ja portide kohta. Kõigi container'ite (sh peatatud) vaatamiseks lisage `-a` flag:
+
+```bash
 docker ps -a
+```
 
-# Container detailid
+Detailse informatsiooni saamiseks ühe container'i kohta:
+
+```bash
 docker inspect web
+```
 
-# Ressursikasutus
+See väljastab JSON formaadis kogu konfiguratsiooni - võrgu seaded, volume'id, environment variable'id, käivitamise parameetrid.
+
+Reaalajas ressursikasutuse jälgimiseks:
+
+```bash
 docker stats web --no-stream
 ```
 
-### 2.3 Logide Vaatamine
+Näete CPU protsenti, mälukasutust, võrgu I/O'd ja block I/O'd.
+
+### 4.3 Logide Vaatamine
+
+Container'i stdout ja stderr vaatamiseks:
+
 ```bash
-# Vaata logisid
 docker logs web
+```
 
-# Follow logs (ctrl+C väljumiseks)
+Live logide jälgimiseks (sarnane `tail -f` käsule):
+
+```bash
 docker logs -f web
+```
 
-# Viimased 10 rida
+Vajutage Ctrl+C logide jälgimisest väljumiseks. Ainult viimaste 10 rea kuvamiseks:
+
+```bash
 docker logs --tail 10 web
 ```
 
-**Validation:** Refresh'ige brauserit ja vaadake `docker logs web` - näete GET päringu logis.
+**Validation:** Refresh'ige veebibrauser mitu korda ja seejärel vaadake `docker logs web`. Peaksite nägema HTTP GET päringute ridu koos timestamp'idega, näiteks:
 
-### 2.4 Container'isse Sisenemine
+```
+172.17.0.1 - - [11/Nov/2024:15:30:45 +0000] "GET / HTTP/1.1" 200 615
+```
+
+### 4.4 Container'isse Sisenemine
+
+Interaktiivse shell'i käivitamiseks töötavas container'is:
+
 ```bash
-# Käivita bash container'is
 docker exec -it web bash
+```
 
-# Container'is:
+Parameetrid: `-i` hoiab STDIN avatud, `-t` eraldab pseudo-TTY. Nüüd olete container'i sees ja saate käivitada käske:
+
+```bash
+# Container'i sees
 ls /usr/share/nginx/html/
 cat /etc/nginx/nginx.conf
+ps aux
 exit
 ```
 
-### 2.5 Container'i Peatamine ja Kustutamine
+**Validation:** Kontrollige et näete Nginx konfiguratsiooni faile ja HTML failid default document root'is.
+
+### 4.5 Container'i Peatamine ja Kustutamine
+
+Graceful shutdown (saadab SIGTERM, ootab 10s, siis SIGKILL):
+
 ```bash
 docker stop web
-docker rm web
+```
 
-# Või ühel käsul (force)
+Container'i kustutamine (ei kustuta image't):
+
+```bash
+docker rm web
+```
+
+Või mõlemad tegevused ühel käsul force'itud kustutamisega:
+
+```bash
 docker rm -f web
 ```
 
----
+**Validation:** Kontrollige et container on eemaldatud:
 
-## 3. Image'ide Loomine
-
-### 3.1 Lihtsa HTML Rakenduse Loomine
-
-Looge töökaust:
 ```bash
-mkdir docker-web-app
-cd docker-web-app
+docker ps -a | grep web
 ```
 
-Looge fail `index.html`:
+Ei tohiks midagi kuvada.
+
+---
+
+## 4. Dockerfile'ide Loomine
+
+### 4.1 Staatilise HTML Rakenduse Loomine
+
+Looge töökaust projektile:
+
+```bash
+mkdir -p ~/docker-lab/web-app
+cd ~/docker-lab/web-app
+```
+
+Looge fail `index.html` järgneva sisuga:
+
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="et">
 <head>
-    <title>Docker Lab</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Labor</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             max-width: 800px;
             margin: 50px auto;
             padding: 20px;
-            background: #f0f0f0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         .container {
             background: white;
-            padding: 30px;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .info {
+            background: #f5f5f5;
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 15px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Docker Labor</h1>
-        <p>Tudeng: <strong>[TEIE NIMI]</strong></p>
-        <p>Kuupäev: <span id="date"></span></p>
-        <p>Container ID: <span id="hostname"></span></p>
+        <h1>Docker Labor Rakendus</h1>
+        <div class="info">
+            <p><strong>Tudeng:</strong> [TEIE NIMI]</p>
+            <p><strong>Kuupäev:</strong> <span id="date"></span></p>
+            <p><strong>Container Hostname:</strong> <span id="hostname"></span></p>
+        </div>
+        <p>See lehekülg töötab Docker container'is, demonstreerides containeriseeritud veebirakenduste deployment'i.</p>
     </div>
     <script>
-        document.getElementById('date').innerText = new Date().toLocaleString();
-        fetch('/hostname')
-            .then(r => r.text())
-            .then(h => document.getElementById('hostname').innerText = h)
-            .catch(() => document.getElementById('hostname').innerText = 'N/A');
+        document.getElementById('date').innerText = new Date().toLocaleString('et-EE');
+        document.getElementById('hostname').innerText = window.location.hostname;
     </script>
 </body>
 </html>
 ```
 
-Asendage `[TEIE NIMI]` oma nimega.
+Asendage `[TEIE NIMI]` oma nimega failis.
 
-### 3.2 Dockerfile Kirjutamine
+### 4.2 Dockerfile Kirjutamine
 
-Looge fail `Dockerfile`:
+Looge fail nimega `Dockerfile` (täpselt see nimi, ilma laiendita) samasse kausta:
+
 ```dockerfile
 FROM nginx:alpine
 
@@ -206,106 +338,147 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-Käskude selgitus:
+Iga rea selgitus: `FROM` määrab base image'i (nginx alpine variant on väike, ainult 23MB). `COPY` kopeerib HTML faili container'i Nginx default document root'i. `EXPOSE` dokumenteerib millised pordid on kasutusel (ei avalda tegelikult porti, ainult dokumentatsioon). `CMD` määrab vaikimisi käsu - käivitab Nginx'i foreground režiimis.
 
-- `FROM`
-- base image (nginx alpine versioon, 23MB)
-- `COPY`
-- kopeeri HTML fail container'isse
-- `EXPOSE`
-- dokumentatsioon portide kohta
-- `CMD`
-- vaikimisi käsk
+### 4.3 Image'i Ehitamine
 
-### 3.3 Image'i Ehitamine
+Ehitage image käsuga (punkt lõpus viitab build context'ile - praegusele kataloogile):
+
 ```bash
 docker build -t minu-web:v1 .
 ```
 
-Näete build protsessi:
+Näete build protsessi sammsammult:
+
 ```
-[+] Building 2.3s (7/7) FINISHED
-=> [internal] load build definition
+[+] Building 3.2s (7/7) FINISHED
+=> [internal] load build definition from Dockerfile
 => [internal] load .dockerignore
-=> [1/2] FROM nginx:alpine
+=> [internal] load metadata for docker.io/library/nginx:alpine
+=> [1/2] FROM docker.io/library/nginx:alpine
 => [2/2] COPY index.html /usr/share/nginx/html/
 => exporting to image
-=> naming to docker.io/library/minu-web:v1
+=> => naming to docker.io/library/minu-web:v1
 ```
 
-**Validation:**
-```bash
-# Kontrolli, et image loodi
-docker images | grep minu-web
+Iga samm on layer, mis cache'itakse järgmiste build'ide jaoks.
 
-# Käivita container'isse
+**Validation:** Kontrollige, et image loodi edukalt:
+
+```bash
+docker images | grep minu-web
+```
+
+Peaksite nägema rida kujul:
+
+```
+minu-web   v1   abc123def456   10 seconds ago   42.6MB
+```
+
+Käivitage container loodud image'ist:
+
+```bash
 docker run -d -p 8081:80 --name minu-app minu-web:v1
 ```
 
-Avage `http:
+Avage brauseris `http://localhost:8081` ja veenduge, et näete oma HTML lehte koos oma nimega.
 
-- //localhost:8081`
-- peaks näitama teie HTML lehte.
+### 4.4 Image'i Modifitseerimine ja Versioonimine
 
-### 3.4 Image'i Modifitseerimine
+Muutke `index.html` faili - näiteks lisage uus lõik või muutke värve. Seejärel ehitage uus versioon erinevate tag'iga:
 
-Muutke `index.html` faili - lisage midagi uut. Ehitage uus versioon:
 ```bash
 docker build -t minu-web:v2 .
+```
+
+Tänu layer caching'ule on teine build kiirem kui esimene. Käivitage v2 container:
+
+```bash
 docker run -d -p 8082:80 --name minu-app-v2 minu-web:v2
 ```
 
-**Validation:** Avage `http://localhost:8082` - näete uut versiooni.
+**Validation:** Avage `http://localhost:8082` ja veenduge, et näete uuendatud versiooni. Võrrelge image'ide suurusi:
 
-Võrrelge image'ide suurusi:
 ```bash
 docker images | grep minu-web
 ```
 
+Mõlemad image'd peaksid olema sarnase suurusega, kuna jagavad base layer'eid.
+
 ---
 
-## 4. Dockerfile Optimeerimine
+## 5. Dockerfile Optimeerimine
 
-### 4.1 Layer Caching Näide
+### 9.1 Python Flask Rakenduse Loomine
 
-Looge kaust Python rakendusele:
+Looge uus kaust Python projektile:
+
 ```bash
-mkdir docker-python-app
-cd docker-python-app
+mkdir -p ~/docker-lab/python-app
+cd ~/docker-lab/python-app
 ```
 
-Looge `app.py`:
+Looge Python rakenduse fail `app.py`:
+
 ```python
-from flask import Flask
+from flask import Flask, jsonify
 import datetime
+import socket
 
 app = Flask(__name__)
 
 @app.route('/')
-def hello():
+def home():
     return f'''
-    <h1>Docker Lab - Python</h1>
-    <p>Aeg: {datetime.datetime.now()}</p>
-    <p>Python rakendus container'is</p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Docker Lab - Python</title>
+        <style>
+            body {{ font-family: Arial; max-width: 800px; margin: 50px auto; }}
+            .info {{ background: #e8f5e9; padding: 20px; border-radius: 8px; }}
+        </style>
+    </head>
+    <body>
+        <h1>Docker Python Rakendus</h1>
+        <div class="info">
+            <p><strong>Server Time:</strong> {datetime.datetime.now()}</p>
+            <p><strong>Hostname:</strong> {socket.gethostname()}</p>
+            <p>See Python Flask rakendus töötab Docker container'is</p>
+        </div>
+    </body>
+    </html>
     '''
 
+@app.route('/api/info')
+def info():
+    return jsonify({
+        'hostname': socket.gethostname(),
+        'timestamp': datetime.datetime.now().isoformat(),
+        'status': 'running'
+    })
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=False)
 ```
 
-Looge `requirements.txt`:
+Looge `requirements.txt` fail sõltuvustega:
+
 ```
 Flask==3.0.0
+Werkzeug==3.0.1
 ```
 
-### 4.2 Algne Dockerfile (Optimeerimata)
+### 9.2 Optimeerimata Dockerfile
 
-Looge `Dockerfile.bad`:
+Looge fail `Dockerfile.unoptimized` et demonstreerida halba praktikat:
+
 ```dockerfile
 FROM python:3.11
 
 WORKDIR /app
 
+# Probleem: kopeerib kõik enne dependencies install
 COPY . .
 
 RUN pip install -r requirements.txt
@@ -315,312 +488,529 @@ EXPOSE 5000
 CMD ["python", "app.py"]
 ```
 
-Ehitage:
+Ehitage see image:
+
 ```bash
-docker build -t python-app:bad -f Dockerfile.bad .
+docker build -t python-app:bad -f Dockerfile.unoptimized .
 ```
 
-Muutke `app.py` faili (lisage kommentaar). Ehitage uuesti ja jälgige, et `pip install` käivitatakse uuesti, kuigi `requirements.txt` ei muutunud.
+Jälgige build aega. Nüüd muutke `app.py` faili (lisage kommentaar või muutke teksti) ja ehitage uuesti:
 
-### 4.3 Optimeeritud Dockerfile
+```bash
+docker build -t python-app:bad -f Dockerfile.unoptimized .
+```
 
-Looge `Dockerfile`:
+Märkige, et `pip install` samm käivitub uuesti, kuigi `requirements.txt` ei muutunud. See on ajaraiskamine.
+
+### 9.3 Optimeeritud Dockerfile
+
+Looge proper Dockerfile järjestusega:
+
 ```dockerfile
 FROM python:3.11-alpine
 
 WORKDIR /app
 
-# Kopeeri requirements enne koodi
+# Kopeeri AINULT requirements ENNE source koodi
 COPY requirements.txt .
 
+# Install dependencies - see layer cache'itakse
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Nüüd kopeeri kood
-COPY . .
+# Nüüd kopeeri rakenduse kood
+COPY app.py .
 
 EXPOSE 5000
 
 CMD ["python", "app.py"]
 ```
 
-Ehitage:
+Põhimõte: harvem muutuvad failid (requirements.txt) kopeeritakse enne, sageli muutuvad failid (app.py) kopeeritakse hiljem. Alpine base image on väiksem (50MB vs 900MB).
+
+Ehitage optimeeritud image:
+
 ```bash
 docker build -t python-app:good .
 ```
 
-Muutke `app.py` ja ehitage uuesti. Märkige, et `pip install` kasutab cache'i.
+**Validation:** Muutke `app.py` faili ja ehitage uuesti. Märkige build output'is:
 
-**Validation:** Käivitage:
-```bash
-docker run -d -p 5000:5000 --name python-api python-app:good
-curl http://localhost:5000
+```
+=> CACHED [2/4] COPY requirements.txt .
+=> CACHED [3/4] RUN pip install --no-cache-dir -r requirements.txt
 ```
 
-### 4.4 .dockerignore
+`pip install` samm kasutab cache'i, tehes build'i 10x kiiremaks.
 
-Looge `.dockerignore`:
+Käivitage container:
+
+```bash
+docker run -d -p 5000:5000 --name python-api python-app:good
+```
+
+Testige API't:
+
+```bash
+curl http://localhost:5000
+curl http://localhost:5000/api/info
+```
+
+### 9.4 Dockerignore Fail
+
+Looge `.dockerignore` fail et välistada tarbetuid faile build context'ist:
+
 ```
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
 *.log
+*.sqlite
 .git/
+.gitignore
 .env
+.venv/
 venv/
+*.md
+.vscode/
+.idea/
 ```
 
-Ehitage image uuesti ja võrrelge suurust:
+See fail töötab sarnaselt `.gitignore` failile. Välistatud failid ei kopeerita build context'i, vähendades image suurust ja build kiirust.
+
+Ehitage image uuesti ja võrrelge suurusi:
+
 ```bash
 docker build -t python-app:final .
 docker images | grep python-app
 ```
 
+**Validation:** Kontrollige image suurust:
+
+```bash
+docker images python-app:final
+```
+
 ---
 
-## 5. Volumes ja Andmete Säilitamine
+## 6. Volumes ja Andmete Püsivus
 
-### 5.1 Probleem Demonstratsioon
+### 9.1 Probleem: Kaduv Data
+
+Demonstreerime andmete kadumist ilma volume'ita:
+
 ```bash
-# Käivita container
-docker run -d --name demo-db alpine sh -c 'echo "andmed" > /data/file.txt && sleep 3600'
+docker run -d --name demo-db alpine sh -c 'echo "important data" > /data/file.txt && sleep 3600'
+```
 
-# Vaata faili
+Kontrollige et fail eksisteerib:
+
+```bash
 docker exec demo-db cat /data/file.txt
+```
 
-# Kustuta container
+Output: `important data`
+
+Nüüd kustutage container:
+
+```bash
 docker rm -f demo-db
-
-# Proovi uuesti - andmed kadunud
-docker run -d --name demo-db alpine sh -c 'cat /data/file.txt'
-docker logs demo-db  # cat: can't open '/data/file.txt'
 ```
 
-### 5.2 Named Volume
+Proovige andmeid taastada uue container'iga:
+
 ```bash
-# Loo volume
-docker volume create testdata
+docker run --name demo-db-new alpine cat /data/file.txt 2>&1
+```
 
-# Kasuta volume'i
-docker run -d --name demo-vol -v testdata:/data alpine sh -c 'echo "püsivad andmed" > /data/file.txt && sleep 3600'
+Näete veateadet `cat: can't open '/data/file.txt': No such file or directory`. Andmed kadusid, kuna writable layer kustutatakse koos container'iga.
 
-# Kontrolli
+### 9.2 Named Volume Lahendus
+
+Looge named volume:
+
+```bash
+docker volume create persistent-data
+```
+
+Vaadake volume detaile:
+
+```bash
+docker volume inspect persistent-data
+```
+
+Output näitab mountpoint'i host failisüsteemis, tavaliselt `/var/lib/docker/volumes/persistent-data/_data`.
+
+Kasutage volume'i container'is:
+
+```bash
+docker run -d --name demo-vol -v persistent-data:/data alpine sh -c 'echo "persistent data" > /data/file.txt && sleep 3600'
+```
+
+Kontrollige:
+
+```bash
 docker exec demo-vol cat /data/file.txt
-
-# Kustuta container
-docker rm -f demo-vol
-
-# Loo uus container sama volume'iga
-docker run --name demo-vol2 -v testdata:/data alpine cat /data/file.txt
-docker logs demo-vol2  # "püsivad andmed"
 ```
 
-**Validation:** Andmed säilivad!
+Kustutage container:
 
-### 5.3 Bind Mount (Arendus)
 ```bash
-# Loo kaust host'is
-mkdir ~/shared-data
-echo "host fail" > ~/shared-data/test.txt
+docker rm -f demo-vol
+```
 
-# Mount host'i kaust
-docker run -d --name bind-test -v ~/shared-data:/app alpine sh -c 'while true; do ls -la /app; sleep 5; done'
+**Validation:** Looge uus container SAMA volume'iga:
 
-# Vaata logisid
-docker logs bind-test
+```bash
+docker run --name demo-vol-new -v persistent-data:/data alpine cat /data/file.txt
+```
 
-# Muuda host'is
-echo "muudetud" >> ~/shared-data/test.txt
+Output: `persistent data` - andmed säilivad!
 
-# Container näeb muudatust kohe
+### 9.3 Bind Mount Arenduseks
+
+Bind mount võimaldab jagada host'i kataloogi container'iga, mis on kasulik arenduses live reload'i jaoks.
+
+Looge kaust host masinas:
+
+```bash
+mkdir -p ~/shared-data
+echo "host file content" > ~/shared-data/test.txt
+```
+
+Käivitage container bind mount'iga:
+
+```bash
+docker run -d --name bind-test -v ~/shared-data:/app alpine sh -c 'while true; do ls -la /app && sleep 5; done'
+```
+
+Jälgige logisid:
+
+```bash
+docker logs -f bind-test
+```
+
+Teises terminali aknas muutke faili host'is:
+
+```bash
+echo "updated from host" >> ~/shared-data/test.txt
+```
+
+**Validation:** Container näeb muudatust kohe:
+
+```bash
 docker exec bind-test cat /app/test.txt
 ```
 
-### 5.4 PostgreSQL Volume Näide
+### 9.4 PostgreSQL Püsivate Andmetega
+
+Käivitage PostgreSQL koos volume'iga:
+
 ```bash
-# Loo volume
 docker volume create pgdata
 
-# Käivita Postgres
 docker run -d \
   --name postgres \
-  -e POSTGRES_PASSWORD=secret \
+  -e POSTGRES_PASSWORD=secret123 \
   -v pgdata:/var/lib/postgresql/data \
   -p 5432:5432 \
   postgres:15-alpine
+```
 
-# Oota, kuni postgres valmis
-sleep 5
+Oodake 5-10 sekundit kuni Postgres käivitub. Looge test andmebaas:
 
-# Loo andmebaas
-docker exec postgres psql -U postgres -c "CREATE DATABASE testdb;"
+```bash
+docker exec postgres psql -U postgres -c "CREATE DATABASE labor_test;"
+docker exec postgres psql -U postgres -c "\l" | grep labor_test
+```
 
-# Peataja container
+Peaksite nägema `labor_test` andmebaasi loetelus.
+
+Peatage ja kustutage container:
+
+```bash
 docker stop postgres
 docker rm postgres
+```
 
-# Käivita uuesti
+**Validation:** Käivitage uus Postgres container SAMA volume'iga:
+
+```bash
 docker run -d \
-  --name postgres2 \
-  -e POSTGRES_PASSWORD=secret \
+  --name postgres-new \
+  -e POSTGRES_PASSWORD=secret123 \
   -v pgdata:/var/lib/postgresql/data \
   -p 5432:5432 \
   postgres:15-alpine
 
 sleep 5
 
-# Andmebaas on alles
-docker exec postgres2 psql -U postgres -c "\l" | grep testdb
+docker exec postgres-new psql -U postgres -c "\l" | grep labor_test
 ```
+
+Andmebaas `labor_test` on endiselt olemas!
 
 ---
 
-## 6. Networking
+## 7. Docker Networking
 
-### 6.1 Default Behavior
+### 9.1 Default Bridge Network Piirangud
+
+Käivitage kaks container'it ilma custom network'ita:
+
 ```bash
-# Käivita 2 container'it
-docker run -d --name cont1 alpine sleep 3600
-docker run -d --name cont2 alpine sleep 3600
-
-# Proovi ping'ida
-docker exec cont1 ping -c 2 cont2  # Ebaõnnestub
+docker run -d --name container1 alpine sleep 3600
+docker run -d --name container2 alpine sleep 3600
 ```
 
-### 6.2 Custom Network
-```bash
-# Loo network
-docker network create mynet
+Proovige container1'st container2'le ligi pääseda:
 
-# Vaata network'e
+```bash
+docker exec container1 ping -c 2 container2
+```
+
+Näete veateadet: `ping: bad address 'container2'`. Default bridge network'is ei tööta hostname resolution.
+
+### 9.2 Custom Network Loomine
+
+Looge custom bridge network:
+
+```bash
+docker network create app-network
+```
+
+Vaadake network'e:
+
+```bash
 docker network ls
-
-# Käivita container'id samas network'is
-docker run -d --name cont3 --network mynet alpine sleep 3600
-docker run -d --name cont4 --network mynet alpine sleep 3600
-
-# Nüüd töötab
-docker exec cont3 ping -c 2 cont4
+docker network inspect app-network
 ```
 
-**Validation:** Ping õnnestub - DNS resolution toimib.
+Käivitage container'id custom network'is:
 
-### 6.3 Multi-Container Rakendus
 ```bash
-# Loo network
+docker run -d --name web1 --network app-network alpine sleep 3600
+docker run -d --name web2 --network app-network alpine sleep 3600
+```
+
+**Validation:** Container'id näevad üksteist hostname'i järgi:
+
+```bash
+docker exec web1 ping -c 3 web2
+```
+
+Näete ICMP echo reply'sid. DNS resolution töötab automaatselt custom network'ides.
+
+### 9.3 Multi-Container Rakendus
+
+Looge network ja käivitage kaks teenust:
+
+```bash
 docker network create webapp
 
-# Postgres
+# Backend: PostgreSQL
 docker run -d \
-  --name db \
+  --name database \
   --network webapp \
-  -e POSTGRES_PASSWORD=secret \
-  -e POSTGRES_DB=app \
+  -e POSTGRES_PASSWORD=secret123 \
+  -e POSTGRES_DB=appdb \
   postgres:15-alpine
 
-# Redis
+# Cache: Redis
 docker run -d \
   --name cache \
   --network webapp \
   redis:alpine
-
-# Kontrolli connectivity
-docker run --rm --network webapp alpine sh -c 'ping -c 2 db && ping -c 2 cache'
 ```
+
+Testige connectivity't kolmanda container'iga:
+
+```bash
+docker run --rm --network webapp alpine sh -c 'ping -c 2 database && ping -c 2 cache'
+```
+
+**Validation:** Mõlemad ping'id peaksid õnnestuma. Container'id saavad üksteisega suhelda hostname'ide kaudu ilma IP aadresse teadmata.
+
+### 9.4 Network Isolation
+
+Container'id erinevates network'ides ei näe üksteist:
+
+```bash
+docker network create isolated-net
+
+docker run -d --name isolated --network isolated-net alpine sleep 3600
+docker exec isolated ping -c 2 database 2>&1
+```
+
+Näete veateadet, kuna `isolated` container ei ole `webapp` network'is.
 
 ---
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
-### 7.1 Container Ei Käivitu
+### 9.1 Container Ei Käivitu
+
+Kui container ei käivitu või läheb kohe stopped olekusse:
+
 ```bash
-# Vaata vigasid
+# Vaata exit code't ja põhjust
+docker ps -a
+
+# Vaata logisid
 docker logs container-name
 
-# Interaktiivne debugimine
+# Proovi käivitada interaktiivselt
 docker run -it image-name sh
-
-# Kontrolli image history
-docker history image-name
 ```
 
-### 7.2 Port Ei Ole Kättesaadav
+Levinud põhjused: vale CMD käsk, puuduvad sõltuvused, port konflik.
+
+### 9.2 Port Ei Ole Kättesaadav
+
+Kui rakendus ei reageeri port mapping'uga:
+
 ```bash
-# Kontrolli port mapping
+# Kontrolli millised pordid on mapped
 docker port container-name
 
-# Kontrolli, mis portidel kuulatakse
+# Kontrolli kas rakendus kuulatakse õigel pordil
 docker exec container-name netstat -tlnp
 
-# Host'i firewall
+# Kontrolli host'i firewall
 sudo ufw status
+sudo iptables -L -n | grep 8080
 ```
 
-### 7.3 Volume Probleemid
+### 9.3 Image Build Ebaõnnestub
+
+Kui `docker build` annab vea:
+
 ```bash
-# Volume asukoht
+# Kontrolli Dockerfile süntaksit
+cat Dockerfile
+
+# Build'i verbose output'iga
+docker build --no-cache -t test:latest .
+
+# Kontrolli .dockerignore
+cat .dockerignore
+```
+
+### 9.4 Volume Permissions
+
+Kui container ei saa volume'i kirjutada:
+
+```bash
+# Kontrolli volume õigusi
+docker exec container-name ls -la /mounted/path
+
+# Volume inspect
 docker volume inspect volume-name
 
-# Vaata volume sisu (kui bind mount)
-ls -la /var/lib/docker/volumes/volume-name/_data/
+# Bind mount puhul kontrolli host'i õigusi
+ls -la /host/path
+```
 
-# Permissions
-docker exec container-name ls -la /mounted/path/
+Lahendus: Dockerfile'is määra USER direktiiviga õige kasutaja või muuda host'i õigusi.
+
+### 9.5 Container Memory/CPU Probleemid
+
+```bash
+# Vaata resource usage't
+docker stats container-name
+
+# Määra resource limit'id
+docker run -d --memory="512m" --cpus="1.0" image-name
+
+# Kontrolli Docker daemon limit'e
+docker info | grep -i memory
 ```
 
 ---
 
-## 8. Cleanup
+## 9. Cleanup ja Resource Management
 
-### 8.1 Puhastamine
+### 9.1 Container'ite Puhastamine
+
+Peata kõik töötavad container'id:
+
 ```bash
-# Peata kõik container'id
 docker stop $(docker ps -q)
+```
 
-# Kustuta kõik container'id
-docker rm $(docker ps -aq)
+Kustuta kõik (peatatud ja töötavad) container'id:
 
-# Kustuta kasutamata image'd
+```bash
+docker rm -f $(docker ps -aq)
+```
+
+### 9.2 Image'ide Puhastamine
+
+Kustuta kasutamata image'd (dangling):
+
+```bash
 docker image prune
+```
 
-# Kustuta kasutamata volume'd (ettevaatust!)
+Kustuta KÕIK kasutamata image'd:
+
+```bash
+docker image prune -a
+```
+
+### 9.3 Volume'ide Puhastamine
+
+HOIATUS: See kustutab andmed!
+
+```bash
+# Kustuta kasutamata volume'd
 docker volume prune
 
-# Kustuta kõik
+# Kustuta spetsiifiline volume
+docker volume rm volume-name
+```
+
+### 9.4 Süsteemi Puhastamine
+
+Kustuta kõik kasutamata ressursid (container'id, image'd, volume'd, network'id):
+
+```bash
 docker system prune -a --volumes
 ```
 
-### 8.2 Kettaruumi Vaatamine
+### 9.5 Kettaruumi Monitoorimine
+
+Vaadake Docker ressursside kasutust:
+
 ```bash
 docker system df
+```
+
+Output näitab kasutust kategooriate kaupa:
+
+```
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          15        5         2.5GB     1.8GB (72%)
+Containers      8         2         150MB     100MB (66%)
+Local Volumes   10        3         800MB     500MB (62%)
+```
+
+Detailne vaade:
+
+```bash
 docker system df -v
 ```
 
 ---
 
-## Kontrollnimekiri
-
-Kontrollige, et oskate:
-
-- [ ] Käivitada container'i (`docker run`)
-- [ ] Vaadata töötavaid container'eid (`docker ps`)
-- [ ] Vaadata logisid (`docker logs`)
-- [ ] Siseneda container'isse (`docker exec -it`)
-- [ ] Kirjutada Dockerfile'i
-- [ ] Ehitada image'i (`docker build`)
-- [ ] Kasutada volume'eid
-- [ ] Luua network'e
-- [ ] Debug'ida probleeme
-
----
-
 ## Järgmised Sammud
 
-Labor andis praktilised oskused Docker'i kasutamiseks. Kodutöös rakendage neid teadmisi reaalse rakenduse containeriseerimiseks.
+Labor andis teile praktilised oskused Docker'i kasutamiseks - container'ite käivitamisest kuni image'ide optimeerimiseni. Järgmises kodutöös rakendage neid teadmisi reaalse rakenduse containeriseerimiseks.
 
-**Näpunäited kodutööks:**
+**Soovitused kodutööks:**
 
-- Alustage lihtsast
-- esmalt käivitage rakendus, siis optimeeri
-- Kasutage `.dockerignore` faili
-- Testize image'i enne esitamist
-- Dokumenteerige README.md'
+Alustage lihtsast - esmalt saage rakendus container'is tööle, seejärel optimeerige. Kasutage `.dockerignore` faili tarbetute failide välistamiseks. Testize image'i põhjalikult enne esitamist - käivitage container ja kontrollige, et kõik funktsioonid töötavad. Dokumenteerige README.md failis käivitamise juhised ja arhitektuuri otsused.
+
+Edukaid eksperimente!
+
+---
