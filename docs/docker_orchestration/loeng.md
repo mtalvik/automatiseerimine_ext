@@ -1,7 +1,8 @@
 # Docker Compose ja Mitme Konteineri Haldamine
 
 **Eeldused:** Docker fundamentals, container concepts, basic YAML syntax  
-**Platvorm:** Docker Engine 20.10+, Docker Compose v2
+**Platvorm:** Docker Engine 20.10+, Docker Compose v2  
+**Dokumentatsioon:** [docs.docker.com/compose](https://docs.docker.com/compose/)
 
 ## Õpiväljundid
 
@@ -11,174 +12,336 @@ Pärast seda loengut oskate:
 - Ehitada multi-container rakendusi
 - Mõista teenuste vahelist suhtlust ja võrgustikku
 - Hallata erinevaid keskkondi (development, production)
-- Debugida ja tõrkeotsingut teha
 - Mõista orkestreerimise põhimõtteid ja vajadust
 
 ---
 
-Kaasaegne veebirakendus ei ole üks programm. See koosneb erinevatest komponentidest: andmebaas hoiab andmeid, API server käsitleb ärilogikat, frontend näitab kasutajaliidest, cache teeb süsteemi kiireks. Igaüks neist töötab eraldi konteineris. Iga komponent on teadlikult eraldatud, et saaks seda sõltumatult arendada, testida ja skaleerida - see on mikroteenuste arhitektuuri põhiprintsiip.
+Kaasaegne veebirakendus koosneb erinevatest komponentidest: andmebaas hoiab andmeid, API server käsitleb ärilogikat, frontend näitab kasutajaliidest, cache teeb süsteemi kiireks. Igaüks neist töötab eraldi konteineris. See on mikroteenuste arhitektuuri põhiprintsiip - iga komponent on eraldatud, et saaks seda sõltumatult arendada ja skaleerida.
+
+Küsimus: kuidas neid kõiki koos hallata?
 
-Küsimus on lihtne: kuidas neid kõiki koos hallata?
+## 1. Käsitsi Haldamise Probleem
 
-Docker Compose vastab sellele küsimusele. See on tööriist mis muudab mitme konteineri haldamise lihtsaks ja hallatavaks. Ilma Compose'ita peaksite iga konteineri käivitama eraldi käsuga, meelde jätma järjekorra, haldama IP aadresse ja võrgustikku - see muutub kiiresti kaootiliseks.
+Sul on kaks komponenti: PostgreSQL andmebaas ja Node.js API server. Käivitad andmebaasi käsuga `docker run -d --name mydb postgres:13`. Aga nüüd API vajab andmebaasi aadressi. Milline see on? Docker genereerib IP dünaamiliselt. Pead käsitsi välja uurima (`docker inspect mydb | grep IPAddress`) ja lisama API käivitamise käsku.
 
-## 1. Käsitsi haldamise probleem
+Järgmine päev käivitad uuesti - IP on erinev. Kolleeg proovib projekti käivitada - IP'd on täiesti erinevad. Kui API käivitub enne kui andmebaas on valmis, crashib see. Pead kirjutama bash skripti mis ootab, kontrollib, proovib uuesti.
 
-Vaatame näidet. Sul on kaks komponenti: PostgreSQL andmebaas ja Node.js API server.
+Kui sul on 5-6 komponenti, muutub see haldamatuks. Iga uus meeskonnaliige kulutab päeva projekti üles seadmisele.
 
-Käivitad andmebaasi käsuga `docker run -d --name mydb postgres:13`. See töötab. Aga nüüd tahad API käivitada ja API vajab andmebaasi aadressi. Milline see on? Sa ei tea. Docker genereerib IP aadressi dünaamiliselt. Pead käsitsi välja uurima millise IP Docker andmebaasile andis (`docker inspect mydb | grep IPAddress`). Siis pead selle API käivitamise käsku kirjutama, lisades environment variable'i **DATABASE_URL** väärtusega mis sisaldab seda IP'd.
+```mermaid
+graph TB
+    subgraph Manual["Käsitsi"]
+    A1[docker run db] --> A2[Oota... kui kaua?]
+    A2 --> A3[docker inspect - leia IP]
+    A3 --> A4[docker run api --env DB_IP=...]
+    A4 --> A5[Uuesti? Alusta otsast]
+    end
+    
+    subgraph Compose["Docker Compose"]
+    B1[docker-compose up] --> B2[Kõik käivitub automaatselt]
+    B2 --> B3[Teenused leiavad üksteist]
+    B3 --> B4[Idempotent - sama tulemus]
+    end
+```
 
-Järgmine päev käivitad uuesti - IP on erinev. Pead jälle käsitsi uurima ja muutma. Või veel hullem - kolleeg proovib sinu projekti käivitada oma arvutis ja IP'd on täiesti erinevad.
+## 2. Docker Compose Lahendus
 
-Lisaks sellele - kui API käivitub liiga kiiresti ja andmebaas ei ole veel valmis, saad errori. Pead ootama... aga kui kaua? 5 sekundit? 10? Raske öelda. Praktikas tähendab see et kirjutad bash skripti mis proovib käivitada, ootab, kontrollib, proovib uuesti - kõik käsitsi.
+Compose'i põhiidee: kirjelda kogu süsteem ühes failis. See on deklaratiivne lähenemine - kirjeldad soovitud lõpptulemust, mitte samme sinna jõudmiseks.
 
-Kui sul on 5-6 erinevat komponenti, muutub see haldamatuks. Pead meeles pidama järjekorda, IP aadresse, ootama et asjad valmis saaksid. Ja kui tahad et kolleeg saaks sama projekti käivitada, pead kogu selle protsessi talle selgitama. Iga uus liige meeskonnas kulutab päeva projekti üles seadmisele.
+Loome faili `docker-compose.yml`. Kirjeldame kaks teenust: "database" kasutab PostgreSQL'i, "api" kasutab meie koodi. Ütleme et API sõltub andmebaasist.
 
-## 2. Docker Compose lahendus
+Käivitame: `docker-compose up`. Compose loeb faili ja teeb kõik vajaliku - loob võrgu, käivitab teenused õiges järjekorras, seadistab DNS'i. Kõik automaatselt.
 
-Compose'i põhiidee on lihtne:
+Kõige olulisem: me ei kirjuta IP aadresse. Kirjutame lihtsalt teenuse nime "database" ja Compose ühendab teenused automaatselt. Sisemiselt loob Compose DNS serveri mis lahendab teenuste nimed IP aadressideks.
+
+```mermaid
+graph LR
+    A[docker-compose.yml] --> B[Compose Engine]
+    B --> C[Loob võrgu + DNS]
+    B --> D[Käivitab database]
+    B --> E[Käivitab api]
+    C --> F[Töötav süsteem]
+    D --> F
+    E --> F
+```
 
-- kirjelda kogu süsteem ühes failis. Ära ütle KUIDAS asjad teha, vaid ÜTLE MIDA sa tahad. See on deklaratiivne lähenemine
-- sa kirjeldad soovitud lõpptulemust, mitte samme sinna jõudmiseks.
+## 3. Compose Faili Struktuur
 
-Loome faili nimega `docker-compose.yml`. Selles failis kirjeldame meie kahe komponendiga süsteemi. Kirjutame et meil on kaks teenust: üks nimega "database" mis kasutab PostgreSQL'i, ja teine nimega "api" mis kasutab meie API koodi. Ütleme ka et API vajab andmebaasi, seega andmebaas peab enne käivituma.
+Compose fail on YAML formaadis. Struktuur on määratud taandetega - täpselt nagu Python koodis. YAML on inimestele loetavam kui JSON, aga piisavalt struktureeritud et masinad saaksid seda töödelda.
 
-Kui see fail on olemas, käivitame terve süsteemi ühe käsuga: `docker-compose up`. Compose loeb faili, mõistab mida me tahame, ja teeb kõik vajaliku: loob võrgu, käivitab teenused õiges järjekorras, seadistab et nad leiaksid üksteist. Kõik see juhtub automaatselt - te ei pea midagi käsitsi konfigureerima.
+Fail algab versiooniga. Kasuta vähemalt `3.8` - piisavalt uus et kõik kasulikud võimalused oleksid olemas. Vanemad versioonid (2.x, 1.x) on deprecated.
 
-Kõige olulisem - me ei kirjuta IP aadresse. Kirjutame lihtsalt teenuse nime "database" ja Compose teab kuidas teenused ühendada. Kui teenused on samas Compose projektis, näevad nad üksteist automaatselt. Sisemiselt loob Compose DNS serveri, mis lahendab teenuste nimed IP aadressideks - täpselt nagu internet DNS lahendab domeeni nimed.
+```yaml
+version: '3.8'
 
-See on deklaratiivne lähenemine. Imperatiivselt sa ütleksid "tee samm üks, siis samm kaks, siis samm kolm". Deklaratiivselt sa ütled "ma tahan et lõpuks oleks selline süsteem" ja tööriist mõtleb välja kuidas sinna jõuda. See on sama erinevus mis Ansible ja shell skriptide vahel - üks kirjeldab tulemust, teine kirjeldab samme.
+services:
+  database:
+    image: postgres:13
+    environment:
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - db_data:/var/lib/postgresql/data
 
-## 3. Compose faili struktuur
+  api:
+    build: ./api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    environment:
+      DATABASE_URL: postgresql://database:5432/mydb
 
-Compose fail on YAML formaadis tekstifail. YAML on lihtne formaat kus struktuur on määratud taandetega - täpselt nagu Python koodis. Kui midagi on rohkem taandatud, on see eelmise asja "sees". YAML valimine oli teadlik otsus - see on inimestele loetavam kui JSON või XML, aga piisavalt struktureeritud et masinad saaksid seda töödelda.
+volumes:
+  db_data:
+```
 
-Iga Compose fail algab versiooniga. See number ütleb Compose'ile millise formaadiga on tegemist. Kasuta alati vähemalt `3.8` - see on piisavalt uus et kõik kasulikud võimalused oleksid olemas, aga piisavalt stabiilne et igal pool töötaks. Vanemad versioonid (2.x ja 1.x) on deprecated ja neil puuduvad olulised features nagu **secrets** ja **configs**.
+Peamised sektsioonid:
 
-Pärast versiooni tuleb `services` sektsioon. See on faili kõige olulisem osa. Siin sa kirjeldad oma rakenduse komponendid - igaüks neist saab oma konteineri. Iga komponendi all kirjeldad kuidas see käituma peab: millist Docker image't kasutada, millised pordid avada, millised seaded on vajalikud.
+**services** - rakenduse komponendid. Igaüks saab oma konteineri. Kirjeldad millise image'i kasutada, millised pordid avada, millised seaded on vajalikud.
 
-Kui su rakendus vajab et andmed jääksid alles isegi kui konteiner kustutatakse, lisad `volumes` sektsiooni. Siin defineerid püsivad andmehoidlad. Need on eraldi deklareeritud, sest sageli tahad ühte volume'd jagada mitme teenuse vahel, või luua volume enne teenuste käivitamist.
+**volumes** - püsivad andmehoidlad. Defineerid siin, siis ühendad teenuste juurde. Võimaldab jagada sama volume'i mitme teenuse vahel.
 
-Kui vajad kontrolli võrkude üle - näiteks tahad et mõned teenused oleksid isoleeritud - võid lisada `networks` sektsiooni. Aga enamasti seda ei vaja, sest Compose loob automaatselt võrgu kõigile teenustele. Custom networks on kasulikud kui teil on frontend ja backend, ning te ei taha et frontend näeks andmebaasi otse - ainult läbi backend API.
+**networks** - tavaliselt ei vaja. Compose loob automaatselt võrgu kõigile. Custom networks on kasulikud kui tahad isolatsiooni - näiteks frontend ei näe andmebaasi otse.
 
-## 4. Teenused
+```mermaid
+graph TD
+    A[docker-compose.yml] --> B[version: '3.8']
+    A --> C[services]
+    A --> D[volumes]
+    A --> E[networks - optional]
+    
+    C --> F[database]
+    C --> G[api]
+    C --> H[cache]
+    
+    F --> I[image<br/>environment<br/>volumes<br/>ports]
+```
 
-Teenus on sinu rakenduse üks komponent. Kui mõtled oma rakendusele kui firmale, siis teenused on osakonnad: üks vastutab andmete hoidmise eest, teine tegeleb äriloogikaga, kolmas näitab kasutajaliidet. Iga teenus on isoleeritud ja vastutab ainult oma ülesande eest - see on **separation of concerns** printsiip.
+## 4. Teenused ja Nende Suhtlus
 
-Kõige lihtsam teenus vajab ainult nime ja image't. Näiteks kui tahad Redis cache'i, kirjutad et sul on teenus nimega "cache" mis kasutab Redis'e. Compose tõmbab Redis image ja käivitab konteineri. See konteiner on kättesaadav teistele teenustele nimega "cache". Hostname on täpselt sama mis teenuse nimi - see on automaatne ja alati nii.
+Teenus on rakenduse komponent. Kui mõtled rakendusele kui firmale, on teenused osakonnad - üks vastutab andmete eest, teine äriloogika eest, kolmas kasutajaliidese eest. Iga teenus on isoleeritud ja vastutab ainult oma ülesande eest.
 
-Aga tavaliselt vajad rohkem. Pead ütlema millised pordid avada - kui brauser peab su API'le ligi pääsema, pead pordi avama. Pead andma seadeid keskkonnamuutujate kaudu - paroolid, API võtmed, konfiguratsioon. Kui tahad et konteiner näeks sinu hosti faile - näiteks arenduses kui muudad koodi ja tahad et muudatused kohe näha oleksid - kasutad volumes'eid. Bind mount development'is tähendab, et muudad faili oma IDE's, salvestad Ctrl+S, ja server restartib automaatselt uue koodiga.
+Lihtsaim teenus vajab ainult nime ja image't:
 
-Ja väga oluline - kui üks teenus sõltub teisest, pead seda ütlema. Kui API vajab andmebaasi, kirjutad et API `depends_on` andmebaasist. Siis Compose käivitab andmebaasi enne API'd. Ilma selleta võivad teenused käivituda juhuslikult ja API võib proovida andmebaasiga ühenduda enne kui see on valmis.
+```yaml
+services:
+  cache:
+    image: redis:7
+```
 
-## 5. Teenuste suhtlus
+Compose tõmbab Redis image'i ja käivitab konteineri. Konteiner on kättesaadav teistele teenustele nimega "cache". Hostname = teenuse nimi, automaatselt.
 
-See on Compose'i kõige võimsam ja elegantne feature. Kui käivitad teenused Compose'iga, loob ta automaatselt sisemise võrgu. Selles võrgus töötab DNS server mis teab kõigi teenuste nimesid ja IP aadresse. See DNS server on Docker Engine osa ja töötab täiesti automaatselt - te ei pea seda konfigureerima ega installima.
+Tavaliselt vajad rohkem: pordid (kui brauser peab ligi pääsema), keskkonnamuutujad (paroolid, API võtmed), volumes (failide jagamiseks), depends_on (kui teenused sõltuvad üksteisest).
 
-See tähendab et kui sul on teenus nimega "database", siis iga teine teenus samas võrgus saab sellega ühenduda kasutades lihtsalt nime "database". Mitte IP aadressi - lihtsalt nime. Docker lahendab selle automaatselt õigeks IP'ks. Tehniliselt: Docker Engine embedded DNS server kuulab pordi 127.0.0.11 peal igas konteineris ja vastab DNS päringutele.
+### Service Discovery
 
-Praktikas tähendab see et kui API vajab andmebaasiga ühendust, kirjutad ta konfiguratsioonifailis või keskkonnamuutujas lihtsalt "ühenda andmebaasiga nimega database". Pole vaja teada IP'd. Pole vaja muretseda et IP võib muutuda. Pole vaja konfiguratsiooni uuendada kui midagi muutub. See töötab isegi kui kustutad konteineri ja teed uue - DNS entry uuendatakse automaatselt uue IP'ga.
+Kui käivitad teenused Compose'iga, loob see automaatselt sisemise võrgu. Selles võrgus töötab DNS server mis teab kõigi teenuste nimesid ja IP aadresse. See DNS on Docker Engine osa ja töötab automaatselt - port 127.0.0.11 igas konteineris.
 
-See on võimas sest muudab süsteemi paindlikuks. Saad teenuseid liigutada, uuesti käivitada, asendada - ja teised teenused leiavad nad ikka automaatselt. Saad ka skaleerida teenuseid (`docker-compose up --scale api=3`) ja DNS teeb round-robin load balancing'u automaatselt.
+Kui sul on teenus "database", saab iga teine teenus sellega ühenduda kasutades lihtsalt nime "database". Mitte IP'd - lihtsalt nime. Docker lahendab automaatselt õigeks IP'ks.
 
-Oluline mõista:
+```mermaid
+graph TB
+    subgraph "Docker Network"
+    A[API Container<br/>api:8080]
+    B[DB Container<br/>database:5432]
+    C[Cache Container<br/>cache:6379]
+    D[Embedded DNS<br/>127.0.0.11]
+    end
+    
+    A -->|database:5432| B
+    A -->|cache:6379| C
+    A -->|DNS: database?| D
+    D -->|172.18.0.2| A
+```
 
-- see DNS töötab ainult Compose võrgu sees. Kui tahad et väljastpoolt (näiteks sinu brauser) saaks teenusele ligi, pead pordi avama `ports` sektsiooniga. Ports loob mapping'u host'i ja konteineri vahel
-- näiteks `8080:80` tähendab "host'i port 8080 suunab konteineri port 80 peale".
+Praktikas: kui API vajab andmebaasi, kirjutad konfiguratsioonifailis `DATABASE_URL=postgresql://database:5432/mydb`. Pole vaja teada IP'd. Pole vaja muretseda et IP muutub. Töötab isegi kui kustutad konteineri ja teed uue - DNS uuendatakse automaatselt.
 
-## 6. Andmete püsimine
+DNS töötab ainult Compose võrgu sees. Kui tahad et väljastpoolt (brauser) saaks teenusele ligi, pead pordi avama:
 
-Konteinerid on loodud olema ajutised. Kui kustutad konteineri, kaob ka kõik mis seal sees oli. See on disain - konteinerid peaksid olema "cattle not pets", nagu öeldakse. Saad igal ajal uue teha. See printsiip tuleb cloud computing'ust: server'id (virtuaalmasinad, konteinerid) peaksid olema kergesti asenvatavad, mitte unikaalsed lumehelvakesed mida kardetakse puudutada.
+```yaml
+ports:
+  - "8080:8080"  # host:container
+```
 
-Aga andmebaas ei saa olla ajutine. Andmed peavad jääma alles. Siin tulevad mängu volumes. Volume on Docker'i abstrakt andmehoidla - see on eraldatud konteineri failisüsteemist ja elab kauem kui konteiner ise.
+## 5. Andmete Püsimine
 
-Volume on nagu väline kõvaketas mille saad konteinerile külge ühendada. Kui konteiner kirjutab andmeid volume'i, jäävad need sinna püsivalt. Isegi kui konteiner kustutatakse ja tehakse uus, ühendatakse sama volume uuesti külge ja andmed on tagasi. Tehniliselt Docker hoiab volume'id host'i failisüsteemis spetsiaalses kaustas (tavaliselt `/var/lib/docker/volumes/`), aga te ei peaks kunagi otse sinna puutuma - kasutage Docker käske.
+Konteinerid on ajutised. Kui kustutad konteineri, kaob kõik mis seal oli. See on disain - konteinerid peaksid olema "cattle not pets". Aga andmebaas ei saa olla ajutine. Siin tulevad mängu volumes.
 
-Compose'is defineerid volume kaks korda. Esiteks teenuse juures ütled KUHU konteineri failisüsteemis see ühendatakse. Näiteks PostgreSQL hoiab andmeid kaustas `/var/lib/postgresql/data`, seega ühendad volume sinna. Teiseks faili lõpus `volumes` sektsioonis deklareerid et see volume eksisteerib. See kahekordne deklaratsioon võimaldab sama volume'd kasutada mitmes teenuses, kui vaja.
+Volume on Docker'i abstrakt andmehoidla - eraldatud konteineri failisüsteemist ja elab kauem kui konteiner. Nagu väline kõvaketas mille saad külge ühendada.
 
-On ka teine variant - bind mount. See ei loo uut volume'd vaid ühendab otse sinu hosti kausta konteineriga. See on kasulik arenduses: kui kirjutad koodi oma arvutis ja tahad et konteiner näeks kohe muudatusi, mount'id koodi kausta sisse. Iga kord kui salvestad faili, on see kohe konteineris nähtav. Aga bind mount'id on ohtlikud produktsioonis - need sõltuvad host'i failisüsteemi struktuurist ja õigustest, mis võib olla erinev eri serverites.
+```yaml
+services:
+  database:
+    image: postgres:13
+    volumes:
+      - db_data:/var/lib/postgresql/data  # volume:container_path
 
-## 7. Teenuste järjekord
+volumes:
+  db_data:  # deklareerime volume
+```
 
-Teenused ei saa kõik korraga käivituda. API ei saa töötada kui andmebaas ei ole veel käivitunud. Compose vajab teada õiget järjekorda. Ilma selleta võib juhtuda et API käivitub esimesena, proovib andmebaasiga ühendust, saab "connection refused" errori ja crashib.
+Kui konteiner kirjutab andmeid volume'i, jäävad need püsivalt. Isegi kui konteiner kustutatakse ja tehakse uus, ühendatakse sama volume uuesti ja andmed on tagasi.
 
-Seda määrad `depends_on` võtmega. Kirjutad et API sõltub andmebaasist ja Compose käivitab andmebaasi enne. See on deklaratiivne viis öelda "need asjad on seotud".
+On ka bind mount - ühendab otse hosti kausta:
 
-Aga siin on oluline nüanss mis segab algajaid. Depends_on ootab ainult kuni konteiner käivitub, mitte kuni teenus sees on päriselt valmis. PostgreSQL konteiner võib käivituda sekundiga, aga PostgreSQL ise võtab veel 5-10 sekundit et end seadistada ja valmis olla päringuid vastu võtma. Sel ajal API juba käivitub ja üritab ühenduda - saab errori. See on klassikaline race condition distributed süsteemides.
+```yaml
+volumes:
+  - ./code:/app  # development - koodi muudatused nähtavad kohe
+```
 
-Lahendus on health check. See on väike skript või käsk mida Compose regulaarselt käivitab et kontrollida kas teenus on päriselt valmis. Näiteks PostgreSQL'il on käsk `pg_isready` mis kontrollib kas andmebaas vastab. Compose käivitab seda iga mõne sekundi tagant. Kui see õnnestub, märgib teenuse "healthy". Ja kui ütled et API depends_on andmebaasi tingimuse "service_healthy", siis ootab Compose kuni andmebaas on päriselt valmis enne API käivitamist. See on korrektne viis käsitleda teenuste sõltuvusi.
+Aga bind mount'id on ohtlikud produktsioonis - sõltuvad host'i failisüsteemist.
 
-## 8. Keskkonnamuutujad
+## 6. Teenuste Järjekord ja Health Checks
 
-Konteinerid vajavad seadeid:
+API ei saa töötada kui andmebaas pole käivitunud. Määrad `depends_on`:
 
-- andmebaasi paroole, API võtmeid, pordi numbreid. Need antakse keskkonnamuutujate kaudu. See on 12-factor app metodoloogia põhiprintsiip
-- konfiguratsioon peaks olema keskkonnas, mitte koodis.
+```yaml
+services:
+  api:
+    depends_on:
+      - database
+```
 
-Kõige lihtsam viis on kirjutada need otse Compose faili. Aga see ei ole hea idee sest siis on paroolid failis nähtavad ja kui commitid selle Git'i, on paroolid avalikud. Paljudes ettevõtetes on juhtunud turvaintsidente just seetõttu - keegi committis kogemata `.env` või config faili kus olid production andmebaasi paroolid, ja see läks GitHubi public repo'sse.
+Aga depends_on ootab ainult kuni konteiner käivitub, mitte kuni teenus on päriselt valmis. PostgreSQL konteiner käivitub sekundiga, aga PostgreSQL ise võtab 5-10 sekundit. API käivitub ja crashib.
 
-Parem viis on kasutada `.env` faili. See on lihtne tekstifail kus on muutujad ja väärtused. Compose loeb selle automaatselt ja saad Compose failis neid muutujaid kasutada. Näiteks kirjutad `.env` faili `DB_PASSWORD=minuparool` ja Compose failis kirjutad `${DB_PASSWORD}`. Compose asendab selle õige väärtusega. See toimib täpselt nagu template engine - muutujad asendatakse väärtustega enne kui Compose faili parsitakse.
+Lahendus on health check:
 
-Oluline:
+```yaml
+services:
+  database:
+    image: postgres:13
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  api:
+    depends_on:
+      database:
+        condition: service_healthy  # oota kuni healthy
+```
 
-- `.env` fail EI TOHI minna Git'i. See sisaldab saladusi. Pane see `.gitignore` faili. Aga tee `.env.example` fail kus on samad muutujad aga ilma väärtusteta või placeholder väärtustega
-- see näitab kolleegile millised muutujad on vajalikud. Näiteks `.env.example` võib sisaldada `DB_PASSWORD=changeme` ja `.env` sisaldab päris parooli.
+Compose käivitab `pg_isready` iga 5 sekundi tagant. Kui õnnestub, on teenus "healthy" ja API võib käivituda.
 
-## 9. Põhilised käsud
+## 7. Keskkonnamuutujad
 
-Compose'i käsud on lihtsad. Kõik algavad `docker-compose` prefiksiga (uuemates versioonides võib kasutada ka `docker compose` ilma sidekriipsuta - see on Docker CLI native integratsioon).
+Konteinerid vajavad seadeid: paroolid, API võtmed, porte. Need antakse keskkonnamuutujate kaudu - 12-factor app metodoloogia.
 
-Kõige olulisem käsk on `up`. See käivitab kõik teenused. Kui käivitad lihtsalt `docker-compose up`, näed kõigi teenuste logisid reaalajas ühes aknas. See on hea arenduses - näed kõike mis juhtub. Kui lisad `-d` (detached), käivitab taustal - see on hea serverites. Detached mode'is jooksevad teenused taustal ja te saate terminali tagasi kasutada.
+Ära kirjuta paroole otse YAML faili! Kasuta `.env` faili:
 
-Kui tahad näha mis töötab, kasuta `ps`. See näitab kõiki teenuseid ja nende staatust - running, exited, restarting. Kui mõni teenus pidevalt restartib, on seal probleem.
+```bash
+# .env
+DB_PASSWORD=secret123
+API_KEY=abc-xyz
+```
 
-Kui midagi läheb valesti, vaata logisid:
+```yaml
+# docker-compose.yml
+services:
+  database:
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+```
 
-- `docker-compose logs`. Lisades `-f` saad jälgida reaalajas (follow), lisades teenuse nime näed ainult selle teenuse logisid. Flag `-f` töötab sarnaselt `tail -f` käsule UNIX'is
-- see jääb terminali kinni ja näitab uusi logiridu nagu nad tulevad.
+Compose loeb `.env` automaatselt ja asendab muutujad. Pane `.env` faili `.gitignore`'i! Tee `.env.example` kus on samad muutujad aga placeholder väärtustega.
 
-Kui tahad kõik peatada, kasuta `stop`. See peatab konteinerid aga ei kustuta neid. Võid hiljem jätkata `start` käsuga. Konteinerite failisüsteem jääb alles, ainult protsessid peatuvad.
+## 8. Põhilised Käsud
 
-Kui tahad kõik maha võtta ja puhastada, kasuta `down`. See kustutab konteinerid. Aga volumes jäävad alles - kui tahad ka need kustutada (ANDMED KAOVAD!), lisa `-v`. Käsk `docker-compose down -v` on ohtlik - kasuta seda ainult arenduses, mitte kunagi produktsioonis ilma varunduseta.
+```bash
+# Käivita kõik teenused
+docker-compose up           # foreground, näed logisid
+docker-compose up -d        # detached, taustal
 
-Kui pead debugimiseks konteineri sisse minema, kasuta `exec`. Näiteks `docker-compose exec api sh` paneb su API konteineri shelli sisse. Sealt saad failisüsteemi uurida, käske käivitada, logisid vaadata. See on nagu SSH konteineri sisse, ainult et kasutab Docker API'd, mitte SSH'd.
+# Vaata mis töötab
+docker-compose ps
 
-## 10. Debugging
+# Vaata logisid
+docker-compose logs         # kõik teenused
+docker-compose logs -f api  # ainult API, realtime
 
-Kui midagi ei tööta, on süsteemne lähenemine. Debugging võib tunduda keeruline, aga kui lähed samm-sammult, leiad probleemi alati.
+# Peata (konteinerid jäävad alles)
+docker-compose stop
 
-Esiteks kontrolli kas kõik töötab: `docker-compose ps`. Kui mõni teenus on "Exit" staatuses või pidevalt restardib, on seal probleem. "Exit 0" tähendab et teenus lõpetas edukalt (mis on imelik teenuse puhul mis peaks töötama), "Exit 1" või muu number tähendab viga.
+# Käivita uuesti
+docker-compose start
 
-Vaata logisid:
+# Kustuta kõik (volumes jäävad!)
+docker-compose down
 
-- `docker-compose logs teenuse_nimi`. Otsi sõnu nagu ERROR, FATAL, failed, exception. Tavaliselt on seal selgitus mis valesti läks. PostgreSQL'i logid ütlevad näiteks "FATAL: password authentication failed"
-- selge, et parool on vale. Node.js logid võivad öelda "ECONNREFUSED"
-- ei saa andmebaasiga ühendust.
+# Kustuta kõik + volumes (ANDMED KAOVAD!)
+docker-compose down -v
 
-Kontrolli kas teenused näevad üksteist:
+# Mine konteineri sisse
+docker-compose exec api sh
 
-- mine teenuse sisse (`docker-compose exec teenus sh`) ja proovi teist teenust pingida või `nslookup` käsuga lahendada. Kui ei saa vastust, on võrguprobleem
-- kas teenused pole samas võrgus või DNS ei tööta.
+# Valideeri YAML
+docker-compose config
+```
 
-Kontrolli keskkonnamuutujaid:
+## 9. Debugging
 
-- kas kõik vajalikud muutujad on määratud? Kas väärtused on õiged? Kasuta `docker-compose config` et näha kuidas Compose tõlgendas YAML faili
-- see näitab ka kõiki asendatud muutujaid.
+Kui midagi ei tööta:
 
-Kui API ei käivitu või käitub imelikult, võib probleem olla volumes'ides - võib-olla on failid vales kohas või õigused on valed. Linuxis võivad file permissions põhjustada kummalisi probleeme kui host user ID ei kattu konteineri user ID'ga.
+```bash
+# 1. Kontrolli staatust
+docker-compose ps
+# Exit 0 = lõpetas edukalt (imelik teenuse puhul)
+# Exit 1 = viga
 
-## 11. Millal kasutada Compose
+# 2. Vaata logisid
+docker-compose logs database
+# Otsi: ERROR, FATAL, failed, exception
 
-Compose on suurepärane väikeste ja keskmiste projektide jaoks. Kui arendad lokaalselt oma arvutis, on Compose ideaalne. Kui sul on üks server kuhu deploy'ida, piisab Compose'ist. Enamik startup'e ja väiksemaid projekte töötavad edukalt ainult Compose'iga ilma Kubernetes'i vajamata.
+# 3. Kontrolli võrku
+docker-compose exec api ping database
+# Ei tööta? DNS probleem
 
-Aga Compose ei ole loodud suurte, jaotatud süsteemide jaoks. Kui vajad mitut serverit, automaatset skaleerimist (kui load kasvab, lisatakse automaatselt rohkem konteinereid), või keerukat failover'i, siis vaata Kubernetes'e või Docker Swarm'i poole. Compose töötab ainult ühel host'il - sa ei saa jaotada teenuseid mitme serveri vahel.
+# 4. Kontrolli muutujaid
+docker-compose config
+# Näitab parsitud faili
+```
 
-Aga ausalt - 90% projektidest piisab Compose'ist. Ära mine Kubernetes'e ainult sellepärast et see on "cool" või et kõik räägivad sellest. Mine sinna kui sul on päris vajadus. Kubernetes toob kaasa märkimisväärse keerukuse - YAML failid on palju keerulisemad, vajad eraldi cluster'it, õppekulg on järsem. Hinda kas see keerukus on õigustatud sinu kasutusprobleemiga.
+## 10. Millal Kasutada Compose
+
+Compose on suurepärane väikeste ja keskmiste projektide jaoks. Kui arendad lokaalselt, on Compose ideaalne. Kui sul on üks server, piisab Compose'ist. Enamik startup'e töötavad edukalt ainult Compose'iga.
+
+Compose ei ole loodud suurte jaotatud süsteemide jaoks. Kui vajad mitut serverit, auto-scaling'ut või keerukat failover'i, vaata Kubernetes'e või Docker Swarm'i. Compose töötab ainult ühel host'il.
+
+Aga ausalt - 90% projektidest piisab Compose'ist. Ära mine Kubernetes'e ainult sellepärast et see on "cool". Mine sinna kui sul on päris vajadus. Kubernetes toob kaasa märkimisväärse keerukuse.
+
+```mermaid
+graph TD
+    A[Vajan orkestreerimist] --> B{Mitu hosti?}
+    B -->|Üks| C[Docker Compose ✓]
+    B -->|Mitu| D{Auto-scaling?}
+    D -->|Ei| E[Compose või<br/>Docker Swarm]
+    D -->|Jah| F[Kubernetes]
+    
+    C --> G[90% projektidest]
+    F --> H[10% projektidest]
+```
 
 ## Kokkuvõte
 
-Docker Compose lahendab mitme konteineri haldamise probleemi. Sa kirjeldad oma rakenduse ühes failis - millised teenused on, kuidas nad omavahel suhtlevad, millised seaded on vajalikud. Compose hoolitseb ülejäänu eest: loob võrgu, käivitab teenused õiges järjekorras, seadistab DNS'i. Üks YAML fail asendab kümneid `docker run` käske ja bash skripte.
+Docker Compose lahendab mitme konteineri haldamise. Kirjeldad rakenduse ühes YAML failis - millised teenused, kuidas nad suhtlevad, millised seaded. Compose hoolitseb ülejäänu eest: loob võrgu, käivitab teenused õiges järjekorras, seadistab DNS'i.
 
-Peamised mõisted: teenused (services) on su rakenduse komponendid, volumes hoiavad andmeid püsivalt, võrgud võimaldavad teenustel omavahel suhelda, depends_on määrab järjekorra. Kõik need kontseptsioonid töötavad koos, et luua terviklik, hallatav süsteem.
+Peamised mõisted: **services** on rakenduse komponendid, **volumes** hoiavad andmeid püsivalt, **networks** võimaldavad suhtlust, **depends_on** määrab järjekorra, **healthcheck** tagab teenuse valmiduse.
 
-Järgmises labs ehitad ise terve mitme teenusega rakenduse kasutades Compose'i. Näed praktikas kuidas YAML fail muutub töötavaks rakenduseks.
+Üks YAML fail asendab kümneid `docker run` käske ja bash skripte. Järgmises labs ehitad ise mitme teenusega rakenduse kasutades Compose'i.
+
+---
+
+## Kasulikud Ressursid
+
+**Dokumentatsioon:**
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
+- [Compose File Reference](https://docs.docker.com/compose/compose-file/)
+- [Docker Networking](https://docs.docker.com/network/)
+
+**Tööriistad:**
+- **docker-compose config** - valideerib YAML faili
+- **ctop** - konteinrite monitoring
+
+**Näited:**
+- [Awesome Compose](https://github.com/docker/awesome-compose) - valmis näited erinevate tech stack'idega
