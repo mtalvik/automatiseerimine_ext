@@ -97,17 +97,6 @@ Podman käsud on identsed Docker'iga, seega ülejäänud lab töötab samamoodi.
 
 ---
 
-## Video Demo: Docker Fundamentals
-
-Enne praktilise töö alustamist vaadake 8-minutiline video, mis selgitab Docker'i põhimõisteid ja workflow'i:
-
-**[Docker in 100 Seconds](https://www.youtube.com/watch?v=GZZQOwQAAeg&t=8s)** (Fireship)
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/GZZQOwQAAeg?start=8" title="Docker in 100 Seconds" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-Video annab kiire ülevaate sellest, mis on image ja container, kuidas Dockerfile töötab ning miks Docker on kasulik. Järgnevates ülesannetes rakendame neid põhimõtteid praktiliste näidete kaudu.
-
----
 
 ## 2. Docker Installatsiooni Kontrollimine
 
