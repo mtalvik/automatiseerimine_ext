@@ -386,3 +386,57 @@ sudo chmod 666 /var/run/docker.sock
 ---
 
 **Küsimused?** Küsi õpetajalt või klassikaaslastelt!
+
+---
+
+## VSCode Setup
+
+### Extension'id
+
+Install extensions:
+- `ms-vscode-remote.remote-ssh` - SSH ühendus VM'idega
+- `ms-vscode-remote.remote-wsl` - WSL2 support (Windows)
+- `ms-azuretools.vscode-docker` - Docker support
+- `redhat.vscode-yaml` - YAML syntax
+
+### Remote SSH kasutamine
+
+**Variant 1: VSCode HOST masinas**
+
+1. VSCode → Extensions → Install "Remote-SSH"
+2. `Ctrl+Shift+P` → "Remote-SSH: Connect to Host"
+3. `ssh user@VM_IP`
+4. File → Open Folder → `/home/user/projects`
+
+**Variant 2: VSCode VM sees**
+
+```bash
+# Ubuntu VM-is
+sudo snap install code --classic
+
+# Ava projekt
+cd ~/projects
+code .
+```
+
+### Port Forwarding (VirtualBox)
+
+Kui kasutad VirtualBox VM'i ja tahad HOST brauserist ligi:
+
+1. VirtualBox → Select VM → Settings
+2. Network → Adapter 1 → Advanced → Port Forwarding
+3. Lisa reeglid:
+
+| Name | Protocol | Host Port | Guest Port |
+|------|----------|-----------|------------|
+| HTTP | TCP | 8080 | 80 |
+| HTTPS | TCP | 8443 | 443 |
+| Custom | TCP | 3000 | 3000 |
+
+Siis HOST masinas: `http://localhost:8080`
+
+**Alternatiiv: Bridged Adapter**
+
+Settings → Network → Adapter 1 → Bridged Adapter
+
+VM saab IP samast võrgust (192.168.x.x) ja pääsed otse ligi.
