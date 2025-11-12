@@ -48,11 +48,9 @@ Kuidas integreerib: [selgita]
 
 ## Käivitamine
 
-```bash
 git clone [repo]
 cd [projekt]
 [sinu sammud]
-```
 
 ## Kuidas Tööriistad Töötavad Koos
 
