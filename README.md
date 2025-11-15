@@ -7,8 +7,6 @@
 [![Duration](https://img.shields.io/badge/Duration-14%20weeks-blue.svg)]()
 [![Language](https://img.shields.io/badge/Language-Estonian-green.svg)]()
 
----
-
 ## Kursuse kirjeldus
 
 Õpi kuidas automatiseerida servereid, hallata kontainereid ja luua CI/CD pipeline'e nagu päris DevOps insenerid. Kursus on 70% praktika, 30% teooria - õpid tehes!
