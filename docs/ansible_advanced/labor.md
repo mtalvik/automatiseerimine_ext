@@ -14,7 +14,7 @@ Pärast seda labori oskad:
 - Luua Jinja2 template'eid dünaamiliste konfiguratsioonifailide genereerimiseks
 - Kasutada handler'eid teenuste tõhusaks haldamiseks
 - Krüpteerida tundlikke andmeid Ansible Vault'iga
-- Ehitada struktureeritud Ansible projekti mis skaleerub
+- Ehitada struktureeritud Ansible projekti, mis skaleerub
 
 ---
 
@@ -89,7 +89,7 @@ dev-web | SUCCESS => { "ping": "pong" }
 prod-web | SUCCESS => { "ping": "pong" }
 ```
 
-### Valideeriminen
+### Kontrollnimekiri
 - [ ] Projekti struktuur on loodud
 - [ ] Inventory fail eksisteerib
 - [ ] Mõlemad serverid vastavad ping'ile
@@ -213,8 +213,8 @@ Ansible rakendab muutujaid järgmises järjekorras (madalam → kõrgem):
 
 **Näide:** Kui `group_vars/all/` ütleb `nginx_port: 80` aga `host_vars/dev-web.yml` ütleb `nginx_port: 8080`, siis dev-web kasutab **8080**.
 
-### Valideeriminen
-- [ ] Kõik muutujad failid on loodud
+### Kontrollnimekiri
+- [ ] Kõik muutujate failid on loodud
 - [ ] Test playbook näitab erinevaid väärtusi dev ja prod serveritel
 - [ ] Mõistad muutujate prioriteete
 
@@ -448,7 +448,7 @@ curl http://localhost
 
 **Ava brauseris:** `http://localhost` - peaksid nägema oranži lehte dev info'ga.
 
-### Valideeriminen
+### Kontrollnimekiri
 - [ ] Template'id on loodud
 - [ ] Nginx konfiguratsioon genereeritakse õigesti
 - [ ] Dev ja prod serveritel on erinevad konfiguratsioonid
@@ -458,7 +458,7 @@ curl http://localhost
 
 ## 4. Handler'id: Tõhus Teenuste Haldamine
 
-Handler'id tagavad, et teenuseid taaskäivitatakse ainult siis kui see on vajalik.
+Handler'id tagavad, et teenuseid taaskäivitatakse ainult siis, kui see on vajalik.
 
 ### 4.1. Handler'ite mõistmine
 
@@ -468,7 +468,7 @@ Vaatame, mis juhtus eelmises playbook'is:
 notify: reload nginx
 ```
 
-Handler **ei käivitu kohe** - ta käivitub playbook'i lõpus JA ainult siis kui task tegi muudatuse (`changed: true`).
+Handler **ei käivitu kohe** - ta käivitub playbook'i lõpus JA ainult siis, kui task tegi muudatuse (`changed: true`).
 
 ### 4.2. Test: Idempotentsus
 
@@ -480,7 +480,7 @@ ansible-playbook -i inventory.yml playbooks/deploy_nginx.yml
 
 **Jälgi väljundit:**
 - "Deploy nginx configuration" näitab `ok` (mitte `changed`)
-- Handler'it **EI käivitata** sest midagi ei muutunud
+- Handler'it **EI käivitata**, sest midagi ei muutunud
 - Nginx jääb töötama ilma taaskäivituseta
 
 ### 4.3. Test: Muudatus käivitab handler'i
@@ -524,10 +524,10 @@ handlers:
 
 Production serverites eelistame reload'i.
 
-### Valideeriminen
+### Kontrollnimekiri
 - [ ] Mõistad, millal handler käivitub
 - [ ] Teine käivitus ei restart'i nginx'i (idempotentne)
-- [ ] Konfiguratsioon muudatus käivitab handler'i
+- [ ] Konfiguratsiooni muudatus käivitab handler'i
 - [ ] Mõistad reload vs restart erinevust
 
 ---
@@ -722,7 +722,7 @@ Käivita:
 ansible-playbook -i inventory.yml playbooks/deploy_nginx.yml --vault-password-file .vault_pass
 ```
 
-### Valideeriminen
+### Kontrollnimekiri
 - [ ] Vault fail on loodud ja krüpteeritud
 - [ ] Saad vault muutujaid kasutada playbook'ides
 - [ ] .vault_pass fail töötab
@@ -861,7 +861,7 @@ curl http://localhost
 curl -u admin:AdminPass456! http://localhost
 ```
 
-### Valideeriminen
+### Kontrollnimekiri
 - [ ] Playbook kasutab muutujaid hierarhiliselt
 - [ ] Template'id genereerivad erinevaid konfiguratsioone
 - [ ] Handler'id käivituvad ainult muudatuste korral
@@ -972,7 +972,7 @@ cat group_vars/all/common.yml | grep vault_
 **Probleem:** "template error while templating string"
 ```bash
 # Kontrolli Jinja2 süntaksit template's
-# Leia rida kus viga on (error näitab rea numbrit)
+# Leia rida, kus viga on (error näitab rea numbrit)
 # Tihti probleem: {{ muutuja }} või {% if %} lõpetamata
 ```
 
