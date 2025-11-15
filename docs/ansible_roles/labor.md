@@ -1,389 +1,126 @@
 # Ansible Rollid - Labor
 
-**Eeldused:** Ansible playbook'ide kogemus, Linux CLI, YAML põhitundmine  
-**Platvorm:** Ansible 2.9+, Ubuntu 20.04+, Vagrant/Docker  
+**Eeldused:** Ansible edasijõudnud labor läbitud, YAML süntaks, Linux CLI  
+**Platvorm:** Ubuntu 24.04, Proxmox keskkond  
 **Kestus:** 2 × 45 minutit
 
 ---
 
 ## Õpiväljundid
 
-Pärast laborit õppija:
+Pärast seda labori oskad:
 
-- Mõistab miks rollid on vajalikud läbi praktilise probleemi (korduvkasutus, hooldus)
-- Refaktoreerib mitut playbook'i üheks rolliks
-- Loob Galaxy standardi järgi struktureeritud rolli
-- Eristab `defaults/` ja `vars/` kaustade kasutust
-- Kasutab Jinja2 template'e ja muutujaid erinevate keskkondade jaoks
-- Testib rolli idempotentsust
-- Avaldab rolli GitHub'is
-
----
-
-## 1. Enne Alustamist
-
-Kontrolli et sul on:
-
-```bash
-vagrant --version      # 2.2+
-vboxmanage --version   # VirtualBox
-ansible --version      # 2.9+
-git --version
-```
+- Tuvastada korduvat koodi ja DRY printsiibi rikkumist playbook'ides
+- Refaktoreerida olemasoleva projekti Ansible rolliks
+- Kasutada Galaxy standardi kasutatruktuuri (defaults/, vars/, tasks/, templates/, handlers/)
+- Eristada `defaults/` ja `vars/` kaustade kasutust
+- Skaleerida infrastruktuuri - lisada uusi keskkondi ilma koodi kopeerimata
+- Dokumenteerida ja jagada rolle
 
 ---
 
-## 2. Töökeskkonna Ettevalmistus
+## Labori Ülevaade
 
-Loome **kaks** erinevat keskkonda: development ja production.
-
-```bash
-mkdir -p ~/ansible-roles-lab
-cd ~/ansible-roles-lab
-```
-
-### Vagrantfile
-
-Loo fail `Vagrantfile` **kahe** VM'iga:
-
-```ruby
-Vagrant.configure("2") do |config|
-  
-  # Development server
-  config.vm.define "dev" do |dev|
-    dev.vm.box = "ubuntu/focal64"
-    dev.vm.hostname = "dev-web"
-    dev.vm.network "forwarded_port", guest: 80, host: 8080
-    
-    dev.vm.provider "virtualbox" do |vb|
-      vb.memory = "512"
-      vb.cpus = 1
-    end
-    
-    dev.vm.provision "shell", inline: <<-SHELL
-      apt-get update -qq
-      apt-get install -y python3
-    SHELL
-  end
-  
-  # Production server
-  config.vm.define "prod" do |prod|
-    prod.vm.box = "ubuntu/focal64"
-    prod.vm.hostname = "prod-web"
-    prod.vm.network "forwarded_port", guest: 80, host: 8081
-    
-    prod.vm.provider "virtualbox" do |vb|
-      vb.memory = "1024"
-      vb.cpus = 2
-    end
-    
-    prod.vm.provision "shell", inline: <<-SHELL
-      apt-get update -qq
-      apt-get install -y python3
-    SHELL
-  end
-end
-```
-
-!!! info "Miks kaks VM'i"
-    Simuleerime reaalset olukorda kus on eraldi development ja production keskkonnad. Nii näeme probleemi mida rollid lahendavad.
-
-### Käivita mõlemad VM'd
-
-```bash
-vagrant up
-```
-
-!!! note "Esimene käivitus"
-    Võtab 3-7 minutit kuna laeb Ubuntu image ja seadistab kaks VM'i.
-
-### Inventory
-
-Loo fail `inventory`:
-
-```ini
-[dev_servers]
-dev ansible_host=127.0.0.1 ansible_port=2222 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/dev/virtualbox/private_key
-
-[prod_servers]
-prod ansible_host=127.0.0.1 ansible_port=2200 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/prod/virtualbox/private_key
-
-[all:vars]
-ansible_python_interpreter=/usr/bin/python3
-ansible_ssh_common_args='-o StrictHostKeyChecking=no'
-```
-
-### Test ühendust
-
-```bash
-ansible all -i inventory -m ping
-```
-
-**Oodatav tulemus:**
-
-```
-dev | SUCCESS => {"ping": "pong"}
-prod | SUCCESS => {"ping": "pong"}
-```
-
-??? warning "Kui ping ei tööta"
-    **VM ei käi:**
-    ```bash
-    vagrant status  # kontrolli staatust
-    vagrant up dev  # käivita dev
-    vagrant up prod # käivita prod
-    ```
-    
-    **SSH võti puudub:**
-    ```bash
-    ls -la .vagrant/machines/*/virtualbox/private_key
-    # Peaksid nägema mõlemat võtit
-    ```
-
-**Kontrollpunkt:**
-
-- [ ] 2 VM'i käivad (`vagrant status` näitab "running")
-- [ ] Mõlemad vastuvad ping'ile
+Selles laboris võtame Ansible edasijõudnud laboris loodud nginx projekti ja refaktoreerin selle professionaalseks rolliks. Näeme konkreetselt, kuidas rollid lahendavad korduse probleemi ja võimaldavad infrastruktuuri skaleerida. Lõpuks lisame kolmanda keskkonna (staging), et näidata kuidas rollid muudavad selle triviaalseks.
 
 ---
 
-## 3. Probleem: Kaks Keskkonda, Kaks Playbook'i
+## 1. Olemasoleva Projekti Analüüs
 
-Nüüd paigaldame Nginx mõlemasse keskkonda. Alguses **ilma rollideta** - näeme mis probleem tekib.
+### 1.1. Kontrolli keskkonda
 
-### nginx.conf.j2
+Kasutame edasijõudnud labori projekti ja servereid:
 
-Loo template fail:
+```bash
+# Logi Ubuntu 1 (controller)
+ssh ansible@192.168.82.10
 
-```nginx
-user www-data;
-worker_processes {{ nginx_workers }};
-pid /run/nginx.pid;
-
-events {
-    worker_connections 1024;
-}
-
-http {
-    sendfile on;
-    tcp_nopush on;
-    keepalive_timeout 65;
-    
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-    
-    access_log /var/log/nginx/access.log;
-    error_log /var/log/nginx/error.log;
-    
-    gzip on;
-    
-    server {
-        listen {{ nginx_port }};
-        server_name {{ nginx_hostname }};
-        root /var/www/html;
-        index index.html;
-        
-        location / {
-            try_files $uri $uri/ =404;
-        }
-    }
-}
+# Kontrolli et projekt eksisteerib
+cd ~/ansible-advanced
+ls -la
 ```
 
-### dev-nginx.yml
+Peaks näitama:
+```
+group_vars/
+host_vars/
+playbooks/
+templates/
+inventory.yml
+```
 
-Loo playbook development keskkonnale:
+### 1.2. Vaata praegust struktuuri
 
+```bash
+# Kui palju koodi on playbook'is?
+wc -l playbooks/full_deploy.yml
+
+# Vaata playbook'i sisu
+cat playbooks/full_deploy.yml
+```
+
+**Mõtle:** Kui tahaksime lisada staging keskkonna, mis peaks muutuma?
+
+### 1.3. Probleem: Lisame kolmanda keskkonna (ilma rollita)
+
+Kujuta ette, et peame lisama **staging** keskkonna.
+
+**Ilma rollita peaks:**
+1. Looma `host_vars/staging-web.yml`
+2. Kopeerima kõik muutujad
+3. Muutma `inventory.yml`
+4. ... ja playbook töötab
+
+**Aga kui tahame muuta nginx konfiguratsiooni?**
+- Muudame `templates/nginx.conf.j2` ✓
+- See mõjutab KÕIKI keskkondi automaatselt ✓
+
+**Aga kui tahame muuta task'ide järjekorda?**
+- Peame muutma `playbooks/full_deploy.yml` ✓
+- Ainult ÜKS playbook ✓
+
+**Hmm, tegelikult pole nii hull?**
+
+### 1.4. REAALNE probleem: Jagamine
+
+**Stsenaarium:** Kolleeg teisel projektil tahab ka nginx seadistust.
+
+**Ilma rollita:**
+```bash
+# Kolleeg peab kopeerima:
+cp playbooks/full_deploy.yml ../kolleegi-projekt/
+cp templates/nginx.conf.j2 ../kolleegi-projekt/templates/
+cp templates/index.html.j2 ../kolleegi-projekt/templates/
+cp group_vars/webservers/nginx.yml ../kolleegi-projekt/group_vars/webservers/
+
+# 4 faili, 4 kohta kus hoida sünkroonis
+# Kui sa parandad vea, kolleeg ei saa automaatselt
+```
+
+**Rolliga:**
 ```yaml
----
-- name: Setup Development Nginx
-  hosts: dev_servers
-  become: yes
-  
-  vars:
-    nginx_workers: 1
-    nginx_port: 80
-    nginx_hostname: "dev.local"
-    site_title: "Development Environment"
-    site_color: "#FFA500"
-  
-  tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600
-    
-    - name: Install nginx
-      apt:
-        name: nginx
-        state: present
-    
-    - name: Copy nginx configuration
-      template:
-        src: nginx.conf.j2
-        dest: /etc/nginx/nginx.conf
-        validate: 'nginx -t -c %s'
-      notify: reload nginx
-    
-    - name: Create index.html
-      copy:
-        content: |
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>{{ site_title }}</title>
-            <style>body { background: {{ site_color }}; font-family: Arial; text-align: center; padding: 50px; }</style>
-          </head>
-          <body>
-            <h1>{{ site_title }}</h1>
-            <p>Workers: {{ nginx_workers }}</p>
-            <p>Port: {{ nginx_port }}</p>
-          </body>
-          </html>
-        dest: /var/www/html/index.html
-    
-    - name: Start nginx
-      service:
-        name: nginx
-        state: started
-        enabled: yes
-  
-  handlers:
-    - name: reload nginx
-      service:
-        name: nginx
-        state: reloaded
+# Kolleegi playbook:
+roles:
+  - nginx  # Kõik on ühes kohas!
 ```
 
-### prod-nginx.yml
+**See on rollide TÕELINE väärtus** - korduvkasutatavus ja jagamine.
 
-Loo playbook production keskkonnale:
+### Kontrollnimekiri
+- [ ] Edasijõudnud labori projekt on olemas
+- [ ] Mõistad, miks rollid on jagamiseks paremad
+- [ ] Näed, et playbook ise pole probleem - probleem on komponentide taaskasutamine
 
-```yaml
 ---
-- name: Setup Production Nginx
-  hosts: prod_servers
-  become: yes
-  
-  vars:
-    nginx_workers: 4
-    nginx_port: 80
-    nginx_hostname: "prod.local"
-    site_title: "Production Environment"
-    site_color: "#00AA00"
-  
-  tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600
-    
-    - name: Install nginx
-      apt:
-        name: nginx
-        state: present
-    
-    - name: Copy nginx configuration
-      template:
-        src: nginx.conf.j2
-        dest: /etc/nginx/nginx.conf
-        validate: 'nginx -t -c %s'
-      notify: reload nginx
-    
-    - name: Create index.html
-      copy:
-        content: |
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>{{ site_title }}</title>
-            <style>body { background: {{ site_color }}; font-family: Arial; text-align: center; padding: 50px; }</style>
-          </head>
-          <body>
-            <h1>{{ site_title }}</h1>
-            <p>Workers: {{ nginx_workers }}</p>
-            <p>Port: {{ nginx_port }}</p>
-          </body>
-          </html>
-        dest: /var/www/html/index.html
-    
-    - name: Start nginx
-      service:
-        name: nginx
-        state: started
-        enabled: yes
-  
-  handlers:
-    - name: reload nginx
-      service:
-        name: nginx
-        state: reloaded
-```
 
-!!! warning "Pane tähele"
-    Mõlemad playbook'id on peaaegu identsed. Ainult `vars` sektsioon erineb. Kõik task'id on kopeeritud.
+## 2. Rolli Loomine
 
-### Käivita mõlemad
+### 2.1. Galaxy init
+
+Ansible Galaxy standard struktuur:
 
 ```bash
-# Development
-ansible-playbook -i inventory dev-nginx.yml
-
-# Production
-ansible-playbook -i inventory prod-nginx.yml
-```
-
-### Kontrolli brauseris
-
-- Development: `http://localhost:8080` (oranž taust)
-- Production: `http://localhost:8081` (roheline taust)
-
-**Kontrollpunkt:**
-
-- [ ] Development töötab (oranž leht)
-- [ ] Production töötab (roheline leht)
-- [ ] Mõlemad näitavad erinevat worker count'i
-
----
-
-## 4. Mis On Probleem?
-
-Vaata kaht playbook'i kõrvuti ja mõtle:
-
-1. Mitu korda on "Install nginx" task kopeeritud? (**2 korda**)
-2. Kui leiad vea nginx install task'is, mitu faili pead muutma? (**2 faili**)
-3. Kui tahad lisada SSL'i, mitu faili muuta? (**2 faili**)
-4. Kui lisandub staging keskkond? (**Kopeeri kolmandat korda**)
-5. Kui kolleeg tahab kasutada sinu nginx setup'i? (**Saada 3 faili: 2 playbook'i + template**)
-
-!!! danger "DRY printsiibi rikkumine"
-    Don't Repeat Yourself - iga koodiosa peaks eksisteerima täpselt üks kord. Praegu on duplikatsioon.
-
-### Simuleerime viga
-
-Oletame et nginx paketi nimi on valesti! Peab olema `nginx-full` mitte `nginx`.
-
-**Ülesanne:** Paranda mõlemad playbook'id.
-
-```yaml
-# Muuda MÕLEMAS playbook'is:
-- name: Install nginx
-  apt:
-    name: nginx-full  # Muutsid 2 failis!
-    state: present
-```
-
-Ebamugav, eks? Kaks faili muuta sama asja jaoks. Nüüd kujuta ette 5 keskkonda või 10 projekti...
-
----
-
-## 5. Lahendus: Refaktoreerimine Rolliks
-
-Nüüd võtame kogu selle duplikatsiooni ja paneme **ühte** rolli.
-
-### Samm 1: Loo roll
-
-```bash
+cd ~/ansible-advanced
 mkdir -p roles
 cd roles
 ansible-galaxy init nginx
@@ -391,326 +128,446 @@ cd ..
 ```
 
 **Tulemus:**
-
 ```
 roles/nginx/
-├── defaults/main.yml
-├── vars/main.yml
-├── tasks/main.yml
-├── templates/
-├── handlers/main.yml
-└── meta/main.yml
+├── defaults/main.yml     # Kasutaja võib muuta
+├── vars/main.yml         # Rolli sisemised väärtused
+├── tasks/main.yml        # Põhilised task'id
+├── templates/            # Template'id
+├── handlers/main.yml     # Handler'id
+├── files/                # Staatilised failid
+├── meta/main.yml         # Metadata
+└── README.md             # Dokumentatsioon
 ```
 
-!!! tip "Galaxy init"
-    Loob automaatselt standardse kaustade struktuuri. Iga Ansible roll järgib sama struktuuri.
+### 2.2. Liiguta tasks
 
-### Samm 2: Liiguta tasks
-
-Võta **kummastki** playbook'ist tasks sektsioon (need on identsed!).
+Praegu on tasks playbook'is. Liigutame rolli.
 
 Ava `roles/nginx/tasks/main.yml`:
 
+```bash
+nano roles/nginx/tasks/main.yml
+```
+
+Sisesta (võta playbook'ist):
 ```yaml
 ---
+# Package management
 - name: Update apt cache
   apt:
     update_cache: yes
     cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
 
-- name: Install nginx
+- name: Install required packages
   apt:
-    name: "{{ nginx_package }}"
+    name:
+      - nginx
+      - python3-passlib
     state: present
+  notify: start nginx
 
-- name: Copy nginx configuration
+# Nginx configuration
+- name: Deploy nginx configuration from template
   template:
     src: nginx.conf.j2
     dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
     validate: 'nginx -t -c %s'
   notify: reload nginx
 
-- name: Create index.html
+# Security (production only)
+- name: Create htpasswd file for production
+  community.general.htpasswd:
+    path: /etc/nginx/.htpasswd
+    name: "{{ vault_admin_user | default('admin') }}"
+    password: "{{ vault_admin_password }}"
+    owner: root
+    group: www-data
+    mode: 0640
+  when: not debug_mode
+  notify: reload nginx
+
+# Website deployment
+- name: Deploy website from template
   template:
     src: index.html.j2
-    dest: /var/www/html/index.html
+    dest: "{{ nginx_root }}/index.html"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_user }}"
+    mode: '0644'
 
-- name: Start nginx
+# Service management
+- name: Ensure nginx is started and enabled
   service:
     name: nginx
     state: started
     enabled: yes
 ```
 
-### Samm 3: Liiguta handlers
+**Märka:** Template'id on nüüd `src: nginx.conf.j2` (mitte `../templates/`)
 
-Ava `roles/nginx/handlers/main.yml`:
+### 2.3. Liiguta handlers
 
+```bash
+nano roles/nginx/handlers/main.yml
+```
+
+Sisesta:
 ```yaml
 ---
+- name: start nginx
+  service:
+    name: nginx
+    state: started
+
 - name: reload nginx
   service:
     name: nginx
     state: reloaded
 ```
 
-### Samm 4: Liiguta template'id
+### 2.4. Liiguta template'id
 
 ```bash
-mv nginx.conf.j2 roles/nginx/templates/
+# Kopeeri (ära kustuta originaale veel)
+cp templates/nginx.conf.j2 roles/nginx/templates/
+cp templates/index.html.j2 roles/nginx/templates/
 ```
 
-Loo `roles/nginx/templates/index.html.j2`:
+### 2.5. Defineeri muutujad
 
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <title>{{ site_title }}</title>
-  <style>body { background: {{ site_color }}; font-family: Arial; text-align: center; padding: 50px; }</style>
-</head>
-<body>
-  <h1>{{ site_title }}</h1>
-  <p>Environment: {{ nginx_environment }}</p>
-  <p>Workers: {{ nginx_workers }}</p>
-  <p>Port: {{ nginx_port }}</p>
-</body>
-</html>
+#### defaults/main.yml - Kasutaja saab muuta
+
+```bash
+nano roles/nginx/defaults/main.yml
 ```
 
-### Samm 5: Defineeri muutujad
-
-#### defaults/main.yml
-
-Väärtused mida **kasutaja võib muuta**:
-
+Sisesta:
 ```yaml
 ---
-# Nginx seaded
+# Nginx seaded (kasutaja võib override'ida)
 nginx_workers: "{{ ansible_processor_vcpus | default(2) }}"
 nginx_port: 80
-nginx_hostname: "localhost"
+nginx_root: "/var/www/html"
+nginx_worker_connections: 1024
 
-# Site seaded
-nginx_environment: "unknown"
-site_title: "Web Server"
+# Rakenduse seaded
+app_name: "web-app"
+admin_email: "admin@example.com"
+
+# Keskkonna seaded (playbook peaks määrama)
+environment: "unknown"
+server_name: "localhost"
+debug_mode: false
+max_connections: 100
 site_color: "#CCCCCC"
 ```
 
-!!! info "Miks defaults"
-    Need on väärtused mida iga keskkond (dev, prod, staging) määrab ise. Madal prioriteet - playbook vars kirjutab üle.
+**Miks defaults/?** Need on väärtused, mida **iga keskkond** (dev, prod, staging) määrab ise.
 
-#### vars/main.yml
+#### vars/main.yml - Rolli sisemised
 
-Rolli **sisemised** väärtused:
+```bash
+nano roles/nginx/vars/main.yml
+```
 
+Sisesta:
 ```yaml
 ---
-nginx_package: "nginx"
+# Süsteemi-spetsiifilised (kasutaja EI TOHIKS muuta)
+nginx_user: "www-data"
 nginx_service: "nginx"
 nginx_config_path: "/etc/nginx"
-nginx_user: "www-data"
+nginx_package: "nginx"
 ```
 
-!!! warning "Miks vars"
-    Need on süsteemi-spetsiifilised väärtused. Kasutaja ei tohiks neid muuta, muidu roll läheb katki.
+**Miks vars/?** Need on OS-spetsiifilised väärtused. Kui kasutaja muudab, roll läheb katki.
 
-### Samm 6: Uuenda template
+### Kontrollnimekiri
+- [ ] Roll on loodud Galaxy struktuuri järgi
+- [ ] Tasks on rolli liigutatud
+- [ ] Handlers on rolli liigutatud
+- [ ] Template'id on kopeeritud rolli
+- [ ] defaults/ ja vars/ on defineeritud
 
-Ava `roles/nginx/templates/nginx.conf.j2`:
-
-```nginx
-user {{ nginx_user }};
-worker_processes {{ nginx_workers }};
-pid /run/nginx.pid;
-
-events {
-    worker_connections 1024;
-}
-
-http {
-    sendfile on;
-    tcp_nopush on;
-    keepalive_timeout 65;
-    
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-    
-    access_log /var/log/nginx/access.log;
-    error_log /var/log/nginx/error.log;
-    
-    gzip on;
-    
-    server {
-        listen {{ nginx_port }};
-        server_name {{ nginx_hostname }};
-        root /var/www/html;
-        index index.html;
-        
-        location / {
-            try_files $uri $uri/ =404;
-        }
-    }
-}
-```
-
-### Samm 7: Uued playbook'id
-
-#### dev.yml
-
-```yaml
 ---
-- name: Development Environment
-  hosts: dev_servers
-  become: yes
-  
-  roles:
-    - role: nginx
-      vars:
-        nginx_workers: 1
-        nginx_hostname: "dev.local"
-        nginx_environment: "development"
-        site_title: "Development Environment"
-        site_color: "#FFA500"
-```
 
-#### prod.yml
+## 3. Uued Playbook'id (Lühikesed!)
 
-```yaml
----
-- name: Production Environment
-  hosts: prod_servers
-  become: yes
-  
-  roles:
-    - role: nginx
-      vars:
-        nginx_workers: 4
-        nginx_hostname: "prod.local"
-        nginx_environment: "production"
-        site_title: "Production Environment"
-        site_color: "#00AA00"
-```
+Nüüd loome **lühikesed** playbook'id, mis kasutavad rolli.
 
-!!! success "Vaata erinevust"
-    **Enne:** 2 × 50 rida = 100 rida duplikatsiooni  
-    **Pärast:** 2 × 12 rida = 24 rida, jagavad sama rolli
-
-### Test
+### 3.1. Development playbook
 
 ```bash
-# Esmalt puhasta vanad paigaldused
-vagrant destroy -f
-vagrant up
-
-# Käivita uued playbook'id
-ansible-playbook -i inventory dev.yml
-ansible-playbook -i inventory prod.yml
+nano playbooks/dev-role.yml
 ```
 
-### Kontrolli
-
-- Development: `http://localhost:8080`
-- Production: `http://localhost:8081`
-
-**Kontrollpunkt:**
-
-- [ ] Mõlemad töötavad
-- [ ] Näitavad erinevaid seadeid
-- [ ] Playbook'id on lühikesed
-
----
-
-## 6. Vaata Erinevust
-
-**Nüüd simuleerime sama viga uuesti:**
-
-Oletame jälle: nginx paketi nimi peab olema `nginx-full`
-
-**Ülesanne:** Paranda.
-
+Sisesta:
 ```yaml
-# Muuda AINULT roles/nginx/vars/main.yml:
-nginx_package: "nginx-full"  # ÜKS muudatus!
-```
-
-```bash
-# Mõlemad keskkonnad saavad paranduse:
-ansible-playbook -i inventory dev.yml
-ansible-playbook -i inventory prod.yml
-```
-
-Vaata - üks muudatus, mõlemad keskkonnad saavad paranduse automaatselt.
-
-### Lisame kolmanda keskkonna
-
-Kui tahad staging keskkonda:
-
-```yaml
-# staging.yml
 ---
-- name: Staging Environment
-  hosts: staging_servers
+- name: Deploy Development Environment
+  hosts: dev-web
   become: yes
+  gather_facts: yes
   
   roles:
     - role: nginx
       vars:
-        nginx_workers: 2
-        nginx_environment: "staging"
-        site_title: "Staging Environment"
-        site_color: "#FFFF00"
+        environment: "development"
+        server_name: "dev.example.local"
+        debug_mode: true
+        max_connections: 100
+        site_color: "#FFA500"  # Orange
 ```
 
-!!! tip "Skaleeruvus"
-    12 rida, sama roll. Ei kopeeri ühtegi task'i.
+**VAATA:** Playbook on ainult **15 rida**! Võrdle `full_deploy.yml` ~70 reaga.
+
+### 3.2. Production playbook
+
+```bash
+nano playbooks/prod-role.yml
+```
+
+Sisesta:
+```yaml
+---
+- name: Deploy Production Environment
+  hosts: prod-web
+  become: yes
+  gather_facts: yes
+  
+  roles:
+    - role: nginx
+      vars:
+        environment: "production"
+        server_name: "prod.example.com"
+        debug_mode: false
+        max_connections: 1000
+        site_color: "#00AA00"  # Green
+```
+
+### 3.3. VÕRDLUS
+
+**Enne (ilma rollideta):**
+```
+playbooks/full_deploy.yml        ~70 rida
+tasks + handlers + vars - kõik sees
+```
+
+**Pärast (rollidega):**
+```
+playbooks/dev-role.yml           ~15 rida (ainult muutujad!)
+playbooks/prod-role.yml          ~15 rida (ainult muutujad!)
+roles/nginx/                     ~70 rida (aga KORDUVKASUTATAV!)
+```
+
+**Pluss:** Kui kolleeg tahab sinu nginx seadistust, saad jagada ainult `roles/nginx/` kausta!
 
 ---
 
-## 7. defaults/ vs vars/ Selgitus
+## 4. Testimine
 
-**Küsimus:** Miks mõned muutujad on `defaults/` ja teised `vars/`?
+### 4.1. Käivita uued playbook'id
 
-### defaults/main.yml
+```bash
+# Development
+ansible-playbook -i inventory.yml playbooks/dev-role.yml --vault-password-file .vault_pass
 
-**Kasutaja TOHIB muuta** playbook'is:
-
-```yaml
-nginx_workers: 2        # Dev: 1, Prod: 4
-site_title: "My Site"   # Iga keskkond erinev
-site_color: "#CCC"      # Iga keskkond erinev
+# Production
+ansible-playbook -i inventory.yml playbooks/prod-role.yml --vault-password-file .vault_pass
 ```
 
-**Prioriteet:** Madalaim (playbook vars kirjutab üle)
+### 4.2. Kontrolli tulemust
 
-### vars/main.yml
+```bash
+# Dev
+curl http://192.168.82.10
 
-**Rolli SISEMISED väärtused**, kasutaja **EI TOHIKS** muuta:
-
-```yaml
-nginx_package: "nginx"     # OS-spetsiifiline
-nginx_service: "nginx"     # Süsteemi nimi
-nginx_user: "www-data"     # Ubuntu standard
+# Prod
+curl -u admin:AdminPass456! http://192.168.82.11
 ```
 
-**Prioriteet:** Kõrgem kui defaults/
+**WinKlient brauseris:**
+- Dev: `http://192.168.82.10` - oranž
+- Prod: `http://192.168.82.11` - roheline (küsib parooli)
 
-!!! info "Otsustamise reegel"
-    - Keskkonnas erinev → `defaults/`
-    - Süsteemi-spetsiifiline → `vars/`
+### 4.3. Idempotentsus
+
+```bash
+# Käivita uuesti
+ansible-playbook -i inventory.yml playbooks/dev-role.yml --vault-password-file .vault_pass
+
+# Peaks näitama: changed=0
+```
+
+### Kontrollnimekiri
+- [ ] Uued playbook'id on loodud
+- [ ] Mõlemad keskkonnad töötavad
+- [ ] Playbook'id on lühikesed (ainult vars)
+- [ ] Idempotentsus töötab
 
 ---
 
-## 8. Meta ja Dokumentatsioon
+## 5. Skaleeritavus: Lisa Staging
 
-### meta/main.yml
+Nüüd näitame rollide PÄRIS võimsust - lisame kolmanda keskkonna.
 
+### 5.1. Staging keskkond (localhost variant)
+
+Kuna meil on ainult 2 VM'i, kasutame staging'uks localhost teist korda:
+
+```bash
+nano inventory.yml
+```
+
+Lisa `webservers` gruppi:
+```yaml
+all:
+  children:
+    webservers:
+      hosts:
+        dev-web:
+          ansible_host: localhost
+          ansible_connection: local
+          environment: development
+          
+        staging-web:
+          ansible_host: localhost
+          ansible_connection: local
+          environment: staging
+          
+        prod-web:
+          ansible_host: 192.168.82.11
+          ansible_user: ansible
+          environment: production
+```
+
+**Või kui sul on 3. VM:**
+```yaml
+        staging-web:
+          ansible_host: 192.168.82.12  # Ubuntu 3 või Alma 1
+          ansible_user: ansible
+          environment: staging
+```
+
+### 5.2. Staging playbook
+
+```bash
+nano playbooks/staging-role.yml
+```
+
+Sisesta:
+```yaml
+---
+- name: Deploy Staging Environment
+  hosts: staging-web
+  become: yes
+  gather_facts: yes
+  
+  roles:
+    - role: nginx
+      vars:
+        environment: "staging"
+        server_name: "staging.example.com"
+        debug_mode: true
+        max_connections: 500
+        site_color: "#FFFF00"  # Yellow
+        nginx_port: 8080  # Erinev port, et ei konflikti dev'iga
+```
+
+**VAATA:** Uus keskkond = **16 rida**! Ei kopeerinud ühtegi task'i.
+
+### 5.3. Käivita staging
+
+```bash
+ansible-playbook -i inventory.yml playbooks/staging-role.yml --vault-password-file .vault_pass
+```
+
+### 5.4. Kontrolli
+
+```bash
+curl http://localhost:8080
+# Või brauseris: http://192.168.82.10:8080
+```
+
+**Peaks näitama:** Kollane leht, "STAGING" keskkond.
+
+### Kontrollnimekiri
+- [ ] Kolmas keskkond on lisatud
+- [ ] Staging playbook on ainult ~16 rida
+- [ ] Staging töötab erineval pordil
+- [ ] Ei kopeerinud ühtegi task'i ega template'i
+
+---
+
+## 6. Võrdlus: Enne vs Pärast
+
+### ENNE (ilma rollideta)
+
+**Failid:**
+```
+playbooks/full_deploy.yml      70 rida
+templates/nginx.conf.j2         50 rida
+templates/index.html.j2         40 rida
+group_vars/webservers/          20 rida
+---
+KOKKU: 180 rida
+```
+
+**Uus keskkond:**
+- Kopeeri playbook → muuda vars
+- Või lisa --limit flag
+- Aga jagamine = kopeeri 4+ faili
+
+### PÄRAST (rollidega)
+
+**Failid:**
+```
+roles/nginx/                   ~120 rida (aga REUSABLE!)
+playbooks/dev-role.yml          15 rida
+playbooks/prod-role.yml         15 rida
+playbooks/staging-role.yml      16 rida
+---
+Playbook'id KOKKU: 46 rida
+```
+
+**Uus keskkond:**
+- Loo 15-realine playbook
+- Määra ainult vars
+- KÕIK task'id tulevad rollist
+
+**Jagamine:**
+```bash
+# Kolleegile:
+cp -r roles/nginx /kolleegi/projekt/roles/
+
+# Tema playbook:
+roles:
+  - nginx  # Valmis!
+```
+
+---
+
+## 7. Meta ja Dokumentatsioon
+
+### 7.1. Meta info
+
+```bash
+nano roles/nginx/meta/main.yml
+```
+
+Sisesta:
 ```yaml
 ---
 galaxy_info:
   role_name: nginx
   author: "Sinu Nimi"
-  description: "Nginx web server for multiple environments"
+  description: "Nginx web server for multiple environments (dev/staging/prod)"
   company: "IT College"
   license: MIT
   min_ansible_version: "2.9"
@@ -719,6 +576,7 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - focal
+        - jammy
   
   galaxy_tags:
     - web
@@ -728,143 +586,262 @@ galaxy_info:
 dependencies: []
 ```
 
-### README.md
+### 7.2. README
 
-Loo fail `roles/nginx/README.md`:
+```bash
+nano roles/nginx/README.md
+```
 
+Sisesta:
 ```markdown
 # Ansible Role: Nginx
 
-Paigaldab Nginx web serveri. Toetab mitut keskkonda (dev, staging, prod).
+Paigaldab ja seadistab Nginx veebiserveri. Toetab mitut keskkonda (dev, staging, prod).
 
-## Muutujad
+## Nõuded
 
-Kohustuslikud (määra playbook'is):
-- nginx_environment: "production"
-- site_title: "My Site"
-- site_color: "#00AA00"
+- Ansible 2.9+
+- Ubuntu 20.04/22.04/24.04
+- Vault muutujad (kui kasutatakse HTTP auth)
 
-Valikulised:
-- nginx_workers: 2 (default: CPU arv)
-- nginx_port: 80
-- nginx_hostname: "localhost"
+## Rolli Muutujad
 
-## Näide
+### Kohustuslikud (määra playbook'is)
 
-Development:
-- role: nginx
-  vars:
-    nginx_environment: "development"
-    nginx_workers: 1
+- `environment`: "development" | "staging" | "production"
+- `server_name`: "example.com"
+- `site_color`: "#RRGGBB" (hex color)
 
-Production:
-- role: nginx
-  vars:
-    nginx_environment: "production"
-    nginx_workers: 4
+### Valikulised (on defaults)
 
-## Test
+- `nginx_workers`: 2 (default: CPU arv)
+- `nginx_port`: 80
+- `nginx_root`: "/var/www/html"
+- `debug_mode`: false
+- `max_connections`: 100
 
-ansible-playbook -i inventory dev.yml
-ansible-playbook -i inventory prod.yml
+### Vault muutujad (HTTP auth jaoks)
 
-## Author
+- `vault_admin_user`: "admin"
+- `vault_admin_password`: "secret"
 
-Pushkin
+## Näited
+
+### Development
+
+\`\`\`yaml
+- hosts: dev_servers
+  roles:
+    - role: nginx
+      vars:
+        environment: "development"
+        server_name: "dev.example.local"
+        debug_mode: true
+        site_color: "#FFA500"
+\`\`\`
+
+### Production
+
+\`\`\`yaml
+- hosts: prod_servers
+  roles:
+    - role: nginx
+      vars:
+        environment: "production"
+        server_name: "example.com"
+        debug_mode: false
+        site_color: "#00AA00"
+        max_connections: 1000
+\`\`\`
+
+## Kasutamine
+
+\`\`\`bash
+ansible-playbook -i inventory site.yml --vault-password-file .vault_pass
+\`\`\`
+
+## Testimine
+
+\`\`\`bash
+# Idempotentsus
+ansible-playbook site.yml
+ansible-playbook site.yml  # changed=0
+
+# Kontrolli
+curl http://server_name
+\`\`\`
+
+## Autor
+
+Su nimi
+\`\`\`
+
 ```
 
----
+## 8. GitHub Avaldamine (ära unusta)
 
-## 9. GitHub Avaldamine
+Kui tahad rolli jagada:
 
 ```bash
 cd roles/nginx
 
+# Git init
 git init
 git add .
-git commit -m "Multi-environment nginx role"
+git commit -m "Initial nginx role for multi-environment deployment"
 
+# GitHub
 git remote add origin https://github.com/USERNAME/ansible-role-nginx.git
 git branch -M main
 git push -u origin main
 
+# Tag
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-!!! success "Valmis"
-    Nüüd saame kasutada:
-    
-    ```bash
-    ansible-galaxy install git+https://github.com/USERNAME/ansible-role-nginx.git
-    ```
+**Kasutamine teistes projektides:**
+
+```bash
+# Installi Galaxy'st
+ansible-galaxy install git+https://github.com/USERNAME/ansible-role-nginx.git
+
+# Või requirements.yml
+echo "- src: https://github.com/USERNAME/ansible-role-nginx.git
+  name: nginx" > requirements.yml
+
+ansible-galaxy install -r requirements.yml
+```
 
 ---
 
-## 10. Lõplik Test
+## 9. Lõplik Struktuur
 
-### Test 1: Idempotentsus
-
-```bash
-ansible-playbook -i inventory dev.yml
-ansible-playbook -i inventory dev.yml
-# Teine käivitus: changed=0
-
-ansible-playbook -i inventory prod.yml
-ansible-playbook -i inventory prod.yml
-# Teine käivitus: changed=0
+```
+ansible-advanced/
+├── .gitignore
+├── .vault_pass
+├── inventory.yml
+├── group_vars/
+│   ├── all/
+│   │   ├── common.yml
+│   │   └── vault.yml (encrypted)
+│   └── webservers/
+│       └── nginx.yml
+├── host_vars/
+│   ├── dev-web.yml
+│   └── prod-web.yml
+├── playbooks/
+│   ├── dev-role.yml         # 15 rida
+│   ├── prod-role.yml        # 15 rida
+│   ├── staging-role.yml     # 16 rida
+│   ├── full_deploy.yml      # 70 rida (vana viis)
+│   └── ...
+├── roles/
+│   └── nginx/
+│       ├── defaults/main.yml
+│       ├── vars/main.yml
+│       ├── tasks/main.yml
+│       ├── templates/
+│       │   ├── nginx.conf.j2
+│       │   └── index.html.j2
+│       ├── handlers/main.yml
+│       ├── meta/main.yml
+│       └── README.md
+└── templates/              # Vanad (võid kustutada)
+    ├── nginx.conf.j2
+    └── index.html.j2
 ```
 
-### Test 2: Keskkonnad erinevad
+---
 
+## 10. Lõplik Kontrollnimekiri
+
+### Rollid põhimõtted
+- [ ] Mõistad DRY printsiipi
+- [ ] Mõistad miks rollid lahendavad jagamise probleemi
+- [ ] Oled võrrelnud "enne" ja "pärast" koodikogust
+
+### Roll ise
+- [ ] Roll on loodud Galaxy struktuuri järgi
+- [ ] Tasks, handlers, templates on rolli kaustades
+- [ ] defaults/ sisaldab kasutaja-muudetavaid väärtusi
+- [ ] vars/ sisaldab süsteemi-spetsiifilisi väärtusi
+
+### Playbook'id
+- [ ] Dev, prod, staging playbook'id on loodud
+- [ ] Playbook'id on lühikesed (~15 rida)
+- [ ] Kõik keskkonnad töötavad
+
+### Skaleeritavus
+- [ ] Kolmas keskkond (staging) oli lihtne lisada
+- [ ] Ei kopeerinud ühtegi task'i
+- [ ] Mõistad kuidas rollid skaleeruvad
+
+### Dokumentatsioon
+- [ ] meta/main.yml on täidetud
+- [ ] README.md kirjeldab kasutamist
+- [ ] Näited on selged
+
+---
+
+## Troubleshooting
+
+### Roll ei leia template'i
+
+**Probleem:** "template not found: nginx.conf.j2"
+
+**Lahendus:**
 ```bash
-# Development
-curl http://localhost:8080 | grep "Development"
-curl http://localhost:8080 | grep "Workers: 1"
+# Kontrolli template'i asukohta
+ls roles/nginx/templates/
 
-# Production
-curl http://localhost:8081 | grep "Production"
-curl http://localhost:8081 | grep "Workers: 4"
+# Template'i path rollis peab olema:
+src: nginx.conf.j2  # MITTE ../templates/nginx.conf.j2
 ```
 
-### Test 3: Üks muudatus, kõik keskkonnad
+### Muutuja on undefined
 
-Muuda `roles/nginx/defaults/main.yml`:
+**Probleem:** "vault_admin_password is undefined"
 
+**Lahendus:**
+```bash
+# Kontrolli et vault fail on kaasas
+ansible-vault view group_vars/all/vault.yml
+
+# Kontrolli et kasutad --vault-password-file
+ansible-playbook ... --vault-password-file .vault_pass
+```
+
+### Playbook ei kasuta rolli
+
+**Probleem:** Tasks ei käivitu
+
+**Lahendus:**
 ```yaml
-site_color: "#0000FF"  # Muudame default värvi
+# Kontrolli YAML indentatsiooni
+roles:
+  - role: nginx  # PEAB olema list item
+    vars:
+      ...
 ```
-
-```bash
-ansible-playbook -i inventory dev.yml
-ansible-playbook -i inventory prod.yml
-```
-
-Mõlemad saavad uue default värvi (kui playbook ei kirjuta üle).
 
 ---
 
-## Kokkuvõte
+## Kasulikud Käsud
 
-**Mida tegime:**
+```bash
+# Rolli dokumentatsiooni vaatamine
+ansible-doc -t role nginx
+```
 
-1. Lõime 2 keskkonda ilma rollideta
-2. Nägime probleemi - duplikatsioon, hooldus raske
-3. Refaktoreerisime üheks rolliks
-4. Võrdlesime - üks muudatus vs mitu faili
-5. Mõistsime defaults/ vs vars/ erinevust
-6. Dokumenteerisime ja avaldasime
+---
 
-**Miks rollid:**
+Hästi tehtud! Oled nüüd Ansible rollide meister! 🎉
 
-- **DRY** - Don't Repeat Yourself
-- **Hooldatavus** - üks muudatus, kõik keskkonnad
-- **Skaleeruvus** - uus keskkond = 12 rida, mitte 50
-- **Jagamine** - Galaxy, kolleegid saavad kasutada
-
-**Järgmised sammud:**
-
-- Võta oma projekt ja refaktoreeri rolliks
-- Lisapraktika: Dependencies, molecule testing
-
-Rollid lahendavad reaalse probleemi mida nägime täna - korduvkasutatavus ja hooldatavus.
+**Peamised õppetunnid:**
+- Rollid = korduvkasutatavad komponendid
+- DRY printsiip praktikas
+- Skaleeritavus (uus keskkond = 15 rida)
+- Jagamine = kopeerida üks kaust
+- Galaxy standard = kõik mõistavad struktuuri
