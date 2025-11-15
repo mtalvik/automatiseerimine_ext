@@ -53,6 +53,45 @@
 
 ---
 
+## Hindamisvahend: CI/CD Pipeline Rubriik
+
+**Kasutamine:** Labor + kodutöö hindamisel
+
+**Kuidas:** Õpetaja kontrollib GitHub Actions tab'i ja repo struktuuri
+
+| Kriteerium | 1p | 2p | 3p | 4p |
+|------------|----|----|----|----|
+| Pipeline struktuur | 1 stage või ei tööta | 2 stages | 3 stages | 4 stages + manual approval |
+| YAML süntaks | Vigu, ei käivitu | Käivitub, vigu | Töötab | Töötab + dokumenteeritud |
+| Vigade parandamine | Ei parandanud | 1-2 viga | 3-4 viga | Kõik + selgitas |
+| Docker integration | Build puudub | Build töötab | Build + push | Build + health check + push |
+| Testimine | Testid puuduvad | Töötavad lokaalselt | Töötavad CI's | + täiendavad testid |
+| Dokumentatsioon | README puudub | Minimaalne | + badge | Detailne + screenshots |
+| Manual approval | Puudub | Seadistatud | Testitud | + juhised README's |
+| Väljakutsed | 0 | 1 | 2 | 3 |
+
+**Maksimaalne:** 32 punkti
+
+**Hindeskaal:**
+- 29-32p → 5
+- 23-28p → 4
+- 17-22p → 3
+- 11-16p → 2
+
+**Kontrollnimekiri:**
+- [ ] `.github/workflows/ci.yml` olemas
+- [ ] Pipeline käivitub automaatselt
+- [ ] Validate stage (Python syntax)
+- [ ] Test stage (pytest)
+- [ ] Build stage (Docker image)
+- [ ] Deploy stage
+- [ ] Ülesanne 2.1: Süntaksi viga parandatud
+- [ ] Ülesanne 3.1: Negatiivne hind parandatud
+- [ ] Ülesanne 3.2: Versiooni mittevastavus parandatud
+- [ ] Ülesanne 4.1: Dockerfile port parandatud
+
+---
+
 ## Diferentseerimine
 
 **Tugõppijatele:**
