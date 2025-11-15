@@ -1,7 +1,7 @@
 # Ansible Edasijõudnud Labor
 
 **Eeldused:** Ansible põhitõed (inventory, playbooks, ad-hoc käsud), YAML süntaks, Linux CLI  
-**Platvorm:** Ubuntu 24.04 (töötab ka Ubuntu 20.04/22.04)  
+**Platvorm:** Ubuntu 24.04 (töötab ka Ubuntu 20.04/22.04), Proxmox keskkond  
 **Kestus:** ~2 tundi
 
 ---
@@ -22,16 +22,36 @@ Pärast seda labori oskad:
 
 Selles laboris ehitate sammhaaval nginx veebiserveri seadistuse, mis töötab kahes erinevas keskkonnas (development ja production). Iga samm lisab ühe võtmetehnoloogia - alustades muutujatest, liikudes template'ide ja handler'ite juurde, lõpetades vault'iga. Õpite mõistma, miks need tehnikad on vajalikud ja kuidas nad koos töötavad.
 
+**Development keskkond:** Ubuntu 1 (localhost) - kiire testimine ja arendus  
+**Production keskkond:** Ubuntu 2 (remote) - realistlik deployment
+
 ---
 
-## 1. Projekti Ettevalmistus
+## 1. Proxmox VM'ide Ettevalmistus
 
-### 1.1. Töökeskkonna loomine
+### 1.1. Kontrolli SSH ühendust
 
-Loome struktureeritud projekti, mis järgib Ansible best practice'eid:
+Kasutame Ansible aluste labori VM'e ( sul on enda IP):
+
+- **Ubuntu 1** (192.168.82.10) - Controller, siin jookseb Ansible
+- **Ubuntu 2** (192.168.82.11) - Target, siia paigaldame nginx
 
 ```bash
-# Loo projekti kaust
+# WinKlient'ist: logi sisse Ubuntu 1
+ssh ansible@192.168.82.10
+
+# Ubuntu 1'st kontrolli ühendust Ubuntu 2'ga:
+ssh ansible@192.168.82.11
+# Peaks sisse logima ilma parooli küsimata
+exit
+```
+
+Kui SSH ei tööta ilma paroolita, vaata Ansible aluste labori SSH võtmete setup'i.
+
+### 1.2. Projekti loomine
+
+```bash
+# Ubuntu 1's (controller)
 mkdir -p ~/ansible-advanced
 cd ~/ansible-advanced
 
@@ -53,9 +73,7 @@ Peaks näitama:
 └── templates/
 ```
 
-### 1.2. Inventory seadistamine
-
-Loome inventory faili kahe serveriga - üks development, teine production:
+### 1.3. Inventory seadistamine
 
 ```bash
 nano inventory.yml
@@ -73,12 +91,17 @@ all:
           environment: development
           
         prod-web:
-          ansible_host: localhost
-          ansible_connection: local
+          ansible_host: 192.168.82.11  # Ubuntu 2
+          ansible_user: ansible
           environment: production
 ```
 
-Kontrolli ühendust:
+**Märkus:** 
+- **dev-web** on Ubuntu 1 ise (localhost) - kiire testimine ilma SSH overhead'ita
+- **prod-web** on Ubuntu 2 (remote) - realistlik deployment üle SSH
+
+### 1.4. Kontrolli ühendust
+
 ```bash
 ansible -i inventory.yml all -m ping
 ```
@@ -90,8 +113,9 @@ prod-web | SUCCESS => { "ping": "pong" }
 ```
 
 ### Kontrollnimekiri
+- [ ] Ubuntu 1 ja Ubuntu 2 on töös
+- [ ] SSH Ubuntu 2'sse töötab ilma paroolita
 - [ ] Projekti struktuur on loodud
-- [ ] Inventory fail eksisteerib
 - [ ] Mõlemad serverid vastavad ping'ile
 
 ---
@@ -436,23 +460,30 @@ ansible-playbook -i inventory.yml playbooks/deploy_nginx.yml
 ### 3.5. Kontrollimine
 
 ```bash
-# Vaata nginx konfiguratsiooni
-ansible -i inventory.yml dev-web -m shell -a "head -20 /etc/nginx/nginx.conf" --become
+# Vaata nginx konfiguratsiooni dev serveris (localhost)
+sudo head -20 /etc/nginx/nginx.conf
 
-# Vaata HTML faili
-ansible -i inventory.yml dev-web -m shell -a "cat /var/www/html/index.html" --become
+# Vaata nginx konfiguratsiooni prod serveris (remote)
+ansible -i inventory.yml prod-web -m shell -a "head -20 /etc/nginx/nginx.conf" --become
 
 # Testi veebilehte
+# Dev (localhost):
 curl http://localhost
+
+# Prod (Ubuntu 2):
+curl http://192.168.82.11
 ```
 
-**Ava brauseris:** `http://localhost` - peaksid nägema oranži lehte dev info'ga.
+**WinKlient'ist brauseris:**
+- Development: `http://192.168.82.10` (oranž leht)
+- Production: `http://192.168.82.11` (roheline leht)
 
 ### Kontrollnimekiri
 - [ ] Template'id on loodud
 - [ ] Nginx konfiguratsioon genereeritakse õigesti
 - [ ] Dev ja prod serveritel on erinevad konfiguratsioonid
 - [ ] Veebileht kuvab õigeid muutujaid
+- [ ] Mõlemad lehed on brauseris nähtavad
 
 ---
 
@@ -665,26 +696,13 @@ Lisame HTTP basic auth kasutades vault paroole:
 nano templates/nginx.conf.j2
 ```
 
-Lisa server blokki:
+Lisa server blokki (enne `location /` rida):
 ```nginx
-    server {
-        listen {{ nginx_port }};
-        server_name {{ server_name }};
-        root {{ nginx_root }};
-        index index.html;
-
         # Basic auth for production
         {% if not debug_mode %}
         auth_basic "Restricted Access";
         auth_basic_user_file /etc/nginx/.htpasswd;
         {% endif %}
-
-        location / {
-            try_files $uri $uri/ =404;
-        }
-        
-        # ... rest of config
-    }
 ```
 
 Uuenda playbook'i:
@@ -693,8 +711,13 @@ Uuenda playbook'i:
 nano playbooks/deploy_nginx.yml
 ```
 
-Lisa task enne nginx konfiguratsiooni:
+Lisa task enne "Deploy nginx configuration" task'i:
 ```yaml
+    - name: Install python3-passlib for htpasswd module
+      apt:
+        name: python3-passlib
+        state: present
+    
     - name: Create htpasswd file for production
       community.general.htpasswd:
         path: /etc/nginx/.htpasswd
@@ -704,6 +727,7 @@ Lisa task enne nginx konfiguratsiooni:
         group: www-data
         mode: 0640
       when: not debug_mode
+      notify: reload nginx
 ```
 
 Lisa vault muutuja:
@@ -722,11 +746,26 @@ Käivita:
 ansible-playbook -i inventory.yml playbooks/deploy_nginx.yml --vault-password-file .vault_pass
 ```
 
+### 5.8. Kontrollimine
+
+```bash
+# Development - ei küsi parooli
+curl http://192.168.82.10
+
+# Production - küsib parooli
+curl -u admin:AdminPass456! http://192.168.82.11
+```
+
+**WinKlient brauseris:**
+- Dev: `http://192.168.82.10` - avub kohe
+- Prod: `http://192.168.82.11` - küsib kasutajat/parooli (admin / AdminPass456!)
+
 ### Kontrollnimekiri
 - [ ] Vault fail on loodud ja krüpteeritud
 - [ ] Saad vault muutujaid kasutada playbook'ides
 - [ ] .vault_pass fail töötab
 - [ ] Mõistad, miks mitte panna paroole otse Git'i
+- [ ] Production server küsib autentimist, dev mitte
 
 ---
 
@@ -769,7 +808,7 @@ Sisesta:
       apt:
         name:
           - nginx
-          - python3-passlib  # For htpasswd module
+          - python3-passlib
         state: present
       notify: start nginx
     
@@ -834,7 +873,7 @@ Sisesta:
     
     - name: Display deployment result
       debug:
-        msg: "Deployment successful! Visit http://{{ server_name }}"
+        msg: "Deployment successful! Visit http://{{ ansible_host if ansible_host != 'localhost' else '192.168.82.10' }}"
 ```
 
 ### 6.2. Käivitamine
@@ -849,16 +888,20 @@ ansible-playbook -i inventory.yml playbooks/full_deploy.yml \
 ansible-playbook -i inventory.yml playbooks/full_deploy.yml \
   --limit prod-web \
   --vault-password-file .vault_pass
+
+# Või mõlemad korraga
+ansible-playbook -i inventory.yml playbooks/full_deploy.yml \
+  --vault-password-file .vault_pass
 ```
 
 ### 6.3. Kontrollimine
 
 ```bash
 # Development - ei küsi parooli
-curl http://localhost
+curl http://192.168.82.10
 
-# Production - küsib parooli (admin / AdminPass456!)
-curl -u admin:AdminPass456! http://localhost
+# Production - küsib parooli
+curl -u admin:AdminPass456! http://192.168.82.11
 ```
 
 ### Kontrollnimekiri
@@ -867,6 +910,7 @@ curl -u admin:AdminPass456! http://localhost
 - [ ] Handler'id käivituvad ainult muudatuste korral
 - [ ] Vault krüpteerib tundlikke andmeid
 - [ ] Production on parooliga kaitstud, dev mitte
+- [ ] Mõlemad lehed töötavad brauseris
 
 ---
 
@@ -908,7 +952,6 @@ Sisesta:
 ```
 .vault_pass
 *.retry
-.vagrant/
 ```
 
 ---
@@ -950,6 +993,18 @@ Veendu, et oled täitnud kõik punktid:
 
 ## 9. Troubleshooting
 
+### SSH probleemid
+
+**Probleem:** prod-web ei vasta ping'ile
+```bash
+# Kontrolli SSH ühendust käsitsi
+ssh ansible@192.168.82.11
+
+# Kontrolli SSH võtmeid
+ls -la ~/.ssh/
+ssh-copy-id ansible@192.168.82.11
+```
+
 ### Vault vead
 
 **Probleem:** "Decryption failed"
@@ -986,6 +1041,20 @@ cat group_vars/all/common.yml | grep vault_
 # PEAVAD OLEMA TÄPSELT SAMAD!
 ```
 
+### Nginx ei käivitu
+
+**Probleem:** "nginx.service failed"
+```bash
+# Kontrolli nginx konfiguratsiooni
+sudo nginx -t
+
+# Vaata error logi
+sudo tail -50 /var/log/nginx/error.log
+
+# Kontrolli kas port on juba kasutusel
+sudo ss -tulpn | grep :80
+```
+
 ---
 
 ## 10. Järgmised Sammud
@@ -999,6 +1068,7 @@ Rollid võtavad kõik siin õpitud tehnikad ja pakendavad need korduvkasutatavas
 - Galaxy standard struktuur
 - Dependencies
 - Taaskasutus erinevates projektides
+- Selle sama projekti refaktoreerimine rolliks!
 
 ---
 
@@ -1022,6 +1092,10 @@ ansible-playbook playbook.yml --syntax-check  # Süntaks
 ansible-playbook playbook.yml --check         # Kuiv käivitus
 ansible-playbook playbook.yml --diff          # Näita muudatusi
 ansible-playbook playbook.yml -vvv            # Verbose
+
+# Käivita ainult ühes serveris
+ansible-playbook -i inventory.yml playbook.yml --limit dev-web
+ansible-playbook -i inventory.yml playbook.yml --limit prod-web
 ```
 
 Hästi tehtud! Oled nüüd Ansible edasijõudnud tehnikate kasutaja! 🎉
