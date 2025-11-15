@@ -18,124 +18,18 @@
 
 ## Tunni struktuur
 
-### Activity 1: Kodutöö kontroll - Mentimeter quiz (10 min, Whole class)
-**Linked to:** ÕV7
+| # | Tegevus | Aeg | Vorm | Õpiväljund | Materjalid |
+|---|---------|-----|------|------------|------------|
+| 1 | **Mentimeter quiz** - kodutöö kontroll | 10 min | Whole class | ÕV7 | Mentimeter: 5 küsimust (workflow, job, step, CI vs CD, runner) |
+| 2 | **Live demo** - GitHub Actions workflow | 10 min | Whole class | ÕV7 | Demo repo, validate stage, YAML syntax ref |
+| 3 | **Hands-on 1** - Validate + Test stages | 20 min | Pair | ÕV7 | Labor 2.1, 3.1-3.2 (tahtlikud vead: syntax, negatiivne hind, version) |
+| 4 | **PAUS** | 15 min | Meta | - | - |
+| 5 | **Hands-on 2** - Build + Docker | 20 min | Pair | ÕV7 | Labor 4.1 (tahtlik viga: EXPOSE 8080→5000) |
+| 6 | **Hands-on 3** - Deploy + Manual approval | 10 min | Pair | ÕV7 | GitHub Environments setup, approval workflow |
+| 7 | **Demo tulemused** - paaride esitlused | 5 min | Whole class | ÕV7 | Demo template (stages, vead, debugging) |
+| 8 | **Exit ticket** - Mentimeter refleksioon | 5 min | Individual | ÕV7 | Mentimeter: 5 küsimust (keerulisem? õppisin? enesekindel? huvitav? küsimus?) |
 
-**Teacher resource:**
-- Mentimeter quiz link
-- Vastuste ülevaade (5 küsimust)
-
-**Student resource:**
-- Mentimeter quiz - 5 küsimust (Co-Authorship: 2 - Interacting)
-  1. Mis on workflow, job ja step?
-  2. Kuidas GitHub Actions käivitub?
-  3. Mis vahe on CI ja CD vahel?
-  4. Kus peab .yml fail olema?
-  5. Mis on runner?
-
----
-
-### Activity 2: Live demo - Esimene pipeline (10 min, Whole class)
-**Linked to:** ÕV7
-
-**Teacher resource:**
-- Demo GitHub repository
-- Demo script: validate stage loomine
-- Tahtlik viga demonstratsiooniks
-
-**Student resource:**
-- GitHub Actions dokumentatsioon (Co-Authorship: 0)
-- Demo märkmed template (Co-Authorship: 1 - Annotating)
-- YAML syntax reference (Co-Authorship: 0)
-
----
-
-### Activity 3: Hands-on Osa 1 - Validate ja Test stages (20 min, Pair)
-**Linked to:** ÕV7
-
-**Teacher resource:**
-- Troubleshooting common YAML errors
-- Monitoring dashboard (kes on kinni jäänud)
-
-**Student resource:**
-- Labor ülesanded 2.1 ja 3.1-3.2 (Co-Authorship: 0)
-- Starter repository (valikuline) (Co-Authorship: 5 - Remixing)
-- GitHub Actions workflow template (Co-Authorship: 0)
-
-**Tahtlikud vead õpilased peavad leidma:**
-- Ülesanne 2.1: Süntaksi viga (`def home()` ilma koolonita)
-- Ülesanne 3.1: Negatiivne hind (`price: -599`)
-- Ülesanne 3.2: Versiooni mittevastavus (kood vs test)
-
----
-
-### Activity 4: PAUS (15 min, Meta)
-
----
-
-### Activity 5: Hands-on Osa 2 - Build stage + Docker (20 min, Pair)
-**Linked to:** ÕV7
-
-**Teacher resource:**
-- Docker troubleshooting guide
-- GitHub Container Registry setup juhend
-
-**Student resource:**
-- Labor ülesanne 4.1 (Co-Authorship: 0)
-- Dockerfile best practices (Co-Authorship: 0)
-- Docker build checklist (Co-Authorship: 1 - Annotating)
-
-**Tahtlik viga Dockerfile'is:**
-- `EXPOSE 8080` peaks olema `EXPOSE 5000`
-- Health check fail'ib → õpilased debugivad logidest
-
----
-
-### Activity 6: Hands-on Osa 3 - Deploy + Manual Approval (10 min, Pair)
-**Linked to:** ÕV7
-
-**Teacher resource:**
-- Environment setup guide
-- Approval workflow demo
-
-**Student resource:**
-- Deploy stage template (Co-Authorship: 0)
-- GitHub Environments dokumentatsioon (Co-Authorship: 0)
-- Manual approval setup juhend (Co-Authorship: 0)
-
----
-
-### Activity 7: Demo ja tulemuste jagamine (5 min, Whole class)
-**Linked to:** ÕV7
-
-**Teacher resource:**
-- Demo protocol (millele tähelepanu pöörata)
-
-**Student resource:**
-- Demo esitluse template (Co-Authorship: 6 - Creating)
-  - Millised stage'id on?
-  - Millised vead leidsid?
-  - Kuidas debugisid?
-
----
-
-### Activity 8: Exit Ticket - Mentimeter refleksioon (5 min, Individual)
-**Linked to:** ÕV7
-
-**Teacher resource:**
-- Mentimeter exit ticket link
-- Tulemuste analüüs
-
-**Student resource:**
-- Mentimeter exit ticket (Co-Authorship: 3 - Submitting)
-  1. Mis oli kõige keerulisem täna? (avatud)
-  2. Üks asi, mida õppisin CI/CD kohta (avatud)
-  3. Kui enesekindel tunned end GitHub Actions'iga? (1-5)
-  4. Milline stage oli kõige huvitavam? (valik)
-  5. Üks küsimus, mis jäi vastamata (avatud)
-
-**Teacher resource:**
-- Kodutöö tutvustus (väljakutsed 6.1-6.3)
+**KOKKU: 90 min**
 
 ---
 
