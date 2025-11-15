@@ -1,118 +1,74 @@
-# Ansible Automatiseerimine: 10 Serveri Stsenaarium - LePlanner Tunnikava
+# Ansible Automatiseerimine
 
-**Link:** https://leplanner.ee/en/scenario/5443  
-**Kestus:** 90 min  
-**Õpiväljundid:** ÕV3, ÕV4 - Ansible PlayBook ja automatiseerimine  
-**Didaktiline lähenemine:** Probleemipõhine õpe + rühmatöö
+**LePlanner:** https://leplanner.ee/en/scenario/5443  
+**Klass:** 12 | **Kestus:** 90 min | **Õpiväljundid:** ÕV3, ÕV4
 
 ---
 
-## Tunni struktuur
+## Tunni kulg
 
-### Activity 1: Probleemi tutvustus (10 min, Whole class)
-**Linked to:** ÕV3, ÕV4
-
-**Teacher resource:**
-- Reaalne stsenaarium: serveripargi seadistamine (presentation)
-- Manuaalne vs automatiseeritud workflow võrdlus (diagram)
-
-**Student resource:**
-- Projekti brief (Co-Authorship: 0 - Consuming)
-
----
-
-### Activity 2: Ansible aluste kordamine (10 min, Individual)
-**Linked to:** ÕV3
-
-**Teacher resource:**
-- Ansible quick reference
-
-**Student resource:**
-- Ansible syntax refresher (Co-Authorship: 0)
-- YAML validator (Co-Authorship: 0)
+| Tegevus | min | Vorm | Materjal |
+|---------|-----|------|----------|
+| Probleemi tutvustus | 10 | Klass | Stsenaarium: 10 serverit, manuaalne vs automatiseeritud |
+| Ansible alused | 10 | Individuaalne | YAML syntax refresher, Ansible quick reference |
+| Rühmad + planeerimine | 10 | Rühmad (3-4) | Miro/Google Docs template, rollid |
+| Playbook Osa 1 | 20 | Rühmad | Nõuded, Ansible docs, inventory näidis |
+| Paus | 15 | - | - |
+| Playbook Osa 2 + test | 15 | Rühmad | Testing checklist, troubleshooting guide |
+| Peer review | 15 | Paarid | Review template, rubriik |
+| Refleksioon | 5 | Klass | Padlet exit ticket |
 
 ---
 
-### Activity 3: Rühmade moodustamine + planeerimine (10 min, Small group)
-**Linked to:** ÕV4
+## Hindamine: Ansible Playbook Rubriik
 
-**Teacher resource:**
-- Rühmade moodustamise strateegia
+| Kriteerium | 1p | 2p | 3p | 4p |
+|------------|----|----|----|----|
+| Süntaks | Ei tööta | Töötab, vigu | Töötab | + best practices |
+| Idempotentsus | Puudub | Osaline | Täielik | + testitud |
+| Muutujad | Ei kasuta | Kasutab halvasti | Kasutab hästi | + dokumenteeritud |
+| Error handling | Puudub | Minimaalne | Hea | Põhjalik |
+| Dokumentatsioon | Puudub | Minimaalne | Hea README | + näited |
+| Struktuur | Kaootiline | Põhiline | Hästi loetav | Modulaarne (roles) |
+| Testimine | Ei testitud | 1 kord | Mitu korda | Automatiseeritud |
+| Best practices | Ei järgi | Mõningaid | Enamikku | Kõiki + security |
 
-**Student resource:**
-- Projekti planeerimine template (Miro/Google Docs) (Co-Authorship: 6 - Creating)
-- Rollide kirjeldused (Co-Authorship: 0)
+**Max:** 32p | **Skaal:** 29-32→5, 23-28→4, 17-22→3, 11-16→2
 
----
-
-### Activity 4: Rühmatöö - Playbook loomine Osa 1 (20 min, Small group)
-**Linked to:** ÕV3, ÕV4
-
-**Teacher resource:**
-- Jälgimise checklist
-- Common mistakes guide
-
-**Student resource:**
-- Projekti nõuded ja kriteeriumid (Co-Authorship: 0)
-- Ansible documentation (Co-Authorship: 0)
-- Näidis inventory file (Co-Authorship: 0)
-
----
-
-### Activity 5: PAUS (15 min, Meta)
+**Kontrollnimekiri:**
+- [ ] Playbook käivitub ilma vigadeta
+- [ ] Kõik tarkvarad installitakse
+- [ ] Teenused käivituvad automaatselt
+- [ ] README.md olemas
+- [ ] Git'is, informatiivsed commit'id
+- [ ] Peer review tehtud
 
 ---
 
-### Activity 6: Rühmatöö - Playbook loomine Osa 2 + testimine (15 min, Small group)
-**Linked to:** ÕV3, ÕV4
+## Materjalid
 
-**Teacher resource:**
-- Testing environment setup
-
-**Student resource:**
-- Testing checklist (Co-Authorship: 1 - Annotating)
-- Troubleshooting guide (Co-Authorship: 0)
+- Labor: https://mtalvik.github.io/automatiseerimine_ext/ansible_basics/labor/
+- Kodutöö: https://mtalvik.github.io/automatiseerimine_ext/ansible_basics/kodutoo/
+- Ansible dokumentatsioon: https://docs.ansible.com
+- Inventory template, playbook skeleton
 
 ---
 
-### Activity 7: Peer review (15 min, Pair)
-**Linked to:** ÕV3, ÕV4
+## Õpetajale
 
-**Teacher resource:**
-- Peer review rubric
+**Enne:**
+- Testserverid/konteinerid töötavad
+- Inventory template valmis
+- Ansible installitud kõikidel
 
-**Student resource:**
-- Peer review template (Co-Authorship: 3 - Submitting)
-- Code review best practices (Co-Authorship: 0)
+**Tunnis:**
+- Playbook võtab rohkem aega - jälgi
+- YAML syntax abi vajadusel
+- Julgusta dokumentatsiooni kasutama
+- "Vead on normaalsed!"
 
----
-
-### Activity 8: Kokkuvõte + reflektsioon (5 min, Whole class)
-**Linked to:** ÕV4
-
-**Teacher resource:**
-- Õppetunnid ja järgmised sammud
-
-**Student resource:**
-- Exit ticket - Padlet (Co-Authorship: 6 - Creating)
-
----
-
-**KOKKU: 90 min (10+10+10+20+15+15+15+5)**
-
----
-
-## Hindamisvahend
-
-**Praktiline töö:** Ansible Playbook 3 serveri jaoks
-
-**Hindamise rubriik:**
-
-| Kriteerium | Kaal |
-|------------|------|
-| Funktsionaalsus | 40% |
-| Koodikvaliteet | 30% |
-| Dokumentatsioon | 20% |
-| Esitlus | 10% |
-
-Detailne rubriik: `ansible-rubriik.md`
+**Probleemid:**
+- YAML indent → yamllint.com
+- Permissions → sudo setup
+- SSH keys → ssh-copy-id
+- Syntax check → ansible-playbook --syntax-check
