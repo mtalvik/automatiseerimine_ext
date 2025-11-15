@@ -1,74 +1,88 @@
-# CI/CD Pipeline GitHubis
+# Tunnikava: CI/CD Pipeline GitHubis
 
-**LePlanner:** https://leplanner.ee/en/scenario/5444  
-**Klass:** 12 | **Kestus:** 90 min | **Õpiväljund:** ÕV7
+**Õppeaine:** Informaatika  
+**Klass:** 12  
+**Tunni teema:** Pidev integratsioon ja tarnimine (CI/CD)  
+**Õpiväljund:** ÕV7 - Automatiseerib tarkvara arenduse ja juurutamise CI/CD'ga  
+**Aeg:** 90 minutit  
+**Õpetaja:** [Nimi]
+
+---
+
+## Tunni eesmärgid
+
+**Õpilane:**
+- Loob GitHub Actions pipeline'i põhistruktuuri (validate, test, build, deploy)
+- Debugib pipeline vigu logide abil
+- Seadistab automaatse testimise ja Docker build'i
+- Rakendab manual approval'i production deployment'iks
+
+---
+
+## Õpilaste eelteadmised
+
+- Git põhitõed (commit, push, branch)
+- Docker põhitõed (build, run, image)
+- YAML süntaksi alused
+- **Kodutöö:** Loetud 20-min loengmaterjal CI/CD kohta
+
+---
+
+## Õppevahendid ja materjalid
+
+- GitHub account (iga õpilane)
+- Mentimeter (quiz + exit ticket)
+- Projektor (demo)
+- Labor juhendid: https://mtalvik.github.io/automatiseerimine_ext/cicd_basics/labor/
+- Loeng: https://mtalvik.github.io/automatiseerimine_ext/cicd_basics/loeng/
+
+---
+
+## Tunnikäik
+
+| Tunni osa | Aeg | Õpetaja tegevus | Õpilaste tegevus | Hindamine | Põhjendused |
+|-----------|-----|-----------------|------------------|-----------|-------------|
+| **Kodutöö kontroll** | 10 min | Avab Mentimeter quiz'i, jälgib vastuseid | Vastavad 5 küsimusele: workflow, job, step, CI vs CD, runner | Formatiivne: quiz tulemused | Kontroll kas loengmaterjal loetud |
+| **Live demo** | 10 min | Näitab GitHub Actions workflow'i loomist, validate stage, tahtlik viga | Vaatavad demoüt, teevad märkmeid | - | Visualiseerimine, protsessi mõistmine |
+| **Hands-on 1** | 20 min | Jälgib paaride tööd, aitab YAML süntaksiga, troubleshooting | Paarides loovad validate + test stages, parandavad tahtlikke vigu: syntax error, negatiivne hind, version mismatch | Formatiivne: kas pipeline töötab | Praktika, vigade leidmine õpetab debugimist |
+| **Paus** | 15 min | - | Puhkavad | - | - |
+| **Hands-on 2** | 20 min | Aitab Docker build'iga, selgitab health check'i | Paarides lisavad build stage, leiavad Dockerfile vea (EXPOSE 8080→5000), parandavad | Formatiivne: health check õnnestub | Docker integratsioon, praktiline debug |
+| **Hands-on 3** | 10 min | Selgitab manual approval'i vajalikkust | Paarides lisavad deploy stage, seadistavad GitHub Environments, teevad approval | Formatiivne: deployment töötab | Production kaitse mõistmine |
+| **Tulemused** | 5 min | Modereerib, küsib täpsustavaid küsimusi | 2-3 paari näitavad oma pipeline'e, selgitavad vigu ja lahendusi | - | Õppimine teistelt, suuline esitlus |
+| **Exit ticket** | 5 min | Avab Mentimeter, tutvustab kodutööd | Vastavad refleksiooni küsimustele: keerulisem? õppisin? enesekindel? | Formatiivne: refleksioon | Tagasiside õpetajale, metakognitsioon |
+
+---
+
+## Diferentseerimine
+
+**Tugõppijatele:**
+- Valmis starter repository
+- Pair programming tugevama õpilasega
+- Lisaaeg harjutusteks
+
+**Andekamale:**
+- Paralleelsed job'id
+- Cache'imine
+- Matrix strategy
 
 ---
 
 ## Kodutöö
 
-Loe 20-min loeng: https://mtalvik.github.io/automatiseerimine_ext/cicd_basics/loeng/
+**Tähtaeg:** Järgmine tund
+
+**Ülesanded:**
+- Väljakutse 6.1: Lisa uus endpoint + test
+- Väljakutse 6.2: README + CI/CD badge  
+- Väljakutse 6.3: Mõtiskle rollback'i üle
+
+**Hindamine:** 32 punkti (rubriik eraldi dokumendis)
 
 ---
 
-## Tunni kulg
+## Märkused
 
-| Tegevus | min | Vorm | Materjal |
-|---------|-----|------|----------|
-| Mentimeter quiz | 10 | Klass | 5 küsimust: workflow, job, step, CI vs CD, runner |
-| Live demo | 10 | Klass | GitHub Actions workflow loomine, validate stage |
-| Hands-on 1: Validate + Test | 20 | Paarid | Tahtlikud vead: syntax, negatiivne hind, version |
-| Paus | 15 | - | - |
-| Hands-on 2: Build + Docker | 20 | Paarid | Tahtlik viga: EXPOSE 8080→5000, health check |
-| Hands-on 3: Deploy | 10 | Paarid | Manual approval, environments |
-| Tulemused | 5 | Klass | Paarid näitavad pipeline'e |
-| Exit ticket | 5 | Individuaalne | Mentimeter: keerulisem? õppisin? enesekindel? |
-
----
-
-## Hindamine: CI/CD Pipeline Rubriik
-
-| Kriteerium | 1p | 2p | 3p | 4p |
-|------------|----|----|----|----|
-| Pipeline | 1 stage | 2 stages | 3 stages | 4 stages + approval |
-| YAML | Ei tööta | Töötab, vigu | Töötab | + dokumenteeritud |
-| Vead | Ei parandanud | 1-2 | 3-4 | Kõik + selgitas |
-| Docker | Puudub | Build | Build + push | + health check |
-| Testid | Puuduvad | Lokaalselt | CI's | + täiendavad |
-| README | Puudub | Minimaalne | + badge | + screenshots |
-| Approval | Puudub | Seadistatud | Testitud | + juhised |
-| Väljakutsed | 0 | 1 | 2 | 3 |
-
-**Max:** 32p | **Skaal:** 29-32→5, 23-28→4, 17-22→3, 11-16→2
-
----
-
-## Materjalid
-
-- Loeng: https://mtalvik.github.io/automatiseerimine_ext/cicd_basics/loeng/
-- Labor: https://mtalvik.github.io/automatiseerimine_ext/cicd_basics/labor/
-- Kodutöö: https://mtalvik.github.io/automatiseerimine_ext/cicd_basics/kodutoo/
-- Mentimeter quiz + exit ticket
-- GitHub account (kõik)
-
----
-
-## Õpetajale
-
-**Enne:**
-- Saada loeng 2 päeva ette
-- Valmista Mentimeter quiz + exit
-- Demo repo valmis
+**Õpetajale:**
+- Saada loengmaterjal 2 päeva ette
 - Kontrolli GitHub account'id
-
-**Tunnis:**
-- Quiz max 10 min
-- Demo = täpselt nagu labor
-- Õpeta logide lugemist
-- "Pipeline fail = õppimine!"
-
-**Probleemid:**
-- Actions ei käivitu → `.github/workflows/`?
-- Permission denied → Workflow permissions
-- Health check timeout → `sleep 10`
-- YAML indent → VS Code extension
+- "Pipeline fail = õppimine, mitte probleem!"
