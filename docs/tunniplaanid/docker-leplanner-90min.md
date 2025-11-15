@@ -22,17 +22,17 @@
 
 ## Digiõppevara
 
-**Quiz (Google Forms):**
+**1. Quiz (Google Forms):**
 - 10 küsimust: Docker kontseptsioonid, Dockerfile süntaks
 - Automaatne hindamine, kohene tagasiside
 - https://docs.google.com/forms/d/e/1FAIpQLSdzu28vxMQHzW_qcUxXDe5nNmrRfs0OWg2_n3LNZMR4puxkNA/viewform
 
-**Video (10 min):**
+**2. Video (10 min):**
 - Dockerfile loomine, image build, konteineri käivitus
 - Integreeritud labor.md: https://mtalvik.github.io/automatiseerimine_ext/docker_basics/labor/
 - Õpilased saavad pausida, oma tempos
 
-**GitHub harjutused:**
+**3. GitHub harjutused:**
 - 6 praktilist ülesannet + TODO listid
 - Labor: https://mtalvik.github.io/automatiseerimine_ext/docker_basics/labor/
 - Kodutöö: https://mtalvik.github.io/automatiseerimine_ext/docker_basics/kodutoo/
