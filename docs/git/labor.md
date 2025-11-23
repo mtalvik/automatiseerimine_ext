@@ -8,116 +8,44 @@
 
 Pärast laborit oskate:
 
-1. **Seadistada** Vagrant VM ja ühendada VS Code'iga
-2. **Konfigureerida** Git keskkonda ja teha commit'e
-3. **Hallata** branch'e, merge'ida ja lahendada konflikte
-4. **Ühendada** GitHub'iga läbi SSH
-5. **Rakendada** Pull Request workflow'i
+1. **Konfigureerida** Git keskkonda ja teha commit'e
+2. **Hallata** branch'e, merge'ida ja lahendada konflikte
+3. **Ühendada** GitHub'iga läbi SSH
+4. **Rakendada** Pull Request workflow'i
 
 ---
 
-## 1. Vagrant VM Seadistamine
+## 1. VS Code Remote-SSH Seadistamine
 
-> Teeme KÕIK Git töö Ubuntu VM-is. Host masinas Git'i ei paigalda.
+> Masinad on juba olemas. Seadista ainult VS Code ühendus.
 
-### 1.1 Kontrolli Eeldused (Windows)
+### 1.1 SSH Config
 
-```powershell
-vagrant --version
-VBoxManage --version
-code --version
-```
+Windows: `C:\Users\SINUNIMI\.ssh\config`
 
-### 1.2 Loo Vagrantfile
+Linux/Mac: `~/.ssh/config`
 
-```bash
-mkdir git-labor-vm
-cd git-labor-vm
-```
-
-Loo fail `Vagrantfile`:
-
-```ruby
-Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/jammy64"
-  
-  config.vm.define "controller" do |c|
-    c.vm.hostname = "controller"
-    c.vm.network "private_network", ip: "192.168.56.10"
-  end
-end
-```
-
-### 1.3 Käivita VM
-
-```bash
-vagrant up
-vagrant status
-```
-
-### 1.4 Loo SSH võti (Windows)
-
-**PowerShell/CMD:**
-
-```bash
-ssh-keygen -t ed25519 -C "sinu@email.com"
-```
-
-- Fail: default Enter
-- Passphrase: tühi Enter
-
-**Saada võti VM-i (vali meetod):**
-
-**Meetod 1: ssh-copy-id (lihtsaim)**
-
-```bash
-ssh-copy-id -i C:\Users\SINUNIMI\.ssh\id_ed25519.pub vagrant@192.168.56.10
-```
-
-Parool: `vagrant`
-
-**Meetod 2: Vagrantfile provisioning**
-
-Lisa Vagrantfile'i (enne `end`):
-
-```ruby
-config.vm.provision "shell" do |s|
-  ssh_pub_key = File.readlines("C:/Users/SINUNIMI/.ssh/id_ed25519.pub").first.strip
-  s.inline = <<-SHELL
-    mkdir -p /home/vagrant/.ssh
-    echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
-    chmod 600 /home/vagrant/.ssh/authorized_keys
-    chmod 700 /home/vagrant/.ssh
-  SHELL
-end
-```
-
-Siis:
-
-```bash
-vagrant provision
-```
-
-### 1.5 VS Code Remote-SSH
-
-`Ctrl+Shift+P` → `Remote-SSH: Open SSH Configuration File`
+Lisa oma masina andmed:
 
 ```sshconfig
-Host controller
-    HostName 127.0.0.1
-    Port 2222
-    User vagrant
-    IdentityFile C:/Users/SINUNIMI/.ssh/id_ed25519
+Host git-vm
+    HostName 192.168.X.X
+    User kasutajanimi
+    IdentityFile ~/.ssh/id_ed25519
     StrictHostKeyChecking no
 ```
 
-Ühenda: `Ctrl+Shift+P` → `Remote-SSH: Connect to Host` → `controller`
+### 1.2 Ühenda VS Code
 
-Platform: `Linux`
+VS Code:
 
-Open Folder → `/home/vagrant`
+1. `Ctrl+Shift+P`
+2. `Remote-SSH: Connect to Host`
+3. Vali `git-vm`
+4. Platform: `Linux`
+5. Open Folder: `/home/kasutajanimi`
 
-Kontrolli: VS Code vasakul all `SSH: controller`
+Kontrolli: vasakul all `SSH: git-vm`
 
 ---
 
@@ -570,6 +498,8 @@ cat README.md
 git checkout -b feature/documentation
 ```
 
+Loo kasutamisjuhend:
+
 ```bash
 cat > USAGE.md << 'EOF'
 # Kasutamisjuhend
@@ -577,23 +507,21 @@ cat > USAGE.md << 'EOF'
 ## Skriptid
 
 ### hello.sh
-Tervitusprogramm.
-```bash
-./hello.sh
-```
+Tervitusprogramm käivitamiseks:
+
+    ./hello.sh
 
 ### backup.sh
-Varundamine.
-```bash
-./backup.sh
-```
+Varundamise skript:
+
+    ./backup.sh
 
 ## Arendamine
 
-1. Loo branch: `git checkout -b feature/uus`
+1. Loo branch: git checkout -b feature/uus
 2. Tee muudatused
-3. Commit: `git commit -m "Lisa uus"`
-4. Push: `git push origin feature/uus`
+3. Commit: git commit -m "Lisa uus"
+4. Push: git push origin feature/uus
 5. Tee Pull Request
 EOF
 
