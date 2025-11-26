@@ -1,117 +1,106 @@
-# Docker Konteinerite Loomine - LePlanner Tunnikava
+# Tunnikava: Docker Konteinerite Loomine
 
-**Link:** https://leplanner.ee/en/scenario/5442  
-**Kestus:** 90 min  
-**Õpiväljund:** ÕV2 - Oskab luua ja seadistada konteinereid  
-**Didaktiline lähenemine:** Avastusõpe + hands-on
-
----
-
-## Tunni struktuur
-
-### Activity 1: Sissejuhatus "Miks Docker?" (5 min, Pair)
-**Linked to:** ÕV2
-
-**Teacher resource:**
-- Deployment stsenaariumide võrdlus (slides)
-
-**Student resource:**
-- Arutelu töölehe küsimused
-- Co-Authorship: 2 - Interacting
+**Õppeaine:** Informaatika  
+**Klass:** 12  
+**Tunni teema:** Docker konteinerite loomine  
+**Õpiväljund:** ÕV2 - Oskab luua ja seadistada konteinereid ja virtuaalmasinaid  
+**Aeg:** 90 minutit  
+**Õpetaja:** [Nimi]
 
 ---
 
-### Activity 2: Avastamine - Docker Hub uurimine (10 min, Individual)
-**Linked to:** ÕV2
+## Tunni eesmärgid
 
-**Teacher resource:**
-- Docker Hub guided tour juhend
-
-**Student resource:**
-- Docker Hub uurimise töölehe template (Co-Authorship: 2)
-- Docker Hub website (Co-Authorship: 0)
+**Õpilane:**
+- Selgitab Docker'i kasulikkust ("Works on my machine" probleem)
+- Loob Dockerfile'i Flask rakendusele
+- Ehitab Docker image'i ja käivitab konteineri
+- Debugib konteineriga seotud probleeme (logs, exec)
 
 ---
 
-### Activity 3: Demo - Dockerfile anatoomia (5 min, Whole class)
-**Linked to:** ÕV2
+## Õpilaste eelteadmised
 
-**Teacher resource:**
-- Live coding demo skript
-- Näidis Dockerfile kommentaaridega
-
-**Student resource:**
-- Dockerfile cheat sheet (Co-Authorship: 0)
+- Käsurida põhikäsud (cd, ls, mkdir)
+- Python või muu programmeerimiskeele alused
+- Git põhitõed
 
 ---
 
-### Activity 4: Harjutus 1 - Dockerfile kirjutamine (20 min, Pair)
-**Linked to:** ÕV2
+## Õppevahendid ja materjalid
 
-**Teacher resource:**
-- Hindamise rubriik - Dockerfile quality
-
-**Student resource:**
-- Ülesande kirjeldus - Flask app Dockerfile (Co-Authorship: 0)
-- Flask app source code (Co-Authorship: 0)
-- Dockerfile best practices (Co-Authorship: 0)
+- Docker Desktop (installeeritud eelnevalt)
+- VS Code + Docker extension
+- Labor juhendid: https://mtalvik.github.io/automatiseerimine_ext/docker_basics/labor/
+- Quiz: https://docs.google.com/forms/d/e/1FAIpQLSdzu28vxMQHzW_qcUxXDe5nNmrRfs0OWg2_n3LNZMR4puxkNA/viewform
+- Projektor (demo)
 
 ---
 
-### Activity 5: PAUS (15 min, Meta)
+## Tunnikäik
 
----
-
-### Activity 6: Harjutus 2 - Build image + Run container (20 min, Individual)
-**Linked to:** ÕV2
-
-**Teacher resource:**
-- Troubleshooting guide - common errors
-
-**Student resource:**
-- Step-by-step juhend: build ja run (Co-Authorship: 0)
-- Docker CLI cheat sheet (Co-Authorship: 0)
-
----
-
-### Activity 7: Testimine ja troubleshooting (10 min, Individual)
-**Linked to:** ÕV2
-
-**Teacher resource:**
-- Common errors ja lahendused
-
-**Student resource:**
-- Testing checklist (Co-Authorship: 1 - Annotating)
-
----
-
-### Activity 8: Kokkuvõte - Exit ticket (5 min, Whole class)
-**Linked to:** ÕV2
-
-**Teacher resource:**
-- Menti.com quiz küsimused
-
-**Student resource:**
-- Menti.com quiz (Co-Authorship: 2)
-- Refleksiooni küsimused (Co-Authorship: 2)
-
----
-
-**KOKKU: 90 min (5+10+5+20+15+20+10+5)**
+| Tunni osa | Aeg | Õpetaja tegevus | Õpilaste tegevus | Hindamine | Põhjendused |
+|-----------|-----|-----------------|------------------|-----------|-------------|
+| **Sissejuhatus** | 5 min | Küsib: "Kes on deploy'inud koodi?", selgitab "Works on my machine" probleemi, container vs VM | Paarides arutavad kogemusi, kuulavad selgitust | - | Motiiveerimine, probleem mida Docker lahendab |
+| **Avastamine** | 10 min | Juhendab Docker Hub'i uurimist, näitab populaarseid image'id | Individuaalselt uurivad Docker Hub'i, populaarseid image'id (nginx, postgres, python), täidavad worksheet'i | - | Avastusõpe, eelteadmiste aktiveerimine |
+| **Demo** | 5 min | Live coding: näitab Dockerfile'i loomist, selgitab FROM, WORKDIR, COPY, RUN, CMD käske | Vaatavad demoüt, teevad märkmeid cheat sheet'ile | - | Visualiseerimine, süntaksi mõistmine |
+| **Harjutus 1** | 20 min | Jälgib paaride tööd, aitab troubleshooting'uga | Paarides loovad Flask app Dockerfile'i, buildivad image'i, käivitavad konteineri, testavad | Formatiivne: kas rakendus töötab konteineris | Praktiline õppimine, hands-on kogemus |
+| **Paus** | 15 min | - | Puhkavad | - | - |
+| **Harjutus 2** | 20 min | Selgitab environment variables, multi-stage build'i, aitab vajadusel | Individuaalselt täiustavad Dockerfile'i, lisavad env vars, optimeerivad image size'i | Formatiivne: täiustatud Dockerfile | Süvendamine, keerulisemad kontseptsioonid |
+| **Testimine** | 10 min | Näitab docker logs, docker exec käske | Individuaalselt kontrollivad logisid, debugivad probleeme, sisestuvad konteinerisse | Formatiivne: debugging õnnestub | Troubleshooting oskused, debug kultuur |
+| **Exit ticket** | 5 min | Avab Mentimeter, tutvustab kodutööd | Vastavad küsimustele: keerulisem? õppisin? küsimus? | Formatiivne: refleksioon | Tagasiside, metakognitsioon |
 
 ---
 
 ## Digiõppevara
 
-1. **H5P Quiz:** `docker-quiz.html` (10 küsimust)
-2. **Ekraanivideo:** Docker build + run demo
-3. **Töölehted:** Docker Hub uurimine, Dockerfile kirjutamine
+**1. Enesekontrolli quiz (Google Forms):**
+- 10 küsimust Docker põhimõtete kohta
+- Automaatne hindamine, kohene tagasiside
+- Kasutatakse tunni alguses või kodutööna
+
+**2. Ekraanivideo (10 min):**
+- Dockerfile loomine, image build, konteineri käivitus
+- Integreeritud labor.md faili
+- Õpilased saavad pausida, oma tempos
+
+**3. GitHub harjutused:**
+- 6 praktilist ülesannet + TODO listid
+- Fork → commit → pull request → peer review
 
 ---
 
-## Erinevus docker_pohitoed.md'st
+## Diferentseerimine
 
-- LePlanner tund on **90 min** (üks tund)
-- docker_pohitoed.md on **180 min** (4 x 45 min, kogu moodul)
-- LePlanner keskendub **Dockerfile loomisele**
-- docker_pohitoed.md katab **kogu Docker mooduli** (põhitõed → volumes)
+**Tugõppijatele:**
+- Valmis Dockerfile template
+- Lisaaeg harjutusteks
+- Pair programming tugevamaga
+
+**Andekamale:**
+- Multi-stage build väljakutse
+- Docker Compose sissejuhatus
+- Image optimization
+
+---
+
+## Kodutöö
+
+**Tähtaeg:** Järgmine tund
+
+**Ülesanded:**
+- Flask chatbot projekt
+- Dockerfile täiustamine
+- Peer review
+
+**Materjal:** https://mtalvik.github.io/automatiseerimine_ext/docker_basics/kodutoo/
+
+---
+
+## Märkused
+
+**Õpetajale:**
+- Kontrolli Docker Desktop töötab kõikidel
+- Varu aega troubleshooting'uks
+- Permission issues - Run as Administrator
+- Rõhuta: "Vead on normaalsed, sellest õpime!"

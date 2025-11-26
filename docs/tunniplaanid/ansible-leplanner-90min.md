@@ -1,118 +1,102 @@
-# Ansible Automatiseerimine: 10 Serveri Stsenaarium - LePlanner Tunnikava
+# Tunnikava: Ansible Automatiseerimine
 
-**Link:** https://leplanner.ee/en/scenario/5443  
-**Kestus:** 90 min  
+**Õppeaine:** Informaatika  
+**Klass:** 12  
+**Tunni teema:** Ansible automatiseerimine - 10 serveri stsenaarium  
 **Õpiväljundid:** ÕV3, ÕV4 - Ansible PlayBook ja automatiseerimine  
-**Didaktiline lähenemine:** Probleemipõhine õpe + rühmatöö
+**Aeg:** 90 minutit  
+**Õpetaja:** [Nimi]
 
 ---
 
-## Tunni struktuur
+## Tunni eesmärgid
 
-### Activity 1: Probleemi tutvustus (10 min, Whole class)
-**Linked to:** ÕV3, ÕV4
-
-**Teacher resource:**
-- Reaalne stsenaarium: serveripargi seadistamine (presentation)
-- Manuaalne vs automatiseeritud workflow võrdlus (diagram)
-
-**Student resource:**
-- Projekti brief (Co-Authorship: 0 - Consuming)
+**Õpilane:**
+- Selgitab miks automatiseerimine on vajalik (manuaalne vs automaatne)
+- Loob Ansible playbook'i serveri seadistamiseks
+- Kasutab muutujaid, loops'e ja error handling'ut
+- Teeb peer review teise rühma playbook'ile
 
 ---
 
-### Activity 2: Ansible aluste kordamine (10 min, Individual)
-**Linked to:** ÕV3
+## Õpilaste eelteadmised
 
-**Teacher resource:**
-- Ansible quick reference
-
-**Student resource:**
-- Ansible syntax refresher (Co-Authorship: 0)
-- YAML validator (Co-Authorship: 0)
+- YAML süntaksi alused
+- Linux käsurea põhitõed
+- Serveri seadistamise mõiste (install, config, service)
 
 ---
 
-### Activity 3: Rühmade moodustamine + planeerimine (10 min, Small group)
-**Linked to:** ÕV4
+## Õppevahendid ja materjalid
 
-**Teacher resource:**
-- Rühmade moodustamise strateegia
-
-**Student resource:**
-- Projekti planeerimine template (Miro/Google Docs) (Co-Authorship: 6 - Creating)
-- Rollide kirjeldused (Co-Authorship: 0)
+- Ansible (installeeritud)
+- Testserverid või Docker konteinerid
+- Labor juhendid: https://mtalvik.github.io/automatiseerimine_ext/ansible_basics/labor/
+- Ansible dokumentatsioon: https://docs.ansible.com
+- Miro või Google Docs (planeerimine)
 
 ---
 
-### Activity 4: Rühmatöö - Playbook loomine Osa 1 (20 min, Small group)
-**Linked to:** ÕV3, ÕV4
+## Tunnikäik
 
-**Teacher resource:**
-- Jälgimise checklist
-- Common mistakes guide
-
-**Student resource:**
-- Projekti nõuded ja kriteeriumid (Co-Authorship: 0)
-- Ansible documentation (Co-Authorship: 0)
-- Näidis inventory file (Co-Authorship: 0)
-
----
-
-### Activity 5: PAUS (15 min, Meta)
+| Tunni osa | Aeg | Õpetaja tegevus | Õpilaste tegevus | Hindamine | Põhjendused |
+|-----------|-----|-----------------|------------------|-----------|-------------|
+| **Probleemi tutvustus** | 10 min | Esitab stsenaariumi: 10 serverit, manuaalne vs automatiseeritud workflow, näitab ajakulu võrdlust | Kuulavad, arutavad kuidas nad lahendaksid käsitsi | - | Probleemipõhine õpe, motivatsioon |
+| **Ansible alused** | 10 min | Kordab YAML syntax'it, inventory, playbook, module kontseptsioone, näitab quick reference'i | Individuaalselt loevad Ansible refresher'it, kordavad mõisteid | - | Eelteadmiste aktiveerimine |
+| **Rühmad + planeerimine** | 10 min | Moodustab rühmad 3-4 õpilast, selgitab rolle (koodija, testija, dokumenteerija) | Rühmades planeerivad lahendust Miro/Google Docs'is, jagavad rollid | - | Koostöö, planeerimine enne koodimist |
+| **Playbook Osa 1** | 20 min | Jälgib rühmi, aitab YAML süntaksi ja module'itega, näitab common mistakes | Rühmades kirjutavad playbook'i (install nginx, postgresql, docker), kasutavad dokumentatsiooni | Formatiivne: kas playbook käivitub | Praktika, dokumentatsiooni kasutamine |
+| **Paus** | 15 min | - | Puhkavad | - | - |
+| **Playbook Osa 2 + test** | 15 min | Aitab troubleshooting'uga, selgitab idempotentsust | Rühmades täiustavad playbook'i, lisavad error handling, testavad, debugivad | Formatiivne: testid õnnestuvad | Kvaliteedi tõstmine, testimine |
+| **Peer review** | 15 min | Jaotab paarid (rühm A vaatab rühma B tööd), selgitab rubriiki | Paarides teevad peer review, kasutavad rubriiki, annavad tagasisidet | Formatiivne: review kvaliteet | Õppimine teistelt, kriitilise mõtlemise areng |
+| **Refleksioon** | 5 min | Avab Padlet'i, küsib: Mis oli raske? Mis õnnestus? Kodutöö tutvustus | Kirjutavad Padlet'isse exit ticket vastused | Formatiivne: refleksioon | Tagasiside, metakognitsioon |
 
 ---
 
-### Activity 6: Rühmatöö - Playbook loomine Osa 2 + testimine (15 min, Small group)
-**Linked to:** ÕV3, ÕV4
+## Hindamisvahend: Ansible Playbook Rubriik
 
-**Teacher resource:**
-- Testing environment setup
+| Kriteerium | 1p | 2p | 3p | 4p |
+|------------|----|----|----|----|
+| Süntaks | Ei tööta | Töötab, vigu | Töötab | + best practices |
+| Idempotentsus | Puudub | Osaline | Täielik | + testitud |
+| Muutujad | Ei kasuta | Kasutab halvasti | Kasutab hästi | + dokumenteeritud |
+| Error handling | Puudub | Minimaalne | Hea | Põhjalik |
+| Dokumentatsioon | Puudub | Minimaalne | Hea README | + näited |
 
-**Student resource:**
-- Testing checklist (Co-Authorship: 1 - Annotating)
-- Troubleshooting guide (Co-Authorship: 0)
-
----
-
-### Activity 7: Peer review (15 min, Pair)
-**Linked to:** ÕV3, ÕV4
-
-**Teacher resource:**
-- Peer review rubric
-
-**Student resource:**
-- Peer review template (Co-Authorship: 3 - Submitting)
-- Code review best practices (Co-Authorship: 0)
+**Max:** 32p | **Skaal:** 29-32→5, 23-28→4, 17-22→3, 11-16→2
 
 ---
 
-### Activity 8: Kokkuvõte + reflektsioon (5 min, Whole class)
-**Linked to:** ÕV4
+## Diferentseerimine
 
-**Teacher resource:**
-- Õppetunnid ja järgmised sammud
+**Tugõppijatele:**
+- Playbook template struktuuriga
+- Valmis näidisfailid
+- Tugevama õpilasega paariks
 
-**Student resource:**
-- Exit ticket - Padlet (Co-Authorship: 6 - Creating)
+**Andekamale:**
+- Roles'ide kasutamine
+- Ansible Vault
+- Dynamic inventory
 
 ---
 
-**KOKKU: 90 min (10+10+10+20+15+15+15+5)**
+## Kodutöö
+
+**Tähtaeg:** Järgmine tund
+
+**Ülesanded:**
+- Playbook'i täiustamine
+- Dokumentatsiooni kirjutamine
+- Refleksioon
+
+**Materjal:** https://mtalvik.github.io/automatiseerimine_ext/ansible_basics/kodutoo/
 
 ---
 
-## Hindamisvahend
+## Märkused
 
-**Praktiline töö:** Ansible Playbook 3 serveri jaoks
-
-**Hindamise rubriik:**
-
-| Kriteerium | Kaal |
-|------------|------|
-| Funktsionaalsus | 40% |
-| Koodikvaliteet | 30% |
-| Dokumentatsioon | 20% |
-| Esitlus | 10% |
-
-Detailne rubriik: `ansible-rubriik.md`
+**Õpetajale:**
+- Testserverid valmis
+- Inventory template valmis
+- YAML syntax vigade abi valmis (yamllint.com)
+- Julgusta õpilasi: "Vead on normaalsed!"

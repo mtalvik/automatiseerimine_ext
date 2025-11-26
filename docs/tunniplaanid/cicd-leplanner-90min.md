@@ -1,105 +1,127 @@
-# CI/CD Pipeline GitLabis - LePlanner Tunnikava
+# Tunnikava: CI/CD Pipeline GitHubis
 
-**Link:** https://leplanner.ee/en/scenario/5444  
-**Kestus:** 90 min  
-**Õpiväljund:** ÕV7 - CI/CD automatiseerimine  
-**Didaktiline lähenemine:** Ümberpööratud klassiruum
-
----
-
-## Tunni struktuur
-
-### Activity 1: Kodutöö kontrollimine + kiire ülevaade (10 min, Whole class)
-**Linked to:** ÕV7
-
-**Teacher resource:**
-- Kodutöö kontrollimise küsimused
-- CI/CD concepts mind map
-
-**Student resource:**
-- Mentimeter quiz - CI/CD põhimõtted (Co-Authorship: 2 - Interacting)
-- Kodutöö video meeldetuletus (Co-Authorship: 0)
+**Õppeaine:** Informaatika  
+**Klass:** 12  
+**Tunni teema:** Pidev integratsioon ja tarnimine (CI/CD)  
+**Õpiväljund:** ÕV7 - Automatiseerib tarkvara arenduse ja juurutamise CI/CD'ga  
+**Aeg:** 90 minutit  
+**Õpetaja:** [Nimi]
 
 ---
 
-### Activity 2: Live demo - Esimene pipeline (10 min, Whole class)
-**Linked to:** ÕV7
+## Tunni eesmärgid
 
-**Teacher resource:**
-- Demo script - step-by-step
-- Demo GitLab projekt
-
-**Student resource:**
-- GitLab CI/CD syntax reference (Co-Authorship: 0)
-- Demo märkmed template (Co-Authorship: 1 - Annotating)
+**Õpilane:**
+- Loob GitHub Actions pipeline'i põhistruktuuri (validate, test, build, deploy)
+- Debugib pipeline vigu logide abil
+- Seadistab automaatse testimise ja Docker build'i
+- Rakendab manual approval'i production deployment'iks
 
 ---
 
-### Activity 3: Hands-on Osa 1 - Lihtne pipeline (20 min, Pair)
-**Linked to:** ÕV7
+## Õpilaste eelteadmised
 
-**Teacher resource:**
-- Troubleshooting common issues
-
-**Student resource:**
-- Ülesanne 1: Build + Test pipeline (Co-Authorship: 0)
-- Starter template repository (Co-Authorship: 5 - Remixing)
-- .gitlab-ci.yml näidised (Co-Authorship: 0)
-- YAML validator (Co-Authorship: 0)
+- Git põhitõed (commit, push, branch)
+- Docker põhitõed (build, run, image)
+- YAML süntaksi alused
+- **Kodutöö:** Loetud 20-min loengmaterjal CI/CD kohta
 
 ---
 
-### Activity 4: PAUS (15 min, Meta)
+## Õppevahendid ja materjalid
+
+- GitHub account (iga õpilane)
+- Mentimeter (quiz + exit ticket)
+- Projektor (demo)
+- Labor juhendid: https://mtalvik.github.io/automatiseerimine_ext/cicd_basics/labor/
+- Loeng: https://mtalvik.github.io/automatiseerimine_ext/cicd_basics/loeng/
 
 ---
 
-### Activity 5: Hands-on Osa 2 - Multi-stage pipeline (20 min, Pair)
-**Linked to:** ÕV7
+## Tunnikäik
 
-**Teacher resource:**
-- Edasijõudnud pipeline patterns
-- Hindamise rubriik
-
-**Student resource:**
-- Ülesanne 2: Build → Test → Deploy pipeline (Co-Authorship: 0)
-- GitLab CI/CD advanced features (Co-Authorship: 0)
-- Best practices checklist (Co-Authorship: 1 - Annotating)
-
----
-
-### Activity 6: Pipeline debugging session (10 min, Pair)
-**Linked to:** ÕV7
-
-**Teacher resource:**
-- Debugging strategies guide
-
-**Student resource:**
-- Debugging checklist (Co-Authorship: 1)
-- GitLab CI troubleshooting docs (Co-Authorship: 0)
+| Tunni osa | Aeg | Õpetaja tegevus | Õpilaste tegevus | Hindamine | Põhjendused |
+|-----------|-----|-----------------|------------------|-----------|-------------|
+| **Kodutöö kontroll** | 10 min | Avab Mentimeter quiz'i, jälgib vastuseid | Vastavad 5 küsimusele: workflow, job, step, CI vs CD, runner | Formatiivne: quiz tulemused | Kontroll kas loengmaterjal loetud |
+| **Live demo** | 10 min | Näitab GitHub Actions workflow'i loomist, validate stage, tahtlik viga | Vaatavad demoüt, teevad märkmeid | - | Visualiseerimine, protsessi mõistmine |
+| **Hands-on 1** | 20 min | Jälgib paaride tööd, aitab YAML süntaksiga, troubleshooting | Paarides loovad validate + test stages, parandavad tahtlikke vigu: syntax error, negatiivne hind, version mismatch | Formatiivne: kas pipeline töötab | Praktika, vigade leidmine õpetab debugimist |
+| **Paus** | 15 min | - | Puhkavad | - | - |
+| **Hands-on 2** | 20 min | Aitab Docker build'iga, selgitab health check'i | Paarides lisavad build stage, leiavad Dockerfile vea (EXPOSE 8080→5000), parandavad | Formatiivne: health check õnnestub | Docker integratsioon, praktiline debug |
+| **Hands-on 3** | 10 min | Selgitab manual approval'i vajalikkust | Paarides lisavad deploy stage, seadistavad GitHub Environments, teevad approval | Formatiivne: deployment töötab | Production kaitse mõistmine |
+| **Tulemused** | 5 min | Modereerib, küsib täpsustavaid küsimusi | 2-3 paari näitavad oma pipeline'e, selgitavad vigu ja lahendusi | - | Õppimine teistelt, suuline esitlus |
+| **Exit ticket** | 5 min | Avab Mentimeter, tutvustab kodutööd | Vastavad refleksiooni küsimustele: keerulisem? õppisin? enesekindel? | Formatiivne: refleksioon | Tagasiside õpetajale, metakognitsioon |
 
 ---
 
-### Activity 7: Demo ja tulemuste jagamine (10 min, Whole class)
-**Linked to:** ÕV7
+## Hindamisvahend: CI/CD Pipeline Rubriik
 
-**Teacher resource:**
-- Demo protocol
+**Kasutamine:** Labor + kodutöö hindamisel
 
-**Student resource:**
-- Demo template (Co-Authorship: 6 - Creating)
+**Kuidas:** Õpetaja kontrollib GitHub Actions tab'i ja repo struktuuri
+
+| Kriteerium | 1p | 2p | 3p | 4p |
+|------------|----|----|----|----|
+| Pipeline struktuur | 1 stage või ei tööta | 2 stages | 3 stages | 4 stages + manual approval |
+| YAML süntaks | Vigu, ei käivitu | Käivitub, vigu | Töötab | Töötab + dokumenteeritud |
+| Vigade parandamine | Ei parandanud | 1-2 viga | 3-4 viga | Kõik + selgitas |
+| Docker integration | Build puudub | Build töötab | Build + push | Build + health check + push |
+| Testimine | Testid puuduvad | Töötavad lokaalselt | Töötavad CI's | + täiendavad testid |
+| Dokumentatsioon | README puudub | Minimaalne | + badge | Detailne + screenshots |
+| Manual approval | Puudub | Seadistatud | Testitud | + juhised README's |
+| Väljakutsed | 0 | 1 | 2 | 3 |
+
+**Maksimaalne:** 32 punkti
+
+**Hindeskaal:**
+- 29-32p → 5
+- 23-28p → 4
+- 17-22p → 3
+- 11-16p → 2
+
+**Kontrollnimekiri:**
+- [ ] `.github/workflows/ci.yml` olemas
+- [ ] Pipeline käivitub automaatselt
+- [ ] Validate stage (Python syntax)
+- [ ] Test stage (pytest)
+- [ ] Build stage (Docker image)
+- [ ] Deploy stage
+- [ ] Ülesanne 2.1: Süntaksi viga parandatud
+- [ ] Ülesanne 3.1: Negatiivne hind parandatud
+- [ ] Ülesanne 3.2: Versiooni mittevastavus parandatud
+- [ ] Ülesanne 4.1: Dockerfile port parandatud
 
 ---
 
-### Activity 8: Kokkuvõte + järgmised sammud (5 min, Whole class)
-**Linked to:** ÕV7
+## Diferentseerimine
 
-**Teacher resource:**
-- Lõpuprojekti tutvustus
+**Tugõppijatele:**
+- Valmis starter repository
+- Pair programming tugevama õpilasega
+- Lisaaeg harjutusteks
 
-**Student resource:**
-- Kodutöö: Pipeline täiustamine (Co-Authorship: 0)
-- Refleksiooni vorm (Google Forms) (Co-Authorship: 3 - Submitting)
+**Andekamale:**
+- Paralleelsed job'id
+- Cache'imine
+- Matrix strategy
 
 ---
 
-**KOKKU: 90 min (10+10+20+15+20+10+10+5)**
+## Kodutöö
+
+**Tähtaeg:** Järgmine tund
+
+**Ülesanded:**
+- Väljakutse 6.1: Lisa uus endpoint + test
+- Väljakutse 6.2: README + CI/CD badge  
+- Väljakutse 6.3: Mõtiskle rollback'i üle
+
+**Hindamine:** 32 punkti (rubriik eraldi dokumendis)
+
+---
+
+## Märkused
+
+**Õpetajale:**
+- Saada loengmaterjal 2 päeva ette
+- Kontrolli GitHub account'id
+- "Pipeline fail = õppimine, mitte probleem!"
