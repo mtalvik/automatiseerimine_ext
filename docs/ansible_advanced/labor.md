@@ -104,12 +104,16 @@ Alumine tase võidab alati. Kui defineerid sama muutuja mitmes kohas, siis kõig
 
 ### 1.2 Projekti Struktuuri Loomine
 
-Alustame uue projekti loomisega. Ava terminal oma Ubuntu 1 masinas (see on sinu controller, kus Ansible jookseb) ja loo uus kaust:
+Jätka samas kaustas, kus tegid eelmise labori. Seal on juba Git ja inventory olemas.
 
 ```bash
-cd ~
-mkdir ansible-nginx && cd ansible-nginx
-git init
+cd ~/ansible-alused   # Või kuhu tegid eelmise labori
+```
+
+Lisa juurde uued kaustad:
+
+```bash
+mkdir -p group_vars/webservers host_vars templates
 ```
 
 Nüüd loome kaustade struktuuri. Ansible otsib muutujaid automaatselt kindlatest kohtadest - sa ei pea ütlema "lae muutujad siit failist", Ansible leiab need ise üles:
@@ -126,9 +130,9 @@ See loob järgmise struktuuri:
 | `host_vars/` | Laeb automaatselt hostile, kelle nimi vastab faili nimele |
 | `templates/` | Siia paneme Jinja2 template failid |
 
-### 1.3 Inventory Loomine
+### 1.3 Inventory Uuendamine
 
-Inventory fail ütleb Ansible'ile, milliseid servereid ta haldab. Loo fail `inventory.yml` ja pane sinna oma Ubuntu 2 masina andmed:
+Sul peaks eelmisest laborist olema `inventory.yml` juba olemas. Kontrolli, et seal on `webservers` grupp:
 
 ```yaml
 ---
@@ -137,19 +141,17 @@ all:
     webservers:
       hosts:
         web01:
-          ansible_host: <sinu-ubuntu2-ip>   # Asenda oma Ubuntu 2 IP-ga
+          ansible_host: <sinu-ubuntu2-ip>   # Sinu Ubuntu 2 IP
           ansible_user: ansible
 ```
 
-See struktuur tähendab: meil on grupp nimega `webservers` ja selles grupis on üks host nimega `web01`. Ansible ühendub sellega kasutades IP-d mille sa määrad ja kasutajat `ansible`.
+Kui struktuur on teistsugune, uuenda see selliseks. Grupi nimi `webservers` on oluline, sest `group_vars/webservers/` kaust peab vastama.
 
-Kontrolli kohe, kas ühendus töötab:
+Kontrolli ühendust:
 
 ```bash
 ansible -i inventory.yml all -m ping
 ```
-
-Sa peaksid nägema rohelist SUCCESS vastust. Kui näed punast, siis SSH ühendus ei tööta - vaata eelmise labori SSH võtmete seadistust.
 
 ### 1.4 Grupi Muutujad
 
@@ -662,22 +664,22 @@ git commit -m "Add multi-environment support"
 
 ### Projekti Struktuur
 
-Sinu projekt peaks nüüd välja nägema selline:
+Sinu projekt peaks nüüd välja nägema selline (lisaks eelmise labori failidele):
 
 ```
-ansible-nginx/
+ansible-alused/          # Või sinu kausta nimi
 ├── .git/
-├── inventory.yml
-├── deploy.yml
-├── test_vars.yml
-├── group_vars/
+├── inventory.yml        # Uuendatud
+├── deploy.yml           # UUS
+├── test_vars.yml        # UUS
+├── group_vars/          # UUS kaust
 │   ├── webservers/main.yml
 │   ├── production/main.yml
 │   └── development/main.yml
-├── host_vars/
+├── host_vars/           # UUS kaust
 │   ├── web01.yml
 │   └── dev01.yml
-└── templates/
+└── templates/           # UUS kaust
     ├── nginx.conf.j2
     └── index.html.j2
 ```
