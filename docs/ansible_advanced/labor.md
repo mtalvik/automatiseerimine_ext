@@ -17,7 +17,8 @@
 7. [Deployment Playbook](#4-deployment-playbook)
 8. [Mitme Keskkonna Lisamine](#5-mitme-keskkonna-lisamine)
 9. [Lõplik Kontroll](#lõplik-kontroll)
-10. [Viited](#viited)
+10. [Boonus: Ansible Vault](#boonus-ansible-vault)
+11. [Viited](#viited)
 
 ---
 
@@ -34,6 +35,8 @@ Pärast laborit oskad:
 
 ## Eelmise Labori Meeldetuletus
 
+Eelmises laboris õppisid Ansible põhitõdesid. Tegid inventory faili, kus kirjeldasid oma serverid. Kasutasid ad-hoc käske kiireks testimiseks. Lõid esimese playbook'i, kus olid task'id ja moodulid nagu `apt`, `copy`, `service`.
+
 | Teema | Mida tegid |
 |-------|------------|
 | Inventory | Hostide nimekiri YAML formaadis |
@@ -41,9 +44,15 @@ Pärast laborit oskad:
 | Playbook | YAML fail: `hosts:`, `tasks:`, `become:` |
 | Moodulid | `apt`, `copy`, `service`, `file` |
 
+Kui midagi on ununenud, vaata eelmise labori materjale enne jätkamist.
+
 ---
 
 ## Selle Labori Uued Teemad
+
+Eelmises laboris töötasid muutujatega otse playbook'i sees `vars:` blokis. See toimib, aga tekitab probleeme kui sul on palju servereid. Samuti kasutasid `copy` moodulit, mis kopeerib faili täpselt nii nagu ta on - aga mis siis kui iga server vajab veidi erinevat konfiguratsiooni?
+
+Selles laboris õpid kolm uut tehnikat, mis lahendavad need probleemid:
 
 ```mermaid
 graph LR
@@ -66,52 +75,60 @@ graph LR
 
 | Probleem | Lahendus |
 |----------|----------|
-| Muutujad playbook'is - kõik hostid sama | group_vars → host_vars hierarhia |
+| Muutujad playbook'is - kõik hostid saavad sama | group_vars → host_vars hierarhia |
 | `copy` - fail 1:1, ei muutu | `template` - asendab {{ muutujad }} |
-| `service: restarted` - iga kord | handler - ainult kui config muutus |
+| `service: restarted` - käivitub iga kord | handler - käivitub ainult kui config muutus |
 
 ---
 
 ## 1. Muutujate Hierarhia
 
-### 1.1 Miks?
+### 1.1 Miks Me Seda Vajame?
 
-50 serverit. 45 kasutavad porti 80, 5 kasutavad 8080.
+Kujuta ette olukorda: sul on 50 serverit. 45 neist kasutavad nginx porti 80, aga 5 serverit peavad kasutama porti 8080. Kuidas sa seda lahendaksid eelmise labori teadmistega?
 
-Eelmise labori teadmistega: 50 erinevat playbook'i? Või üks playbook 50 `when:` tingimusega?
+Üks võimalus oleks teha 50 erinevat playbook'i - aga see on hull. Teine võimalus oleks kirjutada üks playbook 50 erineva `when:` tingimusega - aga see muutub kiiresti loetamatuks.
 
-Hierarhiaga: üks vaikeväärtus grupile, override ainult seal kus vaja.
+Ansible pakub parema lahenduse: muutujate hierarhia. Sa defineerid vaikeväärtuse grupile (näiteks "kõik webserverid kasutavad porti 80") ja siis kirjutad üle ainult seal, kus vaja (näiteks "aga server5 kasutab porti 8080").
 
 ```mermaid
 graph TD
     A["group_vars/webservers/<br/>nginx_port: 80"] --> B["host_vars/web01.yml<br/>(pärib: 80)"]
     A --> C["host_vars/special.yml<br/>nginx_port: 8080"]
     
-    B --> D["web01 → port 80"]
-    C --> E["special → port 8080"]
+    B --> D["web01 saab port 80"]
+    C --> E["special saab port 8080"]
 ```
 
-### 1.2 Projekti Struktuur
+Alumine tase võidab alati. Kui defineerid sama muutuja mitmes kohas, siis kõige spetsiifilisem väärtus kehtib.
 
-Loo uus projekt Git repona:
+### 1.2 Projekti Struktuuri Loomine
+
+Alustame uue projekti loomisega. Ava terminal oma Ubuntu 1 masinas (see on sinu controller, kus Ansible jookseb) ja loo uus kaust:
 
 ```bash
 cd ~
 mkdir ansible-nginx && cd ansible-nginx
 git init
+```
+
+Nüüd loome kaustade struktuuri. Ansible otsib muutujaid automaatselt kindlatest kohtadest - sa ei pea ütlema "lae muutujad siit failist", Ansible leiab need ise üles:
+
+```bash
 mkdir -p group_vars/webservers host_vars templates
 ```
 
-Ansible otsib muutujaid automaatselt:
+See loob järgmise struktuuri:
 
 | Kaust | Mida Ansible teeb |
 |-------|-------------------|
-| `group_vars/webservers/` | Laeb kõigile webservers grupi hostidele |
-| `host_vars/web01.yml` | Laeb ainult hostile nimega web01 |
+| `group_vars/webservers/` | Laeb automaatselt kõigile hostidele, kes kuuluvad `webservers` gruppi |
+| `host_vars/` | Laeb automaatselt hostile, kelle nimi vastab faili nimele |
+| `templates/` | Siia paneme Jinja2 template failid |
 
-### 1.3 Inventory
+### 1.3 Inventory Loomine
 
-Loo `inventory.yml`:
+Inventory fail ütleb Ansible'ile, milliseid servereid ta haldab. Loo fail `inventory.yml` ja pane sinna oma Ubuntu 2 masina andmed:
 
 ```yaml
 ---
@@ -120,19 +137,23 @@ all:
     webservers:
       hosts:
         web01:
-          ansible_host: <sinu-ubuntu2-ip>   # Asenda oma IP-ga
+          ansible_host: <sinu-ubuntu2-ip>   # Asenda oma Ubuntu 2 IP-ga
           ansible_user: ansible
 ```
 
-Testi:
+See struktuur tähendab: meil on grupp nimega `webservers` ja selles grupis on üks host nimega `web01`. Ansible ühendub sellega kasutades IP-d mille sa määrad ja kasutajat `ansible`.
+
+Kontrolli kohe, kas ühendus töötab:
 
 ```bash
 ansible -i inventory.yml all -m ping
 ```
 
+Sa peaksid nägema rohelist SUCCESS vastust. Kui näed punast, siis SSH ühendus ei tööta - vaata eelmise labori SSH võtmete seadistust.
+
 ### 1.4 Grupi Muutujad
 
-Loo `group_vars/webservers/main.yml`:
+Nüüd loome muutujad, mis kehtivad kõigile `webservers` grupi serveritele. Loo fail `group_vars/webservers/main.yml`:
 
 ```yaml
 ---
@@ -147,21 +168,23 @@ app_name: "MinuApp"
 app_environment: "production"
 ```
 
+Miks faili nimi on `main.yml`? Ansible laeb tegelikult kõik YAML failid sellest kaustast automaatselt. `main.yml` on lihtsalt konventsioon peamise faili jaoks. Suurtes projektides võid muutujad jagada mitmesse faili: `main.yml`, `nginx.yml`, `database.yml` jne.
+
 ### 1.5 Hosti Muutujad
 
-Loo `host_vars/web01.yml`:
+Mõnikord vajab konkreetne server erinevaid seadeid kui teised. Selleks kasutame `host_vars` kausta. Loo fail `host_vars/web01.yml`:
 
 ```yaml
 ---
-server_name: "<sinu-ubuntu2-ip>"  # Nginx server_name - kasuta IP'd, sest DNS pole seadistatud
+server_name: "<sinu-ubuntu2-ip>"
 debug_mode: false
 ```
 
-**Miks IP?** Nginx `server_name` töötab hostname'iga ainult kui DNS või `/etc/hosts` teab seda nime. Laboris kumbagi pole, seega kasutame IP-d.
+Pane siia oma Ubuntu 2 IP-aadress. Miks me kasutame IP-d, mitte hostname'i nagu `web01.minunimi.local`? Nginx `server_name` direktiiv töötab hostname'iga ainult siis, kui DNS server või `/etc/hosts` fail teab seda nime. Meie laboris pole DNS serverit seadistatud, seega brauserist pääseme ligi ainult IP-aadressiga. Kui paneksime sinna hostname'i, siis nginx töötaks küll, aga see oleks segadusttekitav.
 
-### 1.6 Testimine
+### 1.6 Muutujate Testimine
 
-Loo `test_vars.yml`:
+Kontrollime, kas Ansible leiab meie muutujad üles. Loo lihtne test playbook `test_vars.yml`:
 
 ```yaml
 ---
@@ -179,47 +202,60 @@ Loo `test_vars.yml`:
           Debug: {{ debug_mode }}
 ```
 
+See playbook ei tee midagi serveris - ta lihtsalt näitab muutujate väärtusi. Pane tähele, et me ei defineeri muutujaid kusagil playbook'i sees. Ansible leiab need automaatselt `group_vars/` ja `host_vars/` kaustadest.
+
 Käivita:
 
 ```bash
 ansible-playbook -i inventory.yml test_vars.yml
 ```
 
-Kontrolli väljundit - kõik muutujad peaksid töötama.
+Sa peaksid nägema kõiki muutujaid koos nende väärtustega. Kui mõni muutuja on "undefined", siis kontrolli faili nimesid ja kausta struktuuri.
+
+Salvesta töö Git'i:
 
 ```bash
-git add . && git commit -m "Add variable hierarchy"
+git add .
+git commit -m "Add variable hierarchy"
 ```
 
 ### Kontroll
 
-- [ ] `group_vars/webservers/main.yml` olemas
-- [ ] `host_vars/web01.yml` olemas
-- [ ] Test playbook näitab õigeid väärtusi
+- [ ] `group_vars/webservers/main.yml` olemas ja sisaldab nginx muutujaid
+- [ ] `host_vars/web01.yml` olemas ja sisaldab server_name muutujat
+- [ ] Test playbook näitab kõiki muutujaid õigesti
 
 ---
 
 ## 2. Jinja2 Template'id
 
-### 2.1 Miks?
+### 2.1 Miks Template'id?
 
-`copy` moodul kopeerib faili täpselt nagu ta on. Aga kui nginx.conf peab sisaldama serveri nime, mis on igal serveril erinev?
+Eelmises laboris kasutasid `copy` moodulit failide kopeerimiseks serverisse. See töötab hästi staatiliste failide jaoks, mis on kõigil serveritel täpselt samad.
 
-Template lahendab: kirjutad `{{ server_name }}` ja Ansible asendab selle muutuja väärtusega.
+Aga mis siis, kui nginx konfiguratsioon peab sisaldama serveri nime, mis on igal serveril erinev? Või kui development serveris tahad näha rohkem logisid kui production serveris?
+
+`copy` mooduliga peaksid tegema eraldi konfiguratsioonifaili iga serveri jaoks. 50 serverit = 50 faili. Ja kui tahad midagi muuta, pead muutma kõigis 50 failis.
+
+Template lahendab selle probleemi elegantselt. Sa kirjutad ühe faili, kus on "tühikud" muutujate jaoks: `{{ server_name }}`. Ansible asendab need tühikud iga serveri jaoks õige väärtusega.
 
 ### 2.2 Jinja2 Süntaks
 
-| Süntaks | Tähendus | Näide |
-|---------|----------|-------|
-| `{{ var }}` | Muutuja väärtus | `{{ nginx_port }}` → `80` |
-| `{% if x %}` | Tingimus algus | `{% if debug_mode %}` |
-| `{% else %}` | Tingimus muidu | `{% else %}` |
-| `{% endif %}` | Tingimus lõpp | `{% endif %}` |
-| `{{ x \| filter }}` | Filter | `{{ name \| upper }}` |
+Ansible kasutab Jinja2 nimelist template keelt. Siin on põhilised konstruktsioonid:
 
-### 2.3 Nginx Template
+| Süntaks | Mida teeb | Näide |
+|---------|-----------|-------|
+| `{{ muutuja }}` | Asendab muutuja väärtusega | `{{ nginx_port }}` → `80` |
+| `{% if tingimus %}` | Algab tingimusplokk | `{% if debug_mode %}` |
+| `{% else %}` | Alternatiivne haru | `{% else %}` |
+| `{% endif %}` | Lõpetab tingimusploki | `{% endif %}` |
+| `{{ muutuja \| filter }}` | Rakendab filtri | `{{ nimi \| upper }}` → `NIMI` |
 
-Loo `templates/nginx.conf.j2`:
+Tingimuslaused on eriti kasulikud. Sa saad öelda: "kui see on development server, siis lisa debug konfiguratsioon, muidu ära lisa."
+
+### 2.3 Nginx Konfiguratsiooni Template
+
+Nüüd loome päris template faili. See on nginx konfiguratsioon, mis kasutab meie muutujaid. Loo fail `templates/nginx.conf.j2` (`.j2` laiend näitab, et tegemist on Jinja2 template'iga):
 
 ```nginx
 # {{ ansible_managed }}
@@ -268,32 +304,43 @@ http {
 }
 ```
 
+Vaata seda template'i hoolikalt:
+
+- `{{ ansible_managed }}` - see on spetsiaalne Ansible muutuja, mis lisab kommentaari "Ansible generated, do not edit manually"
+- `{{ nginx_user }}`, `{{ nginx_port }}` jne - need asendatakse meie muutujate väärtustega
+- `{% if debug_mode %}...{% endif %}` - see osa lisatakse ainult siis, kui `debug_mode` on `true`
+- `{% if not debug_mode %}` - see osa lisatakse ainult siis, kui `debug_mode` on `false`
+
 ### 2.4 Ülesanne: HTML Template
 
-Loo ise `templates/index.html.j2` mis:
+Nüüd on sinu kord. Loo fail `templates/index.html.j2`, mis on lihtne veebileht. See peaks:
 
-- Näitab `{{ app_name }}` pealkirjana (`<h1>`)
-- Näitab `{{ server_name }}` ja `{{ app_environment }}`
-- Kui `debug_mode` on true, näitab lisaks: `{{ ansible_hostname }}`, `{{ ansible_distribution }}`
+- Näitama `{{ app_name }}` pealkirjana (`<h1>` tag)
+- Näitama `{{ server_name }}` ja `{{ app_environment }}`
+- Kui `debug_mode` on true, näitama lisaks: `{{ ansible_hostname }}` ja `{{ ansible_distribution }}`
 
-Vihje: kasuta `{% if debug_mode %}...{% endif %}` struktuuri.
+Vihje: kasuta `{% if debug_mode %}...{% endif %}` struktuuri debug info jaoks.
+
+Kui oled valmis, salvesta töö:
 
 ```bash
-git add . && git commit -m "Add Jinja2 templates"
+git add .
+git commit -m "Add Jinja2 templates"
 ```
 
 ### Kontroll
 
-- [ ] nginx.conf.j2 kasutab muutujaid ja `{% if %}`
-- [ ] index.html.j2 loodud ise
+- [ ] `templates/nginx.conf.j2` olemas ja kasutab muutujaid
+- [ ] `templates/nginx.conf.j2` sisaldab `{% if debug_mode %}` tingimust
+- [ ] `templates/index.html.j2` loodud ja kasutab muutujaid
 
 ---
 
 ## 3. Handler'id
 
-### 3.1 Miks?
+### 3.1 Miks Handler'id?
 
-**Ilma handler'ita:**
+Kui sa muudad nginx konfiguratsiooni, peab nginx uue konfiguratsiooni laadima. Eelmises laboris oleksid võib-olla kirjutanud midagi sellist:
 
 ```yaml
 tasks:
@@ -305,12 +352,12 @@ tasks:
   - name: Restart nginx
     ansible.builtin.service:
       name: nginx
-      state: restarted   # Käivitub IGA kord!
+      state: restarted
 ```
 
-Probleem: nginx restart'itakse ka siis, kui config ei muutunud. Mõttetu ja katkestab ühendused.
+See töötab, aga on üks probleem: nginx restart'itakse IGA KORD kui playbook jookseb, isegi siis kui konfiguratsioon ei muutunud üldse. See on mõttetu ja katkestab kasutajate ühendused.
 
-**Handler'iga:**
+Handler lahendab selle. Handler on spetsiaalne task, mis käivitub ainult siis, kui teine task talle "märku annab" (notify) JA see teine task tegelikult midagi muutis.
 
 ```yaml
 handlers:
@@ -324,10 +371,19 @@ tasks:
     ansible.builtin.template:
       src: nginx.conf.j2
       dest: /etc/nginx/nginx.conf
-    notify: Reload nginx   # Käivitub AINULT kui fail muutus
+    notify: Reload nginx
 ```
 
-### 3.2 Kuidas Töötab
+Nüüd nginx reload'itakse ainult siis, kui konfiguratsioonifail tegelikult muutus.
+
+### 3.2 Kuidas Handler Töötab?
+
+Handler'i käitumine on järgmine:
+
+1. Task jookseb ja teeb mingit tööd
+2. Kui task midagi muutis (`changed`), siis ta saadab notify oma handler'ile
+3. Handler ei käivitu kohe - ta jätab meelde, et teda kutsuti
+4. Playbook'i lõpus käivituvad kõik handler'id, keda kutsuti
 
 ```mermaid
 sequenceDiagram
@@ -354,18 +410,22 @@ sequenceDiagram
 
 ### 3.3 Reload vs Restart
 
+Pane tähele, et me kasutame `state: reloaded`, mitte `state: restarted`. Mis vahe on?
+
 | Tegevus | Mida teeb | Millal kasutada |
 |---------|-----------|-----------------|
-| `state: restarted` | Peatab teenuse, käivitab uuesti | Harva - katkestab ühendused |
-| `state: reloaded` | Laeb config uuesti, teenus jookseb edasi | Config muutus - ühendused püsivad |
+| `state: restarted` | Peatab teenuse täielikult, siis käivitab uuesti | Harva - katkestab kõik ühendused |
+| `state: reloaded` | Laeb konfiguratsiooni uuesti, teenus jookseb edasi | Konfiguratsiooni muudatus - ühendused püsivad |
+
+Production keskkonnas eelistame alati reload'i, sest see ei katkesta kasutajate tööd.
 
 ---
 
 ## 4. Deployment Playbook
 
-### 4.1 Playbook
+### 4.1 Kõik Koos
 
-Loo `deploy.yml`:
+Nüüd paneme kõik õpitu kokku ühte playbook'i. See playbook paigaldab nginx, seadistab konfiguratsiooni meie template'ist ja paneb veebilehe üles. Loo fail `deploy.yml`:
 
 ```yaml
 ---
@@ -413,64 +473,85 @@ Loo `deploy.yml`:
         enabled: yes
 ```
 
-**Märkus:** `validate: "nginx -t -c %s"` testib config'i ENNE rakendamist. Kui config on vigane, task ebaõnnestub ja vana config jääb alles.
+Mõned olulised asjad selles playbook'is:
+
+- `gather_facts: yes` - Ansible kogub infot serveri kohta (OS, IP, hostname jne), mida saame template'ides kasutada
+- `validate: "nginx -t -c %s"` - enne kui Ansible kirjutab uue konfiguratsiooni, testib ta seda. Kui config on vigane, siis vana jääb alles ja playbook annab vea
+- `notify: Reload nginx` - kui template fail muutus, anna handler'ile märku
 
 ### 4.2 Käivitamine
 
+Enne päris käivitamist on hea kontrollida, kas playbook on süntaktiliselt korrektne:
+
 ```bash
-# Süntaksi kontroll
 ansible-playbook -i inventory.yml deploy.yml --syntax-check
+```
 
-# Dry-run - näitab mida teeks, ei muuda midagi
+Kui vigu pole, võid teha "kuiva" käivituse, mis näitab mida playbook teeks, aga ei muuda tegelikult midagi:
+
+```bash
 ansible-playbook -i inventory.yml deploy.yml --check --diff
+```
 
-# Päris käivitamine
+Kui kõik näeb hea välja, käivita päriselt:
+
+```bash
 ansible-playbook -i inventory.yml deploy.yml
 ```
 
 ### 4.3 Kontrollimine
 
-Ava brauseris: `http://<sinu-ubuntu2-ip>`
+Ava oma arvutis brauser ja mine aadressile `http://<sinu-ubuntu2-ip>`. Sa peaksid nägema oma HTML lehte, mis näitab rakenduse nime ja serveri infot.
 
-Peaks nägema sinu HTML lehte.
+Kui leht ei avane:
+- Kontrolli kas nginx jookseb: `ansible -i inventory.yml web01 -m shell -a "systemctl status nginx" --become`
+- Kontrolli kas port on lahti: `ansible -i inventory.yml web01 -m shell -a "ss -tlnp | grep 80" --become`
 
 ### 4.4 Idempotentsuse Test
 
-Käivita playbook uuesti:
+Ansible üks olulisemaid omadusi on idempotentsus: sama playbook'i võib käivitada mitu korda ja tulemus on alati sama. Käivita playbook uuesti:
 
 ```bash
 ansible-playbook -i inventory.yml deploy.yml
 ```
 
-**Küsimus:** Mis on `changed=` väärtus? Peaks olema 0 - midagi ei muudetud.
+Vaata väljundi lõpus `PLAY RECAP` rida. `changed=` peaks olema 0 - see tähendab, et Ansible ei muutnud midagi, sest kõik oli juba õiges olekus.
+
+See on väga oluline production keskkonnas. Sa võid playbook'i käivitada igal ajal ja olla kindel, et see ei tee midagi halba kui kõik on juba korras.
 
 ### 4.5 Handler'i Test
 
-Muuda midagi config'is:
+Nüüd testime, kas handler töötab õigesti. Muuda midagi nginx konfiguratsioonis:
 
 ```bash
-# Muuda worker_connections väärtust
 nano group_vars/webservers/main.yml
 ```
 
-Käivita uuesti:
+Muuda näiteks `nginx_worker_connections` väärtust 1024 → 2048. Salvesta ja käivita playbook:
 
 ```bash
 ansible-playbook -i inventory.yml deploy.yml
 ```
 
-**Küsimus:** Kas "Reload nginx" handler käivitus? Miks?
+Vaata väljundit. Sa peaksid nägema:
+- "Deploy nginx configuration" task näitab `changed`
+- "Reload nginx" handler käivitub playbook'i lõpus
+
+See on handler'i võlu - ta käivitub ainult siis, kui konfiguratsiooni fail tegelikult muutus.
+
+Salvesta töö:
 
 ```bash
-git add . && git commit -m "Add deployment playbook with handlers"
+git add .
+git commit -m "Add deployment playbook with handlers"
 ```
 
 ### Kontroll
 
 - [ ] Playbook töötab vigadeta
-- [ ] Veebileht nähtav brauseris
-- [ ] Teine käivitus: `changed=0`
-- [ ] Config muutus → handler käivitub
+- [ ] Veebileht on nähtav brauseris
+- [ ] Teine käivitus näitab `changed=0`
+- [ ] Konfiguratsiooni muutus käivitab handler'i
 
 ---
 
@@ -478,7 +559,9 @@ git add . && git commit -m "Add deployment playbook with handlers"
 
 ### 5.1 Eesmärk
 
-Lisa development keskkond kus `debug_mode: true`. Production jääb `debug_mode: false`.
+Päris projektides on tavaliselt mitu keskkonda: development (arendus), staging (testimine), production (päris). Igal keskkonnal on veidi erinevad seaded.
+
+Meie laboris lisame development keskkonna, kus `debug_mode: true`. Production jääb `debug_mode: false`. Nii näeme, kuidas template'id genereerivad erinevat sisu olenevalt keskkonnast.
 
 ```mermaid
 graph TD
@@ -488,9 +571,9 @@ graph TD
     C --> E[dev01<br/>debug: true]
 ```
 
-### 5.2 Muuda Inventory
+### 5.2 Inventory Laiendamine
 
-Muuda `inventory.yml`:
+Muuda oma `inventory.yml` faili nii, et seal on kaks alamgruppi:
 
 ```yaml
 ---
@@ -510,9 +593,11 @@ all:
               ansible_user: ansible
 ```
 
+Pane tähele struktuuri: `webservers` grupil on nüüd kaks "last" - `production` ja `development`. Mõlemad pärivad `webservers` grupi muutujad, aga saavad ka oma spetsiifilised muutujad.
+
 ### 5.3 Keskkonna Muutujad
 
-Loo keskkondade kaustad:
+Loo kaustad ja failid keskkonna-spetsiifiliste muutujate jaoks:
 
 ```bash
 mkdir -p group_vars/production group_vars/development
@@ -534,46 +619,50 @@ app_environment: "development"
 debug_mode: true
 ```
 
-### 5.4 Ülesanne: Host Vars
+### 5.4 Ülesanne: Dev01 Host Vars
 
-Loo ise `host_vars/dev01.yml` - lisa `server_name` muutuja oma Ubuntu 1 IP-ga.
+Loo ise fail `host_vars/dev01.yml` - lisa `server_name` muutuja oma Ubuntu 1 IP-ga.
 
 ### 5.5 Selektiivne Deploy
 
+Nüüd saad valida, millisesse keskkonda deploy'd:
+
 ```bash
-# Ainult production
+# Ainult production serverid
 ansible-playbook -i inventory.yml deploy.yml --limit production
 
-# Ainult development
+# Ainult development serverid
 ansible-playbook -i inventory.yml deploy.yml --limit development
 
-# Kõik korraga
+# Kõik serverid
 ansible-playbook -i inventory.yml deploy.yml
 ```
 
-### 5.6 Kontrolli
+`--limit` on väga kasulik kui tahad testida muudatusi esmalt development'is enne production'i minekut.
 
-Ava brauseris:
+### 5.6 Kontrollimine
 
-- Production (`http://<ubuntu2-ip>`): debug info **EI** ole nähtav
-- Development (`http://<ubuntu1-ip>`): debug info **ON** nähtav
+Ava brauseris mõlemad aadressid:
+
+- Production (`http://<ubuntu2-ip>`): leht EI näita debug infot
+- Development (`http://<ubuntu1-ip>`): leht NÄITAB debug infot (hostname, OS jne)
+
+See on sama template, aga genereerib erinevat HTML-i olenevalt `debug_mode` muutuja väärtusest.
+
+Salvesta töö:
 
 ```bash
-git add . && git commit -m "Add multi-environment support"
+git add .
+git commit -m "Add multi-environment support"
 ```
-
-### Kontroll
-
-- [ ] Inventory sisaldab production ja development gruppe
-- [ ] Keskkonna muutujad töötavad
-- [ ] `--limit` töötab
-- [ ] Debug info nähtav ainult development'is
 
 ---
 
 ## Lõplik Kontroll
 
 ### Projekti Struktuur
+
+Sinu projekt peaks nüüd välja nägema selline:
 
 ```
 ansible-nginx/
@@ -595,31 +684,93 @@ ansible-nginx/
 
 ### Git Ajalugu
 
+Kontrolli oma commit'e:
+
 ```bash
 git log --oneline
 ```
 
-Peaks olema vähemalt 4 commit'i.
+Peaks olema vähemalt 4 commit'i, mis näitavad projekti arengut samm-sammult.
 
 ### Lõplik Kontrollnimekiri
 
-- [ ] Muutujate hierarhia töötab (group → host override)
+- [ ] Muutujate hierarhia töötab (group_vars → host_vars)
 - [ ] Template'id kasutavad muutujaid ja tingimuslauseid
-- [ ] Handler käivitub ainult muudatuse korral
+- [ ] Handler käivitub ainult konfiguratsiooni muudatuse korral
 - [ ] Production: debug=false, development: debug=true
 - [ ] Mõlemad veebilehed töötavad brauseris
+- [ ] Git ajalugu näitab loogilist arengut
 
 ---
 
 ## Troubleshooting
 
+Kui midagi ei tööta, siin on levinumad probleemid ja lahendused:
+
 | Probleem | Põhjus | Lahendus |
 |----------|--------|----------|
-| Permission denied | SSH võti puudu | `ssh-copy-id ansible@<ip>` |
-| sudo password required | Sudo õigused | Lisa `--ask-become-pass` |
-| Undefined variable | Kirjaviga või fail puudu | `ansible -m debug -a "var=muutuja"` |
-| nginx config failed | Template viga | `ssh <ip>` ja `sudo nginx -t` |
-| Handler ei käivitu | notify nimi vale | Kontrolli täpset nime handler'is |
+| Permission denied (SSH) | SSH võti pole kopeeritud | `ssh-copy-id ansible@<ip>` |
+| sudo password required | Sudo küsib parooli | Lisa käsule `--ask-become-pass` |
+| Undefined variable | Kirjaviga muutuja nimes või fail puudu | Kontrolli failinimesid, kausta struktuuri |
+| nginx config test failed | Template'is on viga | Logi serverisse: `ssh <ip>` ja `sudo nginx -t` |
+| Handler ei käivitu | `notify` nimi ei klapi handler nimega | Kontrolli et nimed on TÄPSELT samad |
+| Veebileht ei avane | nginx ei jookse või port kinni | `sudo systemctl status nginx` ja `sudo ss -tlnp | grep 80` |
+
+---
+
+## Boonus: Ansible Vault
+
+Kui põhiosa on tehtud ja aega jääb üle, proovi Ansible Vault'i. Vault võimaldab krüpteerida tundlikke andmeid (paroolid, API võtmed) nii, et neid saab turvaliselt Git'i panna.
+
+### Vault Faili Loomine
+
+```bash
+ansible-vault create group_vars/webservers/vault.yml
+```
+
+Ansible küsib parooli - vali midagi lihtsat testimiseks, näiteks `vault123`. Seejärel avaneb tekstiredaktor. Lisa sinna:
+
+```yaml
+---
+vault_db_password: "SuperSecret123"
+vault_api_key: "abc123xyz789"
+```
+
+Salvesta ja välju. Fail on nüüd krüpteeritud - kui avad selle tavalise `cat` käsuga, näed ainult krüpteeritud jama.
+
+### Vault Muutujate Kasutamine
+
+Vault muutujaid saad kasutada nagu tavalisi muutujaid. Lisa näiteks `templates/index.html.j2` faili:
+
+```html
+<!-- API Key: {{ vault_api_key }} -->
+```
+
+### Playbook Käivitamine Vault'iga
+
+Kui playbook kasutab vault faile, pead ütlema Ansible'ile parooli:
+
+```bash
+# Küsib parooli interaktiivselt
+ansible-playbook -i inventory.yml deploy.yml --ask-vault-pass
+
+# Või kasuta paroolifaili (ära pane Git'i!)
+echo "vault123" > .vault_pass
+chmod 600 .vault_pass
+ansible-playbook -i inventory.yml deploy.yml --vault-password-file .vault_pass
+```
+
+### Vault Käsud
+
+| Käsk | Mida teeb |
+|------|-----------|
+| `ansible-vault create fail.yml` | Loo uus krüpteeritud fail |
+| `ansible-vault edit fail.yml` | Muuda krüpteeritud faili |
+| `ansible-vault view fail.yml` | Vaata sisu (ei muuda) |
+| `ansible-vault encrypt fail.yml` | Krüpteeri olemasolev fail |
+| `ansible-vault decrypt fail.yml` | Dekrüpteeri (ettevaatust!) |
+
+**Oluline:** `.vault_pass` fail on juba `.gitignore`'is kui tegid projekti alguses õigesti. Kunagi ära pane vault parooli Git'i!
 
 ---
 
@@ -632,3 +783,4 @@ Peaks olema vähemalt 4 commit'i.
 | Handlers | [docs.ansible.com/.../playbooks_handlers.html](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_handlers.html) |
 | Template Module | [docs.ansible.com/.../template_module.html](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/template_module.html) |
 | Directory Layout | [docs.ansible.com/.../sample_setup.html](https://docs.ansible.com/ansible/latest/tips_tricks/sample_setup.html) |
+| Ansible Vault | [docs.ansible.com/.../vault.html](https://docs.ansible.com/ansible/latest/vault_guide/index.html) |
