@@ -153,10 +153,11 @@ Loo `host_vars/web01.yml`:
 
 ```yaml
 ---
-# Ainult web01 jaoks - kirjutab grupi muutujad üle
-server_name: "web01.yourname.local"
+server_name: "<sinu-ubuntu2-ip>"  # Nginx server_name - kasuta IP'd, sest DNS pole seadistatud
 debug_mode: false
 ```
+
+**Miks IP?** Nginx `server_name` töötab hostname'iga ainult kui DNS või `/etc/hosts` teab seda nime. Laboris kumbagi pole, seega kasutame IP-d.
 
 ### 1.6 Testimine
 
@@ -535,7 +536,7 @@ debug_mode: true
 
 ### 5.4 Ülesanne: Host Vars
 
-Loo ise `host_vars/dev01.yml` failis `server_name` muutuja dev01 jaoks.
+Loo ise `host_vars/dev01.yml` - lisa `server_name` muutuja oma Ubuntu 1 IP-ga.
 
 ### 5.5 Selektiivne Deploy
 
