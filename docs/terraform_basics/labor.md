@@ -99,25 +99,53 @@ Iga Terraform projekt elab oma kaustas. Terraform loeb kõik `.tf` failid kausta
 
 ### 2.2 main.tf - Esimene konfiguratsioon
 
-Loo VSCode's uus fail nimega `main.tf` ja kirjuta sinna:
+Miks me alustame just sellise failiga? Terraform vajab alati kahte asja: **provider'i konfiguratsioon** (kellega suhtleme) ja **ressursside definitsioonid** (mida loome). Alustame mõlemaga korraga, et näha täielikku pilti.
+
+Loo VSCode's uus fail nimega `main.tf`:
 
 ```hcl
+# =============================================================================
+# TERRAFORM SEADED JA PROVIDER
+# =============================================================================
+# Iga Terraform projekt algab sellega, et ütleme milliseid provider'eid vajame.
+# Provider on plugin, mis "räägib" mingi platvormiga - AWS, Azure, või nagu
+# meie puhul, kohaliku failisüsteemiga.
+
 terraform {
   required_providers {
+    # "local" on provider'i nimi, mida kasutame koodis
     local = {
-      source  = "hashicorp/local"
-      version = "~> 2.4"
+      source  = "hashicorp/local"  # Kust Terraform selle laeb (Registry)
+      version = "~> 2.4"           # ~> tähendab: 2.4, 2.5, 2.9 OK, aga 3.0 mitte
     }
   }
 }
 
+# =============================================================================
+# RESSURSID - MIDA ME LOOME
+# =============================================================================
+# resource on Terraform'i põhielement - iga ressurss on üks "asi" mida hallata.
+# Süntaks: resource "TÜÜP" "NIMI" { seaded }
+#   - TÜÜP: tuleb provider'ist, määrab mida loome (local_file = fail)
+#   - NIMI: sina valid, kasutatakse viitamiseks teistes kohtades
+
+# Esimene fail - lihtne tekstifail
 resource "local_file" "greeting" {
+  # ${path.module} = kaust kus see .tf fail asub
+  # Terraform loob "output" kausta automaatselt kui seda pole
   filename = "${path.module}/output/hello.txt"
+  
+  # Faili sisu - \n tähendab uut rida
   content  = "Tere, Terraform!\nSee fail on loodud IaC-ga.\n"
 }
 
+# Teine fail - konfiguratsioonifail
 resource "local_file" "config" {
   filename = "${path.module}/output/app.conf"
+  
+  # <<-EOT on "heredoc" - võimaldab kirjutada mitut rida
+  # ilma \n märkideta. Loetavam kui "rida1\nrida2\nrida3"
+  # EOT = End Of Text (võid kasutada mis tahes sõna, nt EOF)
   content  = <<-EOT
     server {
       port = 8080
@@ -127,7 +155,11 @@ resource "local_file" "config" {
 }
 ```
 
-Vaatame seda koodi lähemalt, sest siin on mitu olulist kontseptsiooni.
+**Miks just nii?**
+
+Provider'i plokk on nagu `import` või `require` teistes keeltes - ütled Terraformile, mida vajad. Versioonipiirang `~> 2.4` on oluline: see lubab automaatseid uuendusi (2.5, 2.6...), aga kaitseb sind breaking change'ide eest versioon 3.0-s.
+
+Ressursside nimed (`greeting`, `config`) on sinu valitud. Need on olulised, sest hiljem viitad neile kujul `local_file.greeting.filename` - näiteks kui tahad ühe ressursi väljundit kasutada teise sisendina.
 
 Esimene plokk `terraform {}` ütleb Terraformile, milliseid provider'eid me vajame. Provider on plugin, mis teab, kuidas konkreetse platvormiga suhelda. Meie kasutame `local` provider'it, mis oskab luua faile kohalikku failisüsteemi. Versioon `~> 2.4` tähendab "versioon 2.4 või uuem, aga mitte 3.0" - see tagab, et meie kood töötab ka tulevikus, kui ilmuvad uuemad versioonid.
 
@@ -387,31 +419,45 @@ cd variables-demo
 
 ### 3.2 variables.tf - Muutujate defineerimine
 
+Miks eraldi fail? Terraform loeb kõik `.tf` failid kaustast, seega võiksime kõik panna `main.tf`-i. Aga eraldi `variables.tf` teeb koodi loetavamaks - keegi kes tahab muuta seadeid, leiab need kohe üles.
+
 Loo fail `variables.tf`:
 
 ```hcl
-variable "environment" {
-  description = "Keskkonna nimi (dev/test/prod)"
-  type        = string
-  default     = "dev"
+# =============================================================================
+# SISENDMUUTUJAD (Input Variables)
+# =============================================================================
+# Muutujad teevad konfiguratsiooni taaskasutatavaks.
+# Sama kood töötab dev, test ja prod keskkonnas - muudad ainult muutujaid.
 
+# Keskkonna muutuja - määrab kas dev, test või prod
+variable "environment" {
+  description = "Keskkonna nimi (dev/test/prod)"  # Dokumentatsioon teistele
+  type        = string                             # Andmetüüp: string, number, bool, list, map
+  default     = "dev"                              # Vaikeväärtus kui kasutaja ei anna
+
+  # Validation tagab, et keegi ei pane "banana" keskkkonnaks
   validation {
     condition     = contains(["dev", "test", "prod"], var.environment)
     error_message = "Environment peab olema: dev, test või prod."
   }
 }
 
+# Rakenduse nimi - kasutatakse failinimedes
 variable "app_name" {
   description = "Rakenduse nimi"
   type        = string
   default     = "myapp"
 }
 
+# Port number - näitab kuidas number tüüp töötab
 variable "port" {
   description = "Rakenduse port"
-  type        = number
+  type        = number    # number, mitte string! Terraform kontrollib tüüpi
   default     = 8080
 
+  # Kontrollime, et port oleks mõistlikus vahemikus
+  # && on "ja" operaator - mõlemad tingimused peavad olema tõesed
   validation {
     condition     = var.port > 1024 && var.port < 65535
     error_message = "Port peab olema vahemikus 1025-65534."
@@ -419,20 +465,18 @@ variable "port" {
 }
 ```
 
-Vaatame muutuja definitsiooni osi:
+**Miks validation on oluline?**
 
-- `description` - dokumentatsioon, mis aitab teistel mõista, mida muutuja teeb
-- `type` - andmetüüp (string, number, bool, list, map, object)
-- `default` - vaikeväärtus, kui kasutaja ei anna väärtust
-- `validation` - reeglid, mis kontrollivad, kas väärtus on lubatud
-
-Validation on eriti kasulik, sest see annab selge veateate, kui keegi proovib kasutada vale väärtust. Ilma selleta võid saada kryptilise vea alles apply ajal.
+Ilma validatsioonita saaksid vea alles `apply` ajal, võib-olla keset deploy'd. Validatsioon tabab vead kohe `plan` ajal ja annab selge eestikeelse teate. See säästab aega ja peavalu.
 
 ### 3.3 main.tf muutujatega
 
-Loo fail `main.tf`, mis kasutab neid muutujaid:
+Nüüd kasutame defineeritud muutujaid ressurssides. Muutujatele viitamine käib `var.nimi` süntaksiga.
+
+Loo fail `main.tf`:
 
 ```hcl
+# Provider jääb samaks nagu enne
 terraform {
   required_providers {
     local = {
@@ -442,8 +486,17 @@ terraform {
   }
 }
 
+# =============================================================================
+# RESSURSID MUUTUJATEGA
+# =============================================================================
+# Nüüd kasutame var.xxx muutujaid hardcoded väärtuste asemel.
+# ${var.nimi} - kui muutuja on stringi sees
+# var.nimi - kui muutuja on eraldi väärtus
+
 resource "local_file" "greeting" {
   filename = "${path.module}/output/hello.txt"
+  
+  # Muutujad stringi sees - kasuta ${var.xxx} süntaksit
   content  = <<-EOT
     Tere tulemast ${var.app_name} rakendusse!
     Keskkond: ${var.environment}
@@ -452,10 +505,15 @@ resource "local_file" "greeting" {
 }
 
 resource "local_file" "config" {
+  # Failinimi sisaldab nüüd rakenduse nime JA keskkonda
+  # dev: myapp-dev.conf, prod: myapp-prod.conf
+  # Nii saad hoida erinevaid keskkondi koos ilma konfliktita
   filename = "${path.module}/output/${var.app_name}-${var.environment}.conf"
+  
   content  = <<-EOT
     # ${var.app_name} Configuration
     # Environment: ${var.environment}
+    # Genereeritud Terraformiga
 
     server {
       port = ${var.port}
@@ -466,17 +524,30 @@ resource "local_file" "config" {
 }
 ```
 
-Muutujatele viitamine käib `${var.muutuja_nimi}` süntaksiga (või ilma `${}` kui see on eraldiseisev väärtus, näiteks `port = var.port`).
+**Miks muutujad failinimes?**
 
-Pane tähele, et konfiguratsioonifaili nimi sisaldab nüüd nii rakenduse nime kui keskkonda: `myapp-dev.conf`. See võimaldab hoida erinevate keskkondade faile koos ilma konfliktita.
+`${var.app_name}-${var.environment}.conf` tähendab, et sama koodiga saad luua `myapp-dev.conf`, `myapp-test.conf` ja `myapp-prod.conf` - ainult muutuja väärtust muutes. See on taaskasutuse võlu.
 
 ### 3.4 outputs.tf - Väljundite defineerimine
+
+Outputs on vastupidised muutujatele: muutujad on SISEND (annad väärtused Terraformile), outputs on VÄLJUND (Terraform annab sulle infot). Outputs on kasulik näiteks siis, kui Terraform loob serveri ja tahad teada selle IP-aadressi.
 
 Loo fail `outputs.tf`:
 
 ```hcl
+# =============================================================================
+# VÄLJUNDID (Outputs)
+# =============================================================================
+# Outputs näitavad infot pärast apply'd.
+# Kasulik: IP-aadressid, URL-id, failide teed, jne.
+# Neid saab lugeda käsurealt: terraform output
+# Või JSON formaadis skriptide jaoks: terraform output -json
+
+# Lihtne output - ainult üks väärtus
 output "config_file_path" {
   description = "Loodud config faili asukoht"
+  # local_file.config viitab ressursile main.tf-st
+  # .filename on selle ressursi atribuut
   value       = local_file.config.filename
 }
 
@@ -485,21 +556,24 @@ output "greeting_file_path" {
   value       = local_file.greeting.filename
 }
 
+# Keerulisem output - mitu väärtust koos (object)
+# See on mugav kui tahad kõik olulise info ühes kohas
 output "summary" {
   description = "Deployment kokkuvõte"
   value = {
-    app         = var.app_name
-    environment = var.environment
-    port        = var.port
-    config_path = local_file.config.filename
+    app         = var.app_name                   # Sisendmuutuja väärtus
+    environment = var.environment                # Sisendmuutuja väärtus
+    port        = var.port                       # Sisendmuutuja väärtus
+    config_path = local_file.config.filename     # Ressursi atribuut
   }
 }
 ```
 
-Outputs on kasulikud mitmel põhjusel:
-- Näitavad olulist infot pärast apply'd (IP-aadressid, URL-id, failide teed)
-- Võimaldavad teistel Terraform moodulitel kasutada sinu ressursside infot
-- Saab neid pärida skriptidest (`terraform output -json`)
+**Miks outputs on kasulik?**
+
+1. **Pärast apply'd:** Näed kohe loodud failide asukohti
+2. **Skriptides:** `terraform output -json summary` annab JSON-i, mida saad parserida
+3. **Moodulites:** Kui kasutad seda koodi moodulina, saavad teised moodulid outputs'idele ligi
 
 ### 3.5 Käivitamine vaikeväärtustega
 
@@ -609,7 +683,7 @@ See on palju parem kui kryptilised vead hiljem!
 
 Siiani oleme töötanud ainult kohalike failidega. Nüüd liigume tõelise infrastruktuuri haldamise juurde - käivitame käske Ubuntu serveris üle SSH. See on esimene samm päris DevOps töövoo poole, kus Terraform haldab servereid, võrke ja teenuseid.
 
-> **Märkus provisioner'ite kohta:** HashiCorp (Terraformi looja) soovitab keerulisema konfiguratsiooni jaoks kasutada spetsiaalseid tööriistu nagu Ansible. Provisioner'id on mõeldud "viimase võimalusena" olukordadeks, kus muud ei sobi. Meie kasutame neid õppimiseks, sest need näitavad hästi, kuidas Terraform saab serveritega suhelda. Päris töös kombineeritakse sageli Terraform (loob infrastruktuuri) + Ansible (konfigureerib selle).
+> **Märkus:** HashiCorp soovitab provisioner'ite asemel kasutada Ansibled (mida juba tunnete). Provisioner'id on "last resort". Meie kasutame neid õppimiseks, sest need näitavad Terraformi võimalusi.
 
 ### 4.1 Uus projekt
 
@@ -642,9 +716,19 @@ Kui see ei tööta, siis Terraform ka ei tööta. Lahenda SSH probleem enne jät
 
 ### 4.3 main.tf - Esimene remote-exec
 
+Siin tuleb mitu uut kontseptsiooni korraga, aga ära muretse - käime need läbi samm-sammult. Põhiidee on lihtne: Terraform ühendub SSH kaudu serveriga ja käivitab seal käsud.
+
 Loo fail `main.tf`:
 
 ```hcl
+# =============================================================================
+# PROVIDER: NULL
+# =============================================================================
+# "null" provider on eriline - ta ei loo midagi päriselt.
+# Tema ainus eesmärk on pakkuda "null_resource" ressurssi,
+# mis on konteiner provisioner'itele.
+# Päris elus kasutaksid aws_instance, azurerm_virtual_machine jne.
+
 terraform {
   required_providers {
     null = {
@@ -654,65 +738,96 @@ terraform {
   }
 }
 
+# =============================================================================
+# MUUTUJAD SSH ÜHENDUSEKS
+# =============================================================================
+# Paneme SSH andmed muutujatesse, et oleks lihtne muuta
+# (näiteks kui tahad testida teise serveriga)
+
 variable "target_host" {
   description = "Ubuntu serveri IP-aadress"
   type        = string
-  default     = "10.0.208.20"
+  default     = "10.0.208.20"    # Ubuntu-1 IP sinu labori võrgus
 }
 
 variable "ssh_user" {
   description = "SSH kasutajanimi"
   type        = string
-  default     = "kasutaja"
+  default     = "kasutaja"       # Muuda kui sinu kasutaja on teine
 }
 
 variable "ssh_private_key" {
   description = "SSH privaatvõtme asukoht"
   type        = string
-  default     = "~/.ssh/id_ed25519"
+  default     = "~/.ssh/id_ed25519"  # Windowsis: C:\Users\SINU_NIMI\.ssh\id_ed25519
 }
 
-resource "null_resource" "system_info" {
-  connection {
-    type        = "ssh"
-    host        = var.target_host
-    user        = var.ssh_user
-    private_key = file(pathexpand(var.ssh_private_key))
-    timeout     = "2m"
-  }
+# =============================================================================
+# NULL RESOURCE + PROVISIONER
+# =============================================================================
+# null_resource ei loo midagi - ta on lihtsalt "konteiner" provisioner'itele.
+# Provisioner on kood, mis käivitub ressursi loomisel.
 
+resource "null_resource" "system_info" {
+  
+  # CONNECTION: Kuidas Terraform serveriga ühendub
+  # -------------------------------------------------
+  # See plokk ütleb Terraformile SSH ühenduse parameetrid.
+  # Ilma selleta ei tea Terraform, kuhu ühenduda.
+  connection {
+    type        = "ssh"                                      # SSH (Linux) või WinRM (Windows)
+    host        = var.target_host                            # IP-aadress
+    user        = var.ssh_user                               # Kasutajanimi
+    private_key = file(pathexpand(var.ssh_private_key))      # SSH võtme SISU (mitte tee!)
+    timeout     = "2m"                                       # Kui kaua oodata ühendust
+  }
+  # MIKS pathexpand()? Windows'is ei tööta ~ alati.
+  # pathexpand("~/.ssh/id") -> "C:/Users/kasutaja/.ssh/id"
+  #
+  # MIKS file()? Connection tahab võtme SISU, mitte failiteed.
+  # file() loeb faili ja tagastab selle sisu stringina.
+
+  # REMOTE-EXEC: Käsud, mis käivitatakse serveris
+  # -------------------------------------------------
+  # inline = nimekiri käskudest, käivitatakse järjest
   provisioner "remote-exec" {
     inline = [
+      # Iga string on üks käsk, mis käivitub Ubuntu serveris
       "echo '=== System Info ==='",
-      "hostname",
-      "whoami",
-      "uname -a",
+      "hostname",                              # Serveri nimi
+      "whoami",                                # Praegune kasutaja
+      "uname -a",                              # Kerneli info
       "echo ''",
       "echo '=== Network ==='",
-      "ip -4 addr show | grep 'inet ' | head -2",
+      "ip -4 addr show | grep 'inet ' | head -2",  # IP-aadressid
       "echo ''",
       "echo '=== Disk ==='",
-      "df -h / | tail -1",
+      "df -h / | tail -1",                     # Kettakasutus
       "echo ''",
       "echo '=== Done ==='"
     ]
   }
 }
 
+# Output kinnitab, et kõik õnnestus
 output "status" {
   value = "SSH ühendus serveriga ${var.target_host} õnnestus!"
 }
 ```
 
-Vaatame seda koodi lähemalt, sest siin on mitu uut kontseptsiooni.
+**Mida see kood teeb samm-sammult:**
 
-**null_resource** on eriline ressurss, mis ei loo tegelikult midagi. Ta on "konteiner" provisioner'itele - võimaldab käivitada käske ilma, et peaks looma mingit infrastruktuuri. Päris elus kasutad `aws_instance` või `azurerm_virtual_machine` ressursse, millel on samuti provisioner'id.
+1. **Provider** - laeme `null` provider'i, mis annab meile `null_resource`
+2. **Muutujad** - defineerime SSH ühenduse andmed (IP, kasutaja, võti)
+3. **Connection** - ütleme Terraformile, kuidas SSH-ga ühenduda
+4. **Remote-exec** - nimekiri käskudest, mis käivitatakse serveris
 
-**connection** plokk ütleb Terraformile, kuidas serveriga ühenduda. Toetatud on SSH (Linux) ja WinRM (Windows). Meie kasutame SSH-d.
+**Miks `file(pathexpand(...))` kombinatsioon?**
 
-**pathexpand()** on Terraformi funktsioon, mis teisendab `~` täielikuks teeks. See on oluline Windows'is, kus `~` ei pruugi alati töötada. `pathexpand("~/.ssh/id_ed25519")` muutub näiteks `C:/Users/kasutaja/.ssh/id_ed25519`.
+- `pathexpand("~/.ssh/id_ed25519")` → `C:/Users/kasutaja/.ssh/id_ed25519`
+- `file("C:/Users/...")` → loeb faili sisu stringina
 
-**file()** loeb faili sisu. Meie puhul loeb SSH privaatvõtme sisu ja edastab selle ühendusele.
+Connection vajab võtme **sisu**, mitte failiteed. Seega loeme faili ja anname sisu.
 
 **provisioner "remote-exec"** käivitab käsud remote serveris. `inline` parameeter on nimekiri käskudest, mis käivitatakse järjest.
 
@@ -773,7 +888,7 @@ See on esimene kord, kui Terraform suhtles päris serveriga! Käsud käivitusid 
 
 ### 4.5 Nginx veebiserveri paigaldamine
 
-Nüüd teeme midagi kasulikku - paigaldame Nginx veebiserveri ja loome lihtsa veebilehe.
+Nüüd teeme midagi kasulikku - paigaldame Nginx veebiserveri ja loome lihtsa veebilehe. See näitab, kuidas Terraform saab serverisse tarkvara paigaldada.
 
 Kustuta esmalt vana ressurss ja loo uus konfiguratsioon. Asenda kogu `main.tf` sisu:
 
@@ -787,6 +902,7 @@ terraform {
   }
 }
 
+# Samad muutujad nagu enne
 variable "target_host" {
   description = "Ubuntu serveri IP-aadress"
   type        = string
@@ -806,7 +922,17 @@ variable "ssh_private_key" {
 }
 
 resource "null_resource" "nginx_setup" {
-  # Trigger määrab, millal provisioner uuesti käivitub
+  
+  # ==========================================================================
+  # TRIGGERS - Millal käivitub uuesti?
+  # ==========================================================================
+  # Probleem: provisioner käivitub ainult ressursi LOOMISEL.
+  # Kui ressurss on juba olemas, ei käivitu ta uuesti.
+  #
+  # Lahendus: triggers. Kui trigger'i väärtus muutub,
+  # loeb Terraform seda kui "ressurss on muutunud" ja loob uuesti.
+  #
+  # Muuda "1" -> "2" kui tahad uuesti deploy'da ilma destroy'ta.
   triggers = {
     version = "1"
   }
@@ -816,24 +942,43 @@ resource "null_resource" "nginx_setup" {
     host        = var.target_host
     user        = var.ssh_user
     private_key = file(pathexpand(var.ssh_private_key))
-    timeout     = "5m"
+    timeout     = "5m"    # Pikem timeout, sest apt install võtab aega
   }
 
+  # ==========================================================================
+  # NGINX PAIGALDAMINE JA SEADISTAMINE
+  # ==========================================================================
+  # Iga käsk käivitub Ubuntu serveris järjest.
+  # Kui üks käsk ebaõnnestub (exit code != 0), peatub kogu protsess.
   provisioner "remote-exec" {
     inline = [
+      # Samm 1: Uuenda pakettide nimekiri
+      # -qq = quiet mode, vähem väljundit
       "echo '>>> Uuendan pakettide nimekirja...'",
       "sudo apt-get update -qq",
 
+      # Samm 2: Paigalda Nginx
+      # -y = vastab automaatselt "yes" küsimustele
       "echo '>>> Paigaldan Nginx...'",
       "sudo apt-get install -y -qq nginx",
 
+      # Samm 3: Loo custom veebileht
+      # $(hostname) ja $(date) täidetakse serveris
+      # tee kirjutab stdin'i faili (sudo õigustega)
+      # > /dev/null peidab tee väljundi
       "echo '>>> Loon custom veebilehe...'",
       "echo '<html><body style=\"font-family: Arial; text-align: center; padding: 50px;\"><h1>Deployed by Terraform!</h1><p>Server: '$(hostname)'</p><p>Time: '$(date)'</p></body></html>' | sudo tee /var/www/html/index.html > /dev/null",
 
+      # Samm 4: Käivita ja luba Nginx
+      # enable = käivitub automaatselt serveri reboot'il
+      # restart = käivita kohe
       "echo '>>> Käivitan Nginx...'",
       "sudo systemctl enable nginx",
       "sudo systemctl restart nginx",
 
+      # Samm 5: Kontrolli, et töötab
+      # curl localhost loeb veebilehe sisu
+      # grep -o otsib ainult h1 tag'i
       "echo '>>> Kontrollin...'",
       "curl -s http://localhost | grep -o '<h1>.*</h1>'",
 
@@ -842,6 +987,7 @@ resource "null_resource" "nginx_setup" {
   }
 }
 
+# Outputs näitavad kuidas ligi pääseda
 output "web_url" {
   value = "Veebileht: http://${var.target_host}"
 }
@@ -851,7 +997,11 @@ output "ssh_command" {
 }
 ```
 
-Oluline uus element on **triggers**. See on map, mis määrab, millal provisioner uuesti käivitub. `null_resource` provisioner käivitub vaikimisi ainult ressursi loomisel. Kui tahad uuesti käivitada, pead kas ressursi kustutama (`terraform destroy`) või muutma trigger'it.
+**Mis muutus võrreldes eelmisega?**
+
+1. **triggers** - uus plokk, mis kontrollib millal provisioner uuesti käivitub
+2. **Pikem timeout** - apt install võtab aega, 2 minutit ei pruugi piisata
+3. **Päris käsud** - apt update, apt install, systemctl
 
 Kustuta vana ja loo uus:
 
@@ -975,6 +1125,8 @@ See on ilusam veebileht kui eelmine! CSS stiilid teevad selle visuaalselt atrakt
 
 ### 5.2 main.tf file provisioner'iga
 
+File provisioner kopeerib faile sinu arvutist serverisse. See on palju mugavam kui pikad `echo` käsud, eriti suuremate failide puhul. Vaatame, kuidas see töötab.
+
 Asenda kogu `main.tf` sisu:
 
 ```hcl
@@ -1006,7 +1158,15 @@ variable "ssh_private_key" {
 }
 
 resource "null_resource" "web_deploy" {
-  # Trigger: kui HTML fail muutub, deploy uuesti
+  
+  # ==========================================================================
+  # TRIGGER: filemd5() - automaatne redeploy kui fail muutub
+  # ==========================================================================
+  # filemd5() arvutab faili MD5 räsi (checksum).
+  # Kui fail muutub, muutub räsi, trigger muutub, ressurss luuakse uuesti.
+  #
+  # See on PAREM kui manuaalne version = "1", "2", "3"...
+  # sest sa ei pea meeles pidama versiooni muutmist.
   triggers = {
     html_hash = filemd5("${path.module}/files/index.html")
   }
@@ -1019,15 +1179,29 @@ resource "null_resource" "web_deploy" {
     timeout     = "2m"
   }
 
-  # Esimene samm: kopeeri fail serverisse
+  # ==========================================================================
+  # FILE PROVISIONER - kopeeri fail serverisse
+  # ==========================================================================
+  # source = kohalik fail (WinKlient)
+  # destination = asukoht serveris (Ubuntu)
+  #
+  # MIKS /tmp/? Sest meil pole õigust otse /var/www/html/ kirjutada.
+  # Kopeerime /tmp/ ja liigutame siis sudo'ga.
   provisioner "file" {
-    source      = "${path.module}/files/index.html"
-    destination = "/tmp/index.html"
+    source      = "${path.module}/files/index.html"   # Sinu arvutist
+    destination = "/tmp/index.html"                    # Serverisse /tmp/
   }
 
-  # Teine samm: paigalda Nginx ja liiguta fail õigesse kohta
+  # ==========================================================================
+  # REMOTE-EXEC - liiguta fail õigesse kohta ja käivita Nginx
+  # ==========================================================================
+  # Provisioner'id käivituvad JÄRJEKORRAS.
+  # Kõigepealt file (kopeeri), siis remote-exec (seadista).
   provisioner "remote-exec" {
     inline = [
+      # Kontrolli kas Nginx on olemas, paigalda kui pole
+      # command -v kontrollib kas käsk eksisteerib
+      # &> /dev/null peidab väljundi
       "echo '>>> Kontrollin Nginx olemasolu...'",
       "if ! command -v nginx &> /dev/null; then",
       "  echo '>>> Paigaldan Nginx...'",
@@ -1035,10 +1209,15 @@ resource "null_resource" "web_deploy" {
       "  sudo apt-get install -y -qq nginx",
       "fi",
 
+      # Liiguta fail /tmp/ -> /var/www/html/
+      # mv on kiirem kui cp + rm
       "echo '>>> Kopeerin veebilehe...'",
       "sudo mv /tmp/index.html /var/www/html/index.html",
+      
+      # Muuda omanik www-data'ks (Nginx kasutaja)
       "sudo chown www-data:www-data /var/www/html/index.html",
 
+      # Taaskäivita Nginx, et muudatused rakenduks
       "echo '>>> Taaskäivitan Nginx...'",
       "sudo systemctl restart nginx",
 
@@ -1047,6 +1226,7 @@ resource "null_resource" "web_deploy" {
   }
 }
 
+# Outputs
 output "web_url" {
   value = "Veebileht: http://${var.target_host}"
 }
@@ -1057,13 +1237,12 @@ output "deployed_file_hash" {
 }
 ```
 
-Uued elemendid:
+**Miks just selline struktuur?**
 
-**filemd5()** arvutab faili MD5 räsi. Kui fail muutub, muutub ka räsi, mis omakorda muudab trigger'it. See on elegantsem kui manuaalne versiooni number - sa ei pea meeles pidama versiooni suurendamist.
-
-**provisioner "file"** kopeerib faili kohalikust arvutist serverisse. `source` on kohalik tee, `destination` on tee serveris. Pane tähele, et kopeerime `/tmp/` kausta, mitte otse `/var/www/html/` - see on seetõttu, et meil pole õigusi otse sinna kirjutada. Pärast kopeerimist liigutame faili `sudo mv` abil.
-
-**Provisioner'ite järjekord** on oluline! File provisioner käivitub enne remote-exec'i, sest see on esimesena defineeritud.
+1. **filemd5() trigger** - automaatne redeploy kui fail muutub, ei pea ise meeles pidama
+2. **File provisioner** - kopeerib faili, palju lihtsam kui pikad echo käsud
+3. **Kahe-sammuline protsess** - kopeeri /tmp/, liiguta sudo'ga - sest otse kirjutamiseks pole õigusi
+4. **Provisioner'ite järjekord** - file ENNE remote-exec, vastasel juhul poleks faili mida liigutada
 
 ### 5.3 Käivitamine
 
