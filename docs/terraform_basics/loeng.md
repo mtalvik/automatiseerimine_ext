@@ -20,33 +20,21 @@ Pärast seda loengut sa:
 
 ## 1. Terraform ja teised tööriistad
 
-Ansible'iga olete juba tuttavad - see konfigureerib olemasolevat infrastruktuuri. Installid pakette, kopeerid faile, käivitad teenuseid. Aga kust tulevad need serverid, mida Ansible konfigureerib? Keegi peab need enne looma. Siin tuleb mängu Terraform.
+Ansible'iga olete juba tuttavad - see konfigureerib olemasolevat infrastruktuuri. Aga kust tulevad need serverid, mida Ansible konfigureerib? Keegi peab need enne looma. Siin tuleb mängu Terraform.
 
-Terraform on infrastruktuuri loomise tööriist. Kui Ansible on "sisekujundaja", kes paneb majja mööbli ja värvib seinad, siis Terraform on "ehitaja", kes ehitab maja ise - vundamendi, seinad, katuse. Praktikas töötavad need tööriistad koos: Terraform loob serverid pilves, seejärel Ansible konfigureerib need serverid, ja lõpuks Kubernetes jooksutab neil rakendustel.
+Terraform on infrastruktuuri loomise tööriist. Kui Ansible on "sisekujundaja", kes paneb majja mööbli, siis Terraform on "ehitaja", kes ehitab maja ise. Praktikas töötavad need koos: Terraform loob serverid pilves, Ansible konfigureerib need.
 
 ![Kuidas Terraform töötab](https://media.geeksforgeeks.org/wp-content/uploads/20241212151316849879/How-does-Terraform-work.webp)
 
-### Miks mitte kasutada Ansibled infrastruktuuri loomiseks?
+### Terraform versus Ansible infrastruktuuri loomisel
 
-Ansible saab tehniliselt ka infrastruktuuri luua - olemas on `amazon.aws.ec2_instance` moodul ja sarnased. Aga Terraform on selleks tööks parem mitmel põhjusel.
-
-Esiteks, state management. Terraform peab arvet, mis ressursid on juba loodud. Kui kirjutad konfiguratsiooni "tahan 5 serverit" ja 3 on juba olemas, loob Terraform ainult 2 juurde. Ansible seevastu loob 5 uut serverit, sest tal puudub mälu varasematest käivitustest. Tulemuseks on 8 serverit ja ootamatult suur arve.
-
-Teiseks, planeerimine. Terraform'i `plan` käsk näitab ette, mis täpselt muutub, enne kui midagi tehakse. Sa näed, et "luuakse 2 serverit, kustutatakse 1, muudetakse 3 security groupi". Ansible'il sellist sisseehitatud funktsionaalsust pole - sa käivitad playbooki ja loodad parimat.
-
-Kolmandaks, sõltuvuste graaf. Terraform mõistab automaatselt, et VPC tuleb luua enne subnetti ja subnet enne serverit. Ta ehitab sõltuvuste graafi ja paralleliseerib kõik, mis võimalik. Ansible'is pead sa ise järjekorra määrama ja kui unustad midagi, siis playbook kukub läbi.
-
-Neljandaks, elutsükli haldus. Terraform teab vahet, millal ressurss vajab uuesti loomist (replace) versus millal piisab uuendamisest (update). Näiteks kui muudad EC2 instance'i AMI'd, siis Terraform teab, et vana tuleb kustutada ja uus luua. Ansible'is pead selle loogika ise kirjutama.
+Ansible saab tehniliselt ka infrastruktuuri luua (`amazon.aws.ec2_instance` moodul), aga Terraform on selleks parem. Peamised erinevused: Terraform peab arvet loodud ressurssidest (state), näitab ette mis muutub (`plan`), mõistab automaatselt sõltuvusi (VPC enne subnetti), ja teab millal ressurss vajab uuesti loomist versus uuendamist.
 
 ### Terraform versus CloudFormation
 
-CloudFormation on AWS-i enda IaC tööriist. Kui su ettevõte kasutab ainult AWS-i ja plaanib seda teha igavesti, siis CloudFormation on täiesti mõistlik valik - AWS haldab state'i sinu eest ja integratsioon on sügav.
+CloudFormation on AWS-i enda IaC tööriist - hea valik kui oled 100% AWS-is. Terraform töötab AWS, Azure, GCP ja sadade teiste platvormidega sama süntaksiga. Õpid ühe korra, kasutad kõikjal.
 
-Aga enamik ettevõtteid ei ole 100% ühes pilves. Täna AWS, homme võib-olla Azure'i või GCP projekt. Terraform töötab kõigi nendega sama süntaksiga. Õpid ühe korra ja kasutad kõikjal. See on Terraformi peamine eelis - sa ei ole lukustatud ühe pilveteenuse pakkuja külge.
-
-![Multi-Cloud](https://miro.medium.com/v2/resize:fit:627/1*OiA514LNzKtDij8cSVrKeA.png)
-
-![Terraform Key Features](https://nxos-devops.ciscolive.com/lab/static/images/terraform/terraform-1.jpg)
+Vaata lisaks: [Multi-Cloud diagramm](https://miro.medium.com/v2/resize:fit:627/1*OiA514LNzKtDij8cSVrKeA.png) | [Terraform Key Features](https://nxos-devops.ciscolive.com/lab/static/images/terraform/terraform-1.jpg)
 
 ---
 
@@ -250,9 +238,7 @@ resource "local_file" "configs" {
 
 ## 5. Terraform workflow
 
-Terraformi kasutamine järgib kindlat töövoogu: `init`, `plan`, `apply`, ja vajadusel `destroy`. Seda tsüklit korratakse iga muudatuse tegemisel.
-
-![Terraform workflow](https://assets.bytebytego.com/diagrams/0225-how-terraform-creates-infra-at-scale.png)
+Terraformi kasutamine järgib kindlat töövoogu: `init`, `plan`, `apply`, ja vajadusel `destroy`. Seda tsüklit korratakse iga muudatuse tegemisel. Vaata: [Terraform workflow diagramm](https://assets.bytebytego.com/diagrams/0225-how-terraform-creates-infra-at-scale.png)
 
 ### terraform init
 
